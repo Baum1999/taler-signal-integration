@@ -292,4 +292,21 @@
     <string name="send_deposit_check_fees_button"></string>
     <string name="send_deposit_host"></string>
     <string name="send_deposit_iban_error"></string>
+    <string name="transaction_refresh"></string>
+    <string name="withdraw_amount_error"></string>
+    <string name="withdraw_waiting_confirm"></string>
+    <string name="withdraw_title"></string>
+    <string name="withdraw_button_confirm_bank"></string>
+    <string name="withdraw_button_confirm"></string>
+    <string name="withdraw_error_message"></string>
+    <string name="withdraw_error_test"></string>
+    <string name="exchange_settings_title"></string>
+    <string name="host_apdu_service_desc"></string>
+    <string name="withdraw_button_tos"></string>
+    <string name="withdraw_error_title"></string>
+    <string name="payment_already_paid"></string>
+    <string name="payment_initiated"></string>
+    <string name="withdraw_initiated"></string>
+    <string name="withdraw_exchange"></string>
+    <string name="payment_balance_insufficient"></string>
 </resources>
