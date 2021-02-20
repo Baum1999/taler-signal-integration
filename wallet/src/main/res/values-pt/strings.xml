@@ -131,6 +131,7 @@
     <string name="exchange_add_error">Não foi possível adicionar câmbio</string>
     <plurals name="exchange_fee_coin">
         <item quantity="one">Moeda: %s (usada %d vez)</item>
+        <item quantity="many"></item>
         <item quantity="other">Moeda: %s (usada %d vezes)</item>
     </plurals>
     <string name="exchange_tos_accept">Aceitar os Termos de Serviço</string>
