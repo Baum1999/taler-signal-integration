@@ -64,6 +64,7 @@
     <string name="exchange_add_error">Non è stato possibile aggiungere il cambio</string>
     <plurals name="exchange_fee_coin">
         <item quantity="one">Moneta: %s (usata %d volte)</item>
+        <item quantity="many"></item>
         <item quantity="other">Moneta: %s (usate %d volte)</item>
     </plurals>
     <string name="settings_withdraw_testkudos">Ritirare TESTKUDOS</string>
