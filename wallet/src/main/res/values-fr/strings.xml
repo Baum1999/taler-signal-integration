@@ -144,7 +144,7 @@
     <string name="receive_peer_title">Demande de paiement</string>
     <string name="receive_peer_create_button">Créer une facture</string>
     <string name="transactions_delete_dialog_title">Supprimer la transaction</string>
-    <string name="transactions_delete_dialog_message">Êtes-vous sûr de vouloir supprimer cette transaction de votre portefeuille \?</string>
+    <string name="transactions_delete_dialog_message">Êtes-vous sûr de vouloir supprimer cette transaction de votre portefeuille ?</string>
     <string name="receive_amount_invalid">Montant invalide</string>
     <string name="receive_intro">Choisir où recevoir l\'argent :</string>
     <string name="receive_peer_invoice_instruction">Laissez le payeur scanner ce QR code pour payer :</string>
@@ -163,7 +163,7 @@
     <string name="transactions_receive_funds">Recevoir</string>
     <string name="transactions_send_funds">Envoyer</string>
     <string name="char_count">%1$d/%2$d</string>
-    <string name="transactions_delete_selected_dialog_message">Êtes-vous sûr de vouloir supprimer les transactions sélectionnées de votre portefeuille \?</string>
+    <string name="transactions_delete_selected_dialog_message">Êtes-vous sûr de vouloir supprimer les transactions sélectionnées de votre portefeuille ?</string>
     <string name="receive_peer_invoice_uri">Sinon, copier et envoyer cet URI :</string>
     <string name="send_deposit_bic">BIC/SWIFT</string>
     <string name="send_deposit_name">Titulaire du compte</string>
@@ -182,7 +182,7 @@
     <string name="send_peer">Vers un autre portefeuille</string>
     <string name="pay_peer_intro">Voulez-vous payer cette demande ?</string>
     <string name="receive_peer_payment_title">Recevoir le paiement</string>
-    <string name="receive_peer_payment_intro">Voulez-vous recevoir ce paiement \?</string>
+    <string name="receive_peer_payment_intro">Voulez-vous recevoir ce paiement ?</string>
     <string name="send_peer_purpose">Référence</string>
     <string name="send_deposit_bitcoin">Vers un portefeuille Bitcoin</string>
     <string name="send_peer_bitcoin">Vers un autre portefeuille Taler</string>
