@@ -70,8 +70,8 @@
     <string name="transactions_delete">Esborrar</string>
     <string name="transactions_select_all">Seleccionar-ho tot</string>
     <string name="transactions_delete_dialog_title">Esborrar la transacció</string>
-    <string name="transactions_delete_dialog_message">Estàs segur que vols eliminar aquesta transacció de la teva cartera\?</string>
-    <string name="transactions_delete_selected_dialog_message">Estàs segur que vols eliminar les transaccions seleccionades de la teva cartera\?</string>
+    <string name="transactions_delete_dialog_message">Estàs segur que vols eliminar aquesta transacció de la teva cartera?</string>
+    <string name="transactions_delete_selected_dialog_message">Estàs segur que vols eliminar les transaccions seleccionades de la teva cartera?</string>
     <!-- Transactions -->
     <string name="transaction_paid">Pagat</string>
     <string name="transaction_order_total">Total</string>
@@ -131,7 +131,7 @@
     <string name="pay_peer_title">Factura de pagament</string>
     <string name="pay_peer_intro">Vols pagar aquesta factura?</string>
     <string name="receive_peer_payment_title">Rebre un pagament</string>
-    <string name="receive_peer_payment_intro">Vols rebre aquest pagament\?</string>
+    <string name="receive_peer_payment_intro">Vols rebre aquest pagament?</string>
     <string name="withdraw_initiated">Retirada iniciada</string>
     <string name="withdraw_title">Retirada</string>
     <string name="withdraw_total">Retirar</string>
@@ -236,7 +236,7 @@
     <string name="transactions_fail_dialog_message">Estàs segur que vols matar aquesta transacció? Els diners en transit ES PERDRAN.</string>
     <string name="transactions_resume">Continuar</string>
     <string name="transactions_abort_dialog_title">Avortar transacció</string>
-    <string name="transactions_abort_dialog_message">Estàs segur que vols avortar aquesta transacció\? Els diners en trànsit es podrien perdre.</string>
+    <string name="transactions_abort_dialog_message">Estàs segur que vols avortar aquesta transacció? Els diners en trànsit es podrien perdre.</string>
     <string name="offline_banner">Ni hi ha accés a internet</string>
     <string name="exchange_list_error">No s\'han pogut llistar serveis de canvi</string>
     <string name="amount_transfer"></string>
