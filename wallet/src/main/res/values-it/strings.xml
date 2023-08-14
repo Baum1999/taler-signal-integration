@@ -171,7 +171,7 @@
     <string name="transactions_delete_dialog_message">Sei sicuro di voler rimuovere questa transazione dal tuo portafogli?</string>
     <string name="transaction_deposit">Deposita</string>
     <string name="receive_peer_payment_title">Ricevi pagamento</string>
-    <string name="receive_peer_payment_intro">Vuoi ricevere questo pagamento\?</string>
+    <string name="receive_peer_payment_intro">Vuoi ricevere questo pagamento?</string>
     <string name="withdraw_manual_ready_iban">IBAN</string>
     <string name="transactions_send_funds">Invia
 \nFondi</string>
