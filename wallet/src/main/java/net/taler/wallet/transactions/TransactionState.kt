@@ -79,102 +79,21 @@ enum class TransactionMajorState {
 
 @Serializable
 enum class TransactionMinorState {
-    @SerialName("unknown")
-    Unknown,
-
-    @SerialName("deposit")
-    Deposit,
-
     @SerialName("kyc")
     KycRequired,
-
-    @SerialName("aml")
-    AmlRequired,
-
-    @SerialName("merge-kyc")
-    MergeKycRequired,
-
-    @SerialName("track")
-    Track,
-
-    @SerialName("submit-payment")
-    SubmitPayment,
-
-    @SerialName("rebind-session")
-    RebindSession,
-
-    @SerialName("refresh")
-    Refresh,
-
-    @SerialName("pickup")
-    Pickup,
-
-    @SerialName("auto-refund")
-    AutoRefund,
-
-    @SerialName("user")
-    User,
-
-    @SerialName("bank")
-    Bank,
 
     @SerialName("exchange")
     Exchange,
 
-    @SerialName("claim-proposal")
-    ClaimProposal,
-
-    @SerialName("check-refund")
-    CheckRefund,
-
     @SerialName("create-purse")
     CreatePurse,
-
-    @SerialName("delete-purse")
-    DeletePurse,
-
-    @SerialName("refresh-expired")
-    RefreshExpired,
 
     @SerialName("ready")
     Ready,
 
-    @SerialName("merge")
-    Merge,
-
-    @SerialName("repurchase")
-    Repurchase,
-
-    @SerialName("bank-register-reserve")
-    BankRegisterReserve,
-
     @SerialName("bank-confirm-transfer")
     BankConfirmTransfer,
 
-    @SerialName("withdraw-coins")
-    WithdrawCoins,
-
     @SerialName("exchange-wait-reserve")
     ExchangeWaitReserve,
-
-    @SerialName("aborting-bank")
-    AbortingBank,
-
-    @SerialName("refused")
-    Refused,
-
-    @SerialName("withdraw")
-    Withdraw,
-
-    @SerialName("merchant-order-proposed")
-    MerchantOrderProposed,
-
-    @SerialName("proposed")
-    Proposed,
-
-    @SerialName("refund-available")
-    RefundAvailable,
-
-    @SerialName("accept-refund")
-    AcceptRefund
 }

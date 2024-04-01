@@ -39,6 +39,7 @@ class BackendManager(
         private const val TAG_CORE = "taler-wallet-embedded"
         val json = Json {
             ignoreUnknownKeys = true
+            coerceInputValues = true
         }
         @JvmStatic
         private val initialized = AtomicBoolean(false)
