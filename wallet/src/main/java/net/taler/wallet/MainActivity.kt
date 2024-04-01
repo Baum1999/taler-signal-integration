@@ -55,7 +55,6 @@ import net.taler.wallet.HostCardEmulatorService.Companion.MERCHANT_NFC_CONNECTED
 import net.taler.wallet.HostCardEmulatorService.Companion.MERCHANT_NFC_DISCONNECTED
 import net.taler.wallet.HostCardEmulatorService.Companion.TRIGGER_PAYMENT_ACTION
 import net.taler.wallet.databinding.ActivityMainBinding
-import net.taler.wallet.events.ObservabilityDialog
 
 class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
     OnPreferenceStartFragmentCallback {
@@ -163,6 +162,11 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
         }
         ui.drawerLayout.closeDrawer(START)
         return true
+    }
+
+    private fun handleTalerUri(uri: String, from: String) {
+        val args = bundleOf("uri" to uri, "from" to from)
+        nav.navigate(R.id.action_global_handle_uri, args)
     }
 
     override fun onDestroy() {
