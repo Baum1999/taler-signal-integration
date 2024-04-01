@@ -171,7 +171,7 @@ private fun ReceiveFundsIntro(
                     .weight(1f),
                 onClick = {
                     val amount = getAmount(currency, text)
-                    if (amount == null) isError = true
+                    if (amount == null || amount.isZero()) isError = true
                     else onManualWithdraw(amount)
                 }) {
                 Text(text = stringResource(R.string.receive_withdraw))
