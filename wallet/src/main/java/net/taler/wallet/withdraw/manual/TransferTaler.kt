@@ -42,6 +42,12 @@ fun TransferTaler(
     transactionAmountRaw: Amount,
     transactionAmountEffective: Amount,
 ) {
+    val transferAmount = transfer
+        .withdrawalAccount
+        .transferAmount
+        ?.withSpec(transfer.withdrawalAccount.currencySpecification)
+        ?: transfer.amountRaw
+
     Column(
         modifier = Modifier.padding(all = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -49,7 +55,7 @@ fun TransferTaler(
         Text(
             text = stringResource(
                 R.string.withdraw_manual_ready_intro,
-                transfer.amountRaw.toString()),
+                transferAmount),
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier
                 .padding(vertical = 8.dp)
@@ -78,12 +84,10 @@ fun TransferTaler(
             info = cleanExchange(exchangeBaseUrl),
         )
 
-        transfer.withdrawalAccount.transferAmount?.let { amount ->
-            WithdrawalAmountTransfer(
-                amountRaw = transactionAmountRaw,
-                amountEffective = transactionAmountEffective,
-                conversionAmountRaw = amount,
-            )
-        }
+        WithdrawalAmountTransfer(
+            amountRaw = transactionAmountRaw,
+            amountEffective = transactionAmountEffective,
+            conversionAmountRaw = transferAmount,
+        )
     }
 }

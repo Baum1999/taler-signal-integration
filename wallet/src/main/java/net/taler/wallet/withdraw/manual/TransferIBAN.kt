@@ -42,6 +42,12 @@ fun TransferIBAN(
     transactionAmountRaw: Amount,
     transactionAmountEffective: Amount,
 ) {
+    val transferAmount = transfer
+        .withdrawalAccount
+        .transferAmount
+        ?.withSpec(transfer.withdrawalAccount.currencySpecification)
+        ?: transfer.amountRaw
+
     Column(
         modifier = Modifier.padding(all = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -49,7 +55,7 @@ fun TransferIBAN(
         Text(
             text = stringResource(
                 R.string.withdraw_manual_ready_intro,
-                transfer.amountRaw.toString()),
+                transferAmount),
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier
                 .padding(vertical = 8.dp)
@@ -78,14 +84,10 @@ fun TransferIBAN(
             info = cleanExchange(exchangeBaseUrl),
         )
 
-        transfer.withdrawalAccount.transferAmount?.let { amount ->
-            WithdrawalAmountTransfer(
-                amountRaw = transactionAmountRaw,
-                amountEffective = transactionAmountEffective,
-                conversionAmountRaw = amount.withSpec(
-                    transfer.withdrawalAccount.currencySpecification,
-                ),
-            )
-        }
+        WithdrawalAmountTransfer(
+            amountRaw = transactionAmountRaw,
+            amountEffective = transactionAmountEffective,
+            conversionAmountRaw = transferAmount,
+        )
     }
 }
