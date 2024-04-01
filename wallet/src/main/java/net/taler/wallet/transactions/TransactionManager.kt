@@ -82,6 +82,8 @@ class TransactionManager(
             mProgress.postValue(false)
         }.onSuccess { result ->
             val transactions = LinkedList(result.transactions)
+            val comparator = compareBy<Transaction> { it.txState.major == Pending }
+            transactions.sortWith(comparator)
             transactions.reverse() // show latest first
 
             mProgress.value = false
