@@ -55,6 +55,7 @@ import net.taler.wallet.HostCardEmulatorService.Companion.MERCHANT_NFC_CONNECTED
 import net.taler.wallet.HostCardEmulatorService.Companion.MERCHANT_NFC_DISCONNECTED
 import net.taler.wallet.HostCardEmulatorService.Companion.TRIGGER_PAYMENT_ACTION
 import net.taler.wallet.databinding.ActivityMainBinding
+import net.taler.wallet.events.ObservabilityDialog
 
 class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
     OnPreferenceStartFragmentCallback {
@@ -162,6 +163,15 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
         }
         ui.drawerLayout.closeDrawer(START)
         return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.action_show_logs -> {
+                ObservabilityDialog().show(supportFragmentManager, "OBSERVABILITY")
+            }
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     private fun handleTalerUri(uri: String, from: String) {
