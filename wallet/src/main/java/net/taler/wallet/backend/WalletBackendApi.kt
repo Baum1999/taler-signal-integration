@@ -29,13 +29,13 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import net.taler.wallet.backend.TalerErrorCode.NONE
 import org.json.JSONObject
 import java.io.File
-import net.taler.wallet.backend.WalletRunConfig.*
 
 private const val WALLET_DB = "talerwalletdb.sqlite3"
 
 @OptIn(DelicateCoroutinesApi::class)
 class WalletBackendApi(
     private val app: Application,
+    private val initialConfig: WalletRunConfig,
     private val versionReceiver: VersionReceiver,
     notificationReceiver: NotificationReceiver,
 ) {
@@ -57,21 +57,21 @@ class WalletBackendApi(
             "${app.filesDir}/${WALLET_DB}"
         }
 
-        val config = WalletRunConfig(testing = Testing(
-            emitObservabilityEvents = true,
-            // TODO: enable conditionally and allow runtime toggling
-            devModeActive = true,
-        ))
-
         request("init", InitResponse.serializer()) {
             put("persistentStoragePath", db)
             put("logLevel", "INFO")
-            put("config", JSONObject(BackendManager.json.encodeToString(config)))
+            put("config", JSONObject(BackendManager.json.encodeToString(initialConfig)))
         }.onSuccess { response ->
             versionReceiver.onVersionReceived(response.versionInfo)
         }.onError { error ->
             // TODO expose this to the UI as it can happen when using an older DB version
             error("Error on init message: $error")
+        }
+    }
+
+    suspend fun setWalletConfig(config: WalletRunConfig): WalletResponse<InitResponse> {
+        return request("initWallet", InitResponse.serializer()) {
+            put("config", JSONObject(BackendManager.json.encodeToString(config)))
         }
     }
 

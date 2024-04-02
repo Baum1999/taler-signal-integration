@@ -41,6 +41,8 @@ import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.VersionReceiver
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.backend.WalletCoreVersion
+import net.taler.wallet.backend.WalletRunConfig
+import net.taler.wallet.backend.WalletRunConfig.Testing
 import net.taler.wallet.balances.BalanceManager
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.deposit.DepositManager
@@ -70,7 +72,9 @@ class MainViewModel(
     app: Application,
 ) : AndroidViewModel(app), VersionReceiver, NotificationReceiver {
 
-    val devMode = MutableLiveData(BuildConfig.DEBUG)
+    private val mDevMode = MutableLiveData(BuildConfig.DEBUG)
+    val devMode: LiveData<Boolean> = mDevMode
+
     val showProgressBar = MutableLiveData<Boolean>()
     var walletVersion: String? = null
         private set
@@ -81,7 +85,15 @@ class MainViewModel(
     var merchantVersion: String? = null
         private set
 
-    private val api = WalletBackendApi(app, this, this)
+    @set:Synchronized
+    var walletConfig = WalletRunConfig(
+        testing = Testing(
+            emitObservabilityEvents = true,
+            devModeActive = devMode.value ?: false,
+        )
+    )
+
+    private val api = WalletBackendApi(app, walletConfig, this, this)
 
     val networkManager = NetworkManager(app.applicationContext)
     val withdrawManager = WithdrawManager(api, viewModelScope)
@@ -201,6 +213,22 @@ class MainViewModel(
         mScanCodeEvent.value = true.toEvent()
     }
 
+    fun setDevMode(enabled: Boolean, onError: (error: TalerErrorInfo) -> Unit) {
+        mDevMode.postValue(enabled)
+        viewModelScope.launch {
+            val config = walletConfig.copy(
+                testing = walletConfig.testing?.copy(
+                    devModeActive = enabled,
+                ),
+            )
+
+            api.setWalletConfig(config)
+                .onSuccess {
+                    walletConfig = config
+                }.onError(onError)
+        }
+    }
+
     fun runIntegrationTest() {
         viewModelScope.launch {
             api.request<Unit>("runIntegrationTestV2") {
@@ -214,13 +242,11 @@ class MainViewModel(
         }
     }
 
-    fun applyDevExperiment(uri: String, onError: (e: TalerErrorInfo) -> Unit) {
+    fun applyDevExperiment(uri: String, onError: (error: TalerErrorInfo) -> Unit) {
         viewModelScope.launch {
             api.request<Unit>("applyDevExperiment") {
                 put("devExperimentUri", uri)
-            }.onError {
-                onError(it)
-            }
+            }.onError(onError)
         }
     }
 

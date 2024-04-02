@@ -33,6 +33,7 @@ import net.taler.wallet.BuildConfig.VERSION_CODE
 import net.taler.wallet.BuildConfig.VERSION_NAME
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
+import net.taler.wallet.showError
 import net.taler.wallet.withdraw.WithdrawTestStatus
 import java.lang.System.currentTimeMillis
 
@@ -108,7 +109,9 @@ class SettingsFragment : PreferenceFragmentCompat() {
             devPrefs.forEach { it.isVisible = enabled }
         }
         prefDevMode.setOnPreferenceChangeListener { _, newValue ->
-            model.devMode.value = newValue as Boolean
+            model.setDevMode(newValue as Boolean) { error ->
+                showError(error)
+            }
             true
         }
 
