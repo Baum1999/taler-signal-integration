@@ -143,6 +143,12 @@ class HandleUriFragment: Fragment() {
                     val bundle = bundleOf("uri" to u2)
                     findNavController().navigate(R.id.action_handleUri_to_promptPayTemplate, bundle)
                 }
+                action.startsWith("dev-experiment/", ignoreCase = true) -> {
+                    model.applyDevExperiment(u2) { error ->
+                        showError(error)
+                    }
+                    findNavController().navigate(R.id.nav_main)
+                }
                 else -> {
                     showError(R.string.error_unsupported_uri, "From: $from\nURI: $u2")
                     findNavController().popBackStack()

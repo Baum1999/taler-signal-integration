@@ -37,6 +37,7 @@ import net.taler.wallet.accounts.AccountManager
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.NotificationPayload
 import net.taler.wallet.backend.NotificationReceiver
+import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.VersionReceiver
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.backend.WalletCoreVersion
@@ -209,6 +210,16 @@ class MainViewModel(
                 put("exchangeBaseUrl", "https://exchange.demo.taler.net/")
                 put("merchantBaseUrl", "https://backend.demo.taler.net/")
                 put("merchantAuthToken", "secret-token:sandbox")
+            }
+        }
+    }
+
+    fun applyDevExperiment(uri: String, onError: (e: TalerErrorInfo) -> Unit) {
+        viewModelScope.launch {
+            api.request<Unit>("applyDevExperiment") {
+                put("devExperimentUri", uri)
+            }.onError {
+                onError(it)
             }
         }
     }

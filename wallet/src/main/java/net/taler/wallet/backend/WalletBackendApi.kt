@@ -59,6 +59,8 @@ class WalletBackendApi(
 
         val config = WalletRunConfig(testing = Testing(
             emitObservabilityEvents = true,
+            // TODO: enable conditionally and allow runtime toggling
+            devModeActive = true,
         ))
 
         request("init", InitResponse.serializer()) {
