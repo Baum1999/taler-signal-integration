@@ -324,6 +324,11 @@
         android:label="@string/transactions_detail_title" />
 
     <fragment
+        android:id="@+id/nav_transactions_detail_loss"
+        android:name="net.taler.wallet.transactions.TransactionLossFragment"
+        android:label="@string/transactions_detail_title" />
+
+    <fragment
         android:id="@+id/nav_transactions_detail_dummy"
         android:name="net.taler.wallet.transactions.TransactionDummyFragment"
         android:label="@string/transactions_detail_title" />

@@ -128,6 +128,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="transaction_peer_pull_debit">Invoice paid</string>
     <string name="transaction_peer_push_credit">Push payment</string>
     <string name="transaction_action_kyc">Complete KYC</string>
+    <string name="transaction_denom_loss">Loss of funds</string>
     <string name="transaction_dummy_title">Unknown Transaction</string>
 
     <string name="payment_title">Payment</string>
@@ -268,6 +269,12 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="exchange_fee_wire_fee_closing_fee">Closing Fee: %s</string>
     <string name="exchange_tos_accept">Accept Terms of Service</string>
     <string name="exchange_tos_error">Error showing Terms of Service: %s</string>
+
+    <string name="loss_amount">Amount lost</string>
+    <string name="loss_reason">Reason</string>
+    <string name="loss_reason_expired">Denomination expired</string>
+    <string name="loss_reason_vanished">Denomination vanished</string>
+    <string name="loss_reason_unoffered">Denomination ceased to be offered</string>
 
     <string name="pending_operations_title">Pending Operations</string>
     <string name="pending_operations_refuse">Refuse Proposal</string>

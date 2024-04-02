@@ -506,6 +506,47 @@ class TransactionPeerPushCredit(
 }
 
 /**
+ * A transaction to indicate financial loss due to denominations
+ * that became unusable for deposits.
+ */
+@Serializable
+@SerialName("denom-loss")
+class TransactionDenomLoss(
+    override val transactionId: String,
+    override val timestamp: Timestamp,
+    override val txState: TransactionState,
+    override val txActions: List<TransactionAction>,
+    override val error: TalerErrorInfo? = null,
+    override val amountRaw: Amount,
+    override val amountEffective: Amount,
+    val lossEventType: LossEventType,
+): Transaction() {
+    override val icon: Int = R.drawable.transaction_loss
+    override val detailPageNav = R.id.nav_transactions_detail_loss
+
+    @Transient
+    override val amountType: AmountType = AmountType.Negative
+
+    override fun getTitle(context: Context): String {
+        return context.getString(R.string.transaction_denom_loss)
+    }
+
+    override val generalTitleRes: Int = R.string.transaction_denom_loss
+}
+
+@Serializable
+enum class LossEventType {
+    @SerialName("denom-expired")
+    DenomExpired,
+
+    @SerialName("denom-vanished")
+    DenomVanished,
+
+    @SerialName("denom-unoffered")
+    DenomUnoffered
+}
+
+/**
  * This represents a transaction that we can not parse for some reason.
  */
 class DummyTransaction(
