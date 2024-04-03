@@ -139,3 +139,9 @@ fun FragmentActivity.showError(error: TalerErrorInfo) {
     val message = json.encodeToString(error)
     showError(message)
 }
+
+fun Context.getThemeColor(attr: Int): Int {
+    val typedValue = TypedValue()
+    theme.resolveAttribute(attr, typedValue, true)
+    return typedValue.data
+}

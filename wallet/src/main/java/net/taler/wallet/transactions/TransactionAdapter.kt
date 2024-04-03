@@ -36,6 +36,7 @@ import net.taler.common.CurrencySpecification
 import net.taler.common.exhaustive
 import net.taler.common.toRelativeTime
 import net.taler.wallet.R
+import net.taler.wallet.getThemeColor
 import net.taler.wallet.transactions.TransactionAdapter.TransactionViewHolder
 import net.taler.wallet.transactions.TransactionMajorState.Aborted
 import net.taler.wallet.transactions.TransactionMajorState.Failed
@@ -97,7 +98,7 @@ internal class TransactionAdapter(
 
         private val amountColor = amount.currentTextColor
         private val extraInfoColor = extraInfoView.currentTextColor
-        private val red = getColor(context, R.color.red)
+        private val red = context.getThemeColor(R.attr.colorError)
         private val green = getColor(context, R.color.green)
 
         fun bind(transaction: Transaction, selected: Boolean) {

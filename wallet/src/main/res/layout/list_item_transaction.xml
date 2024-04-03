@@ -22,9 +22,9 @@
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground"
     android:paddingStart="16dp"
-    android:paddingTop="8dp"
+    android:paddingTop="12dp"
     android:paddingEnd="16dp"
-    android:paddingBottom="8dp">
+    android:paddingBottom="12dp">
 
     <ImageView
         android:id="@+id/icon"
@@ -50,11 +50,11 @@
 
     <TextView
         android:id="@+id/extraInfoView"
+        style="@style/TransactionSubtitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:textSize="14sp"
         android:visibility="gone"
         app:layout_constraintEnd_toStartOf="@+id/barrier"
         app:layout_constraintStart_toStartOf="@+id/title"
@@ -64,11 +64,11 @@
 
     <TextView
         android:id="@+id/time"
+        style="@style/TransactionTimestamp"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/barrier"
         app:layout_constraintStart_toStartOf="@+id/title"
@@ -84,9 +84,9 @@
 
     <TextView
         android:id="@+id/amount"
+        style="@style/TransactionAmount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="24sp"
         app:layout_constraintBottom_toTopOf="@+id/pendingView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
