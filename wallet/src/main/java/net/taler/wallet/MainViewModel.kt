@@ -86,7 +86,7 @@ class MainViewModel(
         private set
 
     @set:Synchronized
-    var walletConfig = WalletRunConfig(
+    private var walletConfig = WalletRunConfig(
         testing = Testing(
             emitObservabilityEvents = true,
             devModeActive = devMode.value ?: false,
