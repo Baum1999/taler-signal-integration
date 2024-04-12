@@ -92,8 +92,8 @@ fun ScreenTransfer(
                 is TransferData.Taler -> TransferTaler(
                     transfer = transfer,
                     exchangeBaseUrl = status.exchangeBaseUrl,
-                    transactionAmountRaw = status.transactionAmountRaw,
-                    transactionAmountEffective = status.transactionAmountEffective,
+                    transactionAmountRaw = status.transactionAmountRaw.withSpec(spec),
+                    transactionAmountEffective = status.transactionAmountEffective.withSpec(spec),
                 )
 
                 is TransferData.IBAN -> TransferIBAN(
