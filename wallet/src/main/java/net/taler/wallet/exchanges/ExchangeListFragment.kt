@@ -145,6 +145,10 @@ open class ExchangeListFragment : Fragment(), ExchangeClickListener {
         findNavController().navigate(R.id.action_global_receiveFunds)
     }
 
+    override fun onExchangeReload(item: ExchangeItem) {
+        exchangeManager.reload(item.exchangeBaseUrl)
+    }
+
     override fun onExchangeDelete(item: ExchangeItem) {
         val optionsArray = arrayOf(getString(R.string.exchange_delete_force))
         val checkedArray = BooleanArray(1) { false }

@@ -95,6 +95,22 @@ class ExchangeManager(
         }
     }
 
+    fun reload(exchangeUrl: String, force: Boolean = true) = scope.launch {
+        mProgress.value = true
+        api.request<Unit>("updateExchangeEntry") {
+            put("exchangeBaseUrl", exchangeUrl)
+            put("force", force)
+        }.onError {
+            Log.e(TAG, "Error reloading exchange: $it")
+            mProgress.value = false
+            mAddError.value = it.toEvent()
+        }.onSuccess {
+            mProgress.value = false
+            Log.d(TAG, "Exchange $exchangeUrl reloaded")
+            list()
+        }
+    }
+
     fun delete(exchangeUrl: String, purge: Boolean = false) = scope.launch {
         mProgress.value = true
         api.request<Unit>("deleteExchange") {
