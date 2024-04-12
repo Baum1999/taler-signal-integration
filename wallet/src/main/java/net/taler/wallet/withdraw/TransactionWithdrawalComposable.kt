@@ -129,6 +129,7 @@ fun TransactionWithdrawalComposablePreview() {
                 WithdrawalExchangeAccountDetails(
                     paytoUri = "payto://IBAN/1231231231",
                     transferAmount = Amount.fromJSONString("NETZBON:42.23"),
+                    status = WithdrawalExchangeAccountDetails.Status.Ok,
                     currencySpecification = CurrencySpecification(
                         name = "NETZBON",
                         numFractionalInputDigits = 2,

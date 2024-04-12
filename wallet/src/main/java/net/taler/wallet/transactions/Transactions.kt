@@ -216,6 +216,16 @@ data class WithdrawalExchangeAccountDetails (
     val paytoUri: String,
 
     /**
+     * Status that indicates whether the account can be used
+     * by the user to send funds for a withdrawal.
+     *
+     * ok: account should be shown to the user
+     * error: account should not be shown to the user, UIs might render the error (in conversionError),
+     *   especially in dev mode.
+     */
+    val status: Status,
+
+    /**
      * Transfer amount. Might be in a different currency than the requested
      * amount for withdrawal.
      *
@@ -235,7 +245,23 @@ data class WithdrawalExchangeAccountDetails (
      * exchange.
      */
     val creditRestrictions: List<AccountRestriction>? = null,
-)
+
+    /**
+     * Label given to the account or the account's bank by the exchange.
+     */
+    val bankLabel: String? = null,
+
+    val priority: Int? = null,
+) {
+    @Serializable
+    enum class Status {
+        @SerialName("ok")
+        Ok,
+
+        @SerialName("error")
+        Error;
+    }
+}
 
 @Serializable
 sealed class AccountRestriction {

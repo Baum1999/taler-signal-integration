@@ -53,6 +53,7 @@ import net.taler.wallet.compose.copyToClipBoard
 import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.TransactionAmountComposable
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
+import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails.Status.*
 import net.taler.wallet.withdraw.TransferData
 import net.taler.wallet.withdraw.WithdrawStatus
 
@@ -66,13 +67,20 @@ fun ScreenTransfer(
     // TODO: show some placeholder
     if (status.withdrawalTransfers.isEmpty()) return
 
-    val defaultTransfer = status.withdrawalTransfers[0]
+    val transfers = status.withdrawalTransfers.filter {
+        // TODO: in dev mode, show debug info when status is `Error'
+        it.withdrawalAccount.status == Ok
+    }.sortedByDescending {
+        it.withdrawalAccount.priority
+    }
+
+    val defaultTransfer = transfers[0]
     var selectedTransfer by remember { mutableStateOf(defaultTransfer) }
 
     Column {
         if (status.withdrawalTransfers.size > 1) {
             TransferAccountChooser(
-                accounts = status.withdrawalTransfers.map { it.withdrawalAccount },
+                accounts = transfers.map { it.withdrawalAccount },
                 selectedAccount = selectedTransfer.withdrawalAccount,
                 onSelectAccount = { account ->
                     status.withdrawalTransfers.find {
@@ -236,7 +244,9 @@ fun TransferAccountChooser(
                 selected = selectedAccount.paytoUri == account.paytoUri,
                 onClick = { onSelectAccount(account) },
                 text = {
-                    if (account.currencySpecification?.name != null) {
+                    if (account.bankLabel != null) {
+                        Text(account.bankLabel)
+                    } else if (account.currencySpecification?.name != null) {
                         Text(stringResource(
                             R.string.withdraw_account_currency,
                             index + 1,
@@ -274,6 +284,7 @@ fun ScreenTransferPreview() {
                         withdrawalAccount = WithdrawalExchangeAccountDetails(
                             paytoUri = "https://taler.net/kudos",
                             transferAmount = Amount("KUDOS", 10, 0),
+                            status = WithdrawalExchangeAccountDetails.Status.Ok,
                             currencySpecification = CurrencySpecification(
                                 "KUDOS",
                                 numFractionalInputDigits = 2,
@@ -295,6 +306,7 @@ fun ScreenTransferPreview() {
                         withdrawalAccount = WithdrawalExchangeAccountDetails(
                             paytoUri = "https://taler.net/btc",
                             transferAmount = Amount("BTC", 0, 14000000),
+                            status = Ok,
                             currencySpecification = CurrencySpecification(
                                 "Bitcoin",
                                 numFractionalInputDigits = 2,
