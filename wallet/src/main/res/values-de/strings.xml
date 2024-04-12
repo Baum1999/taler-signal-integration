@@ -120,7 +120,7 @@
     <string name="paste_invalid">Die Zwischenablage enthält einen ungültigen Datentyp</string>
     <string name="uri_invalid">Keine gültige Taler-URI</string>
     <string name="ok">Bestätigen</string>
-    <string name="cancel">Abbrechen</string>
+    <string name="cancel">Zurück</string>
     <string name="search">Suche</string>
     <string name="menu">Menü</string>
     <string name="nav_error">Fehler</string>
@@ -161,7 +161,7 @@
     <string name="transactions_delete_dialog_message">Sind Sie sicher, dass Sie diese Transaktion aus Ihrem Wallet entfernen möchten?</string>
     <string name="transactions_delete_dialog_title">Transaktion löschen</string>
     <string name="receive_peer_payment_intro">Möchten Sie diese Zahlung erhalten?</string>
-    <string name="transactions_abort">Abbrechen</string>
+    <string name="transactions_abort">Abbruch ausführen</string>
     <string name="payment_pay_template_title">Passen Sie Ihre Bestellung an</string>
     <string name="send_intro">Wählen Sie aus, wohin Sie Geld senden möchten:</string>
     <string name="send_deposit_title">Einzahlung auf ein Bankkonto</string>
