@@ -1,2 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="app_name">Taler Кассир</string>
+    <string name="config_bank_url">Адресс API банка</string>
+    <string name="config_username">Имя пользователя</string>
+    <string name="config_password">Пароль</string>
+    <string name="config_button_save">Сохранить</string>
+    <string name="config_error_auth">Неправильное имя пользователя или пароль!</string>
+    <string name="config_demo_hint">Для тестирования, вы можете &lt;a href=%s&gt;создать тестовую учётную запист в демонстрационном банке&lt;/a&gt;.</string>
+    <string name="balance_current_label">Теущий баланс</string>
+    <string name="balance_error">ОШИБКА: %s</string>
+    <string name="balance_offline">Нет связи. Пожалуйста подключитесь к интернету.</string>
+    <string name="action_reconfigure">Переконфигурировать</string>
+    <string name="action_lock">Заблокировать</string>
+    <string name="action_about">О программе</string>
+    <string name="withdraw_input_amount">Количество</string>
+    <string name="ok">OK</string>
+    <string name="config_bank_url_error">Адрес неправильный.</string>
+    <string name="config_username_error">Пожалуйста введите ваше имя пользователя!</string>
+    <string name="config_error">Ошибка при получении конфигурации</string>
+    <string name="withdraw_into">Сколько e-cash должно быть списано?</string>
+    <string name="withdraw_error_zero">Введите позитивное количество!</string>
+    <string name="withdraw_error_insufficient_balance">Недостаточный баланс</string>
+    <string name="withdraw_error_currency_mismatch">Ошибка: Банк использует другую валюту</string>
+    <string name="withdraw_error_fetch">Ошибка при связи с банком: %s</string>
+    <string name="withdraw_error_timeout">Никакой кошелёк не попробоавл списать. Пожалуйста попробуйте ещё раз.</string>
+    <string name="withdraw_button_confirm">Списание</string>
+    <string name="transaction_intro">Отсканируйте код приложением Кошелька Taler чтобы списать:</string>
+    <string name="transaction_intro_nfc">Отсканируйте код или используйте NFC в приложении Кошелька Taler чтобы списать:</string>
+    <string name="transaction_intro_scanned">Пожалуйста подтвердите транзакцию!</string>
+    <string name="transaction_confirm">Подтвердить</string>
+    <string name="transaction_abort">Подробности</string>
+    <string name="transaction_aborted">Транзакция прервана</string>
+    <string name="transaction_button_back">Перейти назад</string>
+    <string name="transaction_last_success">Последняя Транзакция: %s списано</string>
+    <string name="transaction_last_aborted">Последняя Транзакция: Прервана</string>
+    <string name="transaction_last_error">Последняя Транзакция: Неуспешна</string>
+    <string name="about_title">Кассир GNU Taler</string>
+    <string name="about_version">Версия: %s</string>
+    <string name="about_license">Лицензия: %s</string>
+    <string name="about_copyright">Авторские права: %s</string>
+    <string name="about_supported_bank_api">Версия API банка: %s</string>
+</resources>
