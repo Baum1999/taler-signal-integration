@@ -62,6 +62,9 @@ class ExchangeManager(
     private val mDeleteError = MutableLiveData<Event<TalerErrorInfo>>()
     val deleteError: LiveData<Event<TalerErrorInfo>> = mDeleteError
 
+    private val mReloadError = MutableLiveData<Event<TalerErrorInfo>>()
+    val reloadError: LiveData<Event<TalerErrorInfo>> = mReloadError
+
     var withdrawalExchange: ExchangeItem? = null
 
     private fun list(): LiveData<List<ExchangeItem>> {
@@ -103,7 +106,7 @@ class ExchangeManager(
         }.onError {
             Log.e(TAG, "Error reloading exchange: $it")
             mProgress.value = false
-            mAddError.value = it.toEvent()
+            mReloadError.value = it.toEvent()
         }.onSuccess {
             mProgress.value = false
             Log.d(TAG, "Exchange $exchangeUrl reloaded")

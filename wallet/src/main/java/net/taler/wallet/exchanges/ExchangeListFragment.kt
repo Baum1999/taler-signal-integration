@@ -110,6 +110,13 @@ open class ExchangeListFragment : Fragment(), ExchangeClickListener {
                 showError(error.userFacingMsg)
             }
         })
+        exchangeManager.reloadError.observe(viewLifecycleOwner, EventObserver { error ->
+            if (model.devMode.value == true) {
+                showError(error)
+            } else {
+                showError(error.userFacingMsg)
+            }
+        })
     }
 
     protected open fun onExchangeUpdate(exchanges: List<ExchangeItem>) {
