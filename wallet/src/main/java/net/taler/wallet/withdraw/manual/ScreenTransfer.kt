@@ -244,7 +244,7 @@ fun TransferAccountChooser(
                 selected = selectedAccount.paytoUri == account.paytoUri,
                 onClick = { onSelectAccount(account) },
                 text = {
-                    if (account.bankLabel != null) {
+                    if (!account.bankLabel.isNullOrEmpty()) {
                         Text(account.bankLabel)
                     } else if (account.currencySpecification?.name != null) {
                         Text(stringResource(
@@ -284,7 +284,7 @@ fun ScreenTransferPreview() {
                         withdrawalAccount = WithdrawalExchangeAccountDetails(
                             paytoUri = "https://taler.net/kudos",
                             transferAmount = Amount("KUDOS", 10, 0),
-                            status = WithdrawalExchangeAccountDetails.Status.Ok,
+                            status = Ok,
                             currencySpecification = CurrencySpecification(
                                 "KUDOS",
                                 numFractionalInputDigits = 2,
