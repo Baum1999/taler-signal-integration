@@ -219,6 +219,8 @@ class MainViewModel(
             val config = walletConfig.copy(
                 testing = walletConfig.testing?.copy(
                     devModeActive = enabled,
+                ) ?: Testing(
+                    devModeActive = enabled,
                 ),
             )
 
