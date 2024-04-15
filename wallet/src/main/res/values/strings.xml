@@ -272,9 +272,10 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
 
     <string name="loss_amount">Amount lost</string>
     <string name="loss_reason">Reason</string>
-    <string name="loss_reason_expired">Denomination expired</string>
-    <string name="loss_reason_vanished">Denomination vanished</string>
-    <string name="loss_reason_unoffered">Denomination ceased to be offered</string>
+    <string name="loss_reason_expired">Funds were not renewed, because the wallet was not opened for a long time</string>
+    <string name="loss_reason_vanished">The payment provider lost the record of the funds</string>
+    <string name="loss_reason_unoffered">The payment provider stopped offering the denomination backing the funds</string>
+
 
     <string name="pending_operations_title">Pending Operations</string>
     <string name="pending_operations_refuse">Refuse Proposal</string>
