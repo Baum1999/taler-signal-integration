@@ -17,6 +17,7 @@
 package net.taler.wallet.transactions
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.annotation.IdRes
@@ -313,7 +314,7 @@ class TransactionPayment(
 
     @Transient
     override val amountType = AmountType.Negative
-    override fun getTitle(context: Context) = info.merchant.name
+    override fun getTitle(context: Context) = context.getString(R.string.transaction_payment_to, info.merchant.name)
     override val generalTitleRes = R.string.payment_title
 }
 
@@ -404,7 +405,10 @@ class TransactionDeposit(
     @Transient
     override val amountType = AmountType.Negative
     override fun getTitle(context: Context): String {
-        return context.getString(R.string.transaction_deposit)
+        val uri = Uri.parse(targetPaytoUri)
+        return uri.getQueryParameter("receiver-name")?.let { receiverName ->
+            context.getString(R.string.transaction_deposit_to, receiverName)
+        } ?: context.getString(R.string.transaction_deposit)
     }
 
     override val generalTitleRes = R.string.transaction_deposit

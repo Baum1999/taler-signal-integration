@@ -26,6 +26,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.View.INVISIBLE
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.SearchView.OnQueryTextListener
 import androidx.fragment.app.Fragment
@@ -44,6 +45,8 @@ import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.TAG
 import net.taler.wallet.balances.BalanceState.Success
+import net.taler.wallet.balances.ScopeInfo
+import net.taler.wallet.cleanExchange
 import net.taler.wallet.databinding.FragmentTransactionsBinding
 import net.taler.wallet.showError
 
@@ -154,6 +157,10 @@ class TransactionsFragment : Fragment(), OnTransactionClickListener, ActionMode.
     override fun onStart() {
         super.onStart()
         requireActivity().title = getString(R.string.transactions_detail_title_currency, scopeInfo.currency)
+        (requireActivity() as AppCompatActivity).supportActionBar?.subtitle =
+            (scopeInfo as? ScopeInfo.Exchange)?.url?.let {
+                getString(R.string.balance_scope_exchange, cleanExchange(it))
+            }
     }
 
     private fun setupSearch(item: MenuItem) {
@@ -259,6 +266,11 @@ class TransactionsFragment : Fragment(), OnTransactionClickListener, ActionMode.
             R.id.transaction_select_all -> transactionAdapter.selectAll()
         }
         return true
+    }
+
+    override fun onStop() {
+        super.onStop()
+        (requireActivity() as AppCompatActivity).supportActionBar?.subtitle = null
     }
 
     override fun onDestroyActionMode(mode: ActionMode) {

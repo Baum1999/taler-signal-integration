@@ -20,65 +20,92 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/sendButton"
-        android:layout_width="wrap_content"
+    <HorizontalScrollView
+        android:id="@+id/buttonScroll"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:text="@string/transactions_send_funds"
-        app:layout_constraintBottom_toTopOf="@+id/divider"
+        android:fadeScrollbars="false"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/amountBarrier"
+        app:layout_constraintBottom_toTopOf="@id/divider">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/receiveButton"
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/sendButton"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginStart="10dp"
+                android:layout_marginVertical="10dp"
+                android:paddingHorizontal="18dp"
+                android:text="@string/transactions_send_funds"
+                app:icon="@drawable/ic_funds_send" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/receiveButton"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginHorizontal="10dp"
+                android:layout_marginVertical="10dp"
+                android:paddingHorizontal="18dp"
+                android:text="@string/transactions_receive_funds"
+                app:icon="@drawable/ic_funds_receive" />
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/amountBarrier"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="10dp"
-        android:text="@string/transactions_receive_funds"
-        app:layout_constraintBottom_toTopOf="@+id/divider"
-        app:layout_constraintEnd_toStartOf="@+id/amount"
-        app:layout_constraintHorizontal_chainStyle="spread_inside"
-        app:layout_constraintStart_toEndOf="@+id/sendButton"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/divider"
+        app:barrierDirection="start"/>
 
-    <TextView
-        android:id="@+id/balanceLabel"
+    <LinearLayout
+        android:id="@+id/amountLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
-        android:text="@string/transactions_balance"
-        android:textSize="14sp"
-        app:layout_constraintBottom_toTopOf="@+id/amount"
+        android:layout_marginStart="16dp"
+        android:orientation="vertical"
+        android:gravity="end"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toEndOf="@+id/receiveButton"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintBottom_toTopOf="@id/divider"
+        app:layout_constraintStart_toEndOf="@id/amountBarrier">
 
-    <TextView
-        android:id="@+id/amount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="8dp"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        app:layout_constrainedWidth="true"
-        app:layout_constraintBottom_toTopOf="@+id/divider"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/receiveButton"
-        app:layout_constraintTop_toBottomOf="@+id/balanceLabel"
-        tools:text="23.42"
-        tools:visibility="visible" />
+        <TextView
+            android:id="@+id/balanceLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="16dp"
+            android:text="@string/transactions_balance"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/amount"
+            style="@style/TextAppearance.Material3.TitleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="8dp"
+            android:textStyle="bold"
+            tools:text="23.42"
+            tools:visibility="visible" />
+
+    </LinearLayout>
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/topBarrier"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:barrierDirection="bottom"
-        app:constraint_referenced_ids="sendButton,receiveButton,amount" />
+        app:constraint_referenced_ids="buttonScroll,amountLayout" />
 
     <com.google.android.material.divider.MaterialDivider
         android:id="@+id/divider"

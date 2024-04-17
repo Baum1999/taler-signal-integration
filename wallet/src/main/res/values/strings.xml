@@ -83,20 +83,20 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="amount_received">Amount received</string>
     <string name="balances_inbound_label">inbound</string>
     <string name="balances_empty_state">There is no digital cash in your wallet.\n\nYou can get test money from the demo bank:\n\nhttps://bank.demo.taler.net</string>
-    <string name="balance_scope_exchange">Exchange: %1$s</string>
+    <string name="balance_scope_exchange">From&#160;%1$s</string>
     <string name="balance_scope_auditor">Auditor: %1$s</string>
 
     <string name="transactions_title">Transactions</string>
     <string name="transactions_balance">Balance</string>
-    <string name="transactions_send_funds">Send\nFunds</string>
+    <string name="transactions_send_funds">Send</string>
     <string name="transactions_send_funds_title">Send %1$s</string>
-    <string name="transactions_receive_funds">Receive\nFunds</string>
+    <string name="transactions_receive_funds">Receive</string>
     <string name="transactions_receive_funds_title">Receive %1$s</string>
     <string name="transactions_empty">You don\'t have any transactions</string>
     <string name="transactions_empty_search">No transactions found. Try a different search.</string>
     <string name="transactions_error">Could not load transactions\n\n%s</string>
     <string name="transactions_detail_title">Transaction</string>
-    <string name="transactions_detail_title_currency">%s Transactions</string>
+    <string name="transactions_detail_title_currency">%s transactions</string>
     <string name="transactions_delete">Delete</string>
     <string name="transactions_retry">Retry</string>
     <string name="transactions_abort">Abort</string>
@@ -114,6 +114,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="transactions_cancel_dialog_message">Are you sure you want to cancel this withdrawal? Funds still in transit might get lost.</string>
 
     <!-- Transactions -->
+    <string name="transaction_payment_to">Payment to %1$s</string>
     <string name="transaction_paid">Paid</string>
     <string name="transaction_order_total">Total</string>
     <string name="transaction_order">Purchase</string>
@@ -123,6 +124,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="transaction_pending">PENDING</string>
     <string name="transaction_refresh">Coin expiry change fee</string>
     <string name="transaction_deposit">Deposit</string>
+    <string name="transaction_deposit_to">Deposit to %1$s</string>
     <string name="transaction_peer_push_debit">Push payment</string>
     <string name="transaction_peer_pull_credit">Invoice</string>
     <string name="transaction_peer_pull_debit">Invoice paid</string>
