@@ -81,11 +81,13 @@ fun TransactionWithdrawalComposable(
 
         ActionButton(tx = t, listener = actionListener)
 
-        TransactionAmountComposable(
-            label = stringResource(R.string.amount_chosen),
-            amount = t.amountRaw.withSpec(spec),
-            amountType = AmountType.Neutral,
-        )
+        if (t.amountRaw != t.amountEffective) {
+            TransactionAmountComposable(
+                label = stringResource(R.string.amount_chosen),
+                amount = t.amountRaw.withSpec(spec),
+                amountType = AmountType.Neutral,
+            )
+        }
 
         val fee = t.amountRaw - t.amountEffective
         if (!fee.isZero()) {
