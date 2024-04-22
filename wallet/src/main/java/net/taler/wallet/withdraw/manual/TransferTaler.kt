@@ -73,11 +73,11 @@ fun TransferTaler(
                 .padding(all = 16.dp)
         )
 
+        DetailRow(stringResource(R.string.withdraw_manual_ready_subject), transfer.subject)
         transfer.receiverName?.let {
             DetailRow(stringResource(R.string.withdraw_manual_ready_receiver), it)
         }
         DetailRow(stringResource(R.string.withdraw_manual_ready_account), transfer.account)
-        DetailRow(stringResource(R.string.withdraw_manual_ready_subject), transfer.subject)
 
         TransactionInfoComposable(
             label = stringResource(R.string.withdraw_exchange),

@@ -213,13 +213,13 @@ fun WithdrawalAmountTransfer(
                 amount = fee,
                 amountType = AmountType.Negative,
             )
-        }
 
-        TransactionAmountComposable(
-            label = stringResource(id = R.string.withdraw_total),
-            amount = amountEffective,
-            amountType = AmountType.Positive,
-        )
+            TransactionAmountComposable(
+                label = stringResource(id = R.string.withdraw_total),
+                amount = amountEffective,
+                amountType = AmountType.Positive,
+            )
+        }
     }
 }
 
