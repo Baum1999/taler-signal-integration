@@ -61,8 +61,7 @@ class BalanceAdapter(private val listener: BalanceClickListener) : Adapter<Balan
         private val amountView: TextView = v.findViewById(R.id.balanceAmountView)
         private val scopeView: TextView = v.findViewById(R.id.scopeView)
         private val balanceInboundAmount: TextView = v.findViewById(R.id.balanceInboundAmount)
-        private val balanceInboundLabel: TextView = v.findViewById(R.id.balanceInboundLabel)
-        private val pendingView: TextView = v.findViewById(R.id.pendingView)
+        private val balanceOutboundAmount: TextView = v.findViewById(R.id.balanceOutboundAmount)
 
         fun bind(item: BalanceItem) {
             v.setOnClickListener { listener.onBalanceClick(item.scopeInfo) }
@@ -71,11 +70,17 @@ class BalanceAdapter(private val listener: BalanceClickListener) : Adapter<Balan
             val amountIncoming = item.pendingIncoming
             if (amountIncoming.isZero()) {
                 balanceInboundAmount.visibility = GONE
-                balanceInboundLabel.visibility = GONE
             } else {
                 balanceInboundAmount.visibility = VISIBLE
-                balanceInboundLabel.visibility = VISIBLE
-                balanceInboundAmount.text = v.context.getString(R.string.amount_positive, amountIncoming.toString(showSymbol = false))
+                balanceInboundAmount.text = v.context.getString(R.string.balances_inbound_amount, amountIncoming.toString(showSymbol = false))
+            }
+
+            val amountOutgoing = item.pendingOutgoing
+            if (amountOutgoing.isZero()) {
+                balanceOutboundAmount.visibility = GONE
+            } else {
+                balanceOutboundAmount.visibility = VISIBLE
+                balanceOutboundAmount.text = v.context.getString(R.string.balances_outbound_amount, amountOutgoing.toString(showSymbol = false))
             }
 
             val scopeInfo = item.scopeInfo
@@ -90,8 +95,6 @@ class BalanceAdapter(private val listener: BalanceClickListener) : Adapter<Balan
                     VISIBLE
                 }
             }
-
-            pendingView.visibility = if (item.hasPending) VISIBLE else GONE
         }
     }
 

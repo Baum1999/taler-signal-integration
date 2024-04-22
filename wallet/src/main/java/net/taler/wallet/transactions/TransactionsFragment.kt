@@ -158,9 +158,7 @@ class TransactionsFragment : Fragment(), OnTransactionClickListener, ActionMode.
         super.onStart()
         requireActivity().title = getString(R.string.transactions_detail_title_currency, scopeInfo.currency)
         (requireActivity() as AppCompatActivity).supportActionBar?.subtitle =
-            (scopeInfo as? ScopeInfo.Exchange)?.url?.let {
-                getString(R.string.balance_scope_exchange, cleanExchange(it))
-            }
+            (scopeInfo as? ScopeInfo.Exchange)?.url?.let { cleanExchange(it) }
     }
 
     private fun setupSearch(item: MenuItem) {

@@ -14,9 +14,9 @@
   ~ GNU Taler; see the file COPYING.  If not, see <http://www.gnu.org/licenses/>
   -->
 
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground"
@@ -26,26 +26,16 @@
         android:id="@+id/balanceAmountView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
         style="?textAppearanceDisplaySmall"
-        app:layout_constraintEnd_toStartOf="@+id/pendingView"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         tools:text="100.50" />
 
     <TextView
         android:id="@+id/scopeView"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
         style="?textAppearanceBodyMedium"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/balanceAmountView"
-        app:layout_constraintBottom_toTopOf="@id/balanceInboundAmount"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/pendingView"
         tools:text="@string/balance_scope_exchange"
         tools:visibility="visible"/>
 
@@ -54,40 +44,17 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@color/green"
-        android:textSize="20sp"
         style="?textAppearanceBodyLarge"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/balanceInboundLabel"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/scopeView"
-        tools:text="+10 TESTKUDOS"
+        tools:text="+10 TESTKUDOS inbound"
         tools:visibility="visible" />
 
     <TextView
-        android:id="@+id/balanceInboundLabel"
+        android:id="@+id/balanceOutboundAmount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:text="@string/balances_inbound_label"
-        android:textColor="@color/green"
-        style="?textAppearanceBodyMedium"
-        app:layout_constraintBottom_toBottomOf="@+id/balanceInboundAmount"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/balanceInboundAmount"
-        app:layout_constraintTop_toTopOf="@+id/balanceInboundAmount"
+        android:textColor="?colorError"
+        style="?textAppearanceBodyLarge"
+        tools:text="-10 TESTKUDOS outbound"
         tools:visibility="visible" />
 
-    <TextView
-        android:id="@+id/pendingView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/badge"
-        android:text="@string/transaction_pending"
-        android:textColor="?android:textColorPrimaryInverse"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>
