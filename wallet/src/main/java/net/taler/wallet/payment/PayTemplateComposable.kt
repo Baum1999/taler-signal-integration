@@ -18,6 +18,7 @@ package net.taler.wallet.payment
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,6 +26,7 @@ import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
 import net.taler.common.ContractTerms
 import net.taler.wallet.AmountResult
@@ -86,7 +88,7 @@ fun PayTemplateComposable(
 @Composable
 fun PayTemplateError(message: String) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.padding(16.dp).fillMaxSize(),
         contentAlignment = Center,
     ) {
         Text(
@@ -144,7 +146,7 @@ fun PayTemplateInsufficientBalancePreview() {
     }
 }
 
-@Preview
+@Preview(widthDp = 300)
 @Composable
 fun PayTemplateAlreadyPaidPreview() {
     TalerSurface {
