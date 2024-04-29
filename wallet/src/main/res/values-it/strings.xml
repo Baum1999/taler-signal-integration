@@ -226,7 +226,7 @@
     <string name="settings_db_export_error">Errore nell\'esportazione della banca dati</string>
     <string name="transactions_abort">Annulla</string>
     <string name="transactions_fail">Arresta</string>
-    <string name="transactions_abort_dialog_title">Annulla la Transazione</string>
+    <string name="transactions_abort_dialog_title">Annulla la transazione</string>
     <string name="transactions_fail_dialog_title">Annulla la Transazione</string>
     <string name="transactions_fail_dialog_message">Sei sicuro di voler annullare questa transazione? I fondi ancora in transito ANDRANNO PERSI.</string>
     <string name="transactions_abort_dialog_message">Sei sicuro di voler annullare questa transazione? I fondi ancora in transito potrebbero andare persi.</string>
