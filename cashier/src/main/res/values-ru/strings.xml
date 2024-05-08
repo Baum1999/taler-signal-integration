@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Taler Кассир</string>
-    <string name="config_bank_url">Адресс API банка</string>
+    <string name="config_bank_url">API адрес банка</string>
     <string name="config_username">Имя пользователя</string>
     <string name="config_password">Пароль</string>
     <string name="config_button_save">Сохранить</string>
