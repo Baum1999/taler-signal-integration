@@ -20,114 +20,40 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <HorizontalScrollView
-        android:id="@+id/buttonScroll"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:fadeScrollbars="false"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/amountBarrier"
-        app:layout_constraintBottom_toTopOf="@id/divider">
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/sendButton"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_marginStart="10dp"
-                android:layout_marginVertical="10dp"
-                android:paddingHorizontal="18dp"
-                android:text="@string/transactions_send_funds"
-                app:icon="@drawable/ic_funds_send" />
+            <FrameLayout
+                android:id="@+id/actionsFrame"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent">
+                <include
+                    android:id="@+id/actionsBar"
+                    layout="@layout/balance_actions"
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"/>
+            </FrameLayout>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/receiveButton"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_marginHorizontal="10dp"
-                android:layout_marginVertical="10dp"
-                android:paddingHorizontal="18dp"
-                android:text="@string/transactions_receive_funds"
-                app:icon="@drawable/ic_funds_receive" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:scrollbars="vertical"
+                android:visibility="invisible"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/list_item_transaction"
+                tools:visibility="visible" />
 
         </LinearLayout>
-    </HorizontalScrollView>
 
-    <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/amountBarrier"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/divider"
-        app:barrierDirection="start"/>
-
-    <LinearLayout
-        android:id="@+id/amountLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:orientation="vertical"
-        android:gravity="end"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/divider"
-        app:layout_constraintStart_toEndOf="@id/amountBarrier">
-
-        <TextView
-            android:id="@+id/balanceLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp"
-            android:text="@string/transactions_balance"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/amount"
-            style="@style/TextAppearance.Material3.TitleLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="8dp"
-            android:textStyle="bold"
-            tools:text="23.42"
-            tools:visibility="visible" />
-
-    </LinearLayout>
-
-    <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/topBarrier"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:barrierDirection="bottom"
-        app:constraint_referenced_ids="buttonScroll,amountLayout" />
-
-    <com.google.android.material.divider.MaterialDivider
-        android:id="@+id/divider"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/topBarrier" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/list"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:scrollbars="vertical"
-        android:visibility="invisible"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/divider"
-        tools:listitem="@layout/list_item_transaction"
-        tools:visibility="visible" />
+    </androidx.core.widget.NestedScrollView>
 
     <TextView
         android:id="@+id/emptyState"
@@ -142,7 +68,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/divider"
+        app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible" />
 
     <ProgressBar
@@ -155,7 +81,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/divider"
+        app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible" />
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton

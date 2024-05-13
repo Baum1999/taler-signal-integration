@@ -118,7 +118,7 @@ class TransactionsFragment : Fragment(), OnTransactionClickListener, ActionMode.
             if (balances.size == 1) ui.mainFab.visibility = INVISIBLE
 
             balances.find { it.scopeInfo == scopeInfo }?.let { balance ->
-                ui.amount.text = balance.available.toString(showSymbol = false)
+                ui.actionsBar.amount.text = balance.available.toString(showSymbol = false)
                 transactionAdapter.setCurrencySpec(balance.available.spec)
             }
         }
@@ -128,10 +128,10 @@ class TransactionsFragment : Fragment(), OnTransactionClickListener, ActionMode.
         transactionManager.transactions.observe(viewLifecycleOwner) { result ->
             onTransactionsResult(result)
         }
-        ui.sendButton.setOnClickListener {
+        ui.actionsBar.sendButton.setOnClickListener {
             findNavController().navigate(R.id.sendFunds)
         }
-        ui.receiveButton.setOnClickListener {
+        ui.actionsBar.receiveButton.setOnClickListener {
             findNavController().navigate(R.id.action_global_receiveFunds)
         }
         ui.mainFab.setOnClickListener {
