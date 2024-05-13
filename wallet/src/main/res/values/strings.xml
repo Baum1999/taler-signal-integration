@@ -37,7 +37,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="nav_header_subtitle">Wallet</string>
 
     <string name="nav_prompt_withdraw">Withdraw Digital Cash</string>
-    <string name="nav_exchange_tos">Provider\'s Terms of Service</string>
+    <string name="nav_exchange_tos">PSP\'s Terms of Service</string>
     <string name="nav_exchange_select">Select provider</string>
     <string name="nav_exchange_fees">Provider fees</string>
     <string name="nav_error">Error</string>
