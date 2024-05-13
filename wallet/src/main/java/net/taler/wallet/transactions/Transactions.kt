@@ -314,7 +314,7 @@ class TransactionPayment(
 
     @Transient
     override val amountType = AmountType.Negative
-    override fun getTitle(context: Context) = context.getString(R.string.transaction_payment_to, info.merchant.name)
+    override fun getTitle(context: Context) = info.merchant.name
     override val generalTitleRes = R.string.payment_title
 }
 
@@ -355,10 +355,7 @@ class TransactionRefund(
 
     @Transient
     override val amountType = AmountType.Positive
-    override fun getTitle(context: Context): String {
-        val merchantName = paymentInfo?.merchant?.name ?: "null"
-        return context.getString(R.string.transaction_refund_from, merchantName)
-    }
+    override fun getTitle(context: Context) = paymentInfo?.merchant?.name ?: context.getString(R.string.transaction_refund)
 
     override val generalTitleRes = R.string.refund_title
 }
