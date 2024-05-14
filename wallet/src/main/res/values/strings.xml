@@ -41,7 +41,6 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
 
     <string name="nav_error">Error</string>
     <string name="nav_exchange_fees">Provider fees</string>
-    <string name="nav_exchange_select">Select provider</string>
     <string name="nav_exchange_tos">PSP\'s Terms of Service</string>
     <string name="nav_header_subtitle">Wallet</string>
     <string name="nav_header_title">GNU Taler</string>
@@ -56,7 +55,6 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <!-- The count should be mirrored in RTL languages -->
     <string name="char_count">%1$d/%2$d</string>
     <string name="copy" tools:override="true">Copy</string>
-    <string name="copy_uri">Copy Taler URI</string>
     <string name="currency">Currency</string>
     <string name="enter_uri">Enter taler:// URI</string>
     <string name="import_db">Import</string>
@@ -84,7 +82,6 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="amount_chosen">Chosen amount</string>
     <string name="amount_conversion">Conversion</string>
     <string name="amount_effective">Effective amount</string>
-    <string name="amount_error">Enter valid amount</string>
     <string name="amount_fee">Fee</string>
     <string name="amount_invalid">Amount invalid</string>
     <string name="amount_invoiced">Amount invoiced</string>
@@ -98,7 +95,6 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="amount_total">Total amount</string>
     <string name="amount_total_label">Total:</string>
     <string name="amount_transfer">Transfer</string>
-    <string name="amount_withdraw">Withdraw</string>
 
     <!-- Balances -->
 
@@ -131,7 +127,6 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="transactions_abort_dialog_message">Are you sure you want to abort this transaction? Funds still in transit might get lost.</string>
     <string name="transactions_abort_dialog_title">Abort Transaction</string>
     <string name="transactions_balance">Balance</string>
-    <string name="transactions_cancel_dialog_message">Are you sure you want to cancel this withdrawal? Funds still in transit might get lost.</string>
     <string name="transactions_delete">Delete</string>
     <string name="transactions_delete_dialog_message">Are you sure you want to remove this transaction from your wallet?</string>
     <string name="transactions_delete_dialog_title">Delete Transaction</string>
@@ -158,7 +153,6 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
 
     <string name="payment_aborted">Aborted</string>
     <string name="payment_already_paid">You\'ve already paid for this purchase.</string>
-    <string name="payment_already_paid_title">Already paid</string>
     <string name="payment_balance_insufficient">Balance insufficient!</string>
     <string name="payment_button_confirm">Confirm Payment</string>
     <string name="payment_confirmation_code">Confirmation code</string>
@@ -179,7 +173,6 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="receive_intro">Choose where to receive money from:</string>
     <string name="receive_peer">Invoice another wallet</string>
     <string name="receive_peer_create_button">Create invoice</string>
-    <string name="receive_peer_invoice_instruction">Let the payer scan this QR code to pay:</string>
     <string name="receive_peer_invoice_uri">Alternatively, copy and send this URI:</string>
     <string name="receive_peer_payment_intro">Do you want to receive this payment?</string>
     <string name="receive_peer_payment_title">Receive payment</string>
@@ -196,8 +189,6 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="send_deposit_title">Deposit to a bank account</string>
     <string name="send_deposit_iban">IBAN</string>
     <string name="send_deposit_iban_error">IBAN is invalid</string>
-    <string name="send_deposit_bic_error">BIC is invalid</string>
-    <string name="send_deposit_bic">BIC/SWIFT</string>
     <string name="send_deposit_name">Account holder</string>
     <string name="send_deposit_bitcoin_address">Bitcoin address</string>
     <string name="send_deposit_check_fees_button">Check fees</string>
@@ -221,31 +212,25 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
 
     <string name="withdraw_account">Account #%1$d</string>
     <string name="withdraw_account_currency">Account #%1$d (%2$s)</string>
-    <string name="withdraw_amount">How much to withdraw?</string>
     <string name="withdraw_amount_error">Enter valid amount</string>
-    <string name="withdraw_bank">Bank</string>
     <string name="withdraw_button_confirm">Confirm Withdraw</string>
     <string name="withdraw_button_confirm_bank">Confirm with bank</string>
     <string name="withdraw_button_tos">Review Terms</string>
-    <string name="withdraw_conversion_support">This provider supports currency conversion</string>
     <string name="withdraw_error_message">Withdrawing is currently not possible. Please try again later!</string>
     <string name="withdraw_error_test">Error withdrawing TESTKUDOS</string>
     <string name="withdraw_error_title">Withdrawal Error</string>
     <string name="withdraw_exchange">Provider</string>
     <string name="withdraw_initiated">Withdrawal initiated</string>
     <string name="withdraw_manual_bitcoin_intro">Now make a split transaction with the following three outputs.</string>
-    <string name="withdraw_manual_bitcoin_title">Bitcoin provider ready for withdrawal</string>
     <string name="withdraw_manual_check_fees">Check fees</string>
     <string name="withdraw_manual_payment_options">Payment options supported by %1$s:\n\n%2$s</string>
     <string name="withdraw_manual_ready_account">Account</string>
     <string name="withdraw_manual_ready_bank_button">Open in banking app</string>
-    <string name="withdraw_manual_ready_cancel">Cancel withdrawal</string>
     <string name="withdraw_manual_ready_details_intro">Bank transfer details</string>
     <string name="withdraw_manual_ready_iban">IBAN</string>
     <string name="withdraw_manual_ready_intro">To complete the process you need to wire %s to the provider\'s bank account</string>
     <string name="withdraw_manual_ready_receiver">Receiver name</string>
     <string name="withdraw_manual_ready_subject">Subject</string>
-    <string name="withdraw_manual_ready_title">Provider is ready for withdrawal!</string>
     <string name="withdraw_manual_ready_warning">Make sure to use the correct subject, otherwise the money will not arrive in this wallet.</string>
     <string name="withdraw_manual_title">Make a manual transfer to the provider</string>
     <string name="withdraw_restrict_age">Restrict Usage to Age</string>
@@ -260,7 +245,6 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="exchange_add_url">Enter address of provider</string>
     <string name="exchange_delete">Delete provider</string>
     <string name="exchange_delete_force">Force deletion (purge)</string>
-    <string name="exchange_dialog_delete_message">Are you sure you want to delete this provider? Forcing this operation will result in a loss of funds.</string>
     <plurals name="exchange_fee_coin">
         <item quantity="one">Coin: %s (used %d time)</item>
         <item quantity="other">Coin: %s (used %d times)</item>
