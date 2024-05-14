@@ -99,7 +99,7 @@ fun TransitionLossComposable(
         )
 
         TransactionAmountComposable(
-            label = stringResource(id = R.string.loss_amount),
+            label = stringResource(id = R.string.amount_lost),
             amount = t.amountEffective.withSpec(spec),
             amountType = AmountType.Negative,
         )

@@ -92,14 +92,14 @@ fun TransactionWithdrawalComposable(
         if (t.amountRaw > t.amountEffective) {
             val fee = t.amountRaw - t.amountEffective
             TransactionAmountComposable(
-                label = stringResource(id = R.string.withdraw_fees),
+                label = stringResource(id = R.string.amount_fee),
                 amount = fee.withSpec(spec),
                 amountType = AmountType.Negative,
             )
         }
 
         TransactionAmountComposable(
-            label = stringResource(id = R.string.withdraw_total),
+            label = stringResource(id = R.string.amount_total),
             amount = t.amountEffective.withSpec(spec),
             amountType = AmountType.Positive,
         )

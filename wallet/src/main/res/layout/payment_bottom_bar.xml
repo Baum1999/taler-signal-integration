@@ -33,7 +33,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
-            android:text="@string/payment_label_amount_total"
+            android:text="@string/amount_total_label"
             android:visibility="invisible"
             app:layout_constraintBottom_toTopOf="@+id/confirmButton"
             app:layout_constraintEnd_toStartOf="@+id/totalView"

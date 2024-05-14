@@ -140,7 +140,7 @@ private fun PayToComposable(
                 amountError = ""
                 amountText = input
             },
-            label = { Text(stringResource(R.string.send_amount)) },
+            label = { Text(stringResource(R.string.amount_send)) },
             supportingText = {
                 if (amountError.isNotBlank()) Text(amountError)
             },
@@ -158,7 +158,7 @@ private fun PayToComposable(
         }
 
         val focusManager = LocalFocusManager.current
-        val errorStrInvalidAmount = stringResource(id = R.string.receive_amount_invalid)
+        val errorStrInvalidAmount = stringResource(id = R.string.amount_invalid)
         val errorStrInsufficientBalance = stringResource(id = R.string.payment_balance_insufficient)
         Button(
             modifier = Modifier.padding(16.dp),

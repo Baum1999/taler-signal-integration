@@ -36,7 +36,7 @@
     <fragment
         android:id="@+id/handleUri"
         android:name="net.taler.wallet.HandleUriFragment"
-        android:label="@string/handle_uri_title">
+        android:label="@string/loading">
         <argument
             android:name="uri"
             app:argType="string"

@@ -49,7 +49,7 @@ fun ColumnScope.TransactionPeerPullCreditComposable(t: TransactionPeerPullCredit
     )
     
     TransactionAmountComposable(
-        label = stringResource(id = R.string.receive_peer_amount_invoiced),
+        label = stringResource(id = R.string.amount_invoiced),
         amount = t.amountRaw.withSpec(spec),
         amountType = AmountType.Neutral,
     )
@@ -57,7 +57,7 @@ fun ColumnScope.TransactionPeerPullCreditComposable(t: TransactionPeerPullCredit
     if (t.amountRaw > t.amountEffective) {
         val fee = t.amountRaw - t.amountEffective
         TransactionAmountComposable(
-            label = stringResource(id = R.string.withdraw_fees),
+            label = stringResource(id = R.string.amount_fee),
             amount = fee.withSpec(spec),
             amountType = AmountType.Negative,
         )

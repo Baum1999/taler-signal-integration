@@ -85,7 +85,7 @@ fun PayTemplateOrderComposable(
             onClick = {
                 when (val res = onCreateAmount(amount, currency)) {
                     is AmountResult.InsufficientBalance -> onError(R.string.payment_balance_insufficient)
-                    is AmountResult.InvalidAmount -> onError(R.string.receive_amount_invalid)
+                    is AmountResult.InvalidAmount -> onError(R.string.amount_invalid)
                     is AmountResult.Success -> onSubmit(summary, res.amount)
                 }
             },
@@ -113,7 +113,7 @@ private fun AmountField(
                 .weight(1f),
             value = amount,
             onValueChange = { onAmountChosen(it, currency) },
-            label = { Text(stringResource(R.string.send_amount)) }
+            label = { Text(stringResource(R.string.amount_send)) }
         )
         CurrencyDropdown(
             modifier = Modifier.weight(1f),

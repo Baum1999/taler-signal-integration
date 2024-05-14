@@ -49,7 +49,7 @@ fun TransactionPeerPullDebitComposable(t: TransactionPeerPullDebit, spec: Curren
     if (t.amountEffective > t.amountRaw) {
         val fee = t.amountEffective - t.amountRaw
         TransactionAmountComposable(
-            label = stringResource(id = R.string.withdraw_fees),
+            label = stringResource(id = R.string.amount_fee),
             amount = fee.withSpec(spec),
             amountType = AmountType.Negative,
         )

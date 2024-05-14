@@ -134,7 +134,7 @@ fun ColumnScope.PeerPullTermsComposable(
                 modifier = Modifier.align(End),
             ) {
                 Text(
-                    text = stringResource(id = R.string.payment_label_amount_total),
+                    text = stringResource(id = R.string.amount_total_label),
                     style = MaterialTheme.typography.bodyLarge,
                 )
                 Text(

@@ -193,14 +193,14 @@ fun WithdrawalAmountTransfer(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         TransactionAmountComposable(
-            label = stringResource(R.string.withdraw_transfer),
+            label = stringResource(R.string.amount_transfer),
             amount = conversionAmountRaw,
             amountType = AmountType.Neutral,
         )
 
         if (amountRaw.currency != conversionAmountRaw.currency) {
             TransactionAmountComposable(
-                label = stringResource(R.string.withdraw_conversion),
+                label = stringResource(R.string.amount_conversion),
                 amount = amountRaw,
                 amountType = AmountType.Neutral,
             )
@@ -209,13 +209,13 @@ fun WithdrawalAmountTransfer(
         if (amountRaw > amountEffective) {
             val fee = amountRaw - amountEffective
             TransactionAmountComposable(
-                label = stringResource(id = R.string.withdraw_fees),
+                label = stringResource(id = R.string.amount_fee),
                 amount = fee,
                 amountType = AmountType.Negative,
             )
 
             TransactionAmountComposable(
-                label = stringResource(id = R.string.withdraw_total),
+                label = stringResource(id = R.string.amount_total),
                 amount = amountEffective,
                 amountType = AmountType.Positive,
             )

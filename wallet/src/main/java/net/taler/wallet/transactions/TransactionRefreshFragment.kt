@@ -91,7 +91,7 @@ private fun TransactionRefreshComposable(
             style = MaterialTheme.typography.bodyLarge,
         )
         TransactionAmountComposable(
-            label = stringResource(id = R.string.withdraw_fees),
+            label = stringResource(id = R.string.amount_fee),
             amount = t.amountEffective.withSpec(spec),
             amountType = AmountType.Negative,
         )

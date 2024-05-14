@@ -56,7 +56,7 @@ fun PayTemplateComposable(
 ) {
     // If wallet is empty, there's no way the user can pay something
     if (amountStatus is AmountFieldStatus.Invalid) {
-        PayTemplateError(stringResource(R.string.receive_amount_invalid))
+        PayTemplateError(stringResource(R.string.amount_invalid))
     } else if (currencies.isEmpty()) {
         PayTemplateError(stringResource(R.string.payment_balance_insufficient))
     } else when (val p = payStatus) {

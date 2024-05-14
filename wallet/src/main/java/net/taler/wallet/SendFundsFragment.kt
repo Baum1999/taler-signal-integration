@@ -126,9 +126,9 @@ private fun SendFundsIntro(
                     insufficientBalance = false
                     text = input
                 },
-                label = { Text(stringResource(R.string.send_amount)) },
+                label = { Text(stringResource(R.string.amount_send)) },
                 supportingText = {
-                    if (isError) Text(stringResource(R.string.receive_amount_invalid))
+                    if (isError) Text(stringResource(R.string.amount_invalid))
                     else if (insufficientBalance) {
                         Text(stringResource(R.string.payment_balance_insufficient))
                     }

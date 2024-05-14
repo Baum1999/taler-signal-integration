@@ -14,8 +14,12 @@
   ~ GNU Taler; see the file COPYING.  If not, see <http://www.gnu.org/licenses/>
   -->
 
+<!-- NOTE: please organize strings in alphabetic order! -->
+
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Taler Wallet</string>
+
+    <!-- Google Play Store -->
 
     <string name="google_play_title" tools:keep="@string/google_play_title">Taler Wallet (experimental)</string>
     <string name="google_play_short_desc" tools:keep="@string/google_play_short_desc">GNU Taler makes privacy-friendly online transactions fast and easy.</string>
@@ -33,137 +37,159 @@ When making a payment, customers only need a charged wallet. A merchant can acce
 GNU Taler is immune against many types of fraud, such as phishing of credit card information or chargeback fraud. In case of loss or theft, only the limited amount of money left in the wallet might be gone.
 ]]></string>
 
-    <string name="nav_header_title">GNU Taler</string>
-    <string name="nav_header_subtitle">Wallet</string>
+    <!-- Navigation  -->
 
-    <string name="nav_prompt_withdraw">Withdraw Digital Cash</string>
-    <string name="nav_exchange_tos">PSP\'s Terms of Service</string>
-    <string name="nav_exchange_select">Select provider</string>
-    <string name="nav_exchange_fees">Provider fees</string>
     <string name="nav_error">Error</string>
+    <string name="nav_exchange_fees">Provider fees</string>
+    <string name="nav_exchange_select">Select provider</string>
+    <string name="nav_exchange_tos">PSP\'s Terms of Service</string>
+    <string name="nav_header_subtitle">Wallet</string>
+    <string name="nav_header_title">GNU Taler</string>
+    <string name="nav_prompt_withdraw">Withdraw Digital Cash</string>
+
+    <!-- General -->
 
     <string name="button_back">Go Back</string>
     <string name="button_scan_qr_code">Scan Taler QR Code</string>
     <string name="button_scan_qr_code_label">Scan QR code</string>
-    <string name="enter_uri">Enter taler:// URI</string>
-    <string name="copy" tools:override="true">Copy</string>
-    <string name="copy_uri">Copy Taler URI</string>
-    <string name="paste">Paste</string>
-    <string name="paste_invalid">Clipboard contains an invalid data type</string>
-    <string name="uri_invalid">Not a valid Taler URI</string>
-    <string name="ok">OK</string>
-    <string name="open">Open</string>
     <string name="cancel">Cancel</string>
-    <string name="search">Search</string>
-    <string name="menu">Menu</string>
-    <string name="or">or</string>
-    <string name="currency">Currency</string>
     <!-- The count should be mirrored in RTL languages -->
     <string name="char_count">%1$d/%2$d</string>
+    <string name="copy" tools:override="true">Copy</string>
+    <string name="copy_uri">Copy Taler URI</string>
+    <string name="currency">Currency</string>
+    <string name="enter_uri">Enter taler:// URI</string>
     <string name="import_db">Import</string>
-    <string name="reset">Reset</string>
-    <string name="share_payment">Share payment link</string>
-
+    <string name="loading">Loading</string>
+    <string name="menu">Menu</string>
     <string name="offline">Operation requires internet access. Please ensure your internet connection works and try again.</string>
     <string name="offline_banner">No internet access</string>
+    <string name="ok">OK</string>
+    <string name="open">Open</string>
+    <string name="or">or</string>
+    <string name="paste">Paste</string>
+    <string name="paste_invalid">Clipboard contains an invalid data type</string>
+    <string name="reset">Reset</string>
+    <string name="search">Search</string>
+    <string name="share_payment">Share payment link</string>
+    <string name="uri_invalid">Not a valid Taler URI</string>
+
+    <!-- Errors -->
+
     <string name="error_unsupported_uri">Error: This Taler URI is not supported.</string>
     <string name="error_broken_uri">Error: This Taler URI is (currently) not working.</string>
 
-    <string name="menu_settings">Settings</string>
-    <string name="menu_retry_pending_operations">Retry Pending Operations</string>
+    <!-- Amounts -->
 
-    <string name="host_apdu_service_desc">Taler NFC Payments</string>
-
-    <string name="handle_uri_title">Loading action</string>
-
-    <string name="balances_title">Balances</string>
-    <string name="amount_positive">+%s</string>
+    <string name="amount_chosen">Chosen amount</string>
+    <string name="amount_conversion">Conversion</string>
+    <string name="amount_effective">Effective amount</string>
+    <string name="amount_error">Enter valid amount</string>
+    <string name="amount_fee">Fee</string>
+    <string name="amount_invalid">Amount invalid</string>
+    <string name="amount_invoiced">Amount invoiced</string>
+    <string name="amount_lost">Amount lost</string>
     <string name="amount_negative">-%s</string>
-    <string name="amount_chosen">Chosen Amount</string>
-    <string name="amount_sent">Amount sent</string>
+    <string name="amount_positive">+%s</string>
+    <string name="amount_receive">Amount to receive</string>
     <string name="amount_received">Amount received</string>
+    <string name="amount_send">Amount to send</string>
+    <string name="amount_sent">Amount sent</string>
+    <string name="amount_total">Total amount</string>
+    <string name="amount_total_label">Total:</string>
+    <string name="amount_transfer">Transfer</string>
+    <string name="amount_withdraw">Withdraw</string>
+
+    <!-- Balances -->
+
+    <string name="balance_scope_auditor">Auditor: %1$s</string>
+    <string name="balance_scope_exchange">From %1$s</string>
+    <string name="balances_empty_state">There is no digital cash in your wallet.\n\nYou can get test money from the demo bank:\n\nhttps://bank.demo.taler.net</string>
     <string name="balances_inbound_amount">+%1$s inbound</string>
     <string name="balances_outbound_amount">-%1$s outbound</string>
-    <string name="balances_empty_state">There is no digital cash in your wallet.\n\nYou can get test money from the demo bank:\n\nhttps://bank.demo.taler.net</string>
-    <string name="balance_scope_exchange">From %1$s</string>
-    <string name="balance_scope_auditor">Auditor: %1$s</string>
-
-    <string name="transactions_title">Transactions</string>
-    <string name="transactions_balance">Balance</string>
-    <string name="transactions_send_funds">Send</string>
-    <string name="transactions_send_funds_title">Send %1$s</string>
-    <string name="transactions_receive_funds">Receive</string>
-    <string name="transactions_receive_funds_title">Receive %1$s</string>
-    <string name="transactions_empty">You don\'t have any transactions</string>
-    <string name="transactions_empty_search">No transactions found. Try a different search.</string>
-    <string name="transactions_error">Could not load transactions\n\n%s</string>
-    <string name="transactions_detail_title">Transaction</string>
-    <string name="transactions_detail_title_currency">%s transactions</string>
-    <string name="transactions_delete">Delete</string>
-    <string name="transactions_retry">Retry</string>
-    <string name="transactions_abort">Abort</string>
-    <string name="transactions_fail">Kill</string>
-    <string name="transactions_suspend">Suspend</string>
-    <string name="transactions_resume">Resume</string>
-    <string name="transactions_select_all">Select All</string>
-    <string name="transactions_delete_dialog_title">Delete Transaction</string>
-    <string name="transactions_delete_dialog_message">Are you sure you want to remove this transaction from your wallet?</string>
-    <string name="transactions_delete_selected_dialog_message">Are you sure you want to remove the selected transactions from your wallet?</string>
-    <string name="transactions_abort_dialog_title">Abort Transaction</string>
-    <string name="transactions_abort_dialog_message">Are you sure you want to abort this transaction? Funds still in transit might get lost.</string>
-    <string name="transactions_fail_dialog_title">Kill Transaction</string>
-    <string name="transactions_fail_dialog_message">Are you sure you want to kill this transaction? Funds still in transit WILL GET LOST.</string>
-    <string name="transactions_cancel_dialog_message">Are you sure you want to cancel this withdrawal? Funds still in transit might get lost.</string>
+    <string name="balances_title">Balances</string>
 
     <!-- Transactions -->
-    <string name="transaction_paid">Paid</string>
-    <string name="transaction_order_total">Total</string>
-    <string name="transaction_order">Purchase</string>
-    <string name="transaction_order_id">Order #%1$s</string>
-    <string name="transaction_refund">Refund</string>
-    <string name="transaction_pending">PENDING</string>
-    <string name="transaction_refresh">Coin expiry change fee</string>
+
+    <string name="transaction_action_kyc">Complete KYC</string>
+    <string name="transaction_denom_loss">Loss of funds</string>
     <string name="transaction_deposit">Deposit</string>
     <string name="transaction_deposit_to">Deposit to %1$s</string>
-    <string name="transaction_peer_push_debit">Push payment</string>
+    <string name="transaction_dummy_title">Unknown Transaction</string>
+    <string name="transaction_order">Purchase</string>
+    <string name="transaction_order_id">Order #%1$s</string>
+    <string name="transaction_order_total">Total</string>
+    <string name="transaction_paid">Paid</string>
     <string name="transaction_peer_pull_credit">Invoice</string>
     <string name="transaction_peer_pull_debit">Invoice paid</string>
     <string name="transaction_peer_push_credit">Push payment</string>
-    <string name="transaction_action_kyc">Complete KYC</string>
-    <string name="transaction_denom_loss">Loss of funds</string>
-    <string name="transaction_dummy_title">Unknown Transaction</string>
+    <string name="transaction_peer_push_debit">Push payment</string>
+    <string name="transaction_pending">PENDING</string>
+    <string name="transaction_refresh">Coin expiry change fee</string>
+    <string name="transaction_refund">Refund</string>
+    <string name="transactions_abort">Abort</string>
+    <string name="transactions_abort_dialog_message">Are you sure you want to abort this transaction? Funds still in transit might get lost.</string>
+    <string name="transactions_abort_dialog_title">Abort Transaction</string>
+    <string name="transactions_balance">Balance</string>
+    <string name="transactions_cancel_dialog_message">Are you sure you want to cancel this withdrawal? Funds still in transit might get lost.</string>
+    <string name="transactions_delete">Delete</string>
+    <string name="transactions_delete_dialog_message">Are you sure you want to remove this transaction from your wallet?</string>
+    <string name="transactions_delete_dialog_title">Delete Transaction</string>
+    <string name="transactions_delete_selected_dialog_message">Are you sure you want to remove the selected transactions from your wallet?</string>
+    <string name="transactions_detail_title">Transaction</string>
+    <string name="transactions_detail_title_currency">%s transactions</string>
+    <string name="transactions_empty">You don\'t have any transactions</string>
+    <string name="transactions_empty_search">No transactions found. Try a different search.</string>
+    <string name="transactions_error">Could not load transactions\n\n%s</string>
+    <string name="transactions_fail">Kill</string>
+    <string name="transactions_fail_dialog_message">Are you sure you want to kill this transaction? Funds still in transit WILL GET LOST.</string>
+    <string name="transactions_fail_dialog_title">Kill Transaction</string>
+    <string name="transactions_receive_funds">Receive</string>
+    <string name="transactions_receive_funds_title">Receive %1$s</string>
+    <string name="transactions_resume">Resume</string>
+    <string name="transactions_retry">Retry</string>
+    <string name="transactions_select_all">Select All</string>
+    <string name="transactions_send_funds">Send</string>
+    <string name="transactions_send_funds_title">Send %1$s</string>
+    <string name="transactions_suspend">Suspend</string>
+    <string name="transactions_title">Transactions</string>
 
-    <string name="payment_title">Payment</string>
-    <string name="payment_prompt_title">Review Payment</string>
-    <string name="payment_fee">+%s payment fee</string>
-    <string name="payment_button_confirm">Confirm Payment</string>
-    <string name="payment_label_amount_total">Total Amount:</string>
-    <string name="payment_label_order_summary">Purchase</string>
-    <string name="payment_error">Error: %s</string>
-    <string name="payment_pending">Payment not completed, it will be retried</string>
-    <string name="payment_balance_insufficient">Balance insufficient!</string>
+    <!-- Payments -->
+
     <string name="payment_aborted">Aborted</string>
-    <string name="payment_failed">Failed</string>
-    <string name="payment_initiated">Payment initiated</string>
-    <string name="payment_already_paid_title">Already paid</string>
     <string name="payment_already_paid">You\'ve already paid for this purchase.</string>
-    <string name="payment_pay_template_title">Customize your order</string>
-    <string name="payment_create_order">Create order</string>
+    <string name="payment_already_paid_title">Already paid</string>
+    <string name="payment_balance_insufficient">Balance insufficient!</string>
+    <string name="payment_button_confirm">Confirm Payment</string>
     <string name="payment_confirmation_code">Confirmation code</string>
+    <string name="payment_create_order">Create order</string>
+    <string name="payment_error">Error: %s</string>
+    <string name="payment_failed">Failed</string>
+    <string name="payment_fee">+%s payment fee</string>
+    <string name="payment_initiated">Payment initiated</string>
+    <string name="payment_label_order_summary">Purchase</string>
+    <string name="payment_pay_template_title">Customize your order</string>
+    <string name="payment_pending">Payment not completed, it will be retried</string>
+    <string name="payment_prompt_title">Review Payment</string>
     <string name="payment_template_error">Error creating order</string>
+    <string name="payment_title">Payment</string>
 
-    <string name="receive_amount">Amount to receive</string>
-    <string name="receive_amount_invalid">Amount invalid</string>
+    <!-- P2P receive -->
+
     <string name="receive_intro">Choose where to receive money from:</string>
-    <string name="receive_withdraw">Withdraw from bank account</string>
     <string name="receive_peer">Invoice another wallet</string>
-    <string name="receive_peer_title">Request payment</string>
     <string name="receive_peer_create_button">Create invoice</string>
     <string name="receive_peer_invoice_instruction">Let the payer scan this QR code to pay:</string>
     <string name="receive_peer_invoice_uri">Alternatively, copy and send this URI:</string>
-    <string name="receive_peer_amount_invoiced">Amount invoiced</string>
+    <string name="receive_peer_payment_intro">Do you want to receive this payment?</string>
+    <string name="receive_peer_payment_title">Receive payment</string>
+    <string name="receive_peer_title">Request payment</string>
+    <string name="receive_withdraw">Withdraw from bank account</string>
 
-    <string name="send_amount">Amount to send</string>
+    <!-- P2P send -->
+
+    <string name="pay_peer_title">Pay invoice</string>
+    <string name="pay_peer_intro">Do you want to pay this invoice?</string>
     <string name="send_intro">Choose where to send money to:</string>
     <string name="send_deposit">To a bank account</string>
     <string name="send_deposit_bitcoin">To a Bitcoin wallet</string>
@@ -175,7 +201,6 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="send_deposit_name">Account holder</string>
     <string name="send_deposit_bitcoin_address">Bitcoin address</string>
     <string name="send_deposit_check_fees_button">Check fees</string>
-    <string name="send_deposit_amount_effective">Effective Amount</string>
     <string name="send_deposit_create_button">Make deposit</string>
     <string name="send_deposit_bitcoin_create_button">Transfer Bitcoin</string>
     <string name="send_peer">To another wallet</string>
@@ -192,142 +217,140 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="send_peer_expiration_hours">Hours</string>
     <string name="send_peer_purpose">Purpose</string>
 
-    <string name="pay_peer_title">Pay invoice</string>
-    <string name="pay_peer_intro">Do you want to pay this invoice?</string>
-    <string name="receive_peer_payment_title">Receive payment</string>
-    <string name="receive_peer_payment_intro">Do you want to receive this payment?</string>
+    <!-- Withdrawals -->
 
-    <string name="withdraw_initiated">Withdrawal initiated</string>
-    <string name="withdraw_title">Withdrawal</string>
-    <string name="withdraw_subtitle">Select target bank account</string>
-    <string name="withdraw_total">Withdraw</string>
-    <string name="withdraw_fees">Fee</string>
-    <string name="withdraw_restrict_age">Restrict Usage to Age</string>
-    <string name="withdraw_restrict_age_unrestricted">Unrestricted</string>
-    <string name="withdraw_exchange">Provider</string>
+    <string name="withdraw_account">Account #%1$d</string>
+    <string name="withdraw_account_currency">Account #%1$d (%2$s)</string>
+    <string name="withdraw_amount">How much to withdraw?</string>
+    <string name="withdraw_amount_error">Enter valid amount</string>
     <string name="withdraw_bank">Bank</string>
     <string name="withdraw_button_confirm">Confirm Withdraw</string>
     <string name="withdraw_button_confirm_bank">Confirm with bank</string>
     <string name="withdraw_button_tos">Review Terms</string>
-    <string name="withdraw_waiting_confirm">Waiting for confirmation</string>
-    <string name="withdraw_manual_title">Make a manual transfer to the provider</string>
-    <string name="withdraw_amount">How much to withdraw?</string>
-    <string name="withdraw_amount_error">Enter valid amount</string>
-    <string name="withdraw_manual_payment_options">Payment options supported by %1$s:\n\n%2$s</string>
-    <string name="withdraw_manual_check_fees">Check fees</string>
-    <string name="withdraw_manual_ready_title">Provider is ready for withdrawal!</string>
-    <string name="withdraw_manual_ready_intro">To complete the process you need to wire %s to the provider\'s bank account</string>
-    <string name="withdraw_manual_ready_details_intro">Bank transfer details</string>
-    <string name="withdraw_manual_bitcoin_title">Bitcoin provider ready for withdrawal</string>
-    <string name="withdraw_manual_bitcoin_intro">Now make a split transaction with the following three outputs.</string>
-    <string name="withdraw_manual_ready_iban">IBAN</string>
-    <string name="withdraw_manual_ready_account">Account</string>
-    <string name="withdraw_manual_ready_receiver">Receiver name</string>
-    <string name="withdraw_manual_ready_subject">Subject</string>
-    <string name="withdraw_manual_ready_bank_button">Open in banking app</string>
-    <string name="withdraw_manual_ready_cancel">Cancel withdrawal</string>
-    <string name="withdraw_manual_ready_warning">Make sure to use the correct subject, otherwise the money will not arrive in this wallet.</string>
-    <string name="withdraw_error_title">Withdrawal Error</string>
+    <string name="withdraw_conversion_support">This provider supports currency conversion</string>
     <string name="withdraw_error_message">Withdrawing is currently not possible. Please try again later!</string>
     <string name="withdraw_error_test">Error withdrawing TESTKUDOS</string>
-    <string name="withdraw_account">Account #%1$d</string>
-    <string name="withdraw_account_currency">Account #%1$d (%2$s)</string>
-    <string name="withdraw_transfer">Transfer</string>
-    <string name="withdraw_conversion">Conversion</string>
-    <string name="withdraw_conversion_support">This provider supports currency conversion</string>
+    <string name="withdraw_error_title">Withdrawal Error</string>
+    <string name="withdraw_exchange">Provider</string>
+    <string name="withdraw_initiated">Withdrawal initiated</string>
+    <string name="withdraw_manual_bitcoin_intro">Now make a split transaction with the following three outputs.</string>
+    <string name="withdraw_manual_bitcoin_title">Bitcoin provider ready for withdrawal</string>
+    <string name="withdraw_manual_check_fees">Check fees</string>
+    <string name="withdraw_manual_payment_options">Payment options supported by %1$s:\n\n%2$s</string>
+    <string name="withdraw_manual_ready_account">Account</string>
+    <string name="withdraw_manual_ready_bank_button">Open in banking app</string>
+    <string name="withdraw_manual_ready_cancel">Cancel withdrawal</string>
+    <string name="withdraw_manual_ready_details_intro">Bank transfer details</string>
+    <string name="withdraw_manual_ready_iban">IBAN</string>
+    <string name="withdraw_manual_ready_intro">To complete the process you need to wire %s to the provider\'s bank account</string>
+    <string name="withdraw_manual_ready_receiver">Receiver name</string>
+    <string name="withdraw_manual_ready_subject">Subject</string>
+    <string name="withdraw_manual_ready_title">Provider is ready for withdrawal!</string>
+    <string name="withdraw_manual_ready_warning">Make sure to use the correct subject, otherwise the money will not arrive in this wallet.</string>
+    <string name="withdraw_manual_title">Make a manual transfer to the provider</string>
+    <string name="withdraw_restrict_age">Restrict Usage to Age</string>
+    <string name="withdraw_restrict_age_unrestricted">Unrestricted</string>
+    <string name="withdraw_subtitle">Select target bank account</string>
+    <string name="withdraw_title">Withdrawal</string>
+    <string name="withdraw_waiting_confirm">Waiting for confirmation</string>
 
-    <string name="exchange_settings_title">Providers</string>
-    <string name="exchange_settings_summary">Manage list of providers known to this wallet</string>
-    <string name="exchange_list_title">Providers</string>
-    <string name="exchange_list_empty">No providers known\n\nAdd one manually or withdraw digital cash!</string>
-    <string name="exchange_list_currency">Currency: %s</string>
-    <string name="exchange_list_add">Add provider</string>
-    <string name="exchange_list_select">Select provider</string>
+    <!-- Exchanges -->
+
+    <string name="exchange_add_error">Could not add provider</string>
+    <string name="exchange_add_url">Enter address of provider</string>
     <string name="exchange_delete">Delete provider</string>
     <string name="exchange_delete_force">Force deletion (purge)</string>
     <string name="exchange_dialog_delete_message">Are you sure you want to delete this provider? Forcing this operation will result in a loss of funds.</string>
-    <string name="exchange_reload">Reload information</string>
-    <string name="exchange_not_contacted">Provider not contacted</string>
-    <string name="exchange_add_url">Enter address of provider</string>
-    <string name="exchange_add_error">Could not add provider</string>
-    <string name="exchange_list_error">Could not list providers</string>
-    <string name="exchange_list_add_dev">Add development providers</string>
-    <string name="exchange_menu_manual_withdraw">Withdraw</string>
-
-    <string name="exchange_fee_withdrawal_fee_label">Withdrawal Fee:</string>
-    <string name="exchange_fee_overhead_label">Rounding Loss:</string>
-    <string name="exchange_fee_coin_expiration_label">Earliest Coin Expiry:</string>
-    <string name="exchange_fee_coin_fees_label">Coin Fees</string>
-    <string name="exchange_fee_wire_fees_label">Wire Fees</string>
     <plurals name="exchange_fee_coin">
         <item quantity="one">Coin: %s (used %d time)</item>
         <item quantity="other">Coin: %s (used %d times)</item>
     </plurals>
-    <string name="exchange_fee_withdraw_fee">Withdraw Fee: %s</string>
+    <string name="exchange_fee_coin_expiration_label">Earliest Coin Expiry:</string>
+    <string name="exchange_fee_coin_fees_label">Coin Fees</string>
     <string name="exchange_fee_deposit_fee">Deposit Fee: %s</string>
+    <string name="exchange_fee_overhead_label">Rounding Loss:</string>
     <string name="exchange_fee_refresh_fee">Change Fee: %s</string>
     <string name="exchange_fee_refund_fee">Refund Fee: %s</string>
+    <string name="exchange_fee_wire_fee_closing_fee">Closing Fee: %s</string>
     <string name="exchange_fee_wire_fee_timespan">Timespan: %1$s - %2$s</string>
     <string name="exchange_fee_wire_fee_wire_fee">Wire Fee: %s</string>
-    <string name="exchange_fee_wire_fee_closing_fee">Closing Fee: %s</string>
+    <string name="exchange_fee_wire_fees_label">Wire Fees</string>
+    <string name="exchange_fee_withdraw_fee">Withdraw Fee: %s</string>
+    <string name="exchange_fee_withdrawal_fee_label">Withdrawal Fee:</string>
+    <string name="exchange_list_add">Add provider</string>
+    <string name="exchange_list_add_dev">Add development providers</string>
+    <string name="exchange_list_currency">Currency: %s</string>
+    <string name="exchange_list_empty">No providers known\n\nAdd one manually or withdraw digital cash!</string>
+    <string name="exchange_list_error">Could not list providers</string>
+    <string name="exchange_list_select">Select provider</string>
+    <string name="exchange_list_title">Providers</string>
+    <string name="exchange_menu_manual_withdraw">Withdraw</string>
+    <string name="exchange_not_contacted">Provider not contacted</string>
+    <string name="exchange_reload">Reload information</string>
+    <string name="exchange_settings_summary">Manage list of providers known to this wallet</string>
+    <string name="exchange_settings_title">Providers</string>
     <string name="exchange_tos_accept">Accept Terms of Service</string>
     <string name="exchange_tos_error">Error showing Terms of Service: %s</string>
 
-    <string name="loss_amount">Amount lost</string>
+    <!-- Losses -->
+
     <string name="loss_reason">Reason</string>
     <string name="loss_reason_expired">Funds were not renewed, because the wallet was not opened for a long time</string>
-    <string name="loss_reason_vanished">The payment provider lost the record of the funds</string>
     <string name="loss_reason_unoffered">The payment provider stopped offering the denomination backing the funds</string>
-
-
-    <string name="pending_operations_title">Pending Operations</string>
-    <string name="pending_operations_refuse">Refuse Proposal</string>
-    <string name="pending_operations_no_action">(no action)</string>
+    <string name="loss_reason_vanished">The payment provider lost the record of the funds</string>
 
     <!-- Observability -->
-    <string name="show_logs">Show logs</string>
-    <string name="observability_title">Internal event log</string>
-    <string name="observability_show_json">Show JSON</string>
-    <string name="observability_hide_json">Hide JSON</string>
 
-    <string name="settings_dev_mode">Developer Mode</string>
-    <string name="settings_dev_mode_summary">Shows more information intended for debugging</string>
-    <string name="settings_withdraw_testkudos">Withdraw TESTKUDOS</string>
-    <string name="settings_withdraw_testkudos_summary">Get money for testing</string>
-    <string name="settings_logcat">Debug log</string>
-    <string name="settings_logcat_summary">Save internal log</string>
-    <string name="settings_logcat_error">Error exporting log</string>
-    <string name="settings_logcat_success">Log exported to file</string>
+    <string name="observability_hide_json">Hide JSON</string>
+    <string name="observability_show_json">Show JSON</string>
+    <string name="observability_title">Internal event log</string>
+    <string name="show_logs">Show logs</string>
+
+    <!-- Settings -->
+
+    <string name="menu_settings">Settings</string>
+    <string name="settings_alert_import_canceled">Import cancelled</string>
+    <string name="settings_alert_reset_canceled">Reset cancelled</string>
+    <string name="settings_alert_reset_done">Wallet has been reset</string>
+    <string name="settings_db_clear_error">Error cleaning database</string>
     <string name="settings_db_export">Export database</string>
+    <string name="settings_db_export_error">Error exporting database</string>
+    <string name="settings_db_export_success">Database exported to file</string>
     <string name="settings_db_export_summary">Save internal database</string>
     <string name="settings_db_import">Import database</string>
-    <string name="settings_db_import_summary">Restore database from file</string>
-    <string name="settings_db_export_error">Error exporting database</string>
     <string name="settings_db_import_error">Error importing database</string>
-    <string name="settings_db_clear_error">Error cleaning database</string>
-    <string name="settings_db_export_success">Database exported to file</string>
     <string name="settings_db_import_success">Database imported from file</string>
+    <string name="settings_db_import_summary">Restore database from file</string>
+    <string name="settings_dev_mode">Developer Mode</string>
+    <string name="settings_dev_mode_summary">Shows more information intended for debugging</string>
+    <string name="settings_dialog_import_message">This operation will overwrite your existing database. Do you want to continue?</string>
+    <string name="settings_dialog_reset_message">Do you really want to reset the wallet and lose all coins and purchases?</string>
+    <string name="settings_logcat">Debug log</string>
+    <string name="settings_logcat_error">Error exporting log</string>
+    <string name="settings_logcat_success">Log exported to file</string>
+    <string name="settings_logcat_summary">Save internal log</string>
+    <string name="settings_reset">Reset Wallet (dangerous!)</string>
+    <string name="settings_reset_summary">Throws away your money</string>
+    <string name="settings_test">Run integration test</string>
+    <string name="settings_test_summary">Performs test transactions with demo setup</string>
     <string name="settings_version_app">App Version</string>
     <string name="settings_version_core">Wallet Core Version</string>
     <string name="settings_version_protocol_exchange">Supported Exchange Versions</string>
     <string name="settings_version_protocol_merchant">Supported Merchant Versions</string>
     <string name="settings_version_unknown">Unknown</string>
-    <string name="settings_test">Run integration test</string>
-    <string name="settings_test_summary">Performs test transactions with demo setup</string>
-    <string name="settings_reset">Reset Wallet (dangerous!)</string>
-    <string name="settings_reset_summary">Throws away your money</string>
+    <string name="settings_withdraw_testkudos">Withdraw TESTKUDOS</string>
+    <string name="settings_withdraw_testkudos_summary">Get money for testing</string>
 
-    <string name="settings_dialog_reset_message">Do you really want to reset the wallet and lose all coins and purchases?</string>
-    <string name="settings_dialog_import_message">This operation will overwrite your existing database. Do you want to continue?</string>
-    <string name="settings_alert_reset_done">Wallet has been reset</string>
-    <string name="settings_alert_reset_canceled">Reset cancelled</string>
-    <string name="settings_alert_import_canceled">Import cancelled</string>
+    <!-- Refunds -->
 
-    <string name="refund_title">Refund</string>
     <string name="refund_error">Error processing refund</string>
     <string name="refund_success">Refund received!</string>
+    <string name="refund_title">Refund</string>
 
-    <string name="wifi_disabled_error">Turn on Wi-Fi to get free Wi-Fi</string>
+    <!-- Miscellaneous -->
+
+    <string name="host_apdu_service_desc">Taler NFC Payments</string>
     <string name="wifi_connect_error">Could not connect to free Wi-Fi: %s</string>
+    <string name="wifi_disabled_error">Turn on Wi-Fi to get free Wi-Fi</string>
 
 </resources>

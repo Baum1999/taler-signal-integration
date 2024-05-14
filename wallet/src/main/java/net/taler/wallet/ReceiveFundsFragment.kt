@@ -144,9 +144,9 @@ private fun ReceiveFundsIntro(
                     isError = false
                     text = input
                 },
-                label = { Text(stringResource(R.string.receive_amount)) },
+                label = { Text(stringResource(R.string.amount_receive)) },
                 supportingText = {
-                    if (isError) Text(stringResource(R.string.receive_amount_invalid))
+                    if (isError) Text(stringResource(R.string.amount_invalid))
                 },
                 isError = isError,
                 numberOfDecimals = spec?.numFractionalInputDigits ?: DEFAULT_INPUT_DECIMALS,
