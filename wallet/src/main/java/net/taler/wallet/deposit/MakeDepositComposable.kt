@@ -134,13 +134,15 @@ fun MakeDepositComposable(
             ) {
                 val totalAmount = state.totalDepositCost ?: amount
                 val effectiveAmount = state.effectiveDepositAmount ?: Amount.zero(amount.currency)
-                val fee = totalAmount - effectiveAmount
+                if (totalAmount > effectiveAmount) {
+                    val fee = totalAmount - effectiveAmount
 
-                TransactionAmountComposable(
-                    label = stringResource(R.string.withdraw_fees),
-                    amount = fee.withSpec(amount.spec),
-                    amountType = if (fee.isZero()) Positive else Negative,
-                )
+                    TransactionAmountComposable(
+                        label = stringResource(R.string.withdraw_fees),
+                        amount = fee.withSpec(amount.spec),
+                        amountType = if (fee.isZero()) Positive else Negative,
+                    )
+                }
 
                 TransactionAmountComposable(
                     label = stringResource(R.string.send_amount),

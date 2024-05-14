@@ -89,7 +89,7 @@ fun OutgoingPushIntroComposable(
             style = MaterialTheme.typography.titleLarge,
         )
 
-        if (state is OutgoingChecked) {
+        if (state is OutgoingChecked && state.amountEffective > state.amountRaw) {
             val fee = state.amountEffective - state.amountRaw
             Text(
                 modifier = Modifier.padding(vertical = 16.dp),

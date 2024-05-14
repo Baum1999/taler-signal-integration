@@ -145,22 +145,26 @@ fun ColumnScope.PeerPullTermsComposable(
                 )
             }
             // this gets used for credit and debit, so fee calculation differs
-            val fee = if (data.isCredit) {
+            val fee = if (data.isCredit && terms.amountRaw > terms.amountEffective) {
                 terms.amountRaw - terms.amountEffective
-            } else {
+            } else if (terms.amountEffective > terms.amountRaw) {
                 terms.amountEffective - terms.amountRaw
+            } else null
+
+            if (fee != null) {
+                val feeStr = if (data.isCredit) {
+                    stringResource(R.string.amount_negative, fee)
+                } else {
+                    stringResource(R.string.amount_positive, fee)
+                }
+                if (!fee.isZero()) Text(
+                    modifier = Modifier.align(End),
+                    text = feeStr,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.error,
+                )
             }
-            val feeStr = if (data.isCredit) {
-                stringResource(R.string.amount_negative, fee)
-            } else {
-                stringResource(R.string.amount_positive, fee)
-            }
-            if (!fee.isZero()) Text(
-                modifier = Modifier.align(End),
-                text = feeStr,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.error,
-            )
+
             if (terms is IncomingAccepting) {
                 CircularProgressIndicator(
                     modifier = Modifier

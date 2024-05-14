@@ -104,12 +104,14 @@ fun MakeBitcoinDepositComposable(
             ) {
                 val totalAmount = state.totalDepositCost ?: amount
                 val effectiveAmount = state.effectiveDepositAmount ?: Amount.zero(amount.currency)
-                val fee = totalAmount - effectiveAmount
-                TransactionAmountComposable(
-                    label = stringResource(id = R.string.withdraw_fees),
-                    amount = fee,
-                    amountType = AmountType.Negative,
-                )
+                if (totalAmount > effectiveAmount) {
+                    val fee = totalAmount - effectiveAmount
+                    TransactionAmountComposable(
+                        label = stringResource(id = R.string.withdraw_fees),
+                        amount = fee,
+                        amountType = AmountType.Negative,
+                    )
+                }
                 TransactionAmountComposable(
                     label = stringResource(id = R.string.send_amount),
                     amount = totalAmount,
