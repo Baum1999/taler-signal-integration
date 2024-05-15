@@ -157,7 +157,7 @@ fun ColumnScope.PeerPullTermsComposable(
                 } else {
                     stringResource(R.string.amount_positive, fee)
                 }
-                if (!fee.isZero()) Text(
+                Text(
                     modifier = Modifier.align(End),
                     text = feeStr,
                     style = MaterialTheme.typography.bodyLarge,

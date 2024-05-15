@@ -208,19 +208,17 @@ fun WithdrawalAmountTransfer(
 
         if (amountRaw > amountEffective) {
             val fee = amountRaw - amountEffective
-            if (!fee.isZero()) {
-                TransactionAmountComposable(
-                    label = stringResource(id = R.string.withdraw_fees),
-                    amount = fee,
-                    amountType = AmountType.Negative,
-                )
+            TransactionAmountComposable(
+                label = stringResource(id = R.string.withdraw_fees),
+                amount = fee,
+                amountType = AmountType.Negative,
+            )
 
-                TransactionAmountComposable(
-                    label = stringResource(id = R.string.withdraw_total),
-                    amount = amountEffective,
-                    amountType = AmountType.Positive,
-                )
-            }
+            TransactionAmountComposable(
+                label = stringResource(id = R.string.withdraw_total),
+                amount = amountEffective,
+                amountType = AmountType.Positive,
+            )
         }
     }
 }

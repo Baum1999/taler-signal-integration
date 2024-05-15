@@ -140,7 +140,7 @@ fun MakeDepositComposable(
                     TransactionAmountComposable(
                         label = stringResource(R.string.withdraw_fees),
                         amount = fee.withSpec(amount.spec),
-                        amountType = if (fee.isZero()) Positive else Negative,
+                        amountType = Negative,
                     )
                 }
 

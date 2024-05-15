@@ -150,7 +150,7 @@ fun OutgoingPullIntroComposable(
 
         if (state is OutgoingChecked && state.amountRaw > state.amountEffective) {
             val fee = state.amountRaw - state.amountEffective
-            if (!fee.isZero()) TransactionAmountComposable(
+            TransactionAmountComposable(
                 label = stringResource(id = R.string.withdraw_fees),
                 amount = fee.withSpec(amount.spec),
                 amountType = AmountType.Negative,

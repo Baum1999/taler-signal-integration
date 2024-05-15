@@ -48,13 +48,11 @@ fun TransactionPeerPushCreditComposable(t: TransactionPeerPushCredit, spec: Curr
 
     if (t.amountRaw > t.amountEffective) {
         val fee = t.amountRaw - t.amountEffective
-        if (!fee.isZero()) {
-            TransactionAmountComposable(
-                label = stringResource(id = R.string.withdraw_fees),
-                amount = fee.withSpec(spec),
-                amountType = AmountType.Negative,
-            )
-        }
+        TransactionAmountComposable(
+            label = stringResource(id = R.string.withdraw_fees),
+            amount = fee.withSpec(spec),
+            amountType = AmountType.Negative,
+        )
     }
 
     TransactionAmountComposable(

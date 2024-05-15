@@ -177,11 +177,9 @@ class PromptWithdrawFragment : Fragment() {
 
         if (amountRaw > amountEffective) {
             val fee = amountRaw - amountEffective
-            if (!fee.isZero()) {
-                ui.feeLabel.fadeIn()
-                ui.feeView.text = getString(R.string.amount_negative, fee.toString())
-                ui.feeView.fadeIn()
-            }
+            ui.feeLabel.fadeIn()
+            ui.feeView.text = getString(R.string.amount_negative, fee.toString())
+            ui.feeView.fadeIn()
         }
 
         ui.exchangeIntroView.fadeIn()
