@@ -23,11 +23,34 @@ import net.taler.common.RelativeTime
 
 @Serializable
 data class TemplateContractDetails(
+    /**
+     * Human-readable summary for the template.
+     */
     val summary: String? = null,
+
+    /**
+     * Required currency for payments to the template. The user may specify
+     * any amount, but it must be in this currency. This parameter is
+     * optional and should not be present if "amount" is given.
+     */
     val currency: String? = null,
+
+    /**
+     * The price is imposed by the merchant and cannot be changed by the
+     * customer. This parameter is optional.
+     */
     val amount: Amount? = null,
+
+    /**
+     * Minimum age buyer must have (in years). Default is 0.
+     */
     @SerialName("minimum_age")
     val minimumAge: Int,
+
+    /**
+     * The time the customer need to pay before his order will be deleted. It
+     * is deleted if the customer did not pay and if the duration is over.
+     */
     @SerialName("pay_duration")
     val payDuration: RelativeTime,
 )
@@ -52,10 +75,26 @@ fun TemplateContractDetailsDefaults?.isNullOrEmpty() =
 
 @Serializable
 class WalletTemplateDetails(
+    /**
+     * Hard-coded information about the contract terms for this template.
+     */
     @SerialName("template_contract")
     val templateContract: TemplateContractDetails,
+
+    /**
+     * Key-value pairs matching a subset of the fields from template_contract
+     * that are user-editable defaults for this template.
+     */
     @SerialName("editable_defaults")
     val editableDefaults: TemplateContractDetailsDefaults? = null,
+
+    /**
+     * Required currency for payments.  Useful if no amount is specified in
+     * the template_contract but the user should be required to pay in a
+     * particular currency anyway.  Merchant backends may reject requests if
+     * the template_contract or editable_defaults do specify an amount in a
+     * different currency.  This parameter is optional.
+     */
     @SerialName("required_currency")
     val requiredCurrency: String? = null,
 )
