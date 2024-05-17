@@ -26,7 +26,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.asFlow
 import androidx.navigation.fragment.findNavController
-import net.taler.common.Amount
 import net.taler.common.showError
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
@@ -48,10 +47,6 @@ class PayTemplateFragment : Fragment() {
         uriString = arguments?.getString("uri") ?: error("no amount passed")
         uri = Uri.parse(uriString)
 
-        val defaultSummary = uri.getQueryParameter("summary")
-        val defaultAmount = uri.getQueryParameter("amount")
-        val amountFieldStatus = getAmountFieldStatus(defaultAmount)
-
         val payStatusFlow = model.paymentManager.payStatus.asFlow()
 
         return ComposeView(requireContext()).apply {
@@ -60,8 +55,6 @@ class PayTemplateFragment : Fragment() {
                 TalerSurface {
                     PayTemplateComposable(
                         currencies = model.getCurrencies(),
-                        defaultSummary = defaultSummary,
-                        amountStatus = amountFieldStatus,
                         payStatus = payStatus.value,
                         onCreateAmount = model::createAmount,
                         onSubmit = this@PayTemplateFragment::createOrder,
@@ -74,9 +67,7 @@ class PayTemplateFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        if (uri.queryParameterNames?.isEmpty() == true) {
-            createOrder(null, null)
-        }
+        checkTemplate()
 
         model.paymentManager.payStatus.observe(viewLifecycleOwner) { payStatus ->
             when (payStatus) {
@@ -88,28 +79,20 @@ class PayTemplateFragment : Fragment() {
                     showError(payStatus.error)
                 }
 
+                is PayStatus.Checked -> if (payStatus.details.editableDefaults.isNullOrEmpty()) {
+                    createOrder(TemplateParams.fromTemplateDetails(payStatus.details))
+                }
+
                 else -> {}
             }
         }
     }
 
-    private fun getAmountFieldStatus(defaultAmount: String?): AmountFieldStatus {
-        return if (defaultAmount == null) {
-            AmountFieldStatus.FixedAmount
-        } else if (defaultAmount.isBlank()) {
-            AmountFieldStatus.Default()
-        } else {
-            val parts = defaultAmount.split(":")
-            when (parts.size) {
-                0 -> AmountFieldStatus.Default()
-                1 -> AmountFieldStatus.Default(currency = parts[0])
-                2 -> AmountFieldStatus.Default(parts[1], parts[0])
-                else -> AmountFieldStatus.Invalid
-            }
-        }
+    private fun checkTemplate() {
+        model.paymentManager.checkPayForTemplate(uriString)
     }
 
-    private fun createOrder(summary: String?, amount: Amount?) {
-        model.paymentManager.preparePayForTemplate(uriString, summary, amount)
+    private fun createOrder(params: TemplateParams) {
+        model.paymentManager.preparePayForTemplate(uriString, params)
     }
 }

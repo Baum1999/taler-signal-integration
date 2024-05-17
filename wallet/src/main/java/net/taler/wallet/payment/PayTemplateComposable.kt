@@ -34,42 +34,27 @@ import net.taler.wallet.R
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 
-sealed class AmountFieldStatus {
-    object FixedAmount : AmountFieldStatus()
-    class Default(
-        val amountStr: String? = null,
-        val currency: String? = null,
-    ) : AmountFieldStatus()
-
-    object Invalid : AmountFieldStatus()
-}
-
 @Composable
 fun PayTemplateComposable(
-    defaultSummary: String?,
-    amountStatus: AmountFieldStatus,
     currencies: List<String>,
     payStatus: PayStatus,
     onCreateAmount: (String, String) -> AmountResult,
-    onSubmit: (summary: String?, amount: Amount?) -> Unit,
+    onSubmit: (params: TemplateParams) -> Unit,
     onError: (resId: Int) -> Unit,
 ) {
     // If wallet is empty, there's no way the user can pay something
-    if (amountStatus is AmountFieldStatus.Invalid) {
-        PayTemplateError(stringResource(R.string.amount_invalid))
-    } else if (currencies.isEmpty()) {
+    if (currencies.isEmpty()) {
         PayTemplateError(stringResource(R.string.payment_balance_insufficient))
     } else when (val p = payStatus) {
-        is PayStatus.None -> PayTemplateOrderComposable(
+        is PayStatus.Checked -> PayTemplateOrderComposable(
             currencies = currencies,
-            defaultSummary = defaultSummary,
-            amountStatus = amountStatus,
+            templateDetails = p.details,
             onCreateAmount = onCreateAmount,
             onError = onError,
             onSubmit = onSubmit,
         )
 
-        is PayStatus.Loading -> PayTemplateLoading()
+        is PayStatus.None, is PayStatus.Loading -> PayTemplateLoading()
         is PayStatus.AlreadyPaid -> PayTemplateError(stringResource(R.string.payment_already_paid))
         is PayStatus.InsufficientBalance -> PayTemplateError(stringResource(R.string.payment_balance_insufficient))
         is PayStatus.Pending -> {
@@ -109,14 +94,12 @@ fun PayTemplateLoading() {
 fun PayTemplateLoadingPreview() {
     TalerSurface {
         PayTemplateComposable(
-            defaultSummary = "Donation",
-            amountStatus = AmountFieldStatus.Default("20", "ARS"),
             payStatus = PayStatus.Loading,
             currencies = listOf("KUDOS", "ARS"),
             onCreateAmount = { text, currency ->
                 AmountResult.Success(amount = Amount.fromString(currency, text))
             },
-            onSubmit = { _, _ -> },
+            onSubmit = { _ -> },
             onError = { _ -> },
         )
     }
@@ -127,8 +110,6 @@ fun PayTemplateLoadingPreview() {
 fun PayTemplateInsufficientBalancePreview() {
     TalerSurface {
         PayTemplateComposable(
-            defaultSummary = "Donation",
-            amountStatus = AmountFieldStatus.Default("20", "ARS"),
             payStatus = PayStatus.InsufficientBalance(
                 ContractTerms(
                     "test",
@@ -140,7 +121,7 @@ fun PayTemplateInsufficientBalancePreview() {
             onCreateAmount = { text, currency ->
                 AmountResult.Success(amount = Amount.fromString(currency, text))
             },
-            onSubmit = { _, _ -> },
+            onSubmit = { _ -> },
             onError = { _ -> },
         )
     }
@@ -151,14 +132,12 @@ fun PayTemplateInsufficientBalancePreview() {
 fun PayTemplateAlreadyPaidPreview() {
     TalerSurface {
         PayTemplateComposable(
-            defaultSummary = "Donation",
-            amountStatus = AmountFieldStatus.Default("20", "ARS"),
             payStatus = PayStatus.AlreadyPaid(transactionId = "transactionId"),
             currencies = listOf("KUDOS", "ARS"),
             onCreateAmount = { text, currency ->
                 AmountResult.Success(amount = Amount.fromString(currency, text))
             },
-            onSubmit = { _, _ -> },
+            onSubmit = { _ -> },
             onError = { _ -> },
         )
     }
@@ -170,14 +149,12 @@ fun PayTemplateAlreadyPaidPreview() {
 fun PayTemplateNoCurrenciesPreview() {
     TalerSurface {
         PayTemplateComposable(
-            defaultSummary = "Donation",
-            amountStatus = AmountFieldStatus.Default("20", "ARS"),
             payStatus = PayStatus.None,
             currencies = emptyList(),
             onCreateAmount = { text, currency ->
                 AmountResult.Success(amount = Amount.fromString(currency, text))
             },
-            onSubmit = { _, _ -> },
+            onSubmit = { _ -> },
             onError = { _ -> },
         )
     }

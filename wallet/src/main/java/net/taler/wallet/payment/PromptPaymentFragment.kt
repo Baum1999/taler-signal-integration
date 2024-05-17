@@ -98,6 +98,7 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
     private fun onPaymentStatusChanged(payStatus: PayStatus?) {
         when (payStatus) {
             null -> {}
+            is PayStatus.Checked -> {} // does not apply
             is PayStatus.Prepared -> {
                 showLoading(false)
                 val fees = payStatus.amountEffective - payStatus.amountRaw

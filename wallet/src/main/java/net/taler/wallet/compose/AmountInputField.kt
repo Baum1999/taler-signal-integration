@@ -53,6 +53,7 @@ fun AmountInputField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     decimalFormatSymbols: DecimalFormatSymbols = DecimalFormat().decimalFormatSymbols,
     numberOfDecimals: Int = DEFAULT_INPUT_DECIMALS,
+    readOnly: Boolean = false,
 ) {
     var amountInput by remember { mutableStateOf(value) }
 
@@ -77,6 +78,7 @@ fun AmountInputField(
             }
         },
         modifier = modifier,
+        readOnly = readOnly,
         textStyle = LocalTextStyle.current.copy(fontFamily = FontFamily.Monospace),
         label = label,
         supportingText = supportingText,

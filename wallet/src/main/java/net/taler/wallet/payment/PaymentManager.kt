@@ -22,9 +22,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
 import net.taler.common.Amount
 import net.taler.common.ContractTerms
 import net.taler.wallet.TAG
+import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.payment.PayStatus.AlreadyPaid
@@ -44,6 +46,10 @@ sealed class PayStatus {
         val transactionId: String,
         val amountRaw: Amount,
         val amountEffective: Amount,
+    ) : PayStatus()
+
+    data class Checked(
+        val details: WalletTemplateDetails,
     ) : PayStatus()
 
     data class InsufficientBalance(
@@ -113,14 +119,22 @@ class PaymentManager(
         }
     }
 
-    fun preparePayForTemplate(url: String, summary: String?, amount: Amount?) = scope.launch {
+    fun checkPayForTemplate(url: String) = scope.launch {
+        mPayStatus.value = PayStatus.Loading
+        api.request("checkPayForTemplate", WalletTemplateDetails.serializer()) {
+            put("talerPayTemplateUri", url)
+        }.onError {
+            handleError("checkPayForTemplate", it)
+        }.onSuccess { response ->
+            mPayStatus.value = PayStatus.Checked(response)
+        }
+    }
+
+    fun preparePayForTemplate(url: String, params: TemplateParams) = scope.launch {
         mPayStatus.value = PayStatus.Loading
         api.request("preparePayForTemplate", PreparePayResponse.serializer()) {
             put("talerPayTemplateUri", url)
-            put("templateParams", JSONObject().apply {
-                summary?.let { put("summary", it) }
-                amount?.let { put("amount", it.toJSONString()) }
-            })
+            put("templateParams", JSONObject(BackendManager.json.encodeToString(params)))
         }.onError {
             handleError("preparePayForTemplate", it)
         }.onSuccess { response ->
