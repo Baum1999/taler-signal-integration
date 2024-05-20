@@ -97,7 +97,29 @@ class WalletTemplateDetails(
      */
     @SerialName("required_currency")
     val requiredCurrency: String? = null,
-)
+) {
+    val defaultSummary get() = editableDefaults?.summary ?: templateContract.summary
+
+    val defaultAmount get() = editableDefaults?.amount?.let {
+        if (it.contains(':')) {
+            // Amount
+            Amount.fromJSONString(it).amountStr
+        } else {
+            // *or* a plain currency string
+            Amount.zero(it).amountStr
+        }
+    } ?: templateContract.amount?.amountStr
+
+    val defaultCurrency get() = requiredCurrency
+        ?: editableDefaults?.currency
+        ?: templateContract.currency
+
+    fun isSummaryEditable() = editableDefaults?.summary != null
+
+    fun isAmountEditable() = editableDefaults?.amount != null
+
+    fun isCurrencyEditable() = requiredCurrency == null && editableDefaults?.currency != null
+}
 
 @Serializable
 data class TemplateParams(

@@ -49,15 +49,9 @@ fun PayTemplateOrderComposable(
     onError: (msgRes: Int) -> Unit,
     onSubmit: (params: TemplateParams) -> Unit,
 ) {
-    val defaultSummary = templateDetails.editableDefaults?.summary
-        ?: templateDetails.templateContract.summary
-    // TODO: also handle “plain currency string”
-    val defaultAmount = templateDetails.editableDefaults?.amount?.let {
-        Amount.fromJSONString(it).amountStr
-    } ?: templateDetails.templateContract.amount?.amountStr
-    // TODO: also take into account `requiredCurrency'
-    val defaultCurrency = templateDetails.editableDefaults?.currency
-        ?: templateDetails.templateContract.currency
+    val defaultSummary = templateDetails.defaultSummary
+    val defaultAmount = templateDetails.defaultAmount
+    val defaultCurrency = templateDetails.defaultCurrency
 
     var summary by remember { mutableStateOf(defaultSummary) }
     var currency by remember { mutableStateOf(defaultCurrency ?: currencies[0]) }
@@ -72,7 +66,7 @@ fun PayTemplateOrderComposable(
             isError = summary.isNullOrBlank(),
             onValueChange = { summary = it },
             singleLine = true,
-            readOnly = templateDetails.editableDefaults?.summary == null,
+            readOnly = !templateDetails.isSummaryEditable(),
             label = { Text(stringResource(R.string.withdraw_manual_ready_subject)) },
         )
 
@@ -83,8 +77,8 @@ fun PayTemplateOrderComposable(
             amount = amount,
             currency = currency,
             currencies = currencies,
-            readOnlyCurrency = templateDetails.editableDefaults?.currency == null,
-            readOnlyAmount = templateDetails.editableDefaults?.amount == null,
+            readOnlyCurrency = !templateDetails.isCurrencyEditable(),
+            readOnlyAmount = !templateDetails.isAmountEditable(),
             onAmountChosen = { a, c ->
                 amount = a
                 currency = c
@@ -93,7 +87,7 @@ fun PayTemplateOrderComposable(
 
         Button(
             modifier = Modifier.padding(16.dp),
-            enabled = templateDetails.editableDefaults?.summary == null || !summary.isNullOrBlank(),
+            enabled = !templateDetails.isSummaryEditable() || !summary.isNullOrBlank(),
             onClick = {
                 when (val res = onCreateAmount(amount, currency)) {
                     is AmountResult.InsufficientBalance -> onError(R.string.payment_balance_insufficient)
