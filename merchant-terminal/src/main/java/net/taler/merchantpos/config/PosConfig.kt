@@ -26,13 +26,32 @@ import net.taler.common.TalerUtils
 import net.taler.merchantlib.MerchantConfig
 import java.util.UUID
 
-data class Config(
-    val configUrl: String,
-    val username: String,
-    val password: String
-) {
-    fun isValid() = configUrl.isNotBlank()
-    fun hasPassword() = password.isNotBlank()
+sealed class Config {
+    abstract fun isValid(): Boolean
+    abstract fun hasPassword(): Boolean
+
+    /**
+     * JSON config URL + user/password
+     */
+    data class Old(
+        val configUrl: String,
+        val username: String,
+        val password: String,
+    ): Config() {
+        override fun isValid() = configUrl.isNotBlank()
+        override fun hasPassword() = password.isNotBlank()
+    }
+
+    /**
+     * Merchant URL + access token
+     */
+    data class New(
+        val merchantUrl: String,
+        val accessToken: String,
+    ): Config() {
+        override fun isValid() = merchantUrl.isNotBlank()
+        override fun hasPassword() = accessToken.isNotBlank()
+    }
 }
 
 @Serializable

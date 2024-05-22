@@ -21,9 +21,13 @@
     <string name="order_custom_add_button">Add</string>
 
     <string name="config_label">Merchant settings</string>
+    <string name="config_old_label">JSON file (old)</string>
+    <string name="config_new_label">Merchant (new)</string>
     <string name="config_url">Configuration URL</string>
+    <string name="config_merchant_url">Merchant URL</string>
     <string name="config_username">Username</string>
     <string name="config_password">Password</string>
+    <string name="config_token">Access token</string>
     <string name="config_ok">Fetch configuration</string>
     <string name="config_auth_error">Error: Invalid username or password</string>
     <string name="config_error_network">Error: Could not connect to configuration server</string>

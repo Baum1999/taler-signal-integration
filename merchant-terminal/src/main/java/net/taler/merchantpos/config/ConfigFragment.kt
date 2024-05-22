@@ -55,10 +55,30 @@ class ConfigFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        ui.configToggle.check(when (configManager.config) {
+            is Config.Old -> R.id.oldConfigButton
+            is Config.New -> R.id.newConfigButton
+        })
+
+        ui.oldConfigButton.setOnClickListener {
+            ui.oldConfigForm.visibility = VISIBLE
+            ui.newConfigForm.visibility = GONE
+        }
+
+        ui.newConfigButton.setOnClickListener {
+            ui.oldConfigForm.visibility = GONE
+            ui.newConfigForm.visibility = VISIBLE
+        }
+
+        /*
+         * Old configuration (JSON)
+         */
+
         ui.configUrlView.editText!!.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) checkForUrlCredentials()
         }
-        ui.okButton.setOnClickListener {
+
+        ui.okOldButton.setOnClickListener {
             checkForUrlCredentials()
             val inputUrl = ui.configUrlView.editText!!.text
             val url = if (inputUrl.startsWith("http")) {
@@ -66,9 +86,9 @@ class ConfigFragment : Fragment() {
             } else {
                 "https://$inputUrl".also { ui.configUrlView.editText!!.setText(it) }
             }
-            ui.progressBar.visibility = VISIBLE
-            ui.okButton.visibility = INVISIBLE
-            val config = Config(
+            ui.progressBarOld.visibility = VISIBLE
+            ui.okOldButton.visibility = INVISIBLE
+            val config = Config.Old(
                 configUrl = url,
                 username = ui.usernameView.editText!!.text.toString(),
                 password = ui.passwordView.editText!!.text.toString()
@@ -80,12 +100,41 @@ class ConfigFragment : Fragment() {
                 }
             }
         }
+
         ui.forgetPasswordButton.setOnClickListener {
             configManager.forgetPassword()
             ui.passwordView.editText!!.text = null
             ui.forgetPasswordButton.visibility = GONE
         }
+
         ui.configDocsView.movementMethod = LinkMovementMethod.getInstance()
+
+        /*
+         * New configuration (Merchant)
+         */
+
+        ui.okNewButton.setOnClickListener {
+            val inputUrl = ui.merchantUrlView.editText!!.text
+            val url = if (inputUrl.startsWith("http")) {
+                inputUrl.toString()
+            } else {
+                "https://$inputUrl".also { ui.merchantUrlView.editText!!.setText(it) }
+            }
+
+            ui.progressBarNew.visibility = VISIBLE
+            ui.okNewButton.visibility = INVISIBLE
+            val config = Config.New(
+                merchantUrl = url,
+                accessToken = ui.tokenView.editText!!.text.toString(),
+            )
+            configManager.fetchConfig(config, true, ui.saveTokenCheckBox.isChecked)
+            configManager.configUpdateResult.observe(viewLifecycleOwner) { result ->
+                if (onConfigUpdate(result)) {
+                    configManager.configUpdateResult.removeObservers(viewLifecycleOwner)
+                }
+            }
+        }
+
         updateView(savedInstanceState == null)
     }
 
@@ -101,20 +150,35 @@ class ConfigFragment : Fragment() {
     }
 
     private fun updateView(isInitialization: Boolean = false) {
-        val config = configManager.config
-        ui.configUrlView.editText!!.setText(
-            if (isInitialization && config.configUrl.isBlank()) CONFIG_URL_DEMO
-            else config.configUrl
-        )
-        ui.usernameView.editText!!.setText(
-            if (isInitialization && config.username.isBlank()) CONFIG_USERNAME_DEMO
-            else config.username
-        )
-        ui.passwordView.editText!!.setText(
-            if (isInitialization && config.password.isBlank()) CONFIG_PASSWORD_DEMO
-            else config.password
-        )
-        ui.forgetPasswordButton.visibility = if (config.hasPassword()) VISIBLE else GONE
+        when (val config = configManager.config) {
+            is Config.Old -> {
+                ui.configUrlView.editText!!.setText(
+                    if (isInitialization && config.configUrl.isBlank()) CONFIG_URL_DEMO
+                    else config.configUrl
+                )
+                ui.usernameView.editText!!.setText(
+                    if (isInitialization && config.username.isBlank()) CONFIG_USERNAME_DEMO
+                    else config.username
+                )
+                ui.passwordView.editText!!.setText(
+                    if (isInitialization && config.password.isBlank()) CONFIG_PASSWORD_DEMO
+                    else config.password
+                )
+                ui.forgetPasswordButton.visibility = if (config.hasPassword()) VISIBLE else GONE
+            }
+
+            is Config.New -> {
+                ui.merchantUrlView.editText!!.setText(
+                    if (isInitialization && config.merchantUrl.isBlank()) MERCHANT_URL_DEMO
+                    else config.merchantUrl
+                )
+                ui.tokenView.editText!!.setText(
+                    if (isInitialization && config.accessToken.isBlank()) MERCHANT_ACCESS_TOKEN_DEMO
+                    else config.accessToken
+                )
+            }
+        }
+
     }
 
     private fun checkForUrlCredentials() {
@@ -158,8 +222,10 @@ class ConfigFragment : Fragment() {
     }
 
     private fun onResultReceived() {
-        ui.progressBar.visibility = INVISIBLE
-        ui.okButton.visibility = VISIBLE
+        ui.progressBarOld.visibility = INVISIBLE
+        ui.okOldButton.visibility = VISIBLE
+        ui.progressBarNew.visibility = INVISIBLE
+        ui.okNewButton.visibility = VISIBLE
     }
 
 }

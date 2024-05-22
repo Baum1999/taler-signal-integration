@@ -18,6 +18,7 @@ package net.taler.merchantpos.config
 
 import android.content.Context
 import android.content.Context.MODE_PRIVATE
+import android.net.Uri
 import android.util.Base64.NO_WRAP
 import android.util.Base64.encodeToString
 import android.util.Log
@@ -45,13 +46,26 @@ import net.taler.merchantpos.R
 
 private const val SETTINGS_NAME = "taler-merchant-terminal"
 
+private const val SETTINGS_CONFIG_VERSION = "configVersion"
+
 private const val SETTINGS_CONFIG_URL = "configUrl"
 private const val SETTINGS_USERNAME = "username"
 private const val SETTINGS_PASSWORD = "password"
 
+private const val SETTINGS_MERCHANT_URL = "merchantUrl"
+private const val SETTINGS_ACCESS_TOKEN = "accessToken"
+
 internal const val CONFIG_URL_DEMO = "https://docs.taler.net/_static/sample-pos-config.json"
 internal const val CONFIG_USERNAME_DEMO = ""
 internal const val CONFIG_PASSWORD_DEMO = ""
+
+internal const val MERCHANT_URL_DEMO = "https://backend.demo.taler.net/instances/pos"
+internal const val MERCHANT_ACCESS_TOKEN_DEMO = "sandbox"
+
+internal const val CONFIG_VERSION_OLD = 0
+internal const val CONFIG_VERSION_NEW = 1
+
+internal const val CONFIG_ACCESS_TOKEN_DEMO = ""
 
 private val VERSION = Version.parse(BuildConfig.BACKEND_API_VERSION)!!
 
@@ -74,14 +88,15 @@ class ConfigManager(
     private val prefs = context.getSharedPreferences(SETTINGS_NAME, MODE_PRIVATE)
     private val configurationReceivers = ArrayList<ConfigurationReceiver>()
 
-    var config = Config(
-        configUrl = prefs.getString(SETTINGS_CONFIG_URL, "")!!,
-        username = prefs.getString(SETTINGS_USERNAME, CONFIG_USERNAME_DEMO)!!,
-        password = prefs.getString(SETTINGS_PASSWORD, CONFIG_PASSWORD_DEMO)!!
+    var config: Config = Config.New(
+        merchantUrl = prefs.getString(SETTINGS_MERCHANT_URL, "")!!,
+        accessToken = prefs.getString(SETTINGS_ACCESS_TOKEN, CONFIG_ACCESS_TOKEN_DEMO)!!,
     )
+
     @Volatile
     var merchantConfig: MerchantConfig? = null
         private set
+
     @Volatile
     var currency: String? = null
         private set
@@ -97,16 +112,37 @@ class ConfigManager(
     fun fetchConfig(config: Config, save: Boolean, savePassword: Boolean = false) {
         mConfigUpdateResult.value = null
         val configToSave = if (save) {
-            if (savePassword) config else config.copy(password = "")
+            if (savePassword) config else when (val c = config) {
+                is Config.Old -> c.copy(password = "")
+                is Config.New -> c.copy(accessToken = "")
+            }
         } else null
 
         scope.launch(Dispatchers.IO) {
             try {
+                val url = when(val c = config) {
+                    is Config.Old -> c.configUrl
+                    is Config.New -> Uri.parse(c.merchantUrl)
+                        .buildUpon()
+                        .appendPath("private/pos")
+                        .build()
+                        .toString()
+                }
+
                 // get PoS configuration
-                val posConfig: PosConfig = httpClient.get(config.configUrl) {
-                    val credentials = "${config.username}:${config.password}"
-                    val auth = ("Basic ${encodeToString(credentials.toByteArray(), NO_WRAP)}")
-                    header(Authorization, auth)
+                val posConfig: PosConfig = httpClient.get(url) {
+                    when (val c = config) {
+                        is Config.Old -> {
+                            val credentials = "${c.username}:${c.password}"
+                            val auth = ("Basic ${encodeToString(credentials.toByteArray(), NO_WRAP)}")
+                            header(Authorization, auth)
+                        }
+                        is Config.New -> {
+                            val token = "secret-token:${c.accessToken}"
+                            val auth = ("Bearer $token")
+                            header(Authorization, auth)
+                        }
+                    }
                 }.body()
                 val merchantConfig = posConfig.merchantConfig
                 // get config from merchant backend API
@@ -165,18 +201,29 @@ class ConfigManager(
 
     @UiThread
     fun forgetPassword() {
-        config = config.copy(password = "")
+        config = when (val c = config) {
+            is Config.Old -> c.copy(password = "")
+            is Config.New -> c.copy(accessToken = "")
+        }
         saveConfig(config)
         merchantConfig = null
     }
 
     @UiThread
     private fun saveConfig(config: Config) {
-        prefs.edit()
-            .putString(SETTINGS_CONFIG_URL, config.configUrl)
-            .putString(SETTINGS_USERNAME, config.username)
-            .putString(SETTINGS_PASSWORD, config.password)
-            .apply()
+        when (val c = config) {
+            is Config.Old -> prefs.edit()
+                .putInt(SETTINGS_CONFIG_VERSION, CONFIG_VERSION_OLD)
+                .putString(SETTINGS_CONFIG_URL, c.configUrl)
+                .putString(SETTINGS_USERNAME, c.username)
+                .putString(SETTINGS_PASSWORD, c.password)
+                .apply()
+            is Config.New -> prefs.edit()
+                .putInt(SETTINGS_CONFIG_VERSION, CONFIG_VERSION_NEW)
+                .putString(SETTINGS_MERCHANT_URL, c.merchantUrl)
+                .putString(SETTINGS_ACCESS_TOKEN, c.accessToken)
+                .apply()
+        }
     }
 
     private fun onNetworkError(msg: String) = scope.launch(Dispatchers.Main) {
