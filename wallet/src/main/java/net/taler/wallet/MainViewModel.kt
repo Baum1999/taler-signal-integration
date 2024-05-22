@@ -231,6 +231,14 @@ class MainViewModel(
         }
     }
 
+    fun hintNetworkAvailability(isAvailable: Boolean) {
+        viewModelScope.launch {
+            api.request<Unit>("hintNetworkAvailability") {
+                put("isNetworkAvailable", isAvailable)
+            }
+        }
+    }
+
     fun runIntegrationTest() {
         viewModelScope.launch {
             api.request<Unit>("runIntegrationTestV2") {

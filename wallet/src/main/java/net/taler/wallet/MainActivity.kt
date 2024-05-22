@@ -128,6 +128,7 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
 
         model.networkManager.networkStatus.observe(this) { online ->
             ui.content.offlineBanner.visibility = if (online) GONE else VISIBLE
+            model.hintNetworkAvailability(online)
         }
 
         model.devMode.observe(this) {
