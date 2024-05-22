@@ -55,7 +55,7 @@ fun PayTemplateOrderComposable(
 
     var summary by remember { mutableStateOf(defaultSummary) }
     var currency by remember { mutableStateOf(defaultCurrency ?: currencies[0]) }
-    var amount by remember { mutableStateOf(defaultAmount ?: "0") }
+    var amount by remember { mutableStateOf(defaultAmount?.amountStr ?: "0") }
 
     Column(horizontalAlignment = End) {
         if (defaultSummary != null) OutlinedTextField(
@@ -77,7 +77,8 @@ fun PayTemplateOrderComposable(
             amount = amount,
             currency = currency,
             currencies = currencies,
-            readOnlyCurrency = !templateDetails.isCurrencyEditable(),
+            // TODO: uncomment when merchant supports multi-currency
+            // readOnlyCurrency = !templateDetails.isCurrencyEditable(),
             readOnlyAmount = !templateDetails.isAmountEditable(),
             onAmountChosen = { a, c ->
                 amount = a
@@ -110,8 +111,8 @@ private fun AmountField(
     currencies: List<String>,
     amount: String,
     currency: String,
-    readOnlyAmount: Boolean = false,
-    readOnlyCurrency: Boolean = false,
+    readOnlyAmount: Boolean = true,
+    readOnlyCurrency: Boolean = true,
     onAmountChosen: (amount: String, currency: String) -> Unit,
 ) {
     Row(
@@ -144,7 +145,7 @@ val defaultTemplateDetails = WalletTemplateDetails(
     ),
     editableDefaults = TemplateContractDetailsDefaults(
         summary = "Donation",
-        amount = "KUDOS:10.0",
+        amount = Amount.fromJSONString("KUDOS:10.0"),
     ),
 )
 

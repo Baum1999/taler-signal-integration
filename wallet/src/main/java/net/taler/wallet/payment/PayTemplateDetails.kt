@@ -59,10 +59,7 @@ data class TemplateContractDetails(
 data class TemplateContractDetailsDefaults(
     val summary: String? = null,
     val currency: String? = null,
-    /**
-     * Amount *or* a plain currency string.
-     */
-    val amount: String? = null,
+    val amount: Amount? = null,
     @SerialName("minimum_age")
     val minimumAge: Int? = null,
 )
@@ -98,17 +95,11 @@ class WalletTemplateDetails(
     @SerialName("required_currency")
     val requiredCurrency: String? = null,
 ) {
-    val defaultSummary get() = editableDefaults?.summary ?: templateContract.summary
+    val defaultSummary get() = editableDefaults?.summary
+        ?: templateContract.summary
 
-    val defaultAmount get() = editableDefaults?.amount?.let {
-        if (it.contains(':')) {
-            // Amount
-            Amount.fromJSONString(it).amountStr
-        } else {
-            // *or* a plain currency string
-            Amount.zero(it).amountStr
-        }
-    } ?: templateContract.amount?.amountStr
+    val defaultAmount get() = editableDefaults?.amount
+        ?: templateContract.amount
 
     val defaultCurrency get() = requiredCurrency
         ?: editableDefaults?.currency
