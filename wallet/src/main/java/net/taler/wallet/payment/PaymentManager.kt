@@ -22,6 +22,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import net.taler.common.Amount
 import net.taler.common.ContractTerms
@@ -39,8 +40,8 @@ import org.json.JSONObject
 val REGEX_PRODUCT_IMAGE = Regex("^data:image/(jpeg|png);base64,([A-Za-z0-9+/=]+)$")
 
 sealed class PayStatus {
-    object None : PayStatus()
-    object Loading : PayStatus()
+    data object None : PayStatus()
+    data object Loading : PayStatus()
     data class Prepared(
         val contractTerms: ContractTerms,
         val transactionId: String,
@@ -50,6 +51,7 @@ sealed class PayStatus {
 
     data class Checked(
         val details: WalletTemplateDetails,
+        val supportedCurrencies: List<String>,
     ) : PayStatus()
 
     data class InsufficientBalance(
@@ -70,6 +72,12 @@ sealed class PayStatus {
         val currency: String,
     ) : PayStatus()
 }
+
+@Serializable
+data class CheckPayTemplateResponse(
+    val templateDetails: WalletTemplateDetails,
+    val supportedCurrencies: List<String>,
+)
 
 class PaymentManager(
     private val api: WalletBackendApi,
@@ -121,12 +129,15 @@ class PaymentManager(
 
     fun checkPayForTemplate(url: String) = scope.launch {
         mPayStatus.value = PayStatus.Loading
-        api.request("checkPayForTemplate", WalletTemplateDetails.serializer()) {
+        api.request("checkPayForTemplate", CheckPayTemplateResponse.serializer()) {
             put("talerPayTemplateUri", url)
         }.onError {
             handleError("checkPayForTemplate", it)
         }.onSuccess { response ->
-            mPayStatus.value = PayStatus.Checked(response)
+            mPayStatus.value = PayStatus.Checked(
+                details = response.templateDetails,
+                supportedCurrencies = response.supportedCurrencies,
+            )
         }
     }
 
