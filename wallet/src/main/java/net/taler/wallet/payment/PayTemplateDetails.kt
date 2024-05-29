@@ -64,12 +64,6 @@ data class TemplateContractDetailsDefaults(
     val minimumAge: Int? = null,
 )
 
-fun TemplateContractDetailsDefaults?.isNullOrEmpty() =
-    this == null || (summary == null
-            && currency == null
-            && amount == null
-            && minimumAge == null)
-
 @Serializable
 class WalletTemplateDetails(
     /**
@@ -105,11 +99,15 @@ class WalletTemplateDetails(
         ?: editableDefaults?.currency
         ?: templateContract.currency
 
-    fun isSummaryEditable() = editableDefaults?.summary != null
+    fun isSummaryEditable() = templateContract.summary == null
 
-    fun isAmountEditable() = editableDefaults?.amount != null
+    fun isAmountEditable() = templateContract.amount == null
 
-    fun isCurrencyEditable() = requiredCurrency == null && editableDefaults?.currency != null
+    fun isCurrencyEditable() = requiredCurrency == null && templateContract.currency == null
+
+    fun isTemplateEditable() = isSummaryEditable()
+            || isAmountEditable()
+            || isCurrencyEditable()
 
     // NOTE: it is important to nullify non-editable values!
     fun toTemplateParams() = TemplateParams(

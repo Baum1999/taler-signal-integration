@@ -46,13 +46,21 @@ fun PayTemplateComposable(
     if (currencies.isEmpty()) {
         PayTemplateError(stringResource(R.string.payment_balance_insufficient))
     } else when (val p = payStatus) {
-        is PayStatus.Checked -> PayTemplateOrderComposable(
-            currencies = currencies,
-            templateDetails = p.details,
-            onCreateAmount = onCreateAmount,
-            onError = onError,
-            onSubmit = onSubmit,
-        )
+        is PayStatus.Checked -> {
+            val usableCurrencies = currencies.intersect(p.supportedCurrencies.toSet()).toList()
+            if (usableCurrencies.isEmpty()) {
+                // If user doesn't have any supported currency, they can't pay either
+                PayTemplateError(stringResource(R.string.payment_balance_insufficient))
+            } else {
+                PayTemplateOrderComposable(
+                    usableCurrencies = usableCurrencies,
+                    templateDetails = p.details,
+                    onCreateAmount = onCreateAmount,
+                    onError = onError,
+                    onSubmit = onSubmit,
+                )
+            }
+        }
 
         is PayStatus.None, is PayStatus.Loading -> PayTemplateLoading()
         is PayStatus.AlreadyPaid -> PayTemplateError(stringResource(R.string.payment_already_paid))

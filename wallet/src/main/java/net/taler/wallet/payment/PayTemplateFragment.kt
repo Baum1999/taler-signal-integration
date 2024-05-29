@@ -79,7 +79,7 @@ class PayTemplateFragment : Fragment() {
                     showError(payStatus.error)
                 }
 
-                is PayStatus.Checked -> if (payStatus.details.editableDefaults.isNullOrEmpty()) {
+                is PayStatus.Checked -> if (!payStatus.details.isTemplateEditable()) {
                     createOrder(payStatus.details.toTemplateParams())
                 }
 

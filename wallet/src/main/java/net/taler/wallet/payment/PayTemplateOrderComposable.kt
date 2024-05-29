@@ -24,12 +24,18 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.End
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,9 +47,10 @@ import net.taler.wallet.compose.AmountInputField
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.deposit.CurrencyDropdown
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun PayTemplateOrderComposable(
-    currencies: List<String>, // assumed to have size > 0
+    usableCurrencies: List<String>, // non-empty intersection between the stored currencies and the ones supported by the merchant
     templateDetails: WalletTemplateDetails,
     onCreateAmount: (String, String) -> AmountResult,
     onError: (msgRes: Int) -> Unit,
@@ -53,32 +60,40 @@ fun PayTemplateOrderComposable(
     val defaultAmount = templateDetails.defaultAmount
     val defaultCurrency = templateDetails.defaultCurrency
 
-    var summary by remember { mutableStateOf(defaultSummary) }
-    var currency by remember { mutableStateOf(defaultCurrency ?: currencies[0]) }
+    val summaryFocusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    var summary by remember { mutableStateOf(defaultSummary ?: "") }
+    var currency by remember { mutableStateOf(defaultCurrency ?: usableCurrencies[0]) }
     var amount by remember { mutableStateOf(defaultAmount?.amountStr ?: "0") }
 
     Column(horizontalAlignment = End) {
-        if (defaultSummary != null) OutlinedTextField(
+        OutlinedTextField(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
-                .fillMaxWidth(),
-            value = summary ?: "",
-            isError = summary.isNullOrBlank(),
+                .fillMaxWidth()
+                .focusRequester(summaryFocusRequester)
+                .onFocusChanged {
+                    if (it.isFocused) {
+                        keyboardController?.show()
+                    }
+                },
+            value = summary,
+            isError = templateDetails.isSummaryEditable() && summary.isBlank(),
             onValueChange = { summary = it },
             singleLine = true,
             readOnly = !templateDetails.isSummaryEditable(),
             label = { Text(stringResource(R.string.withdraw_manual_ready_subject)) },
         )
 
-        if (defaultAmount != null || defaultCurrency != null) AmountField(
+        AmountField(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
             amount = amount,
             currency = currency,
-            currencies = currencies,
-            // TODO: uncomment when merchant supports multi-currency
-            // readOnlyCurrency = !templateDetails.isCurrencyEditable(),
+            currencies = usableCurrencies,
+            readOnlyCurrency = !templateDetails.isCurrencyEditable(),
             readOnlyAmount = !templateDetails.isAmountEditable(),
             onAmountChosen = { a, c ->
                 amount = a
@@ -102,6 +117,13 @@ fun PayTemplateOrderComposable(
             },
         ) {
             Text(stringResource(R.string.payment_create_order))
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (templateDetails.isSummaryEditable()
+            && templateDetails.defaultSummary == null) {
+            summaryFocusRequester.requestFocus()
         }
     }
 }
@@ -156,7 +178,7 @@ fun PayTemplateDefaultPreview() {
     TalerSurface {
         PayTemplateOrderComposable(
             templateDetails = defaultTemplateDetails,
-            currencies = listOf("KUDOS", "ARS"),
+            usableCurrencies = listOf("KUDOS", "ARS"),
             onCreateAmount = { text, currency ->
                 AmountResult.Success(amount = Amount.fromString(currency, text))
             },
@@ -172,7 +194,7 @@ fun PayTemplateFixedAmountPreview() {
     TalerSurface {
         PayTemplateOrderComposable(
             templateDetails = defaultTemplateDetails,
-            currencies = listOf("KUDOS", "ARS"),
+            usableCurrencies = listOf("KUDOS", "ARS"),
             onCreateAmount = { text, currency ->
                 AmountResult.Success(amount = Amount.fromString(currency, text))
             },
@@ -188,7 +210,7 @@ fun PayTemplateBlankSubjectPreview() {
     TalerSurface {
         PayTemplateOrderComposable(
             templateDetails = defaultTemplateDetails,
-            currencies = listOf("KUDOS", "ARS"),
+            usableCurrencies = listOf("KUDOS", "ARS"),
             onCreateAmount = { text, currency ->
                 AmountResult.Success(amount = Amount.fromString(currency, text))
             },
