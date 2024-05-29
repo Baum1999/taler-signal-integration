@@ -110,17 +110,16 @@ class WalletTemplateDetails(
     fun isAmountEditable() = editableDefaults?.amount != null
 
     fun isCurrencyEditable() = requiredCurrency == null && editableDefaults?.currency != null
+
+    // NOTE: it is important to nullify non-editable values!
+    fun toTemplateParams() = TemplateParams(
+        amount = if(isAmountEditable()) templateContract.amount else null,
+        summary = if(isSummaryEditable()) templateContract.summary else null,
+    )
 }
 
 @Serializable
 data class TemplateParams(
     val amount: Amount? = null,
     val summary: String? = null,
-) {
-    companion object {
-        fun fromTemplateDetails(details: WalletTemplateDetails) = TemplateParams(
-            amount = details.templateContract.amount,
-            summary = details.templateContract.summary,
-        )
-    }
-}
+)

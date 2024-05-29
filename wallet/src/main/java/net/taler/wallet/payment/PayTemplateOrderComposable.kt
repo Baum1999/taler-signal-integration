@@ -93,9 +93,10 @@ fun PayTemplateOrderComposable(
                 when (val res = onCreateAmount(amount, currency)) {
                     is AmountResult.InsufficientBalance -> onError(R.string.payment_balance_insufficient)
                     is AmountResult.InvalidAmount -> onError(R.string.amount_invalid)
+                    // NOTE: it is important to nullify non-editable values!
                     is AmountResult.Success -> onSubmit(TemplateParams(
-                        summary = summary,
-                        amount = res.amount,
+                        summary = if (templateDetails.isSummaryEditable()) summary else null,
+                        amount = if(templateDetails.isAmountEditable()) res.amount else null,
                     ))
                 }
             },
