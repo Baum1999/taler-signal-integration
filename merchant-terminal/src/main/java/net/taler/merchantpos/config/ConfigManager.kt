@@ -48,24 +48,26 @@ private const val SETTINGS_NAME = "taler-merchant-terminal"
 
 private const val SETTINGS_CONFIG_VERSION = "configVersion"
 
+internal const val CONFIG_VERSION_OLD = 0
+internal const val CONFIG_VERSION_NEW = 1
+
+// Old JSON config + basic auth config
+
 private const val SETTINGS_CONFIG_URL = "configUrl"
 private const val SETTINGS_USERNAME = "username"
 private const val SETTINGS_PASSWORD = "password"
 
+internal const val OLD_CONFIG_URL_DEMO = "https://docs.taler.net/_static/sample-pos-config.json"
+internal const val OLD_CONFIG_USERNAME_DEMO = ""
+internal const val OLD_CONFIG_PASSWORD_DEMO = ""
+
+// New merchant API + token config
+
 private const val SETTINGS_MERCHANT_URL = "merchantUrl"
 private const val SETTINGS_ACCESS_TOKEN = "accessToken"
 
-internal const val CONFIG_URL_DEMO = "https://docs.taler.net/_static/sample-pos-config.json"
-internal const val CONFIG_USERNAME_DEMO = ""
-internal const val CONFIG_PASSWORD_DEMO = ""
-
-internal const val MERCHANT_URL_DEMO = "https://backend.demo.taler.net/instances/pos"
-internal const val MERCHANT_ACCESS_TOKEN_DEMO = "sandbox"
-
-internal const val CONFIG_VERSION_OLD = 0
-internal const val CONFIG_VERSION_NEW = 1
-
-internal const val CONFIG_ACCESS_TOKEN_DEMO = ""
+internal const val NEW_CONFIG_URL_DEMO = "https://backend.demo.taler.net/instances/pos"
+internal const val NEW_CONFIG_ACCESS_TOKEN_DEMO = "sandbox"
 
 private val VERSION = Version.parse(BuildConfig.BACKEND_API_VERSION)!!
 
@@ -90,7 +92,7 @@ class ConfigManager(
 
     var config: Config = Config.New(
         merchantUrl = prefs.getString(SETTINGS_MERCHANT_URL, "")!!,
-        accessToken = prefs.getString(SETTINGS_ACCESS_TOKEN, CONFIG_ACCESS_TOKEN_DEMO)!!,
+        accessToken = prefs.getString(SETTINGS_ACCESS_TOKEN, NEW_CONFIG_ACCESS_TOKEN_DEMO)!!,
     )
 
     @Volatile
@@ -144,7 +146,12 @@ class ConfigManager(
                         }
                     }
                 }.body()
-                val merchantConfig = posConfig.merchantConfig
+
+                val merchantConfig = when (val c = config) {
+                    is Config.Old -> posConfig.merchantConfig!!
+                    is Config.New -> MerchantConfig(c.merchantUrl, "secret-token:${c.accessToken}")
+                }
+
                 // get config from merchant backend API
                 api.getConfig(merchantConfig.baseUrl).handleSuspend(::onNetworkError) {
                     onMerchantConfigReceived(configToSave, posConfig, merchantConfig, it)

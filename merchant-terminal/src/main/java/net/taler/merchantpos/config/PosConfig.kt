@@ -57,7 +57,7 @@ sealed class Config {
 @Serializable
 data class PosConfig(
     @SerialName("config")
-    val merchantConfig: MerchantConfig,
+    val merchantConfig: MerchantConfig? = null ,
     val categories: List<Category>,
     val products: List<ConfigProduct>
 )

@@ -61,13 +61,11 @@ class ConfigFragment : Fragment() {
         })
 
         ui.oldConfigButton.setOnClickListener {
-            ui.oldConfigForm.visibility = VISIBLE
-            ui.newConfigForm.visibility = GONE
+            showOldConfig()
         }
 
         ui.newConfigButton.setOnClickListener {
-            ui.oldConfigForm.visibility = GONE
-            ui.newConfigForm.visibility = VISIBLE
+            showNewConfig()
         }
 
         /*
@@ -150,35 +148,66 @@ class ConfigFragment : Fragment() {
     }
 
     private fun updateView(isInitialization: Boolean = false) {
-        when (val config = configManager.config) {
-            is Config.Old -> {
-                ui.configUrlView.editText!!.setText(
-                    if (isInitialization && config.configUrl.isBlank()) CONFIG_URL_DEMO
-                    else config.configUrl
-                )
-                ui.usernameView.editText!!.setText(
-                    if (isInitialization && config.username.isBlank()) CONFIG_USERNAME_DEMO
-                    else config.username
-                )
-                ui.passwordView.editText!!.setText(
-                    if (isInitialization && config.password.isBlank()) CONFIG_PASSWORD_DEMO
-                    else config.password
-                )
-                ui.forgetPasswordButton.visibility = if (config.hasPassword()) VISIBLE else GONE
-            }
+        if (isInitialization) {
+            ui.configUrlView.editText!!.setText(OLD_CONFIG_URL_DEMO)
+            ui.usernameView.editText!!.setText(OLD_CONFIG_USERNAME_DEMO)
+            ui.passwordView.editText!!.setText(OLD_CONFIG_PASSWORD_DEMO)
 
-            is Config.New -> {
-                ui.merchantUrlView.editText!!.setText(
-                    if (isInitialization && config.merchantUrl.isBlank()) MERCHANT_URL_DEMO
-                    else config.merchantUrl
-                )
-                ui.tokenView.editText!!.setText(
-                    if (isInitialization && config.accessToken.isBlank()) MERCHANT_ACCESS_TOKEN_DEMO
-                    else config.accessToken
-                )
+            ui.merchantUrlView.editText!!.setText(NEW_CONFIG_URL_DEMO)
+            ui.tokenView.editText!!.setText(NEW_CONFIG_ACCESS_TOKEN_DEMO)
+
+            when (val config = configManager.config) {
+                is Config.Old -> {
+                    if (config.configUrl.isNotBlank()) {
+                        ui.configUrlView.editText!!.setText(config.configUrl)
+                    }
+
+                    if (config.username.isNotBlank()) {
+                        ui.usernameView.editText!!.setText(config.username)
+                    }
+
+                    if (config.password.isNotBlank()) {
+                        ui.passwordView.editText!!.setText(config.password)
+                    }
+                }
+
+                is Config.New -> {
+                    if (config.merchantUrl.isNotBlank()) {
+                        ui.merchantUrlView.editText!!.setText(config.merchantUrl)
+                    }
+
+                    if (config.accessToken.isNotBlank()) {
+                        ui.tokenView.editText!!.setText(config.accessToken)
+                    }
+                }
             }
         }
 
+        when (val config = configManager.config) {
+            is Config.Old -> {
+                ui.configToggle.check(R.id.oldConfigButton)
+                showOldConfig()
+
+                ui.forgetPasswordButton.visibility = if (config.hasPassword()) VISIBLE else GONE
+            }
+            is Config.New -> {
+                ui.configToggle.check(R.id.newConfigButton)
+                showNewConfig()
+
+                ui.tokenView.visibility = if (config.hasPassword()) VISIBLE else GONE
+            }
+        }
+
+    }
+
+    private fun showOldConfig() {
+        ui.oldConfigForm.visibility = VISIBLE
+        ui.newConfigForm.visibility = GONE
+    }
+
+    private fun showNewConfig() {
+        ui.oldConfigForm.visibility = GONE
+        ui.newConfigForm.visibility = VISIBLE
     }
 
     private fun checkForUrlCredentials() {
