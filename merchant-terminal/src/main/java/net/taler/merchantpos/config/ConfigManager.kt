@@ -90,10 +90,18 @@ class ConfigManager(
     private val prefs = context.getSharedPreferences(SETTINGS_NAME, MODE_PRIVATE)
     private val configurationReceivers = ArrayList<ConfigurationReceiver>()
 
-    var config: Config = Config.New(
-        merchantUrl = prefs.getString(SETTINGS_MERCHANT_URL, "")!!,
-        accessToken = prefs.getString(SETTINGS_ACCESS_TOKEN, NEW_CONFIG_ACCESS_TOKEN_DEMO)!!,
-    )
+    var config: Config = if (prefs.getInt(SETTINGS_CONFIG_VERSION, CONFIG_VERSION_OLD) == CONFIG_VERSION_NEW) {
+        Config.New(
+            merchantUrl = prefs.getString(SETTINGS_MERCHANT_URL, "")!!,
+            accessToken = prefs.getString(SETTINGS_ACCESS_TOKEN, NEW_CONFIG_ACCESS_TOKEN_DEMO)!!,
+        )
+    } else {
+        Config.Old(
+            configUrl = prefs.getString(SETTINGS_CONFIG_URL, "")!!,
+            username = prefs.getString(SETTINGS_USERNAME, OLD_CONFIG_USERNAME_DEMO)!!,
+            password = prefs.getString(SETTINGS_PASSWORD, OLD_CONFIG_PASSWORD_DEMO)!!,
+        )
+    }
 
     @Volatile
     var merchantConfig: MerchantConfig? = null
