@@ -47,7 +47,9 @@ fun PayTemplateComposable(
         PayTemplateError(stringResource(R.string.payment_balance_insufficient))
     } else when (val p = payStatus) {
         is PayStatus.Checked -> {
-            val usableCurrencies = currencies.intersect(p.supportedCurrencies.toSet()).toList()
+            val usableCurrencies = currencies
+                .intersect(p.supportedCurrencies.toSet())
+                .toList()
             if (usableCurrencies.isEmpty()) {
                 // If user doesn't have any supported currency, they can't pay either
                 PayTemplateError(stringResource(R.string.payment_balance_insufficient))

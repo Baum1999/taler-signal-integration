@@ -103,11 +103,14 @@ class WalletTemplateDetails(
 
     fun isAmountEditable() = templateContract.amount == null
 
-    fun isCurrencyEditable() = requiredCurrency == null && templateContract.currency == null
+    fun isCurrencyEditable(usableCurrencies: List<String>) = isAmountEditable()
+            && requiredCurrency == null
+            && templateContract.currency == null
+            && usableCurrencies.size > 1
 
-    fun isTemplateEditable() = isSummaryEditable()
+    fun isTemplateEditable(usableCurrencies: List<String>) = isSummaryEditable()
             || isAmountEditable()
-            || isCurrencyEditable()
+            || isCurrencyEditable(usableCurrencies)
 
     // NOTE: it is important to nullify non-editable values!
     fun toTemplateParams() = TemplateParams(

@@ -38,6 +38,7 @@ class PayTemplateFragment : Fragment() {
     private val model: MainViewModel by activityViewModels()
     private lateinit var uriString: String
     private lateinit var uri: Uri
+    private val currencies by lazy { model.getCurrencies() }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -54,7 +55,7 @@ class PayTemplateFragment : Fragment() {
                 val payStatus = payStatusFlow.collectAsStateLifecycleAware(initial = PayStatus.None)
                 TalerSurface {
                     PayTemplateComposable(
-                        currencies = model.getCurrencies(),
+                        currencies = currencies,
                         payStatus = payStatus.value,
                         onCreateAmount = model::createAmount,
                         onSubmit = this@PayTemplateFragment::createOrder,
@@ -79,8 +80,13 @@ class PayTemplateFragment : Fragment() {
                     showError(payStatus.error)
                 }
 
-                is PayStatus.Checked -> if (!payStatus.details.isTemplateEditable()) {
-                    createOrder(payStatus.details.toTemplateParams())
+                is PayStatus.Checked -> {
+                    val usableCurrencies = currencies
+                        .intersect(payStatus.supportedCurrencies.toSet())
+                        .toList()
+                    if (!payStatus.details.isTemplateEditable(usableCurrencies)) {
+                        createOrder(payStatus.details.toTemplateParams())
+                    }
                 }
 
                 else -> {}

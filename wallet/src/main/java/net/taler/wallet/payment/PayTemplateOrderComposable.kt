@@ -93,7 +93,7 @@ fun PayTemplateOrderComposable(
             amount = amount,
             currency = currency,
             currencies = usableCurrencies,
-            readOnlyCurrency = !templateDetails.isCurrencyEditable(),
+            readOnlyCurrency = !templateDetails.isCurrencyEditable(usableCurrencies),
             readOnlyAmount = !templateDetails.isAmountEditable(),
             onAmountChosen = { a, c ->
                 amount = a
@@ -103,7 +103,7 @@ fun PayTemplateOrderComposable(
 
         Button(
             modifier = Modifier.padding(16.dp),
-            enabled = !templateDetails.isSummaryEditable() || !summary.isNullOrBlank(),
+            enabled = !templateDetails.isSummaryEditable() || summary.isNotBlank(),
             onClick = {
                 when (val res = onCreateAmount(amount, currency)) {
                     is AmountResult.InsufficientBalance -> onError(R.string.payment_balance_insufficient)
