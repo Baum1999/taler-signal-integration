@@ -142,7 +142,7 @@
     <string name="exchange_fee_wire_fee_timespan">Intervalo de tiempo: %1$s - %2$s</string>
     <string name="host_apdu_service_desc">Pagos Taler con NFC</string>
     <string name="transactions_delete_dialog_title">Eliminar transacción</string>
-    <string name="transactions_delete_dialog_message">¿Estás seguro de que deseas eliminar esta transacción de tu cartera\?</string>
+    <string name="transactions_delete_dialog_message">¿Estás seguro de que deseas eliminar esta transacción de tu cartera?</string>
     <string name="withdraw_manual_ready_cancel">Cancelar retiro</string>
     <string name="tip_already_accepted">Este premio ya fue aceptado.</string>
     <string name="transaction_deposit">Depósito</string>
@@ -189,7 +189,7 @@
     <string name="send_peer_title">Enviar dinero a otra cartera</string>
     <string name="transaction_peer_push_debit">Pago push</string>
     <string name="pay_peer_intro">¿Quieres pagar este cobro?</string>
-    <string name="receive_peer_payment_intro">¿Quieres recibir este pago\?</string>
+    <string name="receive_peer_payment_intro">¿Quieres recibir este pago?</string>
     <string name="withdraw_manual_bitcoin_intro">Ahora haz una transacción dividida con las siguientes tres salidas.</string>
     <string name="withdraw_manual_ready_subject">Sujeto</string>
     <string name="settings_logcat_error">Error exportando bitácora</string>
@@ -245,7 +245,7 @@
     <string name="transactions_fail_dialog_message">¿Estás seguro de que deseas matar esta transacción? Los fondos en tránsito SE PERDERÁN.</string>
     <string name="exchange_not_contacted">Proveedor aún no contactado</string>
     <string name="transactions_fail_dialog_title">Matar transacción</string>
-    <string name="transactions_abort_dialog_message">¿Estás seguro de que deseas abortar esta transacción\? Los fondos en tránsito podrían perderse.</string>
+    <string name="transactions_abort_dialog_message">¿Estás seguro de que deseas abortar esta transacción? Los fondos en tránsito podrían perderse.</string>
     <string name="offline_banner">Sin acceso a internet</string>
     <string name="error_broken_uri">Error: esta dirección taler:// no funciona actualmente.</string>
     <string name="withdraw_subtitle">Seleccione un cuenta bancaria destino</string>
