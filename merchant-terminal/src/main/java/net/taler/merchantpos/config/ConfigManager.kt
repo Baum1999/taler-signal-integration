@@ -90,7 +90,7 @@ class ConfigManager(
     private val prefs = context.getSharedPreferences(SETTINGS_NAME, MODE_PRIVATE)
     private val configurationReceivers = ArrayList<ConfigurationReceiver>()
 
-    var config: Config = if (prefs.getInt(SETTINGS_CONFIG_VERSION, CONFIG_VERSION_OLD) == CONFIG_VERSION_NEW) {
+    var config: Config = if (prefs.getInt(SETTINGS_CONFIG_VERSION, CONFIG_VERSION_NEW) == CONFIG_VERSION_NEW) {
         Config.New(
             merchantUrl = prefs.getString(SETTINGS_MERCHANT_URL, "")!!,
             accessToken = prefs.getString(SETTINGS_ACCESS_TOKEN, NEW_CONFIG_ACCESS_TOKEN_DEMO)!!,

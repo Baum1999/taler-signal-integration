@@ -23,6 +23,7 @@
     <string name="config_label">Merchant settings</string>
     <string name="config_old_label">JSON file (old)</string>
     <string name="config_new_label">Merchant (new)</string>
+    <string name="config_old_deprecation">This configuration method is deprecated, please use the new merchant API configuration.</string>
     <string name="config_url">Configuration URL</string>
     <string name="config_merchant_url">Merchant URL</string>
     <string name="config_username">Username</string>

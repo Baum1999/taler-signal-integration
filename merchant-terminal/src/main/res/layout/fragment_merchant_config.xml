@@ -56,6 +56,24 @@
             android:visibility="gone"
             tools:visibility="visible">
 
+            <androidx.cardview.widget.CardView
+                android:id="@+id/deprecationCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:contentPadding="10dp"
+                android:layout_margin="16dp"
+                app:cardBackgroundColor="@color/red"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAlignment="center"
+                    android:textColor="@android:color/white"
+                    android:text="@string/config_old_deprecation" />
+            </androidx.cardview.widget.CardView>
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/configUrlView"
                 android:layout_width="0dp"
@@ -66,7 +84,7 @@
                 app:boxBackgroundMode="outline"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
+                app:layout_constraintTop_toBottomOf="@id/deprecationCard">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:layout_width="match_parent"
