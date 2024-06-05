@@ -9,7 +9,7 @@
     <string name="order_total">Summe: %s</string>
     <string name="order_restart">Neustart</string>
     <string name="order_undo">Rückgängig machen</string>
-    <string name="order_previous">Zurück</string>
+    <string name="order_previous">Vorherige Bestellung</string>
     <string name="order_next">Nächste Bestellung</string>
     <string name="order_complete">Abschließen</string>
     <string name="config_url">Konfigurations-URL</string>
