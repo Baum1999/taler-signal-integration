@@ -21,14 +21,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.CurrencyBitcoin
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -41,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
@@ -72,6 +80,7 @@ class SendFundsFragment : Fragment() {
                     hasSufficientBalance = model::hasSufficientBalance,
                     onDeposit = this@SendFundsFragment::onDeposit,
                     onPeerPush = this@SendFundsFragment::onPeerPush,
+                    onScanQr = this@SendFundsFragment::onScanQr,
                 )
             }
         }
@@ -92,6 +101,10 @@ class SendFundsFragment : Fragment() {
         peerManager.checkPeerPushDebit(amount)
         findNavController().navigate(R.id.action_sendFunds_to_nav_peer_push, bundle)
     }
+
+    private fun onScanQr() {
+        model.scanCode()
+    }
 }
 
 @Composable
@@ -101,6 +114,7 @@ private fun SendFundsIntro(
     hasSufficientBalance: (Amount) -> Boolean,
     onDeposit: (Amount) -> Unit,
     onPeerPush: (Amount) -> Unit,
+    onScanQr: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
     Column(
@@ -148,40 +162,75 @@ private fun SendFundsIntro(
             text = stringResource(R.string.send_intro),
             style = MaterialTheme.typography.titleLarge,
         )
-        Row(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
             fun onClickButton(block: (Amount) -> Unit) {
                 val amount = getAmount(currency, text)
                 if (amount == null || amount.isZero()) isError = true
                 else if (!hasSufficientBalance(amount)) insufficientBalance = true
                 else block(amount)
             }
+
             Button(
-                modifier = Modifier
-                    .padding(end = 16.dp)
-                    .height(IntrinsicSize.Max)
-                    .weight(1f),
+                modifier = Modifier.fillMaxWidth(),
                 onClick = {
                     onClickButton { amount -> onDeposit(amount) }
                 }) {
+                Icon(
+                    if (currency == CURRENCY_BTC) {
+                        Icons.Default.CurrencyBitcoin
+                    } else {
+                        Icons.Default.AccountBalance
+                    },
+                    contentDescription = null,
+                    modifier = Modifier.size(ButtonDefaults.IconSize),
+                )
+                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                 Text(text = if (currency == CURRENCY_BTC) {
                     stringResource(R.string.send_deposit_bitcoin)
                 } else {
                     stringResource(R.string.send_deposit)
                 })
             }
+
             Button(
-                modifier = Modifier
-                    .height(IntrinsicSize.Max)
-                    .weight(1f),
+                modifier = Modifier.fillMaxWidth(),
                 onClick = {
                     onClickButton { amount -> onPeerPush(amount) }
                 },
             ) {
+                Icon(
+                    Icons.Default.AccountBalanceWallet,
+                    contentDescription = null,
+                    modifier = Modifier.size(ButtonDefaults.IconSize),
+                )
+                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                 Text(text = if (currency == CURRENCY_BTC) {
                     stringResource(R.string.send_peer_bitcoin)
                 } else {
                     stringResource(R.string.send_peer)
                 })
+            }
+
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                text = stringResource(id = R.string.or),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = { onScanQr() },
+            ) {
+                Icon(
+                    Icons.Default.QrCodeScanner,
+                    contentDescription = null,
+                    modifier = Modifier.size(ButtonDefaults.IconSize),
+                )
+                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                Text(text = stringResource(R.string.button_scan_qr_code_label))
             }
         }
     }
@@ -191,6 +240,6 @@ private fun SendFundsIntro(
 @Composable
 fun PreviewSendFundsIntro() {
     Surface {
-        SendFundsIntro("TESTKUDOS", null, { true }, {}) {}
+        SendFundsIntro("TESTKUDOS", null, { true }, {}, {}) {}
     }
 }
