@@ -41,6 +41,7 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceFragmentCompat.OnPreferenceStartFragmentCallback
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.navigation.NavigationView.OnNavigationItemSelectedListener
 import com.google.zxing.client.android.Intents.Scan.MIXED_SCAN
 import com.google.zxing.client.android.Intents.Scan.SCAN_TYPE
@@ -67,7 +68,11 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
 
     private val barcodeLauncher = registerForActivityResult(ScanContract()) { result ->
         if (result == null || result.contents == null) return@registerForActivityResult
-        handleTalerUri(result.contents, "QR code")
+        if (model.checkScanQrContext(result.contents)) {
+            handleTalerUri(result.contents, "QR code")
+        } else {
+            confirmTalerUri(result.contents, "QR code")
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -173,6 +178,25 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun confirmTalerUri(uri: String, from: String) {
+        MaterialAlertDialogBuilder(this).apply {
+            setTitle(R.string.qr_scan_context_title)
+            setMessage(when (model.getScanQrContext()) {
+                ScanQrContext.Send -> R.string.qr_scan_context_send_message
+                ScanQrContext.Receive -> R.string.qr_scan_context_receive_message
+                else -> error("invalid value")
+            })
+
+            setNegativeButton(R.string.ok) { _, _ ->
+                handleTalerUri(uri, from)
+            }
+
+            setNeutralButton(R.string.cancel) { dialog, _ ->
+                dialog.dismiss()
+            }
+        }.show()
     }
 
     private fun handleTalerUri(uri: String, from: String) {

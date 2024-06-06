@@ -125,7 +125,7 @@ class ReceiveFundsFragment : Fragment() {
     }
 
     private fun onScanQr() {
-        model.scanCode()
+        model.scanCode(ScanQrContext.Receive)
     }
 }
 

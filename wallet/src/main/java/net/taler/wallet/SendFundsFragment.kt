@@ -103,7 +103,7 @@ class SendFundsFragment : Fragment() {
     }
 
     private fun onScanQr() {
-        model.scanCode()
+        model.scanCode(ScanQrContext.Send)
     }
 }
 

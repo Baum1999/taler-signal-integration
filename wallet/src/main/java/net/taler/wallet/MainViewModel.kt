@@ -17,6 +17,7 @@
 package net.taler.wallet
 
 import android.app.Application
+import android.net.Uri
 import android.util.Log
 import androidx.annotation.UiThread
 import androidx.lifecycle.AndroidViewModel
@@ -68,6 +69,19 @@ private val observabilityNotifications = listOf(
     "request-observability-event",
 )
 
+private val sendUriActions = listOf(
+    "pay",
+    "tip",
+    "pay-pull",
+    "pay-template",
+)
+
+private val receiveUriActions = listOf(
+    "withdraw",
+    "refund",
+    "pay-push",
+)
+
 class MainViewModel(
     app: Application,
 ) : AndroidViewModel(app), VersionReceiver, NotificationReceiver {
@@ -115,6 +129,9 @@ class MainViewModel(
 
     private val mScanCodeEvent = MutableLiveData<Event<Boolean>>()
     val scanCodeEvent: LiveData<Event<Boolean>> = mScanCodeEvent
+
+    @set:Synchronized
+    private var scanQrContext = ScanQrContext.Unknown
 
     override fun onVersionReceived(versionInfo: WalletCoreVersion) {
         walletVersion = versionInfo.implementationSemver
@@ -209,8 +226,21 @@ class MainViewModel(
     }
 
     @UiThread
-    fun scanCode() {
+    fun scanCode(context: ScanQrContext = ScanQrContext.Unknown) {
+        scanQrContext = context
         mScanCodeEvent.value = true.toEvent()
+    }
+
+    fun getScanQrContext() = scanQrContext
+
+    fun checkScanQrContext(uri: String): Boolean {
+        val parsed = Uri.parse(uri)
+        val action = parsed.host
+        return when (scanQrContext) {
+            ScanQrContext.Send -> action in sendUriActions
+            ScanQrContext.Receive -> action in receiveUriActions
+            else -> true
+        }
     }
 
     fun setDevMode(enabled: Boolean, onError: (error: TalerErrorInfo) -> Unit) {
@@ -260,6 +290,12 @@ class MainViewModel(
         }
     }
 
+}
+
+enum class ScanQrContext {
+    Send,
+    Receive,
+    Unknown,
 }
 
 sealed class AmountResult {
