@@ -1,4 +1,4 @@
-FROM briar/ci-image-android:latest
+FROM docker.io/briar/ci-image-android:latest
 
 ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk-amd64
 
