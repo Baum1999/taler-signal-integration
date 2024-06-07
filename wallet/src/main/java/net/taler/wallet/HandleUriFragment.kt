@@ -228,6 +228,7 @@ class HandleUriFragment: Fragment() {
                     withContext(Dispatchers.Main) {
                         model.showProgressBar.value = false
                         val args = Bundle().apply {
+                            putBoolean("hideScanQr", true)
                             if (response.amount != null) {
                                 putString("amount", response.amount.toJSONString())
                             }

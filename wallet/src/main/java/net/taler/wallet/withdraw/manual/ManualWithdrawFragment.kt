@@ -20,6 +20,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -53,6 +54,13 @@ class ManualWithdrawFragment : Fragment() {
         arguments?.getString("amount")?.let {
             val amount = Amount.fromJSONString(it)
             ui.amountView.setText(amount.amountStr)
+        }
+
+        arguments?.getBoolean("hideScanQr")?.let {
+            if (it) {
+                ui.qrCodeButton.visibility = GONE
+                ui.orView.visibility = GONE
+            }
         }
 
         ui.qrCodeButton.setOnClickListener {
