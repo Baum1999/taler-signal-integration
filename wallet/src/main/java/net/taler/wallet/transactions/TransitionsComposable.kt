@@ -44,7 +44,7 @@ fun TransitionsComposable(
 ) {
     FlowRow(horizontalArrangement = Center) {
         t.txActions.forEach {
-            if (it in arrayOf(Resume, Suspend)) {
+            if (it in arrayOf(Resume, Suspend, Retry)) {
                 if (devMode) TransitionComposable(it, onTransition)
             } else {
                 TransitionComposable(it, onTransition)
