@@ -78,16 +78,6 @@ class WalletTemplateDetails(
      */
     @SerialName("editable_defaults")
     val editableDefaults: TemplateContractDetailsDefaults? = null,
-
-    /**
-     * Required currency for payments.  Useful if no amount is specified in
-     * the template_contract but the user should be required to pay in a
-     * particular currency anyway.  Merchant backends may reject requests if
-     * the template_contract or editable_defaults do specify an amount in a
-     * different currency.  This parameter is optional.
-     */
-    @SerialName("required_currency")
-    val requiredCurrency: String? = null,
 ) {
     val defaultSummary get() = editableDefaults?.summary
         ?: templateContract.summary
@@ -95,8 +85,7 @@ class WalletTemplateDetails(
     val defaultAmount get() = editableDefaults?.amount
         ?: templateContract.amount
 
-    val defaultCurrency get() = requiredCurrency
-        ?: editableDefaults?.currency
+    val defaultCurrency get() = editableDefaults?.currency
         ?: templateContract.currency
 
     fun isSummaryEditable() = templateContract.summary == null
@@ -104,7 +93,6 @@ class WalletTemplateDetails(
     fun isAmountEditable() = templateContract.amount == null
 
     fun isCurrencyEditable(usableCurrencies: List<String>) = isAmountEditable()
-            && requiredCurrency == null
             && templateContract.currency == null
             && usableCurrencies.size > 1
 
