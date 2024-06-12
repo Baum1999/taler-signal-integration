@@ -8,8 +8,8 @@
     <string name="order_total">Total: %s</string>
     <string name="order_restart">Reiniciar</string>
     <string name="order_undo">Deshacer</string>
-    <string name="order_previous">Ant</string>
-    <string name="order_next">Sig</string>
+    <string name="order_previous">Anterior</string>
+    <string name="order_next">Siguiente</string>
     <string name="order_complete">Completa</string>
     <string name="config_label">Ajustes comerciante</string>
     <string name="config_username">Nombre de usuario</string>
