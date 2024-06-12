@@ -47,12 +47,13 @@ class BackendManager(
 
     private val walletCore = TalerWalletCore()
     private val requestManager = RequestManager()
+    private val networkInterface = NetworkInterface()
 
     init {
         // TODO using Dagger/Hilt and @Singleton would be nice as well
         if (initialized.getAndSet(true)) error("Already initialized")
         walletCore.setMessageHandler { onMessageReceived(it) }
-        walletCore.setCurlHttpClient()
+        walletCore.setHttpClient(networkInterface)
         if (BuildConfig.DEBUG) walletCore.setStdoutHandler {
             Log.d(TAG_CORE, it)
         }

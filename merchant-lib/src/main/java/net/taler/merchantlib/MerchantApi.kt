@@ -18,8 +18,6 @@ package net.taler.merchantlib
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
@@ -29,11 +27,10 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.contentType
-import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
+import net.taler.common.getDefaultHttpClient
 import net.taler.merchantlib.Response.Companion.response
 
 class MerchantApi(
@@ -107,20 +104,5 @@ class MerchantApi(
 
     private fun HttpRequestBuilder.auth(merchantConfig: MerchantConfig) {
         header(Authorization, "Bearer ${merchantConfig.apiKey}")
-    }
-}
-
-fun getDefaultHttpClient(): HttpClient = HttpClient(OkHttp) {
-    expectSuccess = true
-    engine {
-        config {
-            retryOnConnectionFailure(true)
-        }
-    }
-    install(ContentNegotiation) {
-        json(Json {
-            encodeDefaults = false
-            ignoreUnknownKeys = true
-        })
     }
 }
