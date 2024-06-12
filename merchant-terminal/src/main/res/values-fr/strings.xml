@@ -17,9 +17,9 @@
     <string name="order_label_title">Commande numéro %s</string>
     <string name="order_restart">Redémarrer</string>
     <string name="order_undo">Annuler</string>
-    <string name="order_previous">Préc.</string>
+    <string name="order_previous">Précédent</string>
     <string name="order_next">Suivant</string>
-    <string name="order_complete">Finalisé</string>
+    <string name="order_complete">Compléter</string>
     <string name="config_label">Paramètres marchand</string>
     <string name="config_url">URL de configuration</string>
     <string name="config_ok">Récupérer la configuration</string>
