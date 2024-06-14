@@ -48,8 +48,7 @@ class NetworkInterface: Networking.RequestHandler {
         sendResponse: (resp: Networking.ResponseInfo) -> Unit
     ) {
         Log.d(TAG, "HTTP: handleRequest($req, $id")
-//        if (req.debug) debugHttpRequest(req)
-        debugHttpRequest(req)
+        if (req.debug) debugHttpRequest(req)
 
         requests[id] = GlobalScope.launch {
             val resp = try {
