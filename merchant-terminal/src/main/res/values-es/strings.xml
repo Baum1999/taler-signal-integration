@@ -70,7 +70,7 @@
     <string name="order_custom_add_button">Añadir</string>
     <string name="order_custom">Añadir producto personalizado</string>
     <string name="config_old_label">Archivo JSON (antiguo)</string>
-    <string name="config_old_deprecation">Este método de configuración está obsoleto, porfavor usa la nueva configuración API para vendedor.</string>
+    <string name="config_old_deprecation">Este método de configuración está obsoleto, por favor usa la nueva configuración API para vendedor.</string>
     <string name="config_merchant_url">URL de vendedor</string>
     <string name="config_new_label">Vendedor (nuevo)</string>
     <string name="config_token">Token de acceso</string>
