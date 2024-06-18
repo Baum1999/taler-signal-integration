@@ -11,26 +11,3 @@ wallet_test:
     paths:
       - wallet/build/reports/lint-results.html
     expire_in: 1 week
-
-wallet_deploy_nightly:
-  stage: deploy
-  resource_group: deploy_nightly
-  only:
-    changes:
-      - wallet/**/*
-    refs:
-      - master
-  needs: ["wallet_test"]
-  script:
-    # Ensure that key exists
-    - test -z "$DEBUG_KEYSTORE" && exit 0
-    # Build the APK
-    - ./gradlew :wallet:assembleNightlyRelease
-    # Rename APK, so fdroid nightly accepts it (looks for *-debug.apk)
-    - mv wallet/build/outputs/apk/nightly/release/*.apk wallet-debug.apk
-    # install fdroidserver and dependencies for nightly publishing
-    - apt update && apt-get -qy install --no-install-recommends python3-pip openssh-client rsync
-    - python3 -m pip install --upgrade pip wheel setuptools
-    - python3 -m pip install git+https://gitlab.com/fdroid/fdroidserver.git
-    - fdroid --version
-    - CI_PROJECT_URL="https://gitlab.com/gnu-taler/fdroid-repo" CI_PROJECT_PATH="gnu-taler/fdroid-repo" fdroid nightly -v --archive-older 6

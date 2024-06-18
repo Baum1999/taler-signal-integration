@@ -12,21 +12,27 @@ CONTAINER_BUILD=$((grep CONTAINER_BUILD contrib/ci/jobs/${JOB_NAME}/config.ini |
 echo "${JOB_CONTAINER}"
 
 if [ "${CONTAINER_BUILD}" = "True" ] ; then
-	"${OCI_RUNTIME}" build \
-		--arch "${JOB_ARCH}" \
-		-t "${JOB_CONTAINER}" \
-		-f contrib/ci/Containerfile .
+    "${OCI_RUNTIME}" build \
+        --arch "${JOB_ARCH}" \
+        -t "${JOB_CONTAINER}" \
+        -f contrib/ci/Containerfile .
 fi
 
+mkdir -p "${PWD}/inputs"
+mkdir -p "${PWD}/artifacts"
+
 "${OCI_RUNTIME}" run \
-	--rm \
-	-ti \
-	--arch "${JOB_ARCH}" \
-	--env CI_COMMIT_REF="$(git rev-parse HEAD)" \
-	--volume "${PWD}":/workdir \
-	--workdir /workdir \
-	"${JOB_CONTAINER}" \
-	contrib/ci/jobs/"${JOB_NAME}"/job.sh
+    --rm \
+    -ti \
+    --arch "${JOB_ARCH}" \
+    --env CI_COMMIT_REF="$(git rev-parse HEAD)" \
+    --volume "${PWD}":/workdir \
+    --volume "${PWD}/inputs:/inputs:ro" \
+    --volume "${PWD}/artifacts:/artifacts" \
+    --workdir /workdir \
+    --network host \
+    "${JOB_CONTAINER}" \
+    contrib/ci/jobs/"${JOB_NAME}"/job.sh
 
 top_dir=$(dirname "${BASH_SOURCE[0]}")
 

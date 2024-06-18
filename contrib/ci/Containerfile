@@ -2,4 +2,7 @@ FROM docker.io/briar/ci-image-android:latest
 
 ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk-amd64
 
+ENV FDROID_REPO_KEY /inputs/fdroid-repo-key.txt
+ENV NIGHTLY_KEYSTORE /inputs/taler-nightly.keystore
+
 WORKDIR /workdir
