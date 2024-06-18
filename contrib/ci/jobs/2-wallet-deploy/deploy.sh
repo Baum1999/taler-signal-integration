@@ -16,7 +16,7 @@ set -x
 cp "${NIGHTLY_KEYSTORE}" /root/.android/debug.keystore
 
 # Build the APK
-#./gradlew :wallet:assembleNightlyRelease
+./gradlew :wallet:assembleNightlyRelease
 
 # Copy the APK to artifacts folder
 mkdir -p "${ARTIFACT_PATH}"
