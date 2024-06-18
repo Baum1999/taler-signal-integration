@@ -18,15 +18,13 @@ package net.taler.wallet.backend
 
 import android.util.Log
 import io.ktor.client.call.body
-import io.ktor.client.plugins.ClientRequestException
-import io.ktor.client.plugins.ServerResponseException
+import io.ktor.client.plugins.ResponseException
 import io.ktor.client.request.header
 import io.ktor.client.request.headers
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.util.toMap
-import io.ktor.utils.io.errors.IOException
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -36,6 +34,7 @@ import net.taler.common.getDefaultHttpClient
 import net.taler.common.toHttpMethod
 import net.taler.qtart.Networking
 import net.taler.wallet.TAG
+import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 
 @OptIn(DelicateCoroutinesApi::class)
@@ -52,6 +51,7 @@ class NetworkInterface: Networking.RequestHandler {
 
         requests[id] = GlobalScope.launch {
             val resp = try {
+                // TODO: reuse the same client for every request
                 getDefaultHttpClient(
                     timeoutMs = req.timeoutMs,
                     followRedirect = req.redirectMode == Networking.RedirectMode.Transparent,
@@ -71,17 +71,14 @@ class NetworkInterface: Networking.RequestHandler {
                         setBody(req.body)
                     }
                 }
-            } catch (e: ClientRequestException) {
-                Log.d(TAG, e.message)
-                null
-            } catch (e: ServerResponseException) {
-                Log.d(TAG, e.message)
+            } catch (e: ResponseException) {
+                Log.d(TAG, "Exception handling HTTP response", e)
                 null
             } catch (e: IOException) {
-                Log.d(TAG, e.message ?: "IOException")
+                Log.d(TAG,  "Exception handling HTTP response", e)
                 null
             } catch (e: SerializationException) {
-                Log.d(TAG, e.message ?: "SerializationException")
+                Log.d(TAG, "Exception handling HTTP response", e)
                 null
             } ?: return@launch
 
