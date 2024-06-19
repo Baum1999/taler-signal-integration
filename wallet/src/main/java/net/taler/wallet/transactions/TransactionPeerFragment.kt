@@ -82,11 +82,15 @@ fun TransactionPeerComposable(
         horizontalAlignment = CenterHorizontally,
     ) {
         val context = LocalContext.current
+
+        TransactionStateComposable(state = t.txState)
+
         Text(
             modifier = Modifier.padding(16.dp),
             text = t.timestamp.ms.toAbsoluteTime(context).toString(),
             style = MaterialTheme.typography.bodyLarge,
         )
+
         when (t) {
             is TransactionPeerPullCredit -> TransactionPeerPullCreditComposable(t, spec)
             is TransactionPeerPushCredit -> TransactionPeerPushCreditComposable(t, spec)
@@ -94,7 +98,9 @@ fun TransactionPeerComposable(
             is TransactionPeerPushDebit -> TransactionPeerPushDebitComposable(t, spec)
             else -> error("unexpected transaction: ${t::class.simpleName}")
         }
+
         TransitionsComposable(t, devMode, onTransition)
+
         if (devMode && t.error != null) {
             ErrorTransactionButton(error = t.error!!)
         }

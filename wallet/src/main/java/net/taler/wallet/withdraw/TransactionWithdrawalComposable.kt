@@ -52,6 +52,7 @@ import net.taler.wallet.transactions.TransactionAmountComposable
 import net.taler.wallet.transactions.TransactionInfoComposable
 import net.taler.wallet.transactions.TransactionMajorState.Pending
 import net.taler.wallet.transactions.TransactionState
+import net.taler.wallet.transactions.TransactionStateComposable
 import net.taler.wallet.transactions.TransactionWithdrawal
 import net.taler.wallet.transactions.TransitionsComposable
 import net.taler.wallet.transactions.WithdrawalDetails.ManualTransfer
@@ -73,6 +74,9 @@ fun TransactionWithdrawalComposable(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         val context = LocalContext.current
+
+        TransactionStateComposable(state = t.txState)
+
         Text(
             modifier = Modifier.padding(16.dp),
             text = t.timestamp.ms.toAbsoluteTime(context).toString(),

@@ -49,6 +49,7 @@ import net.taler.wallet.transactions.TransactionInfoComposable
 import net.taler.wallet.transactions.TransactionMajorState.Pending
 import net.taler.wallet.transactions.TransactionRefund
 import net.taler.wallet.transactions.TransactionState
+import net.taler.wallet.transactions.TransactionStateComposable
 import net.taler.wallet.transactions.TransitionsComposable
 
 @Composable
@@ -66,21 +67,27 @@ fun TransactionRefundComposable(
         horizontalAlignment = CenterHorizontally,
     ) {
         val context = LocalContext.current
+
+        TransactionStateComposable(state = t.txState)
+
         Text(
             modifier = Modifier.padding(16.dp),
             text = t.timestamp.ms.toAbsoluteTime(context).toString(),
             style = MaterialTheme.typography.bodyLarge,
         )
+
         TransactionAmountComposable(
             label = stringResource(id = R.string.transaction_refund),
             amount = t.amountEffective.withSpec(spec),
             amountType = AmountType.Positive,
         )
+
         TransactionAmountComposable(
             label = stringResource(id = R.string.transaction_order_total),
             amount = t.amountRaw.withSpec(spec),
             amountType = AmountType.Neutral,
         )
+
         if (t.amountRaw > t.amountEffective) {
             val fee = t.amountRaw - t.amountEffective
             TransactionAmountComposable(
@@ -89,11 +96,14 @@ fun TransactionRefundComposable(
                 amountType = AmountType.Negative,
             )
         }
+
         TransactionInfoComposable(
             label = stringResource(id = R.string.transaction_order),
             info = t.paymentInfo?.summary ?: "",
         )
+
         TransitionsComposable(t, devMode, onTransition)
+
         if (devMode && t.error != null) {
             ErrorTransactionButton(error = t.error)
         }

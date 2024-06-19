@@ -85,16 +85,21 @@ private fun TransactionRefreshComposable(
         horizontalAlignment = CenterHorizontally,
     ) {
         val context = LocalContext.current
+
+        TransactionStateComposable(state = t.txState)
+
         Text(
             modifier = Modifier.padding(16.dp),
             text = t.timestamp.ms.toAbsoluteTime(context).toString(),
             style = MaterialTheme.typography.bodyLarge,
         )
+
         TransactionAmountComposable(
             label = stringResource(id = R.string.amount_fee),
             amount = t.amountEffective.withSpec(spec),
             amountType = AmountType.Negative,
         )
+
         TransitionsComposable(t, devMode, onTransition)
         if (devMode && t.error != null) {
             ErrorTransactionButton(error = t.error)

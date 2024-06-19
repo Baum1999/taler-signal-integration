@@ -52,6 +52,7 @@ import net.taler.wallet.transactions.TransactionLinkComposable
 import net.taler.wallet.transactions.TransactionMajorState.Pending
 import net.taler.wallet.transactions.TransactionPayment
 import net.taler.wallet.transactions.TransactionState
+import net.taler.wallet.transactions.TransactionStateComposable
 import net.taler.wallet.transactions.TransitionsComposable
 
 @Composable
@@ -70,6 +71,9 @@ fun TransactionPaymentComposable(
         horizontalAlignment = CenterHorizontally,
     ) {
         val context = LocalContext.current
+
+        TransactionStateComposable(state = t.txState)
+
         Text(
             modifier = Modifier.padding(16.dp),
             text = t.timestamp.ms.toAbsoluteTime(context).toString(),

@@ -92,6 +92,8 @@ fun TransitionLossComposable(
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        TransactionStateComposable(state = t.txState)
+
         Text(
             modifier = Modifier.padding(16.dp),
             text = t.timestamp.ms.toAbsoluteTime(context).toString(),
