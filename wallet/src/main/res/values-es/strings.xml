@@ -308,4 +308,5 @@
     <string name="loss_reason_vanished">El proveedor de pagos perdió el registro de los fondos</string>
     <string name="observability_hide_json">Ocultar JSON</string>
     <string name="observability_show_json">Mostrar JSON</string>
+    <string name="qr_scan_context_title">Posible acción involuntaria</string>
 </resources>
