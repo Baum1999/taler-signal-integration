@@ -32,6 +32,7 @@ fun getDefaultHttpClient(
     withJson: Boolean = true,
     timeoutMs: Long? = null,
     followRedirect: Boolean = false,
+    logging: Boolean = true,
 ): HttpClient = HttpClient(OkHttp) {
     expectSuccess = true
     followRedirects = followRedirect
@@ -57,7 +58,7 @@ fun getDefaultHttpClient(
     }
     install(Logging) {
         logger = Logger.ANDROID
-        level = LogLevel.HEADERS
+        level = if (logging) LogLevel.INFO else LogLevel.NONE
     }
 }
 

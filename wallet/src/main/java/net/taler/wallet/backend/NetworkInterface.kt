@@ -47,15 +47,17 @@ class NetworkInterface: Networking.RequestHandler {
         sendResponse: (resp: Networking.ResponseInfo) -> Unit
     ) {
         Log.d(TAG, "HTTP: handleRequest($req, $id")
-        if (req.debug) debugHttpRequest(req)
 
         requests[id] = GlobalScope.launch {
+            val client = getDefaultHttpClient(
+                timeoutMs = req.timeoutMs,
+                followRedirect = req.redirectMode == Networking.RedirectMode.Transparent,
+                logging = req.debug,
+            )
+
             val resp = try {
                 // TODO: reuse the same client for every request
-                getDefaultHttpClient(
-                    timeoutMs = req.timeoutMs,
-                    followRedirect = req.redirectMode == Networking.RedirectMode.Transparent,
-                ).request {
+                client.request {
                     url(req.url)
 
                     method = req.method.toHttpMethod() ?: error("invalid method")
@@ -80,7 +82,12 @@ class NetworkInterface: Networking.RequestHandler {
             } catch (e: SerializationException) {
                 Log.d(TAG, "Exception handling HTTP response", e)
                 null
-            } ?: return@launch
+            } finally {
+                cleanupRequest(id)
+                client.close()
+            }
+
+            if (resp == null) return@launch
 
             // HTTP response status code or 0 on error.
             val status = if (resp.status.value in 200 until 300) resp.status.value else 0
@@ -113,14 +120,7 @@ class NetworkInterface: Networking.RequestHandler {
         return true
     }
 
-    private fun debugHttpRequest(req: Networking.RequestInfo) {
-        Log.d(TAG, "HTTP request: body = ${req.body}")
-        req.headers.forEachIndexed { i, header ->
-            Log.d(TAG, "HTTP: header[$i] = $header")
-        }
-        Log.d(TAG, "HTTP request: method = ${req.method}")
-        Log.d(TAG, "HTTP request: redirectMode = ${req.redirectMode}")
-        Log.d(TAG, "HTTP request: timeoutMs = ${req.timeoutMs}")
-        Log.d(TAG, "HTTP request: url = ${req.url}")
+    private fun cleanupRequest(id: Int) {
+        requests.remove(id)
     }
 }
