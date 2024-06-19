@@ -16,7 +16,7 @@ set -x
 cp "${NIGHTLY_KEYSTORE}" /root/.android/debug.keystore
 
 # Build the APK
-./gradlew :wallet:assembleNightlyRelease
+# ./gradlew :wallet:assembleNightlyRelease
 
 # Copy the APK to artifacts folder
 mkdir -p "${ARTIFACT_PATH}"
@@ -36,6 +36,8 @@ python3 -m pip install git+https://gitlab.com/fdroid/fdroidserver.git
 fdroid --version
 
 # Deploy APK to nightly repository
+export DEBUG_KEYSTORE
+export CI=
 export CI_PROJECT_URL="https://gitlab.com/gnu-taler/fdroid-repo"
 export CI_PROJECT_PATH="gnu-taler/fdroid-repo"
 fdroid nightly -v --archive-older 6
