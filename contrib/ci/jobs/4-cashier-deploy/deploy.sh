@@ -50,4 +50,6 @@ export DEBUG_KEYSTORE
 export CI=
 export CI_PROJECT_URL="https://gitlab.com/gnu-taler/fdroid-repo"
 export CI_PROJECT_PATH="gnu-taler/fdroid-repo"
+export GITLAB_USER_NAME="$(git log -1 --pretty=format:'%an')"
+export GITLAB_USER_EMAIL="$(git log -1 --pretty=format:'%ae')"
 fdroid nightly -v --archive-older 6
