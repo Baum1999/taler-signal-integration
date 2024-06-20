@@ -59,6 +59,7 @@ class TransactionsFragment : Fragment(), OnTransactionClickListener, ActionMode.
     private val model: MainViewModel by activityViewModels()
     private val transactionManager by lazy { model.transactionManager }
     private val balanceManager by lazy { model.balanceManager }
+    private val networkManager by lazy { model.networkManager }
 
     private lateinit var ui: FragmentTransactionsBinding
     private val transactionAdapter by lazy { TransactionAdapter(this) }
@@ -122,21 +123,31 @@ class TransactionsFragment : Fragment(), OnTransactionClickListener, ActionMode.
                 transactionAdapter.setCurrencySpec(balance.available.spec)
             }
         }
+
         transactionManager.progress.observe(viewLifecycleOwner) { show ->
             if (show) ui.progressBar.fadeIn() else ui.progressBar.fadeOut()
         }
+
         transactionManager.transactions.observe(viewLifecycleOwner) { result ->
             onTransactionsResult(result)
         }
+
+        networkManager.networkStatus.observe(viewLifecycleOwner) { state ->
+            transactionAdapter.update(networkAvailable = state)
+        }
+
         ui.actionsBar.sendButton.setOnClickListener {
             findNavController().navigate(R.id.sendFunds)
         }
+
         ui.actionsBar.receiveButton.setOnClickListener {
             findNavController().navigate(R.id.action_global_receiveFunds)
         }
+
         ui.mainFab.setOnClickListener {
             model.scanCode()
         }
+
         ui.mainFab.setOnLongClickListener {
             findNavController().navigate(R.id.action_nav_transactions_to_nav_uri_input)
             true
@@ -205,8 +216,9 @@ class TransactionsFragment : Fragment(), OnTransactionClickListener, ActionMode.
                 ui.emptyState.fadeIn()
                 ui.list.fadeOut()
             } else {
+                val state = networkManager.networkStatus.value ?: true
                 ui.emptyState.fadeOut()
-                transactionAdapter.update(result.transactions)
+                transactionAdapter.update(result.transactions, state)
                 ui.list.fadeIn()
             }
         }

@@ -17,6 +17,7 @@
 package net.taler.wallet.transactions
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -36,19 +37,23 @@ import net.taler.common.CurrencySpecification
 import net.taler.common.exhaustive
 import net.taler.common.toRelativeTime
 import net.taler.wallet.R
+import net.taler.wallet.TAG
 import net.taler.wallet.getThemeColor
 import net.taler.wallet.transactions.TransactionAdapter.TransactionViewHolder
 import net.taler.wallet.transactions.TransactionMajorState.Aborted
+import net.taler.wallet.transactions.TransactionMajorState.Aborting
 import net.taler.wallet.transactions.TransactionMajorState.Failed
 import net.taler.wallet.transactions.TransactionMajorState.Pending
 import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
 import net.taler.wallet.transactions.TransactionMinorState.KycRequired
+
 
 internal class TransactionAdapter(
     private val listener: OnTransactionClickListener,
 ) : Adapter<TransactionViewHolder>() {
 
     private var transactions: List<Transaction> = ArrayList()
+    private var networkAvailable: Boolean = true
     private var currencySpec: CurrencySpecification? = null
 
     lateinit var tracker: SelectionTracker<String>
@@ -76,8 +81,9 @@ internal class TransactionAdapter(
         this.notifyDataSetChanged()
     }
 
-    fun update(updatedTransactions: List<Transaction>) {
-        this.transactions = updatedTransactions
+    fun update(updatedTransactions: List<Transaction>? = null, networkAvailable: Boolean? = null) {
+        updatedTransactions?.let { this.transactions = it }
+        networkAvailable?.let { this.networkAvailable = it }
         this.notifyDataSetChanged()
     }
 
@@ -123,14 +129,6 @@ internal class TransactionAdapter(
 
         private fun bindExtraInfo(transaction: Transaction) {
             when {
-                // Goes first so it always shows errors when present
-                transaction.error != null -> {
-                    extraInfoView.text =
-                        context.getString(R.string.payment_error, transaction.error!!.userFacingMsg)
-                    extraInfoView.setTextColor(red)
-                    extraInfoView.visibility = VISIBLE
-                }
-
                 transaction.txState.major == Aborted -> {
                     extraInfoView.setText(R.string.payment_aborted)
                     extraInfoView.setTextColor(red)
@@ -143,18 +141,30 @@ internal class TransactionAdapter(
                     extraInfoView.visibility = VISIBLE
                 }
 
+                transaction.txState.major == Aborting -> {
+                    extraInfoView.setText(R.string.payment_aborting)
+                    extraInfoView.setTextColor(red)
+                    extraInfoView.visibility = VISIBLE
+                }
+
                 transaction.txState.major == Pending -> when (transaction.txState.minor) {
                     BankConfirmTransfer -> {
                         extraInfoView.setText(R.string.withdraw_waiting_confirm)
                         extraInfoView.setTextColor(amountColor)
                         extraInfoView.visibility = VISIBLE
                     }
+
                     KycRequired -> {
                         extraInfoView.setText(R.string.transaction_action_kyc)
                         extraInfoView.setTextColor(amountColor)
                         extraInfoView.visibility = VISIBLE
                     }
-                    else -> extraInfoView.visibility = GONE
+
+                    else -> {
+                        extraInfoView.setText(R.string.transaction_pending)
+                        extraInfoView.setTextColor(extraInfoColor)
+                        extraInfoView.visibility = VISIBLE
+                    }
                 }
 
                 transaction is TransactionWithdrawal && !transaction.confirmed -> {
@@ -188,6 +198,18 @@ internal class TransactionAdapter(
                 }
 
                 else -> extraInfoView.visibility = GONE
+            }
+
+            // If network is available and the transaction is in a pending state,
+            // show error message, otherwise it might just be a network error.
+            //   https://bugs.gnunet.org/view.php?id=8912
+            if (transaction.error != null
+                && (transaction.txState.major !in listOf(Pending, Aborting) || networkAvailable)
+            ) {
+                extraInfoView.text =
+                    context.getString(R.string.payment_error, transaction.error!!.userFacingMsg)
+                extraInfoView.setTextColor(red)
+                extraInfoView.visibility = VISIBLE
             }
         }
 
