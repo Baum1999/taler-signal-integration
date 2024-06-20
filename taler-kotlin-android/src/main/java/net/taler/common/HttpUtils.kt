@@ -55,6 +55,9 @@ fun getDefaultHttpClient(
         } else {
             HttpTimeout.INFINITE_TIMEOUT_MS
         }
+
+        socketTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
+        connectTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
     }
     install(Logging) {
         logger = Logger.ANDROID

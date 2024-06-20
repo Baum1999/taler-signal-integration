@@ -60,12 +60,12 @@ class NetworkInterface: Networking.RequestHandler {
                 client.request {
                     url(req.url)
 
-                    method = req.method.toHttpMethod() ?: error("invalid method")
+                    method = req.method.toHttpMethod()
+                        ?: error("invalid method")
 
                     headers {
-                        req.headers.forEach {
-                            val parts = it.split(':', limit = 2)
-                            if (parts.size == 2) header(parts[0].trim(), parts[1].trim())
+                        parseHeaders(req.headers).map {
+                            header(it.key, it.value)
                         }
                     }
 
@@ -108,6 +108,11 @@ class NetworkInterface: Networking.RequestHandler {
                 )
             )
         }
+    }
+
+    private fun parseHeaders(headers: Array<String>) = headers.associate {
+        val parts = it.split(':', limit = 2)
+        parts[0] to parts[1]
     }
 
     override fun cancelRequest(id: Int): Boolean {
