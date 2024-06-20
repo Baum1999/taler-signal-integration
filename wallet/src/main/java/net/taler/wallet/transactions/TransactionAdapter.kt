@@ -17,7 +17,6 @@
 package net.taler.wallet.transactions
 
 import android.content.Context
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -37,7 +36,6 @@ import net.taler.common.CurrencySpecification
 import net.taler.common.exhaustive
 import net.taler.common.toRelativeTime
 import net.taler.wallet.R
-import net.taler.wallet.TAG
 import net.taler.wallet.getThemeColor
 import net.taler.wallet.transactions.TransactionAdapter.TransactionViewHolder
 import net.taler.wallet.transactions.TransactionMajorState.Aborted
