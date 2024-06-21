@@ -1,8 +1,8 @@
 #!/bin/bash
 set -exuo pipefail
 
-ARTIFACT_PATH="/artifacts/taler-android/${CI_COMMIT_REF}/cashier"
-APK_PATH="cashier/build/outputs/apk/release"
+ARTIFACT_PATH="/artifacts/taler-android/${CI_COMMIT_REF}/merchant-terminal"
+APK_PATH="merchant-terminal/build/outputs/apk/release"
 
 # Ensure that keys exist
 [[ ! -f "${FDROID_REPO_KEY}" ]] && exit -1
@@ -16,24 +16,28 @@ set -x
 cp "${NIGHTLY_KEYSTORE}" /root/.android/debug.keystore
 
 # Rename nightly app
-sed -i 's,<string name="app_name">.*</string>,<string name="app_name">Cashier Nightly</string>,' cashier/src/main/res/values*/strings.xml
+sed -i 's,<string name="app_name">.*</string>,<string name="app_name">Merchant PoS Nightly</string>,' merchant-terminal/src/main/res/values*/strings.xml
 
 # Set time-based version code
 export versionCode=$(date '+%s')
-sed -i "s,^\(\s*versionCode\) *[0-9].*,\1 $versionCode," cashier/build.gradle
+sed -i "s,^\(\s*versionCode\) *[0-9].*,\1 $versionCode," merchant-terminal/build.gradle
+
+# Add commit to version name
+export versionName=$(git rev-parse --short=7 HEAD)
+sed -i "s,^\(\s*versionName\ *\"[0-9].*\)\",\1 ($versionName)\"," merchant-terminal/build.gradle
 
 # Set nightly application ID
-sed -i "s,^\(\s*applicationId\) \"*[a-z\.].*\",\1 \"net.taler.cashier.nightly\"," cashier/build.gradle
+sed -i "s,^\(\s*applicationId\) \"*[a-z\.].*\",\1 \"net.taler.merchantpos.nightly\"," merchant-terminal/build.gradle
 
-# Build the APK
-./gradlew :cashier:assembleRelease
+# Test and build the APK
+./gradlew :merchant-lib:check :merchant-terminal:check :merchant-terminal:assembleRelease
 
 # Copy the APK to artifacts folder
 mkdir -p "${ARTIFACT_PATH}"
 cp "${APK_PATH}"/*.apk "${ARTIFACT_PATH}"
 
 # Rename APK, so fdroid nightly accepts it (looks for *-debug.apk)
-cp "${APK_PATH}"/*.apk cashier-debug.apk
+cp "${APK_PATH}"/*.apk merchant-terminal-debug.apk
 
 # Install fdroidserver and dependencies
 apt update
