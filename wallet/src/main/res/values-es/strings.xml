@@ -309,4 +309,13 @@
     <string name="observability_hide_json">Ocultar JSON</string>
     <string name="observability_show_json">Mostrar JSON</string>
     <string name="qr_scan_context_title">Posible acción involuntaria</string>
+    <string name="transaction_state_pending">Esta transacción está pendiente</string>
+    <string name="qr_scan_context_receive_message">Parece que tu intención era recibir dinero, pero el código QR que has escaneado corresponde a una acción diferente. ¿Deseas continuar?</string>
+    <string name="qr_scan_context_send_message">Parece que tu intención era enviar dinero, pero el código QR que has escaneado corresponde a una acción diferente. ¿Deseas continuar?</string>
+    <string name="transaction_state_aborted">Esta transacción ha sido cancelada</string>
+    <string name="transaction_state_aborting">Esta transacción se está cancelando</string>
+    <string name="transaction_state_expired">Esta transacción ha expirado</string>
+    <string name="transaction_state_failed">Esta transacción ha fallado</string>
+    <string name="transaction_state_suspended">Esta transacción está suspendida</string>
+    <string name="payment_aborting">Cancelando</string>
 </resources>

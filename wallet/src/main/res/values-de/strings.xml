@@ -32,7 +32,7 @@
     <string name="payment_label_amount_total">Gesamtbetrag:</string>
     <string name="payment_label_order_summary">Einkauf</string>
     <string name="payment_error">Fehler: %s</string>
-    <string name="payment_balance_insufficient">Saldo unzureichend!</string>
+    <string name="payment_balance_insufficient">Guthaben unzureichend!</string>
     <string name="payment_aborted">Abgebrochen</string>
     <string name="payment_failed">Fehlgeschlagen</string>
     <string name="payment_initiated">Zahlung eingeleitet</string>
@@ -181,8 +181,7 @@
     <string name="copy_uri">Taler-URI kopieren</string>
     <string name="transaction_peer_pull_debit">Rechnung bezahlt</string>
     <string name="transaction_peer_pull_credit">Rechnung</string>
-    <string name="transactions_receive_funds">Geld
-\nempfangen</string>
+    <string name="transactions_receive_funds">Erhalten</string>
     <string name="send_amount">Zu sendender Betrag</string>
     <string name="pay_peer_title">Rechnung bezahlen</string>
     <string name="pay_peer_intro">Möchten Sie diese Rechnung bezahlen?</string>
@@ -204,8 +203,7 @@
     <string name="button_scan_qr_code_label">QR-Code scannen</string>
     <string name="send_deposit_check_fees_button">Gebühren prüfen</string>
     <string name="send_deposit_name">Kontoinhaber/in</string>
-    <string name="transactions_send_funds">Geld
-\nsenden</string>
+    <string name="transactions_send_funds">Senden</string>
     <string name="currency">Währung</string>
     <string name="transactions_balance">Guthaben</string>
     <string name="withdraw_restrict_age_unrestricted">Uneingeschränkt</string>
@@ -263,4 +261,9 @@
     <string name="send_peer_expiration_period">Läuft ab in</string>
     <string name="transactions_suspend">Aussetzen</string>
     <string name="transactions_abort_dialog_message">Sind Sie sicher, dass Sie diese Transaktion abbrechen möchten? Gelder, die gerade noch übertragen werden, könnten verloren gehen.</string>
+    <string name="transactions_fail">Stornieren</string>
+    <string name="transactions_fail_dialog_message">Sind Sie sicher, dass die Transaktion abgebrochen werden soll? Bereits abgesendete Guthaben GEHEN VERLOREN.</string>
+    <string name="transactions_receive_funds_title">%1$s erhalten</string>
+    <string name="transactions_send_funds_title">%1$s senden</string>
+    <string name="payment_create_order">Bestellung aufgeben</string>
 </resources>
