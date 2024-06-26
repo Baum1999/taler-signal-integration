@@ -74,7 +74,7 @@ class OutgoingPushFragment : Fragment() {
                         state = state,
                         onSend = this@OutgoingPushFragment::onSend,
                         onClose = {
-                            findNavController().navigate(R.id.action_nav_peer_pull_to_nav_main)
+                            findNavController().navigate(R.id.action_nav_peer_push_to_nav_main)
                         }
                     )
                 }
