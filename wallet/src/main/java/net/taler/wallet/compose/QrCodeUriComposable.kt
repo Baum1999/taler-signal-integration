@@ -60,6 +60,7 @@ fun ColumnScope.QrCodeUriComposable(
     talerUri: String,
     clipBoardLabel: String,
     buttonText: String = stringResource(R.string.copy),
+    showContents: Boolean = true,
     inBetween: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     val qrCodeSize = getQrCodeSize()
@@ -74,43 +75,45 @@ fun ColumnScope.QrCodeUriComposable(
             modifier = Modifier
                 .size(qrCodeSize)
                 .align(CenterHorizontally)
-                .padding(vertical = 8.dp),
+                .padding(vertical = if (showContents) 8.dp else 0.dp),
             bitmap = qrCode,
             contentDescription = stringResource(id = R.string.button_scan_qr_code),
         )
     }
     if (inBetween != null) inBetween()
     val scrollState = rememberScrollState()
-    Box(modifier = Modifier.padding(16.dp)) {
-        Text(
-            modifier = Modifier.horizontalScroll(scrollState),
-            fontFamily = FontFamily.Monospace,
-            style = MaterialTheme.typography.bodyLarge,
-            text = talerUri,
-        )
-    }
-    Row(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-    ) {
-        CopyToClipboardButton(
-            label = clipBoardLabel,
-            content = talerUri,
-            buttonText = buttonText,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+    if (showContents) {
+        Box(modifier = Modifier.padding(16.dp)) {
+            Text(
+                modifier = Modifier.horizontalScroll(scrollState),
+                fontFamily = FontFamily.Monospace,
+                style = MaterialTheme.typography.bodyLarge,
+                text = talerUri,
             )
-        )
-        ShareButton(
-            content = talerUri,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        }
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            CopyToClipboardButton(
+                label = clipBoardLabel,
+                content = talerUri,
+                buttonText = buttonText,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             )
-        )
+            ShareButton(
+                content = talerUri,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            )
+        }
     }
 }
 

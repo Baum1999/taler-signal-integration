@@ -32,7 +32,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -45,23 +47,30 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
+import net.taler.common.CurrencySpecification
 import net.taler.wallet.CURRENCY_BTC
 import net.taler.wallet.R
-import net.taler.common.CurrencySpecification
+import net.taler.wallet.compose.ExpandableCard
+import net.taler.wallet.compose.QrCodeUriComposable
 import net.taler.common.canAppHandleUri
 import net.taler.wallet.compose.ShareButton
 import net.taler.wallet.compose.copyToClipBoard
 import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.TransactionAmountComposable
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
-import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails.Status.*
+import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails.Status.Ok
+import net.taler.wallet.withdraw.QrCodeSpec
+import net.taler.wallet.withdraw.QrCodeSpec.Type.EpcQr
+import net.taler.wallet.withdraw.QrCodeSpec.Type.SPC
 import net.taler.wallet.withdraw.TransferData
 import net.taler.wallet.withdraw.WithdrawStatus
 
 @Composable
 fun ScreenTransfer(
     status: WithdrawStatus.ManualTransferRequired,
+    qrCodes: List<QrCodeSpec>,
     spec: CurrencySpecification?,
+    getQrCodes: (account: WithdrawalExchangeAccountDetails) -> Unit,
     bankAppClick: ((transfer: TransferData) -> Unit)?,
     shareClick: ((transfer: TransferData) -> Unit)?,
 ) {
@@ -77,6 +86,17 @@ fun ScreenTransfer(
 
     val defaultTransfer = transfers[0]
     var selectedTransfer by remember { mutableStateOf(defaultTransfer) }
+    val qrExpandedStates = remember(qrCodes) {
+        val map = mutableStateMapOf<QrCodeSpec, Boolean>()
+        qrCodes.forEach {
+            map[it] = false
+        }
+        map
+    }
+
+    LaunchedEffect(Unit) {
+        getQrCodes(defaultTransfer.withdrawalAccount)
+    }
 
     Column {
         if (status.withdrawalTransfers.size > 1) {
@@ -86,7 +106,10 @@ fun ScreenTransfer(
                 onSelectAccount = { account ->
                     status.withdrawalTransfers.find {
                         it.withdrawalAccount.paytoUri == account.paytoUri
-                    }?.let { selectedTransfer = it }
+                    }?.let {
+                        selectedTransfer = it
+                        getQrCodes(it.withdrawalAccount)
+                    }
                 }
             )
         }
@@ -135,6 +158,22 @@ fun ScreenTransfer(
                     content = selectedTransfer.withdrawalAccount.paytoUri,
                     modifier = Modifier
                         .padding(bottom = 16.dp),
+                )
+            }
+
+            qrCodes.forEach { spec ->
+                QrCard(
+                    expanded = qrExpandedStates[spec]!!,
+                    setExpanded = { expanded ->
+                        if (expanded) { // un-expand all others
+                            qrExpandedStates.forEach { (k, _) ->
+                                qrExpandedStates[k] = false
+                            }
+                        }
+                        // expand only toggled one
+                        qrExpandedStates[spec] = expanded
+                    },
+                    qrCode = spec,
                 )
             }
         }
@@ -267,6 +306,34 @@ fun TransferAccountChooser(
     }
 }
 
+@Composable
+fun QrCard(
+    expanded: Boolean,
+    setExpanded: (expanded: Boolean) -> Unit,
+    qrCode: QrCodeSpec,
+) {
+    val label = when(qrCode.type) {
+        EpcQr -> stringResource(R.string.withdraw_manual_qr_epc)
+        SPC -> stringResource(R.string.withdraw_manual_qr_spc)
+        else -> return
+    }
+
+    ExpandableCard(
+        expanded = expanded,
+        setExpanded = setExpanded,
+        header = {
+            Text(label, style = MaterialTheme.typography.titleMedium)
+        },
+        content = {
+            QrCodeUriComposable(
+                talerUri = qrCode.qrContent,
+                clipBoardLabel = label,
+                showContents = false,
+            )
+        },
+    )
+}
+
 @Preview
 @Composable
 fun ScreenTransferPreview() {
@@ -323,6 +390,11 @@ fun ScreenTransferPreview() {
             spec = null,
             bankAppClick = {},
             shareClick = {},
+            qrCodes = listOf(
+                QrCodeSpec(EpcQr, "BCD\\n002\\n1\\nSCT\\n\\n\\nGENODEM1GLS/DE54430609674049078800\\n\\n\\nTaler MJ15S835A5ENQZGJX161TS7FND6Q5DSABS8FCHB8ECF9NT1J8GH0"),
+                QrCodeSpec(SPC, "BCD\\n002\\n1\\nSCT\\n\\n\\nGENODEM1GLS/DE54430609674049078800\\n\\n\\nTaler MJ15S835A5ENQZGJX161TS7FND6Q5DSABS8FCHB8ECF9NT1J8GH0")
+            ),
+            getQrCodes = {},
         )
     }
 }

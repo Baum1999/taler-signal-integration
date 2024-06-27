@@ -23,6 +23,7 @@ import androidx.annotation.WorkerThread
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.taler.common.Amount
 import net.taler.common.Bech32
@@ -161,6 +162,28 @@ data class AcceptManualWithdrawalResponse(
     val transactionId: String,
 )
 
+@Serializable
+data class GetQrCodesForPaytoResponse(
+    val codes: List<QrCodeSpec>,
+)
+
+@Serializable
+data class QrCodeSpec(
+    val type: Type = Type.Unknown,
+    val qrContent: String,
+) {
+    @Serializable
+    enum class Type {
+        Unknown,
+
+        @SerialName("epc-qr")
+        EpcQr,
+
+        @SerialName("spc")
+        SPC,
+    }
+}
+
 class WithdrawManager(
     private val api: WalletBackendApi,
     private val scope: CoroutineScope,
@@ -168,6 +191,8 @@ class WithdrawManager(
 
     val withdrawStatus = MutableLiveData<WithdrawStatus>()
     val testWithdrawalStatus = MutableLiveData<WithdrawTestStatus>()
+
+    val qrCodes = MutableLiveData<List<QrCodeSpec>>()
 
     var exchangeFees: ExchangeFees? = null
         private set
@@ -331,11 +356,26 @@ class WithdrawManager(
         }.onError {
             handleError("acceptManualWithdrawal", it)
         }.onSuccess { response ->
-            withdrawStatus.value = createManualTransferRequired(
-                status = status,
-                response = response,
-            )
+            scope.launch {
+                withdrawStatus.value = createManualTransferRequired(
+                    status = status,
+                    response = response,
+                )
+            }
         }
+    }
+
+    fun getQrCodesForPayto(uri: String) = scope.launch {
+        var codes = emptyList<QrCodeSpec>()
+        api.request("getQrCodesForPayto", GetQrCodesForPaytoResponse.serializer()) {
+            put("paytoUri", uri)
+        }.onError { error ->
+            handleError("getQrCodesForPayto", error)
+        }.onSuccess { response ->
+            codes = response.codes
+        }
+
+        qrCodes.value = codes
     }
 
     private fun handleError(operation: String, error: TalerErrorInfo) {
@@ -378,7 +418,7 @@ fun createManualTransferRequired(
                 subject = reserve,
                 amountRaw = amountRaw,
                 amountEffective = amountEffective,
-                withdrawalAccount = it.copy(paytoUri = uri.toString())
+                withdrawalAccount = it.copy(paytoUri = uri.toString()),
             )
         } else if (uri.authority.equals("x-taler-bank", true)) {
             TransferData.Taler(

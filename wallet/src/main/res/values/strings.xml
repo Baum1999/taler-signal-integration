@@ -238,6 +238,8 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="withdraw_manual_bitcoin_intro">Now make a split transaction with the following three outputs.</string>
     <string name="withdraw_manual_check_fees">Check fees</string>
     <string name="withdraw_manual_payment_options">Payment options supported by %1$s:\n\n%2$s</string>
+    <string name="withdraw_manual_qr_epc">EPC QR</string>
+    <string name="withdraw_manual_qr_spc">Swiss QR</string>
     <string name="withdraw_manual_ready_account">Account</string>
     <string name="withdraw_manual_ready_bank_button">Open in banking app</string>
     <string name="withdraw_manual_ready_details_intro">Bank transfer details</string>

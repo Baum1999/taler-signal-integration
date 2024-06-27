@@ -21,6 +21,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -65,8 +67,12 @@ class ManualWithdrawSuccessFragment : Fragment() {
 
         setContent {
             TalerSurface {
+                val qrCodes by withdrawManager.qrCodes.observeAsState()
+
                 ScreenTransfer(
                     status = status,
+                    qrCodes = qrCodes ?: emptyList(),
+                    getQrCodes = { withdrawManager.getQrCodesForPayto(it.paytoUri) },
                     spec = balanceManager.getSpecForCurrency(status.transactionAmountRaw.currency),
                     bankAppClick = { onBankAppClick(it) },
                     shareClick = { onShareClick(it) },
