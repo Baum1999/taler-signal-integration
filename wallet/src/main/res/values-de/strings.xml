@@ -115,7 +115,7 @@
     <string name="nav_exchange_tos">Allgemeine Geschäftsbedingungen des Zahlungsdienstleisters</string>
     <string name="nav_exchange_select">Zahlungsdienstleister auswählen</string>
     <string name="nav_exchange_fees">Gebühren des Zahlungsdienstleisters</string>
-    <string name="enter_uri">Geben Sie die Taler-URI ein</string>
+    <string name="enter_uri">Eingabe von taler:// URI</string>
     <string name="paste">Einfügen</string>
     <string name="paste_invalid">Die Zwischenablage enthält einen ungültigen Datentyp</string>
     <string name="uri_invalid">Keine gültige Taler-URI</string>
@@ -266,4 +266,5 @@
     <string name="transactions_receive_funds_title">%1$s erhalten</string>
     <string name="transactions_send_funds_title">%1$s senden</string>
     <string name="payment_create_order">Bestellung aufgeben</string>
+    <string name="loading">Lädt</string>
 </resources>
