@@ -2,54 +2,79 @@
 set -exuo pipefail
 
 ARTIFACT_PATH="/artifacts/taler-android/${CI_COMMIT_REF}/cashier"
-APK_PATH="cashier/build/outputs/apk/release"
+APK_PATH="cashier/build/outputs/apk/release/cashier-release-unsigned.apk"
+LINT_PATH="cashier/build/reports/lint-results-debug.html"
 
-# Ensure that keys exist
-[[ ! -f "${FDROID_REPO_KEY}" ]] && exit -1
-[[ ! -f "${NIGHTLY_KEYSTORE}" ]] && exit -1
-
-set +x
-DEBUG_KEYSTORE=$(cat "$FDROID_REPO_KEY")
-set -x
-
-# Copy keystore where SDK can find it
-cp "${NIGHTLY_KEYSTORE}" /root/.android/debug.keystore
-
-# Rename nightly app
-sed -i 's,<string name="app_name">.*</string>,<string name="app_name">Cashier Nightly</string>,' cashier/src/main/res/values*/strings.xml
-
-# Set time-based version code
 export versionCode=$(date '+%s')
-sed -i "s,^\(\s*versionCode\) *[0-9].*,\1 $versionCode," cashier/build.gradle
 
-# Set nightly application ID
-sed -i "s,^\(\s*applicationId\) \"*[a-z\.].*\",\1 \"net.taler.cashier.nightly\"," cashier/build.gradle
+function build_apk {
+    [[ ! -f "${NIGHTLY_KEYSTORE_PATH}" ]] && return 1
+    echo "Building APK ..."
 
-# Test and build the APK
-./gradlew :cashier:test :cashier:assembleRelease
+    # Rename nightly app
+    sed -i 's,<string name="app_name">.*</string>,<string name="app_name">Cashier Nightly</string>,' cashier/src/main/res/values*/strings.xml
 
-# Copy the APK to artifacts folder
-mkdir -p "${ARTIFACT_PATH}"
-cp "${APK_PATH}"/*.apk "${ARTIFACT_PATH}"
+    # Set time-based version code
+    sed -i "s,^\(\s*versionCode\) *[0-9].*,\1 $versionCode," cashier/build.gradle
 
-# Rename APK, so fdroid nightly accepts it (looks for *-debug.apk)
-cp "${APK_PATH}"/*.apk cashier-debug.apk
+    # Set nightly application ID
+    sed -i "s,^\(\s*applicationId\) \"*[a-z\.].*\",\1 \"net.taler.cashier.nightly\"," cashier/build.gradle
 
-# Install fdroidserver and dependencies
-apt update
-apt-get -qy install --no-install-recommends \
-        python3-pip \
-        openssh-client \
-        rsync
-python3 -m pip install --upgrade pip wheel setuptools
-python3 -m pip install git+https://gitlab.com/fdroid/fdroidserver.git
-fdroid --version
+    # Test and build the APK
+    ./gradlew :cashier:check :cashier:assembleRelease
 
-# Deploy APK to nightly repository
-export DEBUG_KEYSTORE
-export CI=
-export CI_PROJECT_URL="https://gitlab.com/gnu-taler/fdroid-repo"
-export CI_PROJECT_PATH="gnu-taler/fdroid-repo"
-export GITLAB_USER_NAME="$(git log -1 --pretty=format:'%an')"
-export GITLAB_USER_EMAIL="$(git log -1 --pretty=format:'%ae')"
-fdroid nightly -v --archive-older 6
+    # Sign the APK
+    jarsigner -keystore "${NIGHTLY_KEYSTORE_PATH}" \
+              -storepass "${NIGHTLY_KEYSTORE_PASS}" \
+              "${APK_PATH}" "${NIGHTLY_KEYSTORE_ALIAS}"
+
+    # Copy the APK and lint report to artifacts folder
+    mkdir -p "${ARTIFACT_PATH}"
+    cp "${APK_PATH}" "${ARTIFACT_PATH}"/cashier-debug.apk
+    cp "${LINT_PATH}" "${ARTIFACT_PATH}"
+}
+
+
+function deploy_apk {
+    [[ ! -f "${SCP_SSH_KEY}" ]] && return 0
+    echo "Deploying APK to taler.net/files ..."
+
+    # Deploy APK to taler.net/files/cashier
+    scp -i "${SCP_SSH_KEY}" \
+        -o StrictHostKeyChecking=no \
+        -o UserKnownHostsFile=/dev/null \
+        "${APK_PATH}" \
+        "${SCP_DEST}"/cashier/cashier-nightly-debug-${versionCode}.apk
+}
+
+
+function deploy_fdroid {
+    [[ ! -f "${FDROID_REPO_KEY}" ]] && return 0
+    echo "Deploying APK to F-droid nightly ..."
+
+    # Copy keystore where SDK can find it
+    cp "${NIGHTLY_KEYSTORE}" /root/.android/debug.keystore
+
+    # Rename APK, so fdroid nightly accepts it (looks for *-debug.apk)
+    cp "${APK_PATH}"/*.apk cashier-debug.apk
+
+    fdroid --version
+
+    set +x
+    export DEBUG_KEYSTORE=$(cat "$FDROID_REPO_KEY")
+    set -x
+
+    # Deploy APK to nightly repository
+    export CI=
+    export CI_PROJECT_URL="https://gitlab.com/gnu-taler/fdroid-repo"
+    export CI_PROJECT_PATH="gnu-taler/fdroid-repo"
+    export GITLAB_USER_NAME="$(git log -1 --pretty=format:'%an')"
+    export GITLAB_USER_EMAIL="$(git log -1 --pretty=format:'%ae')"
+
+    fdroid nightly -v --archive-older 6
+}
+
+
+build_apk
+deploy_apk
+# deploy_fdroid
