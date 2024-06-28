@@ -16,6 +16,7 @@
 
 package net.taler.wallet.transactions
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -29,6 +30,7 @@ import androidx.core.content.ContextCompat.getColor
 import androidx.recyclerview.selection.ItemDetailsLookup
 import androidx.recyclerview.selection.ItemKeyProvider
 import androidx.recyclerview.selection.SelectionTracker
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
@@ -74,15 +76,25 @@ internal class TransactionAdapter(
         holder.bind(transaction, tracker.isSelected(transaction.transactionId))
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun setCurrencySpec(spec: CurrencySpecification?) {
         this.currencySpec = spec
         this.notifyDataSetChanged()
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun update(updatedTransactions: List<Transaction>? = null, networkAvailable: Boolean? = null) {
-        updatedTransactions?.let { this.transactions = it }
-        networkAvailable?.let { this.networkAvailable = it }
-        this.notifyDataSetChanged()
+        updatedTransactions?.let {
+            val diffCallback = TransactionDiffCallback(transactions, updatedTransactions)
+            val diffResult = DiffUtil.calculateDiff(diffCallback)
+            this.transactions = it
+            diffResult.dispatchUpdatesTo(this)
+        }
+
+        networkAvailable?.let {
+            this.networkAvailable = it
+            this.notifyDataSetChanged()
+        }
     }
 
     fun selectAll() = transactions.forEach {
@@ -256,5 +268,29 @@ internal class TransactionLookup(
             }
         }
         return null
+    }
+}
+
+internal class TransactionDiffCallback(
+    private val oldList: List<Transaction>,
+    private val newList: List<Transaction>,
+): DiffUtil.Callback() {
+    override fun getOldListSize() = oldList.size
+
+    override fun getNewListSize() = newList.size
+
+    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+        val oldTx = oldList[oldItemPosition]
+        val newTx = newList[newItemPosition]
+
+        return oldTx.transactionId == newTx.transactionId
+    }
+
+    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+        val oldTx = oldList[oldItemPosition]
+        val newTx = newList[newItemPosition]
+
+        return oldTx.txState == newTx.txState
+                && oldTx.error == newTx.error
     }
 }
