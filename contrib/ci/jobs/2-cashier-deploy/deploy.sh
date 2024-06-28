@@ -39,12 +39,22 @@ function deploy_apk {
     [[ ! -f "${SCP_SSH_KEY}" ]] && return 0
     echo "Deploying APK to taler.net/files ..."
 
+    apk_dest="${SCP_SSH_PATH}"/cashier/cashier-nightly-debug-${versionCode}.apk
+    latest_dest="${SCP_SSH_PATH}"/cashier/cashier-nightly-debug-latest.apk
+
     # Deploy APK to taler.net/files/cashier
     scp -i "${SCP_SSH_KEY}" \
         -o StrictHostKeyChecking=no \
         -o UserKnownHostsFile=/dev/null \
         "${APK_PATH}" \
-        "${SCP_DEST}"/cashier/cashier-nightly-debug-${versionCode}.apk
+        "${SCP_SSH_HOST}":"${apk_dest}"
+
+    # Create symbolic link to the latest version
+    ssh -i "${SCP_SSH_KEY}" \
+        -o StrictHostKeyChecking=no \
+        -o UserKnownHostsFile=/dev/null \
+        "${SCP_SSH_HOST}" \
+        ln -sfr "${apk_dest}" "${latest_dest}"
 }
 
 

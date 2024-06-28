@@ -1,5 +1,13 @@
 FROM docker.io/briar/ci-image-android:latest
 
+# Install fdroidserver and other tools
+RUN apt update && apt-get -qy install --no-install-recommends \
+    python3-pip \
+    openssh-client \
+    rsync
+RUN python3 -m pip install --upgrade pip wheel setuptools
+RUN python3 -m pip install git+https://gitlab.com/fdroid/fdroidserver.git
+
 ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk-amd64
 
 # Deployment to F-droid nightly
@@ -9,15 +17,8 @@ ENV NIGHTLY_KEYSTORE_ALIAS androiddebugkey
 ENV NIGHTLY_KEYSTORE_PASS  android
 
 # Deployment to taler.net/files
-ENV SCP_SSH_KEY /inputs/wallet.taler.net
-ENV SCP_DEST    avalos@gv.taler.net:/var/www/files
-
-# Install fdroidserver and other tools
-RUN apt update && apt-get -qy install --no-install-recommends \
-    python3-pip \
-    openssh-client \
-    rsync
-RUN python3 -m pip install --upgrade pip wheel setuptools
-RUN python3 -m pip install git+https://gitlab.com/fdroid/fdroidserver.git
+ENV SCP_SSH_KEY  /inputs/wallet.taler.net
+ENV SCP_SSH_HOST avalos@gv.taler.net
+ENV SCP_SSH_PATH /var/www/files
 
 WORKDIR /workdir

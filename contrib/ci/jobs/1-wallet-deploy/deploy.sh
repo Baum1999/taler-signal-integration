@@ -29,12 +29,22 @@ function deploy_apk {
     [[ ! -f "${SCP_SSH_KEY}" ]] && return 0
     echo "Deploying APK to taler.net/files ..."
 
+    apk_dest="${SCP_SSH_PATH}"/wallet/wallet-nightly-debug-$(date -u +%s).apk
+    latest_dest="${SCP_SSH_PATH}"/wallet/wallet-nightly-debug-latest.apk
+
     # Deploy APK to taler.net/files/wallet
     scp -i "${SCP_SSH_KEY}" \
         -o StrictHostKeyChecking=no \
         -o UserKnownHostsFile=/dev/null \
         "${APK_PATH}" \
-        "${SCP_DEST}"/wallet/wallet-nightly-debug-$(date -u +%s).apk
+        "${SCP_SSH_HOST}":"${apk_dest}"
+
+    # Create symbolic link to the latest version
+    ssh -i "${SCP_SSH_KEY}" \
+        -o StrictHostKeyChecking=no \
+        -o UserKnownHostsFile=/dev/null \
+        "${SCP_SSH_HOST}" \
+        ln -sfr "${apk_dest}" "${latest_dest}"
 }
 
 
