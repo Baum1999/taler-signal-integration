@@ -269,7 +269,7 @@ class MainViewModel(
         }
     }
 
-    fun runIntegrationTest() {
+    fun runIntegrationTest(onError: (error: TalerErrorInfo) -> Unit) {
         viewModelScope.launch {
             api.request<Unit>("runIntegrationTestV2") {
                 put("amountToWithdraw", "KUDOS:42")
@@ -278,7 +278,7 @@ class MainViewModel(
                 put("exchangeBaseUrl", "https://exchange.demo.taler.net/")
                 put("merchantBaseUrl", "https://backend.demo.taler.net/")
                 put("merchantAuthToken", "secret-token:sandbox")
-            }
+            }.onError(onError)
         }
     }
 
