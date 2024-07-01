@@ -30,9 +30,11 @@ function build_apk {
     ./gradlew :merchant-lib:check :merchant-terminal:check :merchant-terminal:assembleRelease
 
     # Sign the APK
-    jarsigner -keystore "${NIGHTLY_KEYSTORE_PATH}" \
-              -storepass "${NIGHTLY_KEYSTORE_PASS}" \
-              "${APK_PATH}" "${NIGHTLY_KEYSTORE_ALIAS}"
+    apksigner sign \
+              --ks "${NIGHTLY_KEYSTORE_PATH}" \
+              --ks-key-alias "${NIGHTLY_KEYSTORE_ALIAS}" \
+              --ks-pass env:NIGHTLY_KEYSTORE_PASS \
+              "${APK_PATH}"
 
     # Copy the APK and lint reports to artifacts folder
     mkdir -p "${ARTIFACT_PATH_POS}"

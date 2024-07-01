@@ -21,4 +21,6 @@ ENV SCP_SSH_KEY  /inputs/wallet.taler.net
 ENV SCP_SSH_HOST avalos@gv.taler.net
 ENV SCP_SSH_PATH /var/www/files
 
+RUN ln -s $ANDROID_HOME/build-tools/32.0.0/apksigner /usr/bin/
+
 WORKDIR /workdir
