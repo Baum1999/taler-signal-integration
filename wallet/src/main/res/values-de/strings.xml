@@ -22,7 +22,7 @@
     <string name="transaction_paid">Bezahlt</string>
     <string name="transaction_order_total">Summe</string>
     <string name="transaction_order">Einkauf</string>
-    <string name="transaction_order_id">Beleg #%1$s</string>
+    <string name="transaction_order_id">Bestellung #%1$s</string>
     <string name="transaction_refund">Erstattung</string>
     <string name="transaction_refund_from">Rückerstattung von %s</string>
     <string name="transaction_pending">AUSSTEHEND</string>
@@ -59,7 +59,7 @@
     <string name="withdraw_error_test">Fehler beim Abheben von TESTKUDOS aufgetreten</string>
     <string name="exchange_settings_summary">Verwaltung der Zahlungsdienstleister, die diesem Wallet bekannt sind</string>
     <string name="payment_fee">+%s Zahlungsgebühr</string>
-    <string name="exchange_list_title">Liste von Zahlungsdienstleistern</string>
+    <string name="exchange_list_title">Zahlungsdienstleister</string>
     <string name="exchange_list_empty">Keine Zahlungsdienstleister bekannt
 \n
 \nFügen Sie einen Zahlungsdienstleister manuell hinzu oder heben Sie digitales Bargeld ab!</string>
@@ -251,8 +251,8 @@
     <string name="withdraw_conversion_support">Dieser Zahlungsdienstleister unterstützt Währungsumtausch</string>
     <string name="exchange_list_add_dev">Zahlungsdienstleister im Entwicklermodus hinzufügen</string>
     <string name="send_peer_expiration_30d">30 Tage</string>
-    <string name="send_peer_expiration_7d">7 Tage</string>
-    <string name="balance_scope_exchange">Zahlungsdienstleister: %1$s</string>
+    <string name="send_peer_expiration_7d">1 Woche</string>
+    <string name="balance_scope_exchange">Von: %1$s</string>
     <string name="balance_scope_auditor">Auditor: %1$s</string>
     <string name="receive_peer">Rechnung an anderes Wallet stellen</string>
     <string name="char_count">%1$d/%2$d</string>
@@ -268,4 +268,46 @@
     <string name="payment_create_order">Bestellung aufgeben</string>
     <string name="loading">Lädt</string>
     <string name="open">Öffnen</string>
+    <string name="loss_reason_expired">Das Guthaben wurde nicht aufgefrischt, weil die Wallet-Anwendung zu lange keinen Internet-Zugang hatte</string>
+    <string name="settings_test_running">Der Integrationstest läuft gerade</string>
+    <string name="amount_lost">Verlorener Betrag</string>
+    <string name="transaction_state_pending">Diese Transaktion hat den Status \"ausstehend\"</string>
+    <string name="transaction_peer_push_debit">Push-Zahlung (Debit)</string>
+    <string name="qr_scan_context_title">Möglicherweise unbeabsichtigte Aktion</string>
+    <string name="qr_scan_context_receive_message">Es scheint, dass Sie Geld erhalten wollten, doch entspricht der eingescannte QR-Code einer anderen Aktion. Möchten Sie dennoch fortfahren?</string>
+    <string name="qr_scan_context_send_message">Es scheint, dass Sie Geld senden wollten, doch entspricht der eingescannte QR-Code einer anderen Aktion. Möchten Sie dennoch fortfahren?</string>
+    <string name="amount_effective">Endbetrag</string>
+    <string name="amount_fee">Gebühr</string>
+    <string name="amount_invalid">Ungültiger Betrag</string>
+    <string name="amount_invoiced">Betrag abgerechnet</string>
+    <string name="amount_receive">Zu erhaltender Betrag</string>
+    <string name="amount_send">Zu sendender Betrag</string>
+    <string name="amount_total">Gesamtbetrag</string>
+    <string name="amount_total_label">Gesamt:</string>
+    <string name="amount_transfer">Überweisung</string>
+    <string name="balances_inbound_amount">+%1$s eingehend</string>
+    <string name="balances_outbound_amount">-%1$s abgehend</string>
+    <string name="transaction_deposit_to">Überweisen an %1$s</string>
+    <string name="transaction_peer_push_credit">Push-Zahlung</string>
+    <string name="transaction_state_aborted">Die Transaktion wurde abgebrochen</string>
+    <string name="transaction_state_aborting">Diese Transaktion wird gerade abgebrochen</string>
+    <string name="transaction_state_expired">Diese Transaktion hat ihre zeitliche Gültigkeit überschritten</string>
+    <string name="transaction_state_failed">Diese Transaktion ist fehlgeschlagen</string>
+    <string name="transaction_state_suspended">Diese Transaktion ist ausgesetzt</string>
+    <string name="payment_template_error">Fehler beim Erstellen der Bestellung</string>
+    <string name="payment_aborting">Abbruch wird durchgeführt</string>
+    <string name="send_peer_expiration_days">Tage</string>
+    <string name="withdraw_manual_bitcoin_intro">Führen Sie nun eine Sammelbuchung mit den folgenden drei Ausgabewerten durch.</string>
+    <string name="loss_reason">Grund</string>
+    <string name="loss_reason_unoffered">Der Zahlungsdienstleister bietet nicht mehr die Stückelung an, aus der das Guthaben besteht</string>
+    <string name="observability_hide_json">JSON ausblenden</string>
+    <string name="observability_show_json">JSON anzeigen</string>
+    <string name="observability_title">Internes Ereignisprotokoll</string>
+    <string name="loss_reason_vanished">Der Zahlungsdienstleister hat die Aufzeichnung des Guthabens verloren</string>
+    <string name="transaction_denom_loss">Guthabenverlust</string>
+    <string name="withdraw_account">Konto #%1$d</string>
+    <string name="withdraw_account_currency">Konto #%1$d (%2$s)</string>
+    <string name="amount_conversion">Währungsumtausch</string>
+    <string name="exchange_reload">Information erneut laden</string>
+    <string name="show_logs">Protokolle anzeigen</string>
 </resources>
