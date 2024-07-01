@@ -77,6 +77,10 @@ class PayToUriFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View {
         val uri = arguments?.getString("uri") ?: error("no amount passed")
+        val u = Uri.parse(uri)
+        val receiverName = u.getQueryParameter("receiver_name")
+            ?.replace('+', ' ') ?: ""
+        val iban = u.pathSegments.last() ?: ""
 
         val currencies = model.getCurrencies()
         return ComposeView(requireContext()).apply {
@@ -89,11 +93,10 @@ class PayToUriFragment : Fragment() {
                         currencies = currencies,
                         getAmount = model::createAmount,
                         onAmountChosen = { amount ->
-                            val u = Uri.parse(uri)
                             val bundle = bundleOf(
                                 "amount" to amount.toJSONString(),
-                                "receiverName" to u.getQueryParameters("receiver-name")[0],
-                                "IBAN" to u.pathSegments.last(),
+                                "receiverName" to receiverName,
+                                "IBAN" to iban,
                             )
                             findNavController().navigate(
                                 R.id.action_nav_payto_uri_to_nav_deposit, bundle)
