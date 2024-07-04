@@ -1,2 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="order_label_title">Ordine #%s</string>
+    <string name="order_total">Totale: %s</string>
+    <string name="config_error_unknown">Errore: Configurazione non valida</string>
+    <string name="payment_received">Pagamento ricevuto</string>
+    <string name="payment_back_button">Continua</string>
+    <string name="history_label">Cronologia pagamenti</string>
+    <string name="refund_amount">Importo</string>
+    <string name="refund_error_invalid_amount">Importo non valido</string>
+    <string name="project_name">GNU Taler</string>
+    <string name="menu_order">Ordini</string>
+    <string name="menu_settings">Impostazioni</string>
+    <string name="order_undo">Annulla</string>
+    <string name="config_password">Password</string>
+    <string name="config_error_product_zero">Errore: Nessun prodotto valido trovato</string>
+    <string name="config_save_password">Ricorda password</string>
+    <string name="config_forget_password">Dimentica</string>
+    <string name="payment_cancel">Annulla pagamento</string>
+    <string name="payment_canceled">Pagamento annullato</string>
+    <string name="refund_reason">Causale rimborso</string>
+    <string name="refund_confirm">Approva rimborso</string>
+    <string name="refund_error_already_refunded">Già rimborsato</string>
+    <string name="error_payment">Errore: Nessun pagamento ricevuto</string>
+</resources>
