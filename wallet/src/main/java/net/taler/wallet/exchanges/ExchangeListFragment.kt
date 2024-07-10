@@ -85,24 +85,29 @@ open class ExchangeListFragment : Fragment(), ExchangeClickListener {
             AddExchangeDialogFragment().show(parentFragmentManager, "ADD_EXCHANGE")
         }
 
-        exchangeManager.progress.observe(viewLifecycleOwner) { show ->
-            if (show) ui.progressBar.fadeIn() else ui.progressBar.fadeOut()
-        }
+        // TODO: refactor and unify progress bar handling
+        // exchangeManager.progress.observe(viewLifecycleOwner) { show ->
+        //     if (show) ui.progressBar.fadeIn() else ui.progressBar.fadeOut()
+        // }
+
         exchangeManager.exchanges.observe(viewLifecycleOwner) { exchanges ->
             onExchangeUpdate(exchanges)
         }
+
         exchangeManager.addError.observe(viewLifecycleOwner, EventObserver { error ->
             onAddExchangeFailed()
             if (model.devMode.value == true) {
                 showError(error)
             }
         })
+
         exchangeManager.listError.observe(viewLifecycleOwner, EventObserver { error ->
             onListExchangeFailed()
             if (model.devMode.value == true) {
                 showError(error)
             }
         })
+
         exchangeManager.deleteError.observe(viewLifecycleOwner, EventObserver { error ->
             if (model.devMode.value == true) {
                 showError(error)
@@ -110,6 +115,7 @@ open class ExchangeListFragment : Fragment(), ExchangeClickListener {
                 showError(error.userFacingMsg)
             }
         })
+
         exchangeManager.reloadError.observe(viewLifecycleOwner, EventObserver { error ->
             if (model.devMode.value == true) {
                 showError(error)

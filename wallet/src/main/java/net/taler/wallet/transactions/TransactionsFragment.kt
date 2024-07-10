@@ -124,9 +124,10 @@ class TransactionsFragment : Fragment(), OnTransactionClickListener, ActionMode.
             }
         }
 
-        transactionManager.progress.observe(viewLifecycleOwner) { show ->
-            if (show) ui.progressBar.fadeIn() else ui.progressBar.fadeOut()
-        }
+        // TODO: refactor and unify progress bar handling
+        // transactionManager.progress.observe(viewLifecycleOwner) { show ->
+        //     if (show) ui.progressBar.fadeIn() else ui.progressBar.fadeOut()
+        // }
 
         transactionManager.transactions.observe(viewLifecycleOwner) { result ->
             onTransactionsResult(result)
@@ -226,7 +227,8 @@ class TransactionsFragment : Fragment(), OnTransactionClickListener, ActionMode.
 
     private fun onSearch(query: String) {
         ui.list.fadeOut()
-        ui.progressBar.fadeIn()
+        // TODO: refactor and unify progress bar handling
+        // ui.progressBar.fadeIn()
         transactionManager.searchQuery.value = query
     }
 
