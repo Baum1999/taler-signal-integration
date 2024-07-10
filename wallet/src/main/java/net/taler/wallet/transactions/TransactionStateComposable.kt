@@ -38,21 +38,23 @@ import net.taler.wallet.transactions.TransactionMajorState.Aborting
 import net.taler.wallet.transactions.TransactionMajorState.Done
 import net.taler.wallet.transactions.TransactionMajorState.Expired
 import net.taler.wallet.transactions.TransactionMajorState.Failed
-import net.taler.wallet.transactions.TransactionMajorState.Suspended
 import net.taler.wallet.transactions.TransactionMajorState.Pending
+import net.taler.wallet.transactions.TransactionMajorState.Suspended
+import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
 
 @Composable
 fun TransactionStateComposable(
     modifier: Modifier = Modifier,
     state: TransactionState,
 ) {
-    val message = when (state.major) {
-        Pending -> stringResource(R.string.transaction_state_pending)
-        Aborted -> stringResource(R.string.transaction_state_aborted)
-        Aborting -> stringResource(R.string.transaction_state_aborting)
-        Suspended -> stringResource(R.string.transaction_state_suspended)
-        Failed -> stringResource(R.string.transaction_state_failed)
-        Expired -> stringResource(R.string.transaction_state_expired)
+    val message = when (state) {
+        TransactionState(Pending, BankConfirmTransfer) -> stringResource(R.string.transaction_state_pending_bank)
+        TransactionState(Pending) -> stringResource(R.string.transaction_state_pending)
+        TransactionState(Aborted) -> stringResource(R.string.transaction_state_aborted)
+        TransactionState(Aborting) -> stringResource(R.string.transaction_state_aborting)
+        TransactionState(Suspended) -> stringResource(R.string.transaction_state_suspended)
+        TransactionState(Failed) -> stringResource(R.string.transaction_state_failed)
+        TransactionState(Expired) -> stringResource(R.string.transaction_state_expired)
         else -> return
     }
 
@@ -94,7 +96,9 @@ fun TransactionStateComposable(
 fun TransactionStateComposablePreview() {
     TalerSurface {
         Column {
+
             val modifier = Modifier.padding(vertical = 6.dp)
+            TransactionStateComposable(modifier, state = TransactionState(Pending, BankConfirmTransfer))
             TransactionStateComposable(modifier, state = TransactionState(Pending))
             TransactionStateComposable(modifier, state = TransactionState(Aborted))
             TransactionStateComposable(modifier, state = TransactionState(Aborting))
