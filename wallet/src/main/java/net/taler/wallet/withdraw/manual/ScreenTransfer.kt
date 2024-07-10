@@ -17,7 +17,9 @@
 package net.taler.wallet.withdraw.manual
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -50,8 +52,6 @@ import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.wallet.CURRENCY_BTC
 import net.taler.wallet.R
-import net.taler.wallet.compose.ExpandableCard
-import net.taler.wallet.compose.QrCodeUriComposable
 import net.taler.common.canAppHandleUri
 import net.taler.wallet.compose.ShareButton
 import net.taler.wallet.compose.copyToClipBoard
@@ -142,6 +142,24 @@ fun ScreenTransfer(
                 )
             }
 
+            qrCodes.forEach { spec ->
+                PaytoQrCard(
+                    expanded = qrExpandedStates[spec]!!,
+                    setExpanded = { expanded ->
+                        if (expanded) { // un-expand all others
+                            qrExpandedStates.forEach { (k, _) ->
+                                qrExpandedStates[k] = false
+                            }
+                        }
+                        // expand only toggled one
+                        qrExpandedStates[spec] = expanded
+                    },
+                    qrCode = spec,
+                )
+            }
+
+            Spacer(Modifier.height(24.dp))
+
             val paytoUri = selectedTransfer.withdrawalAccount.paytoUri
             if (bankAppClick != null && LocalContext.current.canAppHandleUri(paytoUri)) {
                 Button(
@@ -158,22 +176,6 @@ fun ScreenTransfer(
                     content = selectedTransfer.withdrawalAccount.paytoUri,
                     modifier = Modifier
                         .padding(bottom = 16.dp),
-                )
-            }
-
-            qrCodes.forEach { spec ->
-                QrCard(
-                    expanded = qrExpandedStates[spec]!!,
-                    setExpanded = { expanded ->
-                        if (expanded) { // un-expand all others
-                            qrExpandedStates.forEach { (k, _) ->
-                                qrExpandedStates[k] = false
-                            }
-                        }
-                        // expand only toggled one
-                        qrExpandedStates[spec] = expanded
-                    },
-                    qrCode = spec,
                 )
             }
         }
@@ -304,34 +306,6 @@ fun TransferAccountChooser(
             )
         }
     }
-}
-
-@Composable
-fun QrCard(
-    expanded: Boolean,
-    setExpanded: (expanded: Boolean) -> Unit,
-    qrCode: QrCodeSpec,
-) {
-    val label = when(qrCode.type) {
-        EpcQr -> stringResource(R.string.withdraw_manual_qr_epc)
-        SPC -> stringResource(R.string.withdraw_manual_qr_spc)
-        else -> return
-    }
-
-    ExpandableCard(
-        expanded = expanded,
-        setExpanded = setExpanded,
-        header = {
-            Text(label, style = MaterialTheme.typography.titleMedium)
-        },
-        content = {
-            QrCodeUriComposable(
-                talerUri = qrCode.qrContent,
-                clipBoardLabel = label,
-                showContents = false,
-            )
-        },
-    )
 }
 
 @Preview
