@@ -48,6 +48,7 @@ import net.taler.common.Amount
 import net.taler.wallet.CURRENCY_BTC
 import net.taler.wallet.R
 import net.taler.common.CurrencySpecification
+import net.taler.common.canAppHandleUri
 import net.taler.wallet.compose.ShareButton
 import net.taler.wallet.compose.copyToClipBoard
 import net.taler.wallet.transactions.AmountType
@@ -118,7 +119,8 @@ fun ScreenTransfer(
                 )
             }
 
-            if (bankAppClick != null) {
+            val paytoUri = selectedTransfer.withdrawalAccount.paytoUri
+            if (bankAppClick != null && LocalContext.current.canAppHandleUri(paytoUri)) {
                 Button(
                     onClick = { bankAppClick(selectedTransfer) },
                     modifier = Modifier

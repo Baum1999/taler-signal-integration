@@ -21,6 +21,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Context.CONNECTIVITY_SERVICE
 import android.content.Intent
+import android.content.Intent.EXTRA_INITIAL_INTENTS
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET
 import android.net.Uri
@@ -121,12 +122,46 @@ fun Context.startActivitySafe(intent: Intent) {
     }
 }
 
-fun Context.openUri(uri: String, title: String) {
+fun Context.canAppHandleUri(uri: String): Boolean {
     val intent = Intent(Intent.ACTION_VIEW).apply {
         data = Uri.parse(uri)
     }
 
-    startActivitySafe(Intent.createChooser(intent, title))
+    return packageManager.queryIntentActivities(intent, 0).any {
+        it.activityInfo.packageName != packageName
+    }
+}
+
+fun Context.openUri(uri: String, title: String, excludeOwn: Boolean = true) {
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        data = Uri.parse(uri)
+    }
+
+    if (excludeOwn) {
+        val possiblePackageNames = mutableListOf<String>()
+        val possibleIntents = packageManager.queryIntentActivities(intent, 0).filter {
+            it.activityInfo.packageName != packageName
+        }.map {
+            val possibleIntent = Intent(intent)
+            possibleIntent.`package` = it.activityInfo.packageName
+            possiblePackageNames.add(it.activityInfo.packageName)
+            return@map possibleIntent
+        }
+
+        val defaultResolveInfo = packageManager.resolveActivity(intent, 0)
+        if (defaultResolveInfo == null || possiblePackageNames.isEmpty()) return
+
+        // If there is a default app to handle the intent (which is not the app), use it.
+        if (possiblePackageNames.contains(defaultResolveInfo.activityInfo.packageName)) {
+            startActivitySafe(intent)
+        } else {
+            val chooser = Intent.createChooser(possibleIntents[0], title)
+            chooser.putExtra(EXTRA_INITIAL_INTENTS, possibleIntents.drop(1).toTypedArray())
+            startActivitySafe(chooser)
+        }
+    } else {
+        startActivitySafe(Intent.createChooser(intent, title))
+    }
 }
 
 fun Context.shareText(text: String) {
