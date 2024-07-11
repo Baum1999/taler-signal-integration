@@ -181,13 +181,13 @@ class MainViewModel(
     } ?: emptyList()
 
     @UiThread
-    fun createAmount(amountText: String, currency: String): AmountResult {
+    fun createAmount(amountText: String, currency: String, incoming: Boolean = false): AmountResult {
         val amount = try {
             Amount.fromString(currency, amountText)
         } catch (e: AmountParserException) {
             return AmountResult.InvalidAmount
         }
-        if (hasSufficientBalance(amount)) return AmountResult.Success(amount)
+        if (incoming || hasSufficientBalance(amount)) return AmountResult.Success(amount)
         return AmountResult.InsufficientBalance
     }
 

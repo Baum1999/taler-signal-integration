@@ -41,6 +41,16 @@ import net.taler.wallet.withdraw.WithdrawStatus.ReceivedDetails
 sealed class WithdrawStatus {
     data class Loading(val talerWithdrawUri: String? = null) : WithdrawStatus()
 
+    data class NeedsAmount(
+        val talerWithdrawUri: String,
+        val currency: String,
+        val amount: Amount?,
+        val maxAmount: Amount?,
+        val wireFee: Amount?,
+        val possibleExchanges: List<ExchangeItem>,
+        val defaultExchangeBaseUrl: String?,
+    ) : WithdrawStatus()
+
     data class NeedsExchange(
         val talerWithdrawUri: String,
         val amount: Amount,
@@ -129,7 +139,11 @@ sealed class WithdrawTestStatus {
 
 @Serializable
 data class WithdrawalDetailsForUri(
-    val amount: Amount,
+    val amount: Amount?,
+    val currency: String,
+    val editableAmount: Boolean,
+    val maxAmount: Amount?,
+    val wireFee: Amount?,
     val defaultExchangeBaseUrl: String?,
     val possibleExchanges: List<ExchangeItem>,
 )
@@ -213,7 +227,18 @@ class WithdrawManager(
         }.onError { error ->
             handleError("getWithdrawalDetailsForUri", error)
         }.onSuccess { details ->
-            if (details.defaultExchangeBaseUrl == null) {
+            Log.d(TAG, "Withdraw details: $details")
+            if (details.amount == null || details.editableAmount) {
+                withdrawStatus.value = WithdrawStatus.NeedsAmount(
+                    talerWithdrawUri = uri,
+                    wireFee = details.wireFee,
+                    amount = details.amount,
+                    maxAmount = details.maxAmount,
+                    currency = details.currency,
+                    possibleExchanges = details.possibleExchanges,
+                    defaultExchangeBaseUrl = details.defaultExchangeBaseUrl,
+                )
+            } else if (details.defaultExchangeBaseUrl == null) {
                 withdrawStatus.value = WithdrawStatus.NeedsExchange(
                     talerWithdrawUri = uri,
                     amount = details.amount,
@@ -255,6 +280,24 @@ class WithdrawManager(
                 )
             } else getExchangeTos(exchangeBaseUrl, details, showTosImmediately, uri, possibleExchanges)
         }
+    }
+
+    fun selectWithdrawalAmount(amount: Amount) {
+        val s = withdrawStatus.value as WithdrawStatus.NeedsAmount
+
+        if (s.defaultExchangeBaseUrl == null) {
+            withdrawStatus.value = WithdrawStatus.NeedsExchange(
+                talerWithdrawUri = s.talerWithdrawUri,
+                amount = amount,
+                possibleExchanges = s.possibleExchanges,
+            )
+        } else getWithdrawalDetails(
+            exchangeBaseUrl = s.defaultExchangeBaseUrl,
+            amount = amount,
+            showTosImmediately = false,
+            uri = s.talerWithdrawUri,
+            possibleExchanges = s.possibleExchanges,
+        )
     }
 
     @WorkerThread

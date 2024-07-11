@@ -57,8 +57,8 @@
             app:popUpTo="@id/nav_main" />
 
         <action
-            android:id="@+id/action_handleUri_to_promptWithdraw"
-            app:destination="@id/promptWithdraw"
+            android:id="@+id/action_handleUri_to_withdrawAmount"
+            app:destination="@id/withdrawAmount"
             app:popUpTo="@id/nav_main" />
 
         <action
@@ -336,6 +336,16 @@
         android:id="@+id/nav_transactions_detail_dummy"
         android:name="net.taler.wallet.transactions.TransactionDummyFragment"
         android:label="@string/transactions_detail_title" />
+
+    <fragment
+        android:id="@+id/withdrawAmount"
+        android:name="net.taler.wallet.withdraw.WithdrawAmountFragment"
+        android:label="@string/withdraw_title">
+        <action
+            android:id="@+id/action_withdrawAmount_to_promptWithdraw"
+            app:destination="@id/promptWithdraw"
+            app:popUpTo="@id/nav_main"/>
+    </fragment>
 
     <fragment
         android:id="@+id/promptWithdraw"

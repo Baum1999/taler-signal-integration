@@ -78,6 +78,7 @@ class PromptWithdrawFragment : Fragment() {
     private fun showWithdrawStatus(status: WithdrawStatus?): Any = when (status) {
         null -> model.showProgressBar.value = false
         is Loading -> model.showProgressBar.value = true
+        is WithdrawStatus.NeedsAmount -> {} // handled in WithdrawAmountFragment
         is NeedsExchange -> {
             model.showProgressBar.value = false
             if (selectExchangeDialog.dialog?.isShowing != true) {

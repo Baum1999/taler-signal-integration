@@ -93,6 +93,8 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="amount_invoiced">Amount invoiced</string>
     <string name="amount_lost">Amount lost</string>
     <string name="amount_negative">-%s</string>
+    <string name="amount_max">Maximum amount</string>
+    <string name="amount_excess">Amount exceeds maximum</string>
     <string name="amount_positive">+%s</string>
     <string name="amount_receive">Amount to receive</string>
     <string name="amount_received">Amount received</string>
@@ -101,6 +103,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="amount_total">Total amount</string>
     <string name="amount_total_label">Total:</string>
     <string name="amount_transfer">Transfer</string>
+    <string name="amount_withdraw">Amount to withdraw</string>
 
     <!-- Balances -->
 
@@ -234,6 +237,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="withdraw_error_test">Error withdrawing TESTKUDOS</string>
     <string name="withdraw_error_title">Withdrawal Error</string>
     <string name="withdraw_exchange">Provider</string>
+    <string name="withdraw_fee">+%1$s withdrawal fees</string>
     <string name="withdraw_initiated">Withdrawal initiated</string>
     <string name="withdraw_manual_bitcoin_intro">Now make a split transaction with the following three outputs.</string>
     <string name="withdraw_manual_check_fees">Check fees</string>
@@ -251,6 +255,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="withdraw_manual_title">Make a manual transfer to the provider</string>
     <string name="withdraw_restrict_age">Restrict Usage to Age</string>
     <string name="withdraw_restrict_age_unrestricted">Unrestricted</string>
+    <string name="withdraw_select_amount">Select amount</string>
     <string name="withdraw_subtitle">Select target bank account</string>
     <string name="withdraw_title">Withdrawal</string>
     <string name="withdraw_waiting_confirm">Waiting for confirmation</string>

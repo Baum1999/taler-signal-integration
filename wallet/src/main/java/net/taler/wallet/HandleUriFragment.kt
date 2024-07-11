@@ -119,7 +119,7 @@ class HandleUriFragment: Fragment() {
                 action.startsWith("withdraw/", ignoreCase = true) -> {
                     Log.v(TAG, "navigating!")
                     // there's more than one entry point, so use global action
-                    findNavController().navigate(R.id.action_handleUri_to_promptWithdraw)
+                    findNavController().navigate(R.id.action_handleUri_to_withdrawAmount)
                     model.withdrawManager.getWithdrawalDetails(u2)
                 }
 
