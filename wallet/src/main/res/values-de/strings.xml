@@ -47,7 +47,7 @@
     <string name="withdraw_button_confirm_bank">Überweisen Sie vom Bankkonto</string>
     <string name="withdraw_button_tos">Nutzungsbedingungen einsehen</string>
     <string name="withdraw_waiting_confirm">Warte auf Bestätigung</string>
-    <string name="withdraw_manual_title">Manuelle Überweisung an den Zahlungsdienstleister</string>
+    <string name="withdraw_manual_title">Führen Sie eine manuelle Überweisung an den Zahlungsdienstleister durch</string>
     <string name="withdraw_amount">Wie viel soll abgehoben werden\?</string>
     <string name="withdraw_amount_error">Gültigen Betrag eingeben</string>
     <string name="withdraw_manual_payment_options">Zahlungsoptionen unterstützt von %1$s:
@@ -265,7 +265,7 @@
     <string name="transactions_fail_dialog_message">Sind Sie sicher, dass die Transaktion abgebrochen werden soll? Bereits abgesendete Guthaben GEHEN VERLOREN.</string>
     <string name="transactions_receive_funds_title">%1$s erhalten</string>
     <string name="transactions_send_funds_title">%1$s senden</string>
-    <string name="payment_create_order">Bestellung aufgeben</string>
+    <string name="payment_create_order">Bestellung anlegen</string>
     <string name="loading">Lädt</string>
     <string name="open">Öffnen</string>
     <string name="loss_reason_expired">Das Guthaben wurde nicht aufgefrischt, weil die Wallet-Anwendung zu lange keinen Internet-Zugang hatte</string>
@@ -299,7 +299,7 @@
     <string name="send_peer_expiration_days">Tage</string>
     <string name="withdraw_manual_bitcoin_intro">Führen Sie nun eine Sammelbuchung mit den folgenden drei Ausgabewerten durch.</string>
     <string name="loss_reason">Grund</string>
-    <string name="loss_reason_unoffered">Der Zahlungsdienstleister bietet nicht mehr die Stückelung an, aus der das Guthaben besteht</string>
+    <string name="loss_reason_unoffered">Der Zahlungsdienstleister bietet nicht mehr die Stückelung für das Guthaben an</string>
     <string name="observability_hide_json">JSON ausblenden</string>
     <string name="observability_show_json">JSON anzeigen</string>
     <string name="observability_title">Internes Ereignisprotokoll</string>
@@ -310,4 +310,7 @@
     <string name="amount_conversion">Währungsumtausch</string>
     <string name="exchange_reload">Information erneut laden</string>
     <string name="show_logs">Protokolle anzeigen</string>
+    <string name="withdraw_manual_qr_epc">EPC-QR</string>
+    <string name="withdraw_manual_qr_spc">Schweizer QR-Code</string>
+    <string name="transaction_state_pending_bank">Warten auf Bestätigung in der Bank</string>
 </resources>
