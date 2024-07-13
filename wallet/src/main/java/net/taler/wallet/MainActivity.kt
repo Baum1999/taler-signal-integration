@@ -17,11 +17,10 @@
 package net.taler.wallet
 
 import android.annotation.SuppressLint
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
 import android.content.Intent.ACTION_VIEW
-import android.content.IntentFilter
+import android.nfc.NdefMessage
+import android.nfc.NfcAdapter
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -51,12 +50,10 @@ import com.journeyapps.barcodescanner.ScanOptions.QR_CODE
 import net.taler.common.EventObserver
 import net.taler.wallet.BuildConfig.VERSION_CODE
 import net.taler.wallet.BuildConfig.VERSION_NAME
-import net.taler.wallet.HostCardEmulatorService.Companion.HTTP_TUNNEL_RESPONSE
-import net.taler.wallet.HostCardEmulatorService.Companion.MERCHANT_NFC_CONNECTED
-import net.taler.wallet.HostCardEmulatorService.Companion.MERCHANT_NFC_DISCONNECTED
-import net.taler.wallet.HostCardEmulatorService.Companion.TRIGGER_PAYMENT_ACTION
 import net.taler.wallet.databinding.ActivityMainBinding
 import net.taler.wallet.events.ObservabilityDialog
+import net.taler.wallet.transactions.TransactionPeerPullCredit
+import net.taler.wallet.transactions.TransactionPeerPushDebit
 
 class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
     OnPreferenceStartFragmentCallback {
@@ -115,10 +112,18 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
 
         //model.startTunnel()
 
-        registerReceiver(triggerPaymentReceiver, IntentFilter(TRIGGER_PAYMENT_ACTION))
-        registerReceiver(nfcConnectedReceiver, IntentFilter(MERCHANT_NFC_CONNECTED))
-        registerReceiver(nfcDisconnectedReceiver, IntentFilter(MERCHANT_NFC_DISCONNECTED))
-        registerReceiver(tunnelResponseReceiver, IntentFilter(HTTP_TUNNEL_RESPONSE))
+        model.transactionManager.selectedTransaction.observe(this) { tx ->
+            HostCardEmulatorService.clearUri(this)
+
+            when (tx) {
+                is TransactionPeerPushDebit -> tx.talerUri
+                is TransactionPeerPullCredit -> tx.talerUri
+                else -> return@observe
+            }?.let { uri ->
+                Log.d(TAG, "Transaction ${tx.transactionId} selected with URI $uri")
+                HostCardEmulatorService.setUri(this, uri)
+            }
+        }
 
         model.scanCodeEvent.observe(this, EventObserver {
             val scanOptions = ScanOptions().apply {
@@ -151,6 +156,22 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
         super.onNewIntent(intent)
         if (intent?.action == ACTION_VIEW) intent.dataString?.let { uri ->
             handleTalerUri(uri, "intent")
+        }
+
+        if (NfcAdapter.ACTION_NDEF_DISCOVERED == intent?.action) {
+            intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)?.also { rawMessages ->
+                val messages: List<NdefMessage> = rawMessages.map { it as NdefMessage }
+
+                messages.forEach { message ->
+                    message.records?.forEach { record ->
+                        record.toUri()?.let { uri ->
+                            Log.d(TAG, "URI read from NFC tag: $uri")
+                            handleTalerUri(uri.toString(), "nfc")
+                        }
+                    }
+                }
+            }
+
         }
     }
 
@@ -202,47 +223,6 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
     private fun handleTalerUri(uri: String, from: String) {
         val args = bundleOf("uri" to uri, "from" to from)
         nav.navigate(R.id.action_global_handle_uri, args)
-    }
-
-    override fun onDestroy() {
-        unregisterReceiver(triggerPaymentReceiver)
-        unregisterReceiver(nfcConnectedReceiver)
-        unregisterReceiver(nfcDisconnectedReceiver)
-        unregisterReceiver(tunnelResponseReceiver)
-        super.onDestroy()
-    }
-
-    private val triggerPaymentReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            if (nav.currentDestination?.id == R.id.promptPayment) return
-            intent.extras?.getString("contractUrl")?.let { url ->
-                nav.navigate(R.id.action_global_promptPayment)
-                model.paymentManager.preparePay(url)
-            }
-        }
-    }
-
-    private val nfcConnectedReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            Log.v(TAG, "got MERCHANT_NFC_CONNECTED")
-            //model.startTunnel()
-        }
-    }
-
-    private val nfcDisconnectedReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            Log.v(TAG, "got MERCHANT_NFC_DISCONNECTED")
-            //model.stopTunnel()
-        }
-    }
-
-    private val tunnelResponseReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            Log.v("taler-tunnel", "got HTTP_TUNNEL_RESPONSE")
-            intent.getStringExtra("response")?.let {
-                model.tunnelResponse(it)
-            }
-        }
     }
 
     override fun onPreferenceStartFragment(

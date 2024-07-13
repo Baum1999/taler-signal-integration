@@ -21,5 +21,6 @@
         android:category="other"
         android:description="@string/host_apdu_service_desc">
         <aid-filter android:name="F00054414C4552" />
+        <aid-filter android:name="D2760000850101"/>
     </aid-group>
 </host-apdu-service>
