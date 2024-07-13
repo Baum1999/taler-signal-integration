@@ -106,11 +106,7 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
         //     ui.navView.menu.findItem(R.id.nav_dev).isVisible = enabled
         // }
 
-        if (intent.action == ACTION_VIEW) intent.dataString?.let { uri ->
-            handleTalerUri(uri, "intent")
-        }
-
-        //model.startTunnel()
+        handleIntents()
 
         model.transactionManager.selectedTransaction.observe(this) { tx ->
             HostCardEmulatorService.clearUri(this)
@@ -154,6 +150,10 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
+        handleIntents()
+    }
+
+    private fun handleIntents() {
         if (intent?.action == ACTION_VIEW) intent.dataString?.let { uri ->
             handleTalerUri(uri, "intent")
         }
@@ -171,7 +171,6 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
                     }
                 }
             }
-
         }
     }
 
