@@ -21,7 +21,9 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +48,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
 import net.taler.common.Amount
+import net.taler.common.AmountParserException
 import net.taler.common.CurrencySpecification
 import net.taler.wallet.AmountResult
 import net.taler.wallet.AmountResult.InsufficientBalance
@@ -151,9 +154,19 @@ fun WithdrawAmountComposable(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        if (status.maxAmount != null) {
+            Spacer(Modifier.height(16.dp))
+
+            TransactionAmountComposable(
+                label = stringResource(R.string.amount_max),
+                amount = status.maxAmount,
+                amountType = AmountType.Neutral,
+            )
+        }
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+            modifier = Modifier.padding(horizontal = 16.dp),
         ) {
             AmountInputField(
                 modifier = Modifier
@@ -183,14 +196,21 @@ fun WithdrawAmountComposable(
                 amount = status.wireFee,
                 amountType = AmountType.Negative,
             )
-        }
 
-        if (status.maxAmount != null) {
-            TransactionAmountComposable(
-                label = stringResource(R.string.amount_max),
-                amount = status.maxAmount,
-                amountType = AmountType.Neutral,
-            )
+            val amount = try {
+                Amount.fromString(
+                    currency = status.currency,
+                    str = selectedAmount,
+                )
+            } catch (_: AmountParserException) { null }
+
+            if (amount != null) {
+                TransactionAmountComposable(
+                    label = stringResource(R.string.amount_total),
+                    amount = amount + status.wireFee,
+                    amountType = AmountType.Negative,
+                )
+            }
         }
 
         val context = LocalContext.current
