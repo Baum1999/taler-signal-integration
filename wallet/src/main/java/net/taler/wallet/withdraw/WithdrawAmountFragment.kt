@@ -65,12 +65,17 @@ import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.TransactionAmountComposable
 import net.taler.wallet.withdraw.WithdrawStatus.Loading
 import net.taler.wallet.withdraw.WithdrawStatus.NeedsAmount
+import net.taler.wallet.withdraw.WithdrawStatus.NeedsExchange
+import net.taler.wallet.withdraw.WithdrawStatus.ReceivedDetails
+import net.taler.wallet.withdraw.WithdrawStatus.TosReviewRequired
 
 class WithdrawAmountFragment: Fragment() {
     private val model: MainViewModel by activityViewModels()
     private val withdrawManager by lazy { model.withdrawManager }
     private val balanceManager by lazy { model.balanceManager }
     private val exchangeManager by lazy { model.exchangeManager }
+
+    var selected: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -88,13 +93,21 @@ class WithdrawAmountFragment: Fragment() {
                         LoadingScreen()
                     }
 
-                    is NeedsAmount -> {
+                    else -> {
+                        val currency = when(s) {
+                            is NeedsAmount -> s.currency
+                            is NeedsExchange -> s.currency
+                            is ReceivedDetails -> s.currency
+                            is TosReviewRequired -> s.currency
+                            else -> error("invalid state")
+                        }
+
                         // Find currencySpec for currency or exchange
                         val exchange = defaultExchange
                         val spec = if (exchange?.scopeInfo != null) {
                             balanceManager.getSpecForScopeInfo(exchange.scopeInfo)
                         } else {
-                            balanceManager.getSpecForCurrency(s.currency)
+                            balanceManager.getSpecForCurrency(currency)
                         }
 
                         WithdrawAmountComposable(
@@ -103,11 +116,10 @@ class WithdrawAmountFragment: Fragment() {
                             onCreateAmount = model::createAmount,
                             onSubmit = { amount ->
                                 withdrawManager.selectWithdrawalAmount(amount)
+                                selected = true
                             }
                         )
                     }
-
-                    else -> {}
                 }
             }
 
@@ -128,7 +140,11 @@ class WithdrawAmountFragment: Fragment() {
             when (status) {
                 is Loading -> {}
                 is NeedsAmount -> {}
-                else -> findNavController().navigate(R.id.action_withdrawAmount_to_promptWithdraw)
+                else -> {
+                    if (selected) {
+                        findNavController().navigate(R.id.action_withdrawAmount_to_promptWithdraw)
+                    }
+                }
             }
         }
     }
@@ -136,14 +152,46 @@ class WithdrawAmountFragment: Fragment() {
 
 @Composable
 fun WithdrawAmountComposable(
-    status: NeedsAmount,
+    status: WithdrawStatus,
     spec: CurrencySpecification?,
     onCreateAmount: (str: String, currency: String, incoming: Boolean) -> AmountResult,
     onSubmit: (amount: Amount) -> Unit,
 ) {
+    val amount = when (status) {
+        is NeedsAmount -> null
+        is NeedsExchange -> status.amount
+        is ReceivedDetails -> status.amountRaw
+        is TosReviewRequired -> status.amountRaw
+        else -> error("invalid state")
+    }
+
+    val maxAmount = when (status) {
+        is NeedsAmount -> status.maxAmount
+        is NeedsExchange -> status.maxAmount
+        is ReceivedDetails -> status.maxAmount
+        is TosReviewRequired -> status.maxAmount
+        else -> error("invalid state")
+    }
+
+    val currency = when (status) {
+        is NeedsAmount -> status.currency
+        is NeedsExchange -> status.currency
+        is ReceivedDetails -> status.currency
+        is TosReviewRequired -> status.currency
+        else -> error("invalid state")
+    }
+
+    val wireFee = when (status) {
+        is NeedsAmount -> status.wireFee
+        is NeedsExchange -> status.wireFee
+        is ReceivedDetails -> status.wireFee
+        is TosReviewRequired -> status.wireFee
+        else -> error("invalid state")
+    }
+
     var error by remember { mutableStateOf<String?>(null) }
     var selectedAmount by remember {
-        mutableStateOf(status.amount?.amountStr ?: "0")
+        mutableStateOf(amount?.amountStr ?: "0")
     }
 
     val supportingText = @Composable {
@@ -154,12 +202,12 @@ fun WithdrawAmountComposable(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        if (status.maxAmount != null) {
+        if (maxAmount != null) {
             Spacer(Modifier.height(16.dp))
 
             TransactionAmountComposable(
                 label = stringResource(R.string.amount_max),
-                amount = status.maxAmount,
+                amount = maxAmount,
                 amountType = AmountType.Neutral,
             )
         }
@@ -184,31 +232,31 @@ fun WithdrawAmountComposable(
 
             Text(
                 modifier = Modifier,
-                text = spec?.symbol ?: status.currency,
+                text = spec?.symbol ?: currency,
                 softWrap = false,
                 style = MaterialTheme.typography.titleLarge,
             )
         }
 
-        if (status.wireFee != null && !status.wireFee.isZero()) {
+        if (wireFee != null && !wireFee.isZero()) {
             TransactionAmountComposable(
                 label = stringResource(R.string.amount_fee),
-                amount = status.wireFee,
+                amount = wireFee,
                 amountType = AmountType.Negative,
             )
 
-            val amount = try {
+            val selected = try {
                 Amount.fromString(
-                    currency = status.currency,
+                    currency = currency,
                     str = selectedAmount,
                 )
             } catch (_: AmountParserException) { null }
 
-            if (amount != null) {
+            if (selected != null) {
                 TransactionAmountComposable(
                     label = stringResource(R.string.amount_total),
-                    amount = amount + status.wireFee,
-                    amountType = AmountType.Negative,
+                    amount = selected + wireFee,
+                    amountType = AmountType.Positive,
                 )
             }
         }
@@ -218,14 +266,14 @@ fun WithdrawAmountComposable(
         Button(
             modifier = Modifier.padding(top = 16.dp),
             onClick = {
-                when (val res = onCreateAmount(selectedAmount, status.currency, true)) {
+                when (val res = onCreateAmount(selectedAmount, currency, true)) {
                     is InsufficientBalance -> {} // doesn't apply
                     is InvalidAmount -> {
                         error = context.getString(R.string.amount_invalid)
                     }
                     is Success -> {
                         // Check that amount doesn't exceed maximum
-                        if (status.maxAmount != null && res.amount > status.maxAmount) {
+                        if (maxAmount != null && res.amount > maxAmount) {
                             error = context.getString(R.string.amount_excess)
                         } else {
                             onSubmit(res.amount)
@@ -249,9 +297,9 @@ fun WithdrawAmountComposablePreview() {
                 currency = "KUDOS",
                 maxAmount = Amount.fromJSONString("KUDOS:100"),
                 wireFee = Amount.fromJSONString("KUDOS:0.2"),
-                amount = null,
                 possibleExchanges = listOf(),
                 defaultExchangeBaseUrl = null,
+                editableAmount = true,
             ),
             spec = null,
             onCreateAmount = { _, _, _ -> InvalidAmount },

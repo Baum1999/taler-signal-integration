@@ -23,11 +23,9 @@ import android.view.ViewGroup
 import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -114,7 +112,11 @@ class ReceiveFundsFragment : Fragment() {
 
         // now that we have the exchange, we can navigate
         exchangeManager.withdrawalExchange = exchange
-        withdrawManager.getWithdrawalDetails(exchange.exchangeBaseUrl, amount)
+        withdrawManager.getWithdrawalDetails(
+            exchangeBaseUrl = exchange.exchangeBaseUrl,
+            currency = amount.currency,
+            amount = amount,
+        )
         findNavController().navigate(R.id.action_receiveFunds_to_nav_prompt_withdraw)
     }
 

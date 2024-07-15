@@ -44,8 +44,8 @@ sealed class WithdrawStatus {
     data class NeedsAmount(
         val talerWithdrawUri: String,
         val currency: String,
-        val amount: Amount?,
         val maxAmount: Amount?,
+        val editableAmount: Boolean,
         val wireFee: Amount?,
         val possibleExchanges: List<ExchangeItem>,
         val defaultExchangeBaseUrl: String?,
@@ -53,13 +53,21 @@ sealed class WithdrawStatus {
 
     data class NeedsExchange(
         val talerWithdrawUri: String,
+        val currency: String,
         val amount: Amount,
+        val maxAmount: Amount?,
+        val editableAmount: Boolean,
+        val wireFee: Amount?,
         val possibleExchanges: List<ExchangeItem>,
     ) : WithdrawStatus()
 
     data class TosReviewRequired(
         val talerWithdrawUri: String? = null,
         val exchangeBaseUrl: String,
+        val currency: String,
+        val maxAmount: Amount?,
+        val wireFee: Amount?,
+        val editableAmount: Boolean,
         val amountRaw: Amount,
         val amountEffective: Amount,
         val withdrawalAccountList: List<WithdrawalExchangeAccountDetails>,
@@ -72,6 +80,10 @@ sealed class WithdrawStatus {
 
     data class ReceivedDetails(
         val talerWithdrawUri: String? = null,
+        val currency: String,
+        val maxAmount: Amount?,
+        val wireFee: Amount?,
+        val editableAmount: Boolean,
         val exchangeBaseUrl: String,
         val amountRaw: Amount,
         val amountEffective: Amount,
@@ -228,12 +240,13 @@ class WithdrawManager(
             handleError("getWithdrawalDetailsForUri", error)
         }.onSuccess { details ->
             Log.d(TAG, "Withdraw details: $details")
-            if (details.amount == null || details.editableAmount) {
+
+            if (details.amount == null) {
                 withdrawStatus.value = WithdrawStatus.NeedsAmount(
                     talerWithdrawUri = uri,
                     wireFee = details.wireFee,
-                    amount = details.amount,
                     maxAmount = details.maxAmount,
+                    editableAmount = details.editableAmount,
                     currency = details.currency,
                     possibleExchanges = details.possibleExchanges,
                     defaultExchangeBaseUrl = details.defaultExchangeBaseUrl,
@@ -241,12 +254,20 @@ class WithdrawManager(
             } else if (details.defaultExchangeBaseUrl == null) {
                 withdrawStatus.value = WithdrawStatus.NeedsExchange(
                     talerWithdrawUri = uri,
+                    currency = details.currency,
                     amount = details.amount,
                     possibleExchanges = details.possibleExchanges,
+                    maxAmount = details.maxAmount,
+                    wireFee = details.wireFee,
+                    editableAmount = details.editableAmount,
                 )
             } else getWithdrawalDetails(
                 exchangeBaseUrl = details.defaultExchangeBaseUrl,
+                currency = details.currency,
                 amount = details.amount,
+                maxAmount = details.maxAmount,
+                wireFee = details.wireFee,
+                editableAmount = details.editableAmount,
                 showTosImmediately = false,
                 uri = uri,
                 possibleExchanges = details.possibleExchanges,
@@ -256,7 +277,11 @@ class WithdrawManager(
 
     fun getWithdrawalDetails(
         exchangeBaseUrl: String,
+        currency: String,
         amount: Amount,
+        maxAmount: Amount? = null,
+        wireFee: Amount? = null,
+        editableAmount: Boolean = false,
         showTosImmediately: Boolean = false,
         uri: String? = null,
         possibleExchanges: List<ExchangeItem> = emptyList(),
@@ -271,32 +296,104 @@ class WithdrawManager(
             if (details.tosAccepted) {
                 withdrawStatus.value = ReceivedDetails(
                     talerWithdrawUri = uri,
+                    currency = currency,
                     exchangeBaseUrl = exchangeBaseUrl,
                     amountRaw = details.amountRaw,
                     amountEffective = details.amountEffective,
                     withdrawalAccountList = details.withdrawalAccountsList,
                     ageRestrictionOptions = details.ageRestrictionOptions,
                     possibleExchanges = possibleExchanges,
+                    maxAmount = maxAmount,
+                    wireFee = wireFee,
+                    editableAmount = editableAmount,
                 )
-            } else getExchangeTos(exchangeBaseUrl, details, showTosImmediately, uri, possibleExchanges)
+            } else getExchangeTos(
+                exchangeBaseUrl = exchangeBaseUrl,
+                currency = currency,
+                details = details,
+                showImmediately = showTosImmediately,
+                uri = uri,
+                possibleExchanges = possibleExchanges,
+                maxAmount = maxAmount,
+                wireFee = wireFee,
+                editableAmount = editableAmount,
+            )
         }
     }
 
     fun selectWithdrawalAmount(amount: Amount) {
-        val s = withdrawStatus.value as WithdrawStatus.NeedsAmount
+        val s = withdrawStatus.value
 
-        if (s.defaultExchangeBaseUrl == null) {
-            withdrawStatus.value = WithdrawStatus.NeedsExchange(
-                talerWithdrawUri = s.talerWithdrawUri,
+        val details = when (s) {
+            is WithdrawStatus.NeedsExchange -> WithdrawalDetailsForUri(
+                defaultExchangeBaseUrl = null,
+                currency = s.currency,
                 amount = amount,
                 possibleExchanges = s.possibleExchanges,
+                maxAmount = s.maxAmount,
+                wireFee = s.wireFee,
+                editableAmount = s.editableAmount,
             )
+            is WithdrawStatus.NeedsAmount -> WithdrawalDetailsForUri(
+                defaultExchangeBaseUrl = s.defaultExchangeBaseUrl,
+                currency = s.currency,
+                amount = amount,
+                possibleExchanges = s.possibleExchanges,
+                maxAmount = s.maxAmount,
+                wireFee = s.wireFee,
+                editableAmount = s.editableAmount,
+            )
+            is ReceivedDetails -> WithdrawalDetailsForUri(
+                defaultExchangeBaseUrl = s.exchangeBaseUrl,
+                currency = s.currency,
+                amount = amount,
+                possibleExchanges = s.possibleExchanges,
+                maxAmount = s.maxAmount,
+                wireFee = s.wireFee,
+                editableAmount = s.editableAmount,
+            )
+            is WithdrawStatus.TosReviewRequired -> WithdrawalDetailsForUri(
+                defaultExchangeBaseUrl = s.exchangeBaseUrl,
+                currency = s.currency,
+                amount = amount,
+                possibleExchanges = s.possibleExchanges,
+                maxAmount = s.maxAmount,
+                wireFee = s.wireFee,
+                editableAmount = s.editableAmount,
+            )
+            else -> return
+        }
+
+        val uri = when(s) {
+            is WithdrawStatus.NeedsExchange -> s.talerWithdrawUri
+            is WithdrawStatus.NeedsAmount -> s.talerWithdrawUri
+            is ReceivedDetails -> s.talerWithdrawUri
+            is WithdrawStatus.TosReviewRequired -> s.talerWithdrawUri
+            else -> return
+        }
+
+        if (details.defaultExchangeBaseUrl == null) {
+            if (uri != null) {
+                withdrawStatus.value = WithdrawStatus.NeedsExchange(
+                    talerWithdrawUri = uri,
+                    currency = details.currency,
+                    amount = amount,
+                    possibleExchanges = details.possibleExchanges,
+                    maxAmount = details.maxAmount,
+                    wireFee = details.wireFee,
+                    editableAmount = details.editableAmount
+                )
+            }
         } else getWithdrawalDetails(
-            exchangeBaseUrl = s.defaultExchangeBaseUrl,
+            exchangeBaseUrl = details.defaultExchangeBaseUrl,
+            currency = details.currency,
             amount = amount,
+            maxAmount = details.maxAmount,
+            wireFee = details.wireFee,
+            editableAmount = details.editableAmount,
             showTosImmediately = false,
-            uri = s.talerWithdrawUri,
-            possibleExchanges = s.possibleExchanges,
+            uri = uri,
+            possibleExchanges =details.possibleExchanges,
         )
     }
 
@@ -316,10 +413,14 @@ class WithdrawManager(
 
     private fun getExchangeTos(
         exchangeBaseUrl: String,
+        currency: String,
         details: ManualWithdrawalDetails,
         showImmediately: Boolean,
         uri: String?,
         possibleExchanges: List<ExchangeItem>,
+        maxAmount: Amount?,
+        wireFee: Amount?,
+        editableAmount: Boolean,
     ) = scope.launch {
         api.request("getExchangeTos", TosResponse.serializer()) {
             put("exchangeBaseUrl", exchangeBaseUrl)
@@ -329,6 +430,7 @@ class WithdrawManager(
             withdrawStatus.value = WithdrawStatus.TosReviewRequired(
                 talerWithdrawUri = uri,
                 exchangeBaseUrl = exchangeBaseUrl,
+                currency = currency,
                 amountRaw = details.amountRaw,
                 amountEffective = details.amountEffective,
                 withdrawalAccountList = details.withdrawalAccountsList,
@@ -337,6 +439,9 @@ class WithdrawManager(
                 tosEtag = it.currentEtag,
                 showImmediately = showImmediately.toEvent(),
                 possibleExchanges = possibleExchanges,
+                maxAmount = maxAmount,
+                wireFee = wireFee,
+                editableAmount = editableAmount,
             )
         }
     }
@@ -354,12 +459,16 @@ class WithdrawManager(
         }.onSuccess {
             withdrawStatus.value = ReceivedDetails(
                 talerWithdrawUri = s.talerWithdrawUri,
+                currency = s.currency,
                 exchangeBaseUrl = s.exchangeBaseUrl,
                 amountRaw = s.amountRaw,
                 amountEffective = s.amountEffective,
                 withdrawalAccountList = s.withdrawalAccountList,
                 ageRestrictionOptions = s.ageRestrictionOptions,
                 possibleExchanges = s.possibleExchanges,
+                maxAmount = s.maxAmount,
+                wireFee = s.wireFee,
+                editableAmount = s.editableAmount,
             )
         }
     }

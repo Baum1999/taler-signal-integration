@@ -42,6 +42,7 @@ import net.taler.wallet.withdraw.WithdrawStatus.Loading
 import net.taler.wallet.withdraw.WithdrawStatus.ReceivedDetails
 import net.taler.wallet.withdraw.WithdrawStatus.TosReviewRequired
 import net.taler.wallet.withdraw.WithdrawStatus.Withdrawing
+import net.taler.wallet.withdraw.WithdrawStatus.NeedsAmount
 import net.taler.wallet.withdraw.WithdrawStatus.NeedsExchange
 
 class PromptWithdrawFragment : Fragment() {
@@ -78,7 +79,10 @@ class PromptWithdrawFragment : Fragment() {
     private fun showWithdrawStatus(status: WithdrawStatus?): Any = when (status) {
         null -> model.showProgressBar.value = false
         is Loading -> model.showProgressBar.value = true
-        is WithdrawStatus.NeedsAmount -> {} // handled in WithdrawAmountFragment
+        is NeedsAmount -> {
+            model.showProgressBar.value = false
+            findNavController().navigate(R.id.action_promptWithdraw_to_withdrawAmount)
+        }
         is NeedsExchange -> {
             model.showProgressBar.value = false
             if (selectExchangeDialog.dialog?.isShowing != true) {
@@ -122,6 +126,7 @@ class PromptWithdrawFragment : Fragment() {
                 exchange = s.exchangeBaseUrl,
                 uri = s.talerWithdrawUri,
                 exchanges = s.possibleExchanges,
+                editableAmount = s.editableAmount,
             )
             ui.confirmWithdrawButton.apply {
                 text = getString(R.string.withdraw_button_tos)
@@ -141,6 +146,7 @@ class PromptWithdrawFragment : Fragment() {
             uri = s.talerWithdrawUri,
             ageRestrictionOptions = s.ageRestrictionOptions,
             exchanges = s.possibleExchanges,
+            editableAmount = s.editableAmount,
         )
         ui.confirmWithdrawButton.apply {
             text = getString(R.string.withdraw_button_confirm)
@@ -164,6 +170,7 @@ class PromptWithdrawFragment : Fragment() {
         uri: String?,
         exchanges: List<ExchangeItem> = emptyList(),
         ageRestrictionOptions: List<Int>? = null,
+        editableAmount: Boolean,
     ) {
         model.showProgressBar.value = false
         ui.progressBar.fadeOut()
@@ -175,6 +182,15 @@ class PromptWithdrawFragment : Fragment() {
         ui.chosenAmountLabel.fadeIn()
         ui.chosenAmountView.text = amountRaw.toString()
         ui.chosenAmountView.fadeIn()
+
+        if (editableAmount) {
+            ui.selectAmountButton.fadeIn()
+            ui.selectAmountButton.setOnClickListener {
+                findNavController().navigate(R.id.action_promptWithdraw_to_withdrawAmount)
+            }
+        } else {
+            ui.selectAmountButton.fadeOut()
+        }
 
         if (amountRaw > amountEffective) {
             val fee = amountRaw - amountEffective
@@ -209,6 +225,7 @@ class PromptWithdrawFragment : Fragment() {
 
     private fun selectExchange() {
         val exchanges = when (val status = withdrawManager.withdrawStatus.value) {
+            is NeedsAmount -> status.possibleExchanges
             is ReceivedDetails -> status.possibleExchanges
             is NeedsExchange -> status.possibleExchanges
             is TosReviewRequired -> status.possibleExchanges
@@ -220,18 +237,52 @@ class PromptWithdrawFragment : Fragment() {
 
     private fun onExchangeSelected(exchange: ExchangeItem) {
         val status = withdrawManager.withdrawStatus.value
+
+        val maxAmount = when (status) {
+            is NeedsAmount -> status.maxAmount
+            is ReceivedDetails -> status.maxAmount
+            is NeedsExchange -> status.maxAmount
+            is TosReviewRequired -> status.maxAmount
+            else -> return
+        }
+
+        val wireFee = when (status) {
+            is NeedsAmount -> status.wireFee
+            is ReceivedDetails -> status.wireFee
+            is NeedsExchange -> status.wireFee
+            is TosReviewRequired -> status.wireFee
+            else -> return
+        }
+
+        val editableAmount = when (status) {
+            is NeedsAmount -> status.editableAmount
+            is ReceivedDetails -> status.editableAmount
+            is NeedsExchange -> status.editableAmount
+            is TosReviewRequired -> status.editableAmount
+            else -> return
+        }
+
         val amount = when (status) {
             is ReceivedDetails -> status.amountRaw
             is NeedsExchange -> status.amount
             is TosReviewRequired -> status.amountRaw
             else -> return
         }
+
+        val currency = when (status) {
+            is ReceivedDetails -> status.currency
+            is NeedsExchange -> status.currency
+            is TosReviewRequired -> status.currency
+            else -> return
+        }
+
         val uri = when (status) {
             is ReceivedDetails -> status.talerWithdrawUri
             is NeedsExchange -> status.talerWithdrawUri
             is TosReviewRequired -> status.talerWithdrawUri
             else -> return
         }
+
         val exchanges = when (status) {
             is ReceivedDetails -> status.possibleExchanges
             is NeedsExchange -> status.possibleExchanges
@@ -241,7 +292,11 @@ class PromptWithdrawFragment : Fragment() {
 
         withdrawManager.getWithdrawalDetails(
             exchangeBaseUrl = exchange.exchangeBaseUrl,
+            currency = currency,
             amount = amount,
+            maxAmount = maxAmount,
+            wireFee = wireFee,
+            editableAmount = editableAmount,
             showTosImmediately = false,
             uri = uri,
             possibleExchanges = exchanges,
