@@ -38,6 +38,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -193,7 +195,7 @@ fun WithdrawAmountComposable(
     var selectedAmount by remember {
         mutableStateOf(amount?.amountStr ?: "0")
     }
-
+    val focusRequester = remember { FocusRequester() }
     val supportingText = @Composable {
         if (error != null) { Text(error!!) }
     }
@@ -219,7 +221,8 @@ fun WithdrawAmountComposable(
             AmountInputField(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                    .padding(top = 16.dp, start = 16.dp, end = 16.dp)
+                    .focusRequester(focusRequester),
                 value = selectedAmount,
                 onValueChange = {
                     selectedAmount = it
@@ -284,6 +287,10 @@ fun WithdrawAmountComposable(
         ) {
             Text(stringResource(R.string.withdraw_select_amount))
         }
+    }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
     }
 }
 

@@ -492,6 +492,7 @@ class WithdrawManager(
             restrictAge?.let { put("restrictAge", restrictAge) }
             put("exchangeBaseUrl", status.exchangeBaseUrl)
             put("talerWithdrawUri", status.talerWithdrawUri)
+            put("amount", status.amountRaw.toJSONString())
         }.onError {
             handleError("acceptBankIntegratedWithdrawal", it)
         }.onSuccess {
