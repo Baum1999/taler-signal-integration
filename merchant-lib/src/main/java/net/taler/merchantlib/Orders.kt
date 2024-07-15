@@ -28,7 +28,9 @@ data class PostOrderRequest(
     @SerialName("order")
     val contractTerms: ContractTerms,
     @SerialName("refund_delay")
-    val refundDelay: RelativeTime? = null
+    val refundDelay: RelativeTime? = null,
+    @SerialName("create_token")
+    val createToken: Boolean = true,
 )
 
 @Serializable
