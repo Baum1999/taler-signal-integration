@@ -53,4 +53,5 @@
     <string name="about_copyright_holder" translatable="false">Taler Systems S.A.</string>
     <string name="about_supported_bank_api">Bank API Version: %s</string>
 
+    <string name="host_apdu_service_desc">Taler Cashier NFC payments</string>
 </resources>

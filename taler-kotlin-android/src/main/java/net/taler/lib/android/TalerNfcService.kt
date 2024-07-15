@@ -14,19 +14,21 @@
  * GNU Taler; see the file COPYING.  If not, see <http://www.gnu.org/licenses/>
  */
 
-package net.taler.wallet
+package net.taler.lib.android
 
 import android.app.Activity
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.nfc.NdefMessage
 import android.nfc.NdefRecord
+import android.nfc.NfcAdapter.getDefaultAdapter
 import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
 import android.util.Log
 import java.math.BigInteger
 
-class HostCardEmulatorService : HostApduService() {
+class TalerNfcService : HostApduService() {
 
     private var uri: String? = null
     private val ndefMessage: NdefMessage?
@@ -198,6 +200,12 @@ class HostCardEmulatorService : HostApduService() {
         return fillByteArrayToFixedDimension(filledArray, fixedSize)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.i(TAG, "onDestroy() NFC service")
+        uri = null
+    }
+
     companion object {
         private const val TAG = "taler-wallet-hce"
 
@@ -284,14 +292,21 @@ class HostCardEmulatorService : HostApduService() {
 
         private val HEX_CHARS = "0123456789ABCDEF".toCharArray()
 
-        fun setUri(activity: MainActivity, uri: String) {
-            val intent = Intent(activity, HostCardEmulatorService::class.java)
+        /**
+         * Returns true if NFC is supported and false otherwise.
+         */
+        fun hasNfc(context: Context): Boolean {
+            return getDefaultAdapter(context) != null
+        }
+
+        fun setUri(activity: Activity, uri: String) {
+            val intent = Intent(activity, TalerNfcService::class.java)
             intent.putExtra("uri", uri)
             activity.startService(intent)
         }
 
         fun clearUri(activity: Activity) {
-            val intent = Intent(activity, HostCardEmulatorService::class.java)
+            val intent = Intent(activity, TalerNfcService::class.java)
             activity.stopService(intent)
         }
     }

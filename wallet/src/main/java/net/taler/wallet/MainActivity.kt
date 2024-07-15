@@ -48,6 +48,7 @@ import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import com.journeyapps.barcodescanner.ScanOptions.QR_CODE
 import net.taler.common.EventObserver
+import net.taler.lib.android.TalerNfcService
 import net.taler.wallet.BuildConfig.VERSION_CODE
 import net.taler.wallet.BuildConfig.VERSION_NAME
 import net.taler.wallet.databinding.ActivityMainBinding
@@ -109,7 +110,7 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
         handleIntents()
 
         model.transactionManager.selectedTransaction.observe(this) { tx ->
-            HostCardEmulatorService.clearUri(this)
+            TalerNfcService.clearUri(this)
 
             when (tx) {
                 is TransactionPeerPushDebit -> tx.talerUri
@@ -117,7 +118,7 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
                 else -> return@observe
             }?.let { uri ->
                 Log.d(TAG, "Transaction ${tx.transactionId} selected with URI $uri")
-                HostCardEmulatorService.setUri(this, uri)
+                TalerNfcService.setUri(this, uri)
             }
         }
 
@@ -234,4 +235,8 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
         return true
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        TalerNfcService.clearUri(this)
+    }
 }

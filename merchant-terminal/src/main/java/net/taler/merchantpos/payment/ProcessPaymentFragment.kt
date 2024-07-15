@@ -25,12 +25,12 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG
 import com.google.android.material.snackbar.Snackbar
-import net.taler.common.NfcManager.Companion.hasNfc
 import net.taler.common.QrCodeManager.makeQrCode
 import net.taler.common.fadeIn
 import net.taler.common.fadeOut
 import net.taler.common.navigate
 import net.taler.common.showError
+import net.taler.lib.android.TalerNfcService.Companion.hasNfc
 import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.R
 import net.taler.merchantpos.databinding.FragmentProcessPaymentBinding

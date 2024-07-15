@@ -33,13 +33,12 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.navigation.NavigationView.OnNavigationItemSelectedListener
-import net.taler.common.NfcManager
+import net.taler.lib.android.TalerNfcService
 import net.taler.merchantpos.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
 
     private val model: MainViewModel by viewModels()
-    private val nfcManager = NfcManager()
 
     private lateinit var ui: ActivityMainBinding
     private lateinit var nav: NavController
@@ -57,7 +56,9 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
 
         model.paymentManager.payment.observe(this) { payment ->
             payment?.talerPayUri?.let {
-                nfcManager.setTagString(it)
+                TalerNfcService.setUri(this, it)
+            } ?: run {
+                TalerNfcService.clearUri(this)
             }
         }
 
@@ -80,17 +81,6 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
         } else if (model.configManager.merchantConfig == null && nav.currentDestination?.id != R.id.configFetcher) {
             nav.navigate(R.id.action_global_configFetcher)
         }
-    }
-
-    public override fun onResume() {
-        super.onResume()
-        // TODO should we only read tags when a payment is to be made?
-        NfcManager.start(this, nfcManager)
-    }
-
-    public override fun onPause() {
-        super.onPause()
-        NfcManager.stop(this)
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {

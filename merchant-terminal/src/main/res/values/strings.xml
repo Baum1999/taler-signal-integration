@@ -81,4 +81,5 @@
 
     <string name="toast_back_to_exit">Click «back» again to exit</string>
 
+    <string name="host_apdu_service_desc">Taler Merchant NFC payments</string>
 </resources>
