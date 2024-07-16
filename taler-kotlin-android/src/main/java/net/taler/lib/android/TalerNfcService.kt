@@ -301,25 +301,27 @@ class TalerNfcService : HostApduService() {
         }
 
         fun setDefaultHandler(activity: Activity) {
-            val adapter = getDefaultAdapter(activity)
+            val adapter = getDefaultAdapter(activity) ?: return
             val emulation = CardEmulation.getInstance(adapter)
             val cn = ComponentName(activity.packageName, TalerNfcService::class.java.canonicalName!!)
             emulation.setPreferredService(activity, cn)
         }
 
         fun unsetDefaultHandler(activity: Activity) {
-            val adapter = getDefaultAdapter(activity)
+            val adapter = getDefaultAdapter(activity) ?: return
             val emulation = CardEmulation.getInstance(adapter)
             emulation.unsetPreferredService(activity)
         }
 
         fun setUri(activity: Activity, uri: String) {
+            if (!hasNfc(activity)) return
             val intent = Intent(activity, TalerNfcService::class.java)
             intent.putExtra("uri", uri)
             activity.startService(intent)
         }
 
         fun clearUri(activity: Activity) {
+            if (!hasNfc(activity)) return
             val intent = Intent(activity, TalerNfcService::class.java)
             activity.stopService(intent)
         }
