@@ -65,6 +65,7 @@ android {
 
 dependencies {
     implementation project(":merchant-lib")
+    implementation project(":taler-kotlin-android")
 
     implementation "com.google.android.material:material:$material_version"
     implementation "androidx.constraintlayout:constraintlayout:$constraintlayout_version"
