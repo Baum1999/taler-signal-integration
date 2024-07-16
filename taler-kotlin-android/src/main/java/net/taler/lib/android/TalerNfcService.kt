@@ -55,8 +55,7 @@ class TalerNfcService : HostApduService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.getStringExtra("uri")?.let { uri = it }
 
-        Log.i(TAG, "onStartCommand() | URI: $uri")
-        Log.i(TAG, "onStartCommand() | NDEF$ndefMessage")
+        Log.d(TAG, "onStartCommand() | URI: $uri")
 
         return Service.START_STICKY
     }
@@ -83,13 +82,13 @@ class TalerNfcService : HostApduService() {
         // The following flow is based on Appendix E "Example of Mapping Version 2.0 Command Flow"
         // in the NFC Forum specification
         //
-        Log.i(TAG, "processCommandApdu() | incoming commandApdu: " + commandApdu.toHex())
+        Log.d(TAG, "processCommandApdu() | incoming commandApdu: " + commandApdu.toHex())
 
         //
         // First command: NDEF Tag Application select (Section 5.5.2 in NFC Forum spec)
         //
         if (APDU_SELECT.contentEquals(commandApdu)) {
-            Log.i(TAG, "APDU_SELECT triggered. Our Response: " + A_OKAY.toHex())
+            Log.d(TAG, "APDU_SELECT triggered. Our Response: " + A_OKAY.toHex())
             return A_OKAY
         }
 
@@ -97,7 +96,7 @@ class TalerNfcService : HostApduService() {
         // Second command: Capability Container select (Section 5.5.3 in NFC Forum spec)
         //
         if (CAPABILITY_CONTAINER_OK.contentEquals(commandApdu)) {
-            Log.i(TAG, "CAPABILITY_CONTAINER_OK triggered. Our Response: " + A_OKAY.toHex())
+            Log.d(TAG, "CAPABILITY_CONTAINER_OK triggered. Our Response: " + A_OKAY.toHex())
             return A_OKAY
         }
 
@@ -105,7 +104,7 @@ class TalerNfcService : HostApduService() {
         // Third command: ReadBinary data from CC file (Section 5.5.4 in NFC Forum spec)
         //
         if (READ_CAPABILITY_CONTAINER.contentEquals(commandApdu) && !readCapabilityContainerCheck) {
-            Log.i(TAG, "READ_CAPABILITY_CONTAINER triggered. Our Response: " + READ_CAPABILITY_CONTAINER_RESPONSE.toHex())
+            Log.d(TAG, "READ_CAPABILITY_CONTAINER triggered. Our Response: " + READ_CAPABILITY_CONTAINER_RESPONSE.toHex())
 
             readCapabilityContainerCheck = true
             return READ_CAPABILITY_CONTAINER_RESPONSE
@@ -115,7 +114,7 @@ class TalerNfcService : HostApduService() {
         // Fourth command: NDEF Select command (Section 5.5.5 in NFC Forum spec)
         //
         if (NDEF_SELECT_OK.contentEquals(commandApdu)) {
-            Log.i(TAG, "NDEF_SELECT_OK triggered. Our Response: " + A_OKAY.toHex())
+            Log.d(TAG, "NDEF_SELECT_OK triggered. Our Response: " + A_OKAY.toHex())
             return A_OKAY
         }
 
@@ -125,7 +124,7 @@ class TalerNfcService : HostApduService() {
             System.arraycopy(ndefUriLen!!, 0, response, 0, ndefUriLen!!.size)
             System.arraycopy(A_OKAY, 0, response, ndefUriLen!!.size, A_OKAY.size)
 
-            Log.i(TAG, "NDEF_READ_BINARY_NLEN triggered. Our Response: " + response.toHex())
+            Log.d(TAG, "NDEF_READ_BINARY_NLEN triggered. Our Response: " + response.toHex())
 
             readCapabilityContainerCheck = false
             return response
@@ -145,8 +144,8 @@ class TalerNfcService : HostApduService() {
                 ndefUriBytes!!.size,
             )
 
-            Log.i(TAG, "NDEF_READ_BINARY triggered. Full data: " + fullResponse.toHex())
-            Log.i(TAG, "READ_BINARY - OFFSET: $offset - LEN: $length")
+            Log.d(TAG, "NDEF_READ_BINARY triggered. Full data: " + fullResponse.toHex())
+            Log.d(TAG, "READ_BINARY - OFFSET: $offset - LEN: $length")
 
             val slicedResponse = fullResponse.sliceArray(offset until fullResponse.size)
 
@@ -157,7 +156,7 @@ class TalerNfcService : HostApduService() {
             System.arraycopy(slicedResponse, 0, response, 0, realLength)
             System.arraycopy(A_OKAY, 0, response, realLength, A_OKAY.size)
 
-            Log.i(TAG, "NDEF_READ_BINARY triggered. Our Response: " + response.toHex())
+            Log.d(TAG, "NDEF_READ_BINARY triggered. Our Response: " + response.toHex())
 
             readCapabilityContainerCheck = false
             return response
@@ -171,7 +170,7 @@ class TalerNfcService : HostApduService() {
     }
 
     override fun onDeactivated(reason: Int) {
-        Log.i(TAG, "onDeactivated() Fired! Reason: $reason")
+        Log.d(TAG, "onDeactivated() Fired! Reason: $reason")
     }
 
     private fun ByteArray.toHex(): String {
@@ -204,7 +203,7 @@ class TalerNfcService : HostApduService() {
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.i(TAG, "onDestroy() NFC service")
+        Log.d(TAG, "onDestroy() NFC service")
         uri = null
     }
 
@@ -305,14 +304,12 @@ class TalerNfcService : HostApduService() {
             val adapter = getDefaultAdapter(activity)
             val emulation = CardEmulation.getInstance(adapter)
             val cn = ComponentName(activity.packageName, TalerNfcService::class.java.canonicalName!!)
-            Log.d(TAG, "setting $cn as default NFC handler")
             emulation.setPreferredService(activity, cn)
         }
 
         fun unsetDefaultHandler(activity: Activity) {
             val adapter = getDefaultAdapter(activity)
             val emulation = CardEmulation.getInstance(adapter)
-            Log.d(TAG, "unsetting ${activity.packageName} as default NFC handler")
             emulation.unsetPreferredService(activity)
         }
 
