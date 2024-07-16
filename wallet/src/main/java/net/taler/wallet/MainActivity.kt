@@ -21,6 +21,7 @@ import android.content.Intent
 import android.content.Intent.ACTION_VIEW
 import android.nfc.NdefMessage
 import android.nfc.NfcAdapter
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -107,7 +108,7 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
         //     ui.navView.menu.findItem(R.id.nav_dev).isVisible = enabled
         // }
 
-        handleIntents()
+        handleIntents(intent)
 
         model.transactionManager.selectedTransaction.observe(this) { tx ->
             TalerNfcService.clearUri(this)
@@ -151,24 +152,30 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
-        handleIntents()
+        handleIntents(intent)
     }
 
-    private fun handleIntents() {
-        if (intent?.action == ACTION_VIEW) intent.dataString?.let { uri ->
+    private fun handleIntents(intent: Intent?) {
+        if (intent == null) return
+
+        if (intent.action == ACTION_VIEW) intent.dataString?.let { uri ->
             handleTalerUri(uri, "intent")
         }
 
-        if (NfcAdapter.ACTION_NDEF_DISCOVERED == intent?.action) {
-            intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)?.also { rawMessages ->
-                val messages: List<NdefMessage> = rawMessages.map { it as NdefMessage }
+        if (intent.action == NfcAdapter.ACTION_NDEF_DISCOVERED) {
+            val messages: Array<NdefMessage> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES, NdefMessage::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)?.let { rawMessages ->
+                    rawMessages.map { it as NdefMessage }
+                }?.toTypedArray()
+            } ?: return
 
-                messages.forEach { message ->
-                    message.records?.forEach { record ->
-                        record.toUri()?.let { uri ->
-                            Log.d(TAG, "URI read from NFC tag: $uri")
-                            handleTalerUri(uri.toString(), "nfc")
-                        }
+            messages.forEach { message ->
+                message.records?.forEach { record ->
+                    record.toUri()?.let { uri ->
+                        handleTalerUri(uri.toString(), "nfc")
                     }
                 }
             }
@@ -233,6 +240,16 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
             "pref_exchanges" -> nav.navigate(R.id.action_nav_settings_to_nav_settings_exchanges)
         }
         return true
+    }
+
+    override fun onResume() {
+        super.onResume()
+        TalerNfcService.setDefaultHandler(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        TalerNfcService.unsetDefaultHandler(this)
     }
 
     override fun onDestroy() {

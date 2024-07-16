@@ -26,6 +26,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import net.taler.cashier.databinding.ActivityMainBinding
+import net.taler.lib.android.TalerNfcService
 
 class MainActivity : AppCompatActivity() {
 
@@ -50,6 +51,16 @@ class MainActivity : AppCompatActivity() {
         if (!configManager.hasConfig()) {
             nav.navigate(configManager.configDestination)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        TalerNfcService.setDefaultHandler(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        TalerNfcService.unsetDefaultHandler(this)
     }
 
     @Deprecated("Deprecated in Java")

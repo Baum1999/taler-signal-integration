@@ -18,11 +18,13 @@ package net.taler.lib.android
 
 import android.app.Activity
 import android.app.Service
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.nfc.NdefMessage
 import android.nfc.NdefRecord
 import android.nfc.NfcAdapter.getDefaultAdapter
+import android.nfc.cardemulation.CardEmulation
 import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
 import android.util.Log
@@ -297,6 +299,21 @@ class TalerNfcService : HostApduService() {
          */
         fun hasNfc(context: Context): Boolean {
             return getDefaultAdapter(context) != null
+        }
+
+        fun setDefaultHandler(activity: Activity) {
+            val adapter = getDefaultAdapter(activity)
+            val emulation = CardEmulation.getInstance(adapter)
+            val cn = ComponentName(activity.packageName, TalerNfcService::class.java.canonicalName!!)
+            Log.d(TAG, "setting $cn as default NFC handler")
+            emulation.setPreferredService(activity, cn)
+        }
+
+        fun unsetDefaultHandler(activity: Activity) {
+            val adapter = getDefaultAdapter(activity)
+            val emulation = CardEmulation.getInstance(adapter)
+            Log.d(TAG, "unsetting ${activity.packageName} as default NFC handler")
+            emulation.unsetPreferredService(activity)
         }
 
         fun setUri(activity: Activity, uri: String) {

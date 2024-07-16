@@ -83,6 +83,16 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        TalerNfcService.setDefaultHandler(this)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        TalerNfcService.unsetDefaultHandler(this)
+    }
+
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.nav_order -> nav.navigate(R.id.action_global_order)
