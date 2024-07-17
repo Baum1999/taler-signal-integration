@@ -84,7 +84,7 @@ class RefundFragment : Fragment() {
         }
         ui.amountView.error = null
         ui.refundButton.fadeOut()
-        ui.progressBar.fadeIn()
+        // ui.progressBar.fadeIn()
         refundManager.refund(item, inputAmount, ui.reasonInputView.text.toString())
     }
 

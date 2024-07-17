@@ -140,7 +140,7 @@ class TransactionFragment : Fragment() {
         is WithdrawStatus.Confirming -> {
             ui.confirmButton.isEnabled = false
             ui.qrCodeView.fadeOut()
-            ui.progressBar.fadeIn()
+            // ui.progressBar.fadeIn()
         }
         is WithdrawStatus.Success -> {
             withdrawManager.completeTransaction()

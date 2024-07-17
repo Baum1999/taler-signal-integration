@@ -81,7 +81,7 @@ class ConfigFragment : Fragment() {
             if (checkConfig(config)) {
                 // show progress
                 ui.saveButton.visibility = INVISIBLE
-                ui.progressBar.visibility = VISIBLE
+                // ui.progressBar.visibility = VISIBLE
                 // kick off check and observe result
                 configManager.checkAndSaveConfig(config)
                 configManager.configResult.observe(viewLifecycleOwner, onConfigResult)

@@ -95,9 +95,10 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
         )
         ui.content.toolbar.setupWithNavController(nav, appBarConfiguration)
 
-        model.showProgressBar.observe(this) { show ->
-            ui.content.progressBar.visibility = if (show) VISIBLE else INVISIBLE
-        }
+        // TODO: refactor and unify progress bar handling
+        // model.showProgressBar.observe(this) { show ->
+        //     ui.content.progressBar.visibility = if (show) VISIBLE else INVISIBLE
+        // }
 
         val versionView: TextView = ui.navView.getHeaderView(0).findViewById(R.id.versionView)
         @SuppressLint("SetTextI18n")

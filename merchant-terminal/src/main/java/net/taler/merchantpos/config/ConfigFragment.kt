@@ -84,7 +84,7 @@ class ConfigFragment : Fragment() {
             } else {
                 "https://$inputUrl".also { ui.configUrlView.editText!!.setText(it) }
             }
-            ui.progressBarOld.visibility = VISIBLE
+            // ui.progressBarOld.visibility = VISIBLE
             ui.okOldButton.visibility = INVISIBLE
             val config = Config.Old(
                 configUrl = url,
@@ -119,7 +119,7 @@ class ConfigFragment : Fragment() {
                 "https://$inputUrl".also { ui.merchantUrlView.editText!!.setText(it) }
             }
 
-            ui.progressBarNew.visibility = VISIBLE
+            // ui.progressBarNew.visibility = VISIBLE
             ui.okNewButton.visibility = INVISIBLE
             val config = Config.New(
                 merchantUrl = url,
