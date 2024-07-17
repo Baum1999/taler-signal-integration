@@ -56,7 +56,7 @@ class ManualWithdrawSuccessFragment : Fragment() {
                 supportActionBar?.subtitle = getString(R.string.withdraw_subtitle)
             }
 
-            findNavController().addOnDestinationChangedListener { controller, destination, args ->
+            findNavController().addOnDestinationChangedListener { _, destination, _ ->
                 if (destination.id != R.id.nav_exchange_manual_withdrawal_success) {
                     activity.apply {
                         supportActionBar?.subtitle = null

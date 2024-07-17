@@ -12,7 +12,7 @@ android {
     defaultConfig {
         applicationId "net.taler.merchantpos"
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionCode 7
         versionName "0.2.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -58,7 +58,7 @@ android {
 
     lint {
         abortOnError true
-        ignore 'WrongConstant'
+        disable 'WrongConstant'
         ignoreWarnings false
     }
 }
@@ -69,7 +69,7 @@ dependencies {
 
     implementation "com.google.android.material:material:$material_version"
     implementation "androidx.constraintlayout:constraintlayout:$constraintlayout_version"
-    implementation "androidx.recyclerview:recyclerview:1.3.1"
+    implementation "androidx.recyclerview:recyclerview:1.3.2"
     implementation "androidx.recyclerview:recyclerview-selection:1.1.0"
 
     // Navigation
@@ -78,6 +78,6 @@ dependencies {
 
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
 
-    testImplementation 'androidx.test.ext:junit:1.1.5'
+    testImplementation 'androidx.test.ext:junit:1.2.1'
     testImplementation 'org.robolectric:robolectric:4.10.3'
 }

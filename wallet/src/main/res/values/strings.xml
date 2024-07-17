@@ -267,19 +267,19 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     </plurals>
     <string name="exchange_fee_coin_expiration_label">Earliest Coin Expiry:</string>
     <string name="exchange_fee_coin_fees_label">Coin Fees</string>
-    <string name="exchange_fee_deposit_fee">Deposit Fee: %s</string>
+    <string name="exchange_fee_deposit_fee">Deposit Fee: %1$s</string>
     <string name="exchange_fee_overhead_label">Rounding Loss:</string>
-    <string name="exchange_fee_refresh_fee">Change Fee: %s</string>
-    <string name="exchange_fee_refund_fee">Refund Fee: %s</string>
-    <string name="exchange_fee_wire_fee_closing_fee">Closing Fee: %s</string>
+    <string name="exchange_fee_refresh_fee">Change Fee: %1$s</string>
+    <string name="exchange_fee_refund_fee">Refund Fee: %1$s</string>
+    <string name="exchange_fee_wire_fee_closing_fee">Closing Fee: %1$s</string>
     <string name="exchange_fee_wire_fee_timespan">Timespan: %1$s - %2$s</string>
-    <string name="exchange_fee_wire_fee_wire_fee">Wire Fee: %s</string>
+    <string name="exchange_fee_wire_fee_wire_fee">Wire Fee: %1$s</string>
     <string name="exchange_fee_wire_fees_label">Wire Fees</string>
-    <string name="exchange_fee_withdraw_fee">Withdraw Fee: %s</string>
+    <string name="exchange_fee_withdraw_fee">Withdraw Fee: %1$s</string>
     <string name="exchange_fee_withdrawal_fee_label">Withdrawal Fee:</string>
     <string name="exchange_list_add">Add provider</string>
     <string name="exchange_list_add_dev">Add development providers</string>
-    <string name="exchange_list_currency">Currency: %s</string>
+    <string name="exchange_list_currency">Currency: %1$s</string>
     <string name="exchange_list_empty">No providers known\n\nAdd one manually or withdraw digital cash!</string>
     <string name="exchange_list_error">Could not list providers</string>
     <string name="exchange_list_select">Select provider</string>
@@ -290,7 +290,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="exchange_settings_summary">Manage list of providers known to this wallet</string>
     <string name="exchange_settings_title">Providers</string>
     <string name="exchange_tos_accept">Accept Terms of Service</string>
-    <string name="exchange_tos_error">Error showing Terms of Service: %s</string>
+    <string name="exchange_tos_error">Error showing Terms of Service: %1$s</string>
 
     <!-- Losses -->
 
@@ -352,7 +352,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <!-- Miscellaneous -->
 
     <string name="host_apdu_service_desc">Taler NFC Payments</string>
-    <string name="wifi_connect_error">Could not connect to free Wi-Fi: %s</string>
+    <string name="wifi_connect_error">Could not connect to free Wi-Fi: %1$s</string>
     <string name="wifi_disabled_error">Turn on Wi-Fi to get free Wi-Fi</string>
 
 </resources>

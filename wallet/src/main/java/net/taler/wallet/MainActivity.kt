@@ -27,7 +27,6 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View.GONE
-import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.widget.TextView
 import androidx.activity.viewModels
@@ -151,7 +150,7 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
         else super.onBackPressed()
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleIntents(intent)
     }

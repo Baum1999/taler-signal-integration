@@ -42,6 +42,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -191,7 +192,7 @@ fun CurrencyDropdown(
     readOnly: Boolean = false,
 ) {
     val initialIndex = currencies.indexOf(initialCurrency).let { if (it < 0) 0 else it }
-    var selectedIndex by remember { mutableStateOf(initialIndex) }
+    var selectedIndex by remember { mutableIntStateOf(initialIndex) }
     var expanded by remember { mutableStateOf(false) }
     Box(
         modifier = modifier,

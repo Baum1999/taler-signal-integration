@@ -16,7 +16,6 @@
 
 package net.taler.wallet.transactions
 
-import android.R
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.ClickableText
@@ -47,7 +46,7 @@ fun TransactionLinkComposable(label: String, info: String, onClick: () -> Unit) 
         style = MaterialTheme.typography.bodyMedium,
     )
     val context = LocalContext.current
-    val linkColor = Color(context.getAttrColor(R.attr.textColorLink))
+    val linkColor = Color(context.getAttrColor(android.R.attr.textColorLink))
     val annotatedString = buildAnnotatedString {
         pushStringAnnotation(tag = "url", annotation = info)
         withStyle(style = SpanStyle(color = linkColor)) {

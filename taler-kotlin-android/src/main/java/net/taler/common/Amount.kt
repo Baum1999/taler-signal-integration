@@ -17,6 +17,7 @@
 package net.taler.common
 
 import android.os.Build
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
@@ -29,14 +30,14 @@ import kotlin.math.floor
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
-public class AmountParserException(msg: String? = null, cause: Throwable? = null) :
+class AmountParserException(msg: String? = null, cause: Throwable? = null) :
     Exception(msg, cause)
 
-public class AmountOverflowException(msg: String? = null, cause: Throwable? = null) :
+class AmountOverflowException(msg: String? = null, cause: Throwable? = null) :
     Exception(msg, cause)
 
 @Serializable(with = KotlinXAmountSerializer::class)
-public data class Amount(
+data class Amount(
     /**
      * name of the currency using either a three-character ISO 4217 currency code,
      * or a regional currency identifier starting with a "*" followed by at most 10 characters.
@@ -65,26 +66,26 @@ public data class Amount(
     val spec: CurrencySpecification? = null,
 ) : Comparable<Amount> {
 
-    public companion object {
+    companion object {
 
         private const val FRACTIONAL_BASE: Int = 100000000 // 1e8
 
         private val REGEX_CURRENCY = Regex("""^[-_*A-Za-z0-9]{1,12}$""")
-        public val MAX_VALUE: Long = 2.0.pow(52).toLong()
+        val MAX_VALUE: Long = 2.0.pow(52).toLong()
         private const val MAX_FRACTION_LENGTH = 8
-        public const val MAX_FRACTION: Int = 99_999_999
+        const val MAX_FRACTION: Int = 99_999_999
 
-        public fun zero(currency: String): Amount {
+        fun zero(currency: String): Amount {
             return Amount(checkCurrency(currency), 0, 0)
         }
 
-        public fun fromJSONString(str: String): Amount {
+        fun fromJSONString(str: String): Amount {
             val split = str.split(":")
             if (split.size != 2) throw AmountParserException("Invalid Amount Format")
             return fromString(split[0], split[1])
         }
 
-        public fun fromString(currency: String, str: String): Amount {
+        fun fromString(currency: String, str: String): Amount {
             // value
             val valueSplit = str.split(".")
             val value = checkValue(valueSplit[0].toLongOrNull())
@@ -98,7 +99,7 @@ public data class Amount(
             return Amount(checkCurrency(currency), value, fraction)
         }
 
-        public fun isValidAmountStr(str: String): Boolean {
+        fun isValidAmountStr(str: String): Boolean {
             if (str.count { it == '.' } > 1) return false
             val split = str.split(".")
             try {
@@ -122,8 +123,8 @@ public data class Amount(
                 ?.roundToInt()
         }
 
-        public fun min(currency: String): Amount = Amount(currency, 0, 1)
-        public fun max(currency: String): Amount = Amount(currency, MAX_VALUE, MAX_FRACTION)
+        fun min(currency: String): Amount = Amount(currency, 0, 1)
+        fun max(currency: String): Amount = Amount(currency, MAX_VALUE, MAX_FRACTION)
 
 
         internal fun checkCurrency(currency: String): String {
@@ -146,7 +147,7 @@ public data class Amount(
 
     }
 
-    public val amountStr: String
+    val amountStr: String
         get() = if (fraction == 0) "$value" else {
             var f = fraction
             var fractionStr = ""
@@ -157,7 +158,7 @@ public data class Amount(
             "$value.$fractionStr"
         }
 
-    public operator fun plus(other: Amount): Amount {
+    operator fun plus(other: Amount): Amount {
         check(currency == other.currency) { "Can only subtract from same currency" }
         val resultValue =
             value + other.value + floor((fraction + other.fraction).toDouble() / FRACTIONAL_BASE).toLong()
@@ -167,7 +168,7 @@ public data class Amount(
         return Amount(currency, resultValue, resultFraction)
     }
 
-    public operator fun times(factor: Int): Amount {
+    operator fun times(factor: Int): Amount {
         // TODO consider replacing with a faster implementation
         if (factor == 0) return zero(currency)
         var result = this
@@ -175,13 +176,13 @@ public data class Amount(
         return result
     }
 
-    public fun withCurrency(currency: String): Amount {
+    fun withCurrency(currency: String): Amount {
         return Amount(checkCurrency(currency), this.value, this.fraction)
     }
 
     fun withSpec(spec: CurrencySpecification?) = copy(spec = spec)
 
-    public operator fun minus(other: Amount): Amount {
+    operator fun minus(other: Amount): Amount {
         check(currency == other.currency) { "Can only subtract from same currency" }
         var resultValue = value
         var resultFraction = fraction
@@ -199,11 +200,11 @@ public data class Amount(
         return Amount(currency, resultValue, resultFraction)
     }
 
-    public fun isZero(): Boolean {
+    fun isZero(): Boolean {
         return value == 0L && fraction == 0
     }
 
-    public fun toJSONString(): String {
+    fun toJSONString(): String {
         return "$currency:$amountStr"
     }
 
@@ -268,6 +269,7 @@ public data class Amount(
 
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 @Suppress("EXPERIMENTAL_API_USAGE")
 @Serializer(forClass = Amount::class)
 internal object KotlinXAmountSerializer : KSerializer<Amount> {
