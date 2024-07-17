@@ -19,7 +19,7 @@ plugins {
     id "kotlinx-serialization"
 }
 
-def qtart_version = "0.12.2"
+def qtart_version = "0.12.5"
 
 static def versionCodeEpoch() {
     return (new Date().getTime() / 1000).toInteger()
@@ -121,6 +121,7 @@ android {
 
 dependencies {
     implementation project(":taler-kotlin-android")
+
     implementation "net.taler:qtart:$qtart_version@aar"
 
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
