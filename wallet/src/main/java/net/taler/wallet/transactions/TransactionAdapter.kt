@@ -16,7 +16,6 @@
 
 package net.taler.wallet.transactions
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -76,25 +75,32 @@ internal class TransactionAdapter(
         holder.bind(transaction, tracker.isSelected(transaction.transactionId))
     }
 
-    @SuppressLint("NotifyDataSetChanged")
-    fun setCurrencySpec(spec: CurrencySpecification?) {
-        this.currencySpec = spec
-        this.notifyDataSetChanged()
-    }
+    fun update(
+        updatedTransactions: List<Transaction>? = null,
+        updatedNetworkAvailable: Boolean? = null,
+        updatedCurrencySpec: CurrencySpecification? = null,
+    ) {
+        val oldTransactions = transactions
+        val newTransactions = updatedTransactions ?: oldTransactions
+        val oldNetworkAvailable = networkAvailable
+        val newNetworkAvailable = updatedNetworkAvailable ?: oldNetworkAvailable
+        val oldCurrencySpec = currencySpec
+        val newCurrencySpec = updatedCurrencySpec ?: oldCurrencySpec
 
-    @SuppressLint("NotifyDataSetChanged")
-    fun update(updatedTransactions: List<Transaction>? = null, networkAvailable: Boolean? = null) {
-        updatedTransactions?.let {
-            val diffCallback = TransactionDiffCallback(transactions, updatedTransactions)
-            val diffResult = DiffUtil.calculateDiff(diffCallback)
-            this.transactions = it
-            diffResult.dispatchUpdatesTo(this)
-        }
+        val diffCallback = TransactionDiffCallback(
+            oldTransactions,
+            newTransactions,
+            oldNetworkAvailable,
+            newNetworkAvailable,
+            oldCurrencySpec,
+            newCurrencySpec,
+        )
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
+        diffResult.dispatchUpdatesTo(this)
 
-        networkAvailable?.let {
-            this.networkAvailable = it
-            this.notifyDataSetChanged()
-        }
+        transactions = newTransactions
+        networkAvailable = newNetworkAvailable
+        currencySpec = newCurrencySpec
     }
 
     fun selectAll() = transactions.forEach {
@@ -274,6 +280,10 @@ internal class TransactionLookup(
 internal class TransactionDiffCallback(
     private val oldList: List<Transaction>,
     private val newList: List<Transaction>,
+    private val oldNetworkAvailable: Boolean?,
+    private val newNetworkAvailable: Boolean?,
+    private val oldCurrencySpec: CurrencySpecification?,
+    private val newCurrencySpec: CurrencySpecification?,
 ): DiffUtil.Callback() {
     override fun getOldListSize() = oldList.size
 
@@ -292,5 +302,7 @@ internal class TransactionDiffCallback(
 
         return oldTx.txState == newTx.txState
                 && oldTx.error == newTx.error
+                && oldNetworkAvailable == newNetworkAvailable
+                && oldCurrencySpec == newCurrencySpec
     }
 }

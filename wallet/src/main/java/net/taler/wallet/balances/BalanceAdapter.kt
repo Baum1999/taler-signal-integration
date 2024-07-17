@@ -22,6 +22,7 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import net.taler.wallet.R
@@ -52,9 +53,14 @@ class BalanceAdapter(private val listener: BalanceClickListener) : Adapter<Balan
         holder.bind(item)
     }
 
-    fun setItems(items: List<BalanceItem>) {
-        this.items = items
-        this.notifyDataSetChanged()
+    fun update(newItems: List<BalanceItem>) {
+        val oldItems = this.items
+
+        val diffCallback = BalanceDiffCallback(oldItems, newItems)
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
+        diffResult.dispatchUpdatesTo(this)
+
+        this.items = newItems
     }
 
     inner class BalanceViewHolder(private val v: View) : RecyclerView.ViewHolder(v) {
@@ -97,5 +103,27 @@ class BalanceAdapter(private val listener: BalanceClickListener) : Adapter<Balan
             }
         }
     }
+}
 
+internal class BalanceDiffCallback(
+    private val oldList: List<BalanceItem>,
+    private val newList: List<BalanceItem>,
+): DiffUtil.Callback() {
+    override fun getOldListSize() = oldList.size
+
+    override fun getNewListSize() = newList.size
+
+    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+        val old = oldList[oldItemPosition]
+        val new = newList[newItemPosition]
+
+        return old.scopeInfo == new.scopeInfo
+    }
+
+    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+        val old = oldList[oldItemPosition]
+        val new = newList[newItemPosition]
+
+        return old == new
+    }
 }

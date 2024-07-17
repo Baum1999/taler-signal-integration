@@ -120,7 +120,7 @@ class TransactionsFragment : Fragment(), OnTransactionClickListener, ActionMode.
 
             balances.find { it.scopeInfo == scopeInfo }?.let { balance ->
                 ui.actionsBar.amount.text = balance.available.toString(showSymbol = false)
-                transactionAdapter.setCurrencySpec(balance.available.spec)
+                transactionAdapter.update(updatedCurrencySpec = balance.available.spec)
             }
         }
 
@@ -134,7 +134,7 @@ class TransactionsFragment : Fragment(), OnTransactionClickListener, ActionMode.
         }
 
         networkManager.networkStatus.observe(viewLifecycleOwner) { state ->
-            transactionAdapter.update(networkAvailable = state)
+            transactionAdapter.update(updatedNetworkAvailable = state)
         }
 
         ui.actionsBar.sendButton.setOnClickListener {

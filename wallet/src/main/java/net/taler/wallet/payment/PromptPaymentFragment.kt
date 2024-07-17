@@ -155,7 +155,7 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
 
     private fun showOrder(contractTerms: ContractTerms, amount: Amount, totalFees: Amount? = null) {
         ui.details.orderView.text = contractTerms.summary
-        adapter.setItems(contractTerms.products)
+        adapter.update(contractTerms.products)
         ui.details.productsList.fadeIn()
         ui.bottom.totalView.text = amount.toString()
         if (totalFees != null && !totalFees.isZero()) {

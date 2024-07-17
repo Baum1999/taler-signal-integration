@@ -24,6 +24,7 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.widget.PopupMenu
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import net.taler.wallet.R
@@ -42,7 +43,7 @@ internal class ExchangeAdapter(
     private val listener: ExchangeClickListener,
 ) : Adapter<ExchangeItemViewHolder>() {
 
-    private val items = ArrayList<ExchangeItem>()
+    private var items = emptyList<ExchangeItem>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ExchangeItemViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -57,9 +58,13 @@ internal class ExchangeAdapter(
     }
 
     fun update(newItems: List<ExchangeItem>) {
-        items.clear()
-        items.addAll(newItems)
-        notifyDataSetChanged()
+        val oldItems = this.items
+
+        val diffCallback = ExchangeDiffCallback(oldItems, newItems)
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
+        diffResult.dispatchUpdatesTo(this)
+
+        items = newItems
     }
 
     internal inner class ExchangeItemViewHolder(v: View) : RecyclerView.ViewHolder(v) {
@@ -114,5 +119,27 @@ internal class ExchangeAdapter(
             show()
         }
     }
+}
 
+internal class ExchangeDiffCallback(
+    private val oldList: List<ExchangeItem>,
+    private val newList: List<ExchangeItem>,
+): DiffUtil.Callback() {
+    override fun getOldListSize() = oldList.size
+
+    override fun getNewListSize() = newList.size
+
+    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+        val old = oldList[oldItemPosition]
+        val new = newList[newItemPosition]
+
+        return old.exchangeBaseUrl == new.exchangeBaseUrl
+    }
+
+    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+        val old = oldList[oldItemPosition]
+        val new = newList[newItemPosition]
+
+        return old == new
+    }
 }

@@ -83,7 +83,7 @@ class BalancesFragment : Fragment(),
                     ui.mainEmptyState.visibility = VISIBLE
                     ui.mainList.visibility = GONE
                 } else {
-                    balancesAdapter.setItems(state.balances)
+                    balancesAdapter.update(state.balances)
                     ui.mainEmptyState.visibility = INVISIBLE
                     ui.mainList.fadeIn()
                 }

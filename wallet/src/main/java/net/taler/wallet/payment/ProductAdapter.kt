@@ -26,6 +26,7 @@ import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import net.taler.common.ContractProduct
@@ -39,7 +40,7 @@ internal interface ProductImageClickListener {
 internal class ProductAdapter(private val listener: ProductImageClickListener) :
     RecyclerView.Adapter<ProductViewHolder>() {
 
-    private val items = ArrayList<ContractProduct>()
+    private var items = emptyList<ContractProduct>()
 
     override fun getItemCount() = items.size
 
@@ -53,10 +54,14 @@ internal class ProductAdapter(private val listener: ProductImageClickListener) :
         holder.bind(items[position])
     }
 
-    fun setItems(items: List<ContractProduct>) {
-        this.items.clear()
-        this.items.addAll(items)
-        notifyDataSetChanged()
+    fun update(newItems: List<ContractProduct>) {
+        val oldItems = this.items
+
+        val diffCallback = ProductDiffCallback(oldItems, newItems)
+        val diffResult = DiffUtil.calculateDiff(diffCallback)
+        diffResult.dispatchUpdatesTo(this)
+
+        items = newItems
     }
 
     internal inner class ProductViewHolder(v: View) : ViewHolder(v) {
@@ -88,5 +93,27 @@ internal class ProductAdapter(private val listener: ProductImageClickListener) :
             } ?: GONE
         }
     }
+}
 
+internal class ProductDiffCallback(
+    private val oldList: List<ContractProduct>,
+    private val newList: List<ContractProduct>,
+): DiffUtil.Callback() {
+    override fun getOldListSize() = oldList.size
+
+    override fun getNewListSize() = newList.size
+
+    override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+        val old = oldList[oldItemPosition]
+        val new = newList[newItemPosition]
+
+        return old.productId == new.productId
+    }
+
+    override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+        val old = oldList[oldItemPosition]
+        val new = newList[newItemPosition]
+
+        return old == new
+    }
 }
