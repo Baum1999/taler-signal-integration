@@ -28,6 +28,7 @@ import net.taler.common.Amount
 import net.taler.common.Timestamp
 import net.taler.wallet.TAG
 import net.taler.wallet.backend.TalerErrorCode.UNKNOWN
+import net.taler.wallet.backend.TalerErrorCode.WALLET_PEER_PUSH_PAYMENT_INSUFFICIENT_BALANCE
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.exchanges.ExchangeItem
@@ -37,6 +38,17 @@ import java.util.concurrent.TimeUnit.HOURS
 
 const val MAX_LENGTH_SUBJECT = 100
 val DEFAULT_EXPIRY = ExpirationOption.DAYS_1
+
+sealed class CheckFeeResult {
+    data object None: CheckFeeResult()
+
+    data object InsufficientBalance: CheckFeeResult()
+
+    data class Success(
+        val amountRaw: Amount,
+        val amountEffective: Amount,
+    ): CheckFeeResult()
+}
 
 class PeerManager(
     private val api: WalletBackendApi,
@@ -122,6 +134,27 @@ class PeerManager(
                 _outgoingPushState.value = OutgoingError(error)
             }
         }
+    }
+
+    suspend fun checkPeerPushFees(amount: Amount, exchangeBaseUrl: String? = null): CheckFeeResult {
+        var response: CheckFeeResult = CheckFeeResult.None
+
+        api.request("checkPeerPushDebit", CheckPeerPushDebitResponse.serializer()) {
+            exchangeBaseUrl?.let { put("exchangeBaseUrl", it) }
+            put("amount", amount.toJSONString())
+        }.onSuccess {
+            response = CheckFeeResult.Success(
+                amountRaw = it.amountRaw,
+                amountEffective = it.amountEffective,
+            )
+        }.onError { error ->
+            Log.e(TAG, "got checkPeerPushDebit error result $error")
+            if (error.code == WALLET_PEER_PUSH_PAYMENT_INSUFFICIENT_BALANCE) {
+                response = CheckFeeResult.InsufficientBalance
+            }
+        }
+
+        return response
     }
 
     fun initiatePeerPushDebit(amount: Amount, summary: String, expirationHours: Long) {

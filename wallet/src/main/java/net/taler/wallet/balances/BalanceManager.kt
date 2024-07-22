@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.wallet.TAG
 import net.taler.wallet.backend.TalerErrorInfo
@@ -129,6 +130,21 @@ class BalanceManager(
         if (state !is BalanceState.Success) return null
 
         return state.balances.find { it.scopeInfo == scopeInfo }?.available?.spec
+    }
+
+    @UiThread
+    fun getCurrencies() = balances.value?.map { balanceItem ->
+        balanceItem.currency
+    } ?: emptyList()
+
+    @UiThread
+    fun hasSufficientBalance(amount: Amount): Boolean {
+        balances.value?.forEach { balanceItem ->
+            if (balanceItem.currency == amount.currency) {
+                return balanceItem.available >= amount
+            }
+        }
+        return false
     }
 
     fun resetBalances() {

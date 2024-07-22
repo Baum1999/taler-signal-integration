@@ -31,9 +31,17 @@ import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
 import androidx.annotation.RequiresApi
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.core.content.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import net.taler.common.Amount
@@ -144,4 +152,25 @@ fun Context.getThemeColor(attr: Int): Int {
     val typedValue = TypedValue()
     theme.resolveAttribute(attr, typedValue, true)
     return typedValue.data
+}
+
+@Composable
+fun <T> T.useDebounce(
+    delayMillis: Long = 300L,
+    coroutineScope: CoroutineScope = rememberCoroutineScope(),
+    onChange: (T) -> Unit
+): T{
+    val state by rememberUpdatedState(this)
+
+    DisposableEffect(state){
+        val job = coroutineScope.launch {
+            delay(delayMillis)
+            onChange(state)
+        }
+        onDispose {
+            job.cancel()
+        }
+    }
+
+    return state
 }

@@ -38,7 +38,7 @@ class PayTemplateFragment : Fragment() {
     private val model: MainViewModel by activityViewModels()
     private lateinit var uriString: String
     private lateinit var uri: Uri
-    private val currencies by lazy { model.getCurrencies() }
+    private val currencies by lazy { model.balanceManager.getCurrencies() }
 
     override fun onCreateView(
         inflater: LayoutInflater,

@@ -176,29 +176,14 @@ class MainViewModel(
     }
 
     @UiThread
-    fun getCurrencies() = balanceManager.balances.value?.map { balanceItem ->
-        balanceItem.currency
-    } ?: emptyList()
-
-    @UiThread
     fun createAmount(amountText: String, currency: String, incoming: Boolean = false): AmountResult {
         val amount = try {
             Amount.fromString(currency, amountText)
         } catch (e: AmountParserException) {
             return AmountResult.InvalidAmount
         }
-        if (incoming || hasSufficientBalance(amount)) return AmountResult.Success(amount)
-        return AmountResult.InsufficientBalance
-    }
-
-    @UiThread
-    fun hasSufficientBalance(amount: Amount): Boolean {
-        balanceManager.balances.value?.forEach { balanceItem ->
-            if (balanceItem.currency == amount.currency) {
-                return balanceItem.available >= amount
-            }
-        }
-        return false
+        if (incoming || balanceManager.hasSufficientBalance(amount)) return AmountResult.Success(amount)
+        return AmountResult.InsufficientBalance(amount)
     }
 
     @UiThread
@@ -299,7 +284,7 @@ enum class ScanQrContext {
 }
 
 sealed class AmountResult {
-    class Success(val amount: Amount) : AmountResult()
-    object InsufficientBalance : AmountResult()
-    object InvalidAmount : AmountResult()
+    data class Success(val amount: Amount) : AmountResult()
+    data class InsufficientBalance(val amount: Amount) : AmountResult()
+    data object InvalidAmount : AmountResult()
 }

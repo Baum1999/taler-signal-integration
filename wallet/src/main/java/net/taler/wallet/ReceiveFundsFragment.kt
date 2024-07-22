@@ -43,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -144,9 +145,10 @@ private fun ReceiveFundsIntro(
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(scrollState),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         var text by rememberSaveable { mutableStateOf("0") }
-        var isError by rememberSaveable { mutableStateOf(false) }
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -158,14 +160,9 @@ private fun ReceiveFundsIntro(
                     .padding(end = 16.dp),
                 value = text,
                 onValueChange = { input ->
-                    isError = false
                     text = input
                 },
                 label = { Text(stringResource(R.string.amount_receive)) },
-                supportingText = {
-                    if (isError) Text(stringResource(R.string.amount_invalid))
-                },
-                isError = isError,
                 numberOfDecimals = spec?.numFractionalInputDigits ?: DEFAULT_INPUT_DECIMALS,
             )
             Text(
@@ -181,13 +178,17 @@ private fun ReceiveFundsIntro(
             style = MaterialTheme.typography.titleLarge,
         )
         Column(modifier = Modifier.padding(16.dp)) {
+            val amount: Amount? = remember(currency, text) {
+                getAmount(currency, text)
+            }
+
             Button(
                 modifier = Modifier.fillMaxWidth(),
+                enabled = amount?.isZero() == false,
                 onClick = {
-                    val amount = getAmount(currency, text)
-                    if (amount == null || amount.isZero()) isError = true
-                    else onManualWithdraw(amount)
-                }) {
+                    amount?.let { onManualWithdraw(it) }
+                },
+            ) {
                 Icon(
                     Icons.Default.AccountBalance,
                     contentDescription = null,
@@ -199,10 +200,9 @@ private fun ReceiveFundsIntro(
 
             Button(
                 modifier = Modifier.fillMaxWidth(),
+                enabled = amount?.isZero() == false,
                 onClick = {
-                    val amount = getAmount(currency, text)
-                    if (amount == null || amount.isZero()) isError = true
-                    else onPeerPull(amount)
+                    amount?.let { onPeerPull(it) }
                 },
             ) {
                 Icon(

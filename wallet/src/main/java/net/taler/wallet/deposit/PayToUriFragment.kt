@@ -71,6 +71,7 @@ import net.taler.wallet.compose.TalerSurface
 class PayToUriFragment : Fragment() {
     private val model: MainViewModel by activityViewModels()
     private val depositManager get() = model.depositManager
+    private val balanceManager get() = model.balanceManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -83,7 +84,7 @@ class PayToUriFragment : Fragment() {
             ?.replace('+', ' ') ?: ""
         val iban = u.pathSegments.last() ?: ""
 
-        val currencies = model.getCurrencies()
+        val currencies = balanceManager.getCurrencies()
         return ComposeView(requireContext()).apply {
             setContent {
                 TalerSurface {

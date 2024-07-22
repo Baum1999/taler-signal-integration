@@ -42,6 +42,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -55,11 +57,13 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.launch
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.wallet.compose.AmountInputField
 import net.taler.wallet.compose.DEFAULT_INPUT_DECIMALS
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.peer.CheckFeeResult
 
 class SendFundsFragment : Fragment() {
     private val model: MainViewModel by activityViewModels()
@@ -77,7 +81,7 @@ class SendFundsFragment : Fragment() {
                 SendFundsIntro(
                     currency = scopeInfo.currency,
                     spec = balanceManager.getSpecForScopeInfo(scopeInfo),
-                    hasSufficientBalance = model::hasSufficientBalance,
+                    checkFees = this@SendFundsFragment::checkFees,
                     onDeposit = this@SendFundsFragment::onDeposit,
                     onPeerPush = this@SendFundsFragment::onPeerPush,
                     onScanQr = this@SendFundsFragment::onScanQr,
@@ -89,6 +93,10 @@ class SendFundsFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         activity?.setTitle(getString(R.string.transactions_send_funds_title, scopeInfo.currency))
+    }
+
+    private suspend fun checkFees(amount: Amount): CheckFeeResult {
+        return peerManager.checkPeerPushFees(amount)
     }
 
     private fun onDeposit(amount: Amount) {
@@ -111,24 +119,48 @@ class SendFundsFragment : Fragment() {
 private fun SendFundsIntro(
     currency: String,
     spec: CurrencySpecification?,
-    hasSufficientBalance: (Amount) -> Boolean,
+    checkFees: suspend (amount: Amount) -> CheckFeeResult,
     onDeposit: (Amount) -> Unit,
     onPeerPush: (Amount) -> Unit,
     onScanQr: () -> Unit,
 ) {
     val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(scrollState),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         var text by rememberSaveable { mutableStateOf("0") }
-        var isError by rememberSaveable { mutableStateOf(false) }
-        var insufficientBalance by rememberSaveable { mutableStateOf(false) }
+
+        var fees by remember { mutableStateOf<CheckFeeResult>(CheckFeeResult.None) }
+
+        val insufficientBalance: Boolean = remember(fees) {
+            fees is CheckFeeResult.InsufficientBalance
+        }
+
+        val calculateFees = { input: String ->
+            fees = CheckFeeResult.None
+            getAmount(currency, input)?.let { amount ->
+                coroutineScope.launch {
+                    checkFees(amount).let {
+                        fees = it
+                    }
+                }
+            }
+        }
+
+        text.useDebounce(
+            delayMillis = 150L,
+            coroutineScope = coroutineScope,
+        ) {
+            calculateFees(it)
+        }
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(16.dp),
+            modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 8.dp),
         ) {
             AmountInputField(
                 modifier = Modifier
@@ -136,20 +168,18 @@ private fun SendFundsIntro(
                     .padding(end = 16.dp),
                 value = text,
                 onValueChange = { input ->
-                    isError = false
-                    insufficientBalance = false
                     text = input
                 },
                 label = { Text(stringResource(R.string.amount_send)) },
                 supportingText = {
-                    if (isError) Text(stringResource(R.string.amount_invalid))
-                    else if (insufficientBalance) {
+                    if (insufficientBalance) {
                         Text(stringResource(R.string.payment_balance_insufficient))
                     }
                 },
-                isError = isError || insufficientBalance,
+                isError = insufficientBalance,
                 numberOfDecimals = spec?.numFractionalInputDigits ?: DEFAULT_INPUT_DECIMALS,
             )
+
             Text(
                 modifier = Modifier,
                 text = spec?.symbol ?: currency,
@@ -157,24 +187,39 @@ private fun SendFundsIntro(
                 style = MaterialTheme.typography.titleLarge,
             )
         }
+
+        // Render fees dynamically
+        if (fees is CheckFeeResult.Success) {
+            val success = fees as CheckFeeResult.Success
+            if (success.amountEffective > success.amountRaw) {
+                val fee = success.amountEffective - success.amountRaw
+                if (!fee.isZero()) {
+                    Text(
+                        modifier = Modifier.padding(bottom = 16.dp),
+                        text = stringResource(id = R.string.payment_fee, fee.withSpec(spec)),
+                        softWrap = false,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
+        }
+
         Text(
-            modifier = Modifier.padding(horizontal = 16.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             text = stringResource(R.string.send_intro),
             style = MaterialTheme.typography.titleLarge,
         )
+
         Column(modifier = Modifier.padding(16.dp)) {
-            fun onClickButton(block: (Amount) -> Unit) {
-                val amount = getAmount(currency, text)
-                if (amount == null || amount.isZero()) isError = true
-                else if (!hasSufficientBalance(amount)) insufficientBalance = true
-                else block(amount)
+            val amount: Amount? = remember(currency, text) {
+                getAmount(currency, text)
             }
 
             Button(
                 modifier = Modifier.fillMaxWidth(),
-                onClick = {
-                    onClickButton { amount -> onDeposit(amount) }
-                }) {
+                enabled = !insufficientBalance && amount?.isZero() == false,
+                onClick = { amount?.let { onDeposit(it) } },
+            ) {
                 Icon(
                     if (currency == CURRENCY_BTC) {
                         Icons.Default.CurrencyBitcoin
@@ -194,9 +239,8 @@ private fun SendFundsIntro(
 
             Button(
                 modifier = Modifier.fillMaxWidth(),
-                onClick = {
-                    onClickButton { amount -> onPeerPush(amount) }
-                },
+                enabled = !insufficientBalance && amount?.isZero() == false,
+                onClick = { amount?.let { onPeerPush(it) } },
             ) {
                 Icon(
                     Icons.Default.AccountBalanceWallet,
@@ -240,6 +284,18 @@ private fun SendFundsIntro(
 @Composable
 fun PreviewSendFundsIntro() {
     Surface {
-        SendFundsIntro("TESTKUDOS", null, { true }, {}, {}) {}
+        SendFundsIntro(
+            currency = "TESTKUDOS",
+            spec = null,
+            checkFees = {
+                CheckFeeResult.Success(
+                    amountRaw = Amount.fromJSONString("TESTKUDOS:10"),
+                    amountEffective = Amount.fromJSONString("TESTKUDOS:10.2"),
+                )
+            },
+            onDeposit = {},
+            onScanQr = {},
+            onPeerPush = {},
+        )
     }
 }
