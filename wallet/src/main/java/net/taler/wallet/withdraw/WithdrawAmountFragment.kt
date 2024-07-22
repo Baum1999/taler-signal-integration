@@ -21,9 +21,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -38,8 +36,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -53,9 +49,7 @@ import net.taler.common.Amount
 import net.taler.common.AmountParserException
 import net.taler.common.CurrencySpecification
 import net.taler.wallet.AmountResult
-import net.taler.wallet.AmountResult.InsufficientBalance
 import net.taler.wallet.AmountResult.InvalidAmount
-import net.taler.wallet.AmountResult.Success
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.compose.AmountInputField
@@ -63,6 +57,7 @@ import net.taler.wallet.compose.DEFAULT_INPUT_DECIMALS
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.exchanges.ExchangeItem
+import net.taler.wallet.getAmount
 import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.TransactionAmountComposable
 import net.taler.wallet.withdraw.WithdrawStatus.Loading
@@ -195,7 +190,6 @@ fun WithdrawAmountComposable(
     var selectedAmount by remember {
         mutableStateOf(amount?.amountStr ?: "0")
     }
-    val focusRequester = remember { FocusRequester() }
     val supportingText = @Composable {
         if (error != null) { Text(error!!) }
     }
@@ -204,25 +198,15 @@ fun WithdrawAmountComposable(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        if (maxAmount != null) {
-            Spacer(Modifier.height(16.dp))
-
-            TransactionAmountComposable(
-                label = stringResource(R.string.amount_max),
-                amount = maxAmount,
-                amountType = AmountType.Neutral,
-            )
-        }
-
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 16.dp),
         ) {
+            // TODO: enable auto focus when AmountInputField handles it correctly
             AmountInputField(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(top = 16.dp, start = 16.dp, end = 16.dp)
-                    .focusRequester(focusRequester),
+                    .padding(top = 16.dp, start = 16.dp, end = 16.dp),
                 value = selectedAmount,
                 onValueChange = {
                     selectedAmount = it
@@ -269,28 +253,20 @@ fun WithdrawAmountComposable(
         Button(
             modifier = Modifier.padding(top = 16.dp),
             onClick = {
-                when (val res = onCreateAmount(selectedAmount, currency, true)) {
-                    is InsufficientBalance -> {} // doesn't apply
-                    is InvalidAmount -> {
-                        error = context.getString(R.string.amount_invalid)
+                getAmount(currency, selectedAmount)?.let { amount ->
+                    // Check that amount doesn't exceed maximum
+                    if (maxAmount != null && amount > maxAmount) {
+                        error = context.getString(R.string.amount_excess)
+                    } else {
+                        onSubmit(amount)
                     }
-                    is Success -> {
-                        // Check that amount doesn't exceed maximum
-                        if (maxAmount != null && res.amount > maxAmount) {
-                            error = context.getString(R.string.amount_excess)
-                        } else {
-                            onSubmit(res.amount)
-                        }
-                    }
+                } ?: let {
+                    error = context.getString(R.string.amount_invalid)
                 }
             },
         ) {
             Text(stringResource(R.string.withdraw_select_amount))
         }
-    }
-
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
     }
 }
 

@@ -343,7 +343,8 @@
         android:label="@string/withdraw_title">
         <action
             android:id="@+id/action_withdrawAmount_to_promptWithdraw"
-            app:destination="@id/promptWithdraw"/>
+            app:destination="@id/promptWithdraw"
+            app:popUpTo="@id/promptWithdraw"/>
     </fragment>
 
     <fragment
