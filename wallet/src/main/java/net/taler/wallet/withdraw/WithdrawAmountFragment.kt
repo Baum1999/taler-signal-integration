@@ -37,7 +37,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -48,8 +47,6 @@ import kotlinx.coroutines.launch
 import net.taler.common.Amount
 import net.taler.common.AmountParserException
 import net.taler.common.CurrencySpecification
-import net.taler.wallet.AmountResult
-import net.taler.wallet.AmountResult.InvalidAmount
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.compose.AmountInputField
@@ -110,7 +107,6 @@ class WithdrawAmountFragment: Fragment() {
                         WithdrawAmountComposable(
                             status = s,
                             spec = spec,
-                            onCreateAmount = model::createAmount,
                             onSubmit = { amount ->
                                 withdrawManager.selectWithdrawalAmount(amount)
                                 selected = true
@@ -151,10 +147,9 @@ class WithdrawAmountFragment: Fragment() {
 fun WithdrawAmountComposable(
     status: WithdrawStatus,
     spec: CurrencySpecification?,
-    onCreateAmount: (str: String, currency: String, incoming: Boolean) -> AmountResult,
     onSubmit: (amount: Amount) -> Unit,
 ) {
-    val amount = when (status) {
+    val defaultAmount = when (status) {
         is NeedsAmount -> null
         is NeedsExchange -> status.amount
         is ReceivedDetails -> status.amountRaw
@@ -186,12 +181,10 @@ fun WithdrawAmountComposable(
         else -> error("invalid state")
     }
 
-    var error by remember { mutableStateOf<String?>(null) }
-    var selectedAmount by remember {
-        mutableStateOf(amount?.amountStr ?: "0")
-    }
-    val supportingText = @Composable {
-        if (error != null) { Text(error!!) }
+    var text by remember { mutableStateOf(defaultAmount?.amountStr ?: "0") }
+    val amount = remember(currency, text) { getAmount(currency, text) }
+    val insufficientBalance = remember(amount) {
+        amount?.let { maxAmount == null || it > maxAmount } == true
     }
 
     Column(
@@ -207,13 +200,17 @@ fun WithdrawAmountComposable(
                 modifier = Modifier
                     .weight(1f)
                     .padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                value = selectedAmount,
+                value = text,
                 onValueChange = {
-                    selectedAmount = it
+                    text = it
                 },
                 label = { Text(stringResource(R.string.amount_withdraw)) },
-                supportingText = supportingText,
-                isError = error != null,
+                supportingText = {
+                    if (insufficientBalance) {
+                        Text(stringResource(R.string.amount_excess))
+                    }
+                },
+                isError = insufficientBalance,
                 numberOfDecimals = spec?.numFractionalInputDigits ?: DEFAULT_INPUT_DECIMALS,
             )
 
@@ -235,7 +232,7 @@ fun WithdrawAmountComposable(
             val selected = try {
                 Amount.fromString(
                     currency = currency,
-                    str = selectedAmount,
+                    str = text,
                 )
             } catch (_: AmountParserException) { null }
 
@@ -248,22 +245,10 @@ fun WithdrawAmountComposable(
             }
         }
 
-        val context = LocalContext.current
-
         Button(
             modifier = Modifier.padding(top = 16.dp),
-            onClick = {
-                getAmount(currency, selectedAmount)?.let { amount ->
-                    // Check that amount doesn't exceed maximum
-                    if (maxAmount != null && amount > maxAmount) {
-                        error = context.getString(R.string.amount_excess)
-                    } else {
-                        onSubmit(amount)
-                    }
-                } ?: let {
-                    error = context.getString(R.string.amount_invalid)
-                }
-            },
+            enabled = !insufficientBalance && amount?.isZero() == false,
+            onClick = { amount?.let { onSubmit(it) } },
         ) {
             Text(stringResource(R.string.withdraw_select_amount))
         }
@@ -285,7 +270,6 @@ fun WithdrawAmountComposablePreview() {
                 editableAmount = true,
             ),
             spec = null,
-            onCreateAmount = { _, _, _ -> InvalidAmount },
             onSubmit = {},
         )
     }
