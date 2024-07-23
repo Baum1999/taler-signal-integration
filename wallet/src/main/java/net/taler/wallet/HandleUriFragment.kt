@@ -176,6 +176,9 @@ class HandleUriFragment: Fragment() {
                 } catch (e: IOException) {
                     Log.e(TAG, "Error connecting to $uri ", e)
                     showError(R.string.error_broken_uri, "$uri")
+                    activity?.runOnUiThread {
+                        findNavController().popBackStack()
+                    }
                     return@launch
                 }
                 val status = conn.responseCode
@@ -186,6 +189,12 @@ class HandleUriFragment: Fragment() {
                         Log.v(TAG, "taler header: ${talerHeader[0]}")
                         val talerHeaderUri = Uri.parse(talerHeader[0])
                         getTalerAction(talerHeaderUri, 0, actionFound)
+                    } else {
+                        showError(R.string.error_no_uri, "$uri")
+                        activity?.runOnUiThread {
+                            findNavController().popBackStack()
+                        }
+                        return@launch
                     }
                 } else if (status == HttpURLConnection.HTTP_MOVED_TEMP
                     || status == HttpURLConnection.HTTP_MOVED_PERM
@@ -199,7 +208,10 @@ class HandleUriFragment: Fragment() {
                     }
                 } else {
                     showError(R.string.error_broken_uri, "$uri")
-                    findNavController().popBackStack()
+                    activity?.runOnUiThread {
+                        findNavController().popBackStack()
+                    }
+                    return@launch
                 }
             }
         } else {
