@@ -216,7 +216,7 @@
     <string name="exchange_list_empty">Vaihtoja ei tiedossa
 \n
 \nLisää yksi manuaalisesti tai nosta digitaalista käteistä!</string>
-    <string name="exchange_list_currency">Valuutta: %s</string>
+    <string name="exchange_list_currency">Valuutta: %1$s</string>
     <string name="exchange_list_add">Lisää vaihto</string>
     <string name="exchange_list_select">Valitse vaihto</string>
     <string name="exchange_delete">Poista vaihto</string>
@@ -237,15 +237,15 @@
         <item quantity="one">Kolikko: %s (Käytetty %d kerran)</item>
         <item quantity="other">Kolikko: %s (Käytetty %d kertaa)</item>
     </plurals>
-    <string name="exchange_fee_withdraw_fee">Nostomaksu: %s</string>
-    <string name="exchange_fee_deposit_fee">Talletus maksu: %s</string>
-    <string name="exchange_fee_refresh_fee">Vahto maksu: %s</string>
-    <string name="exchange_fee_refund_fee">Hyvitysmaksu: %s</string>
+    <string name="exchange_fee_withdraw_fee">Nostomaksu: %1$s</string>
+    <string name="exchange_fee_deposit_fee">Talletus maksu: %1$s</string>
+    <string name="exchange_fee_refresh_fee">Vahto maksu: %1$s</string>
+    <string name="exchange_fee_refund_fee">Hyvitysmaksu: %1$s</string>
     <string name="exchange_fee_wire_fee_timespan">Ajanjakso: %1$s - %2$s</string>
-    <string name="exchange_fee_wire_fee_wire_fee">Siirtomaksu: %s</string>
-    <string name="exchange_fee_wire_fee_closing_fee">Sulkemismaksu: %s</string>
+    <string name="exchange_fee_wire_fee_wire_fee">Siirtomaksu: %1$s</string>
+    <string name="exchange_fee_wire_fee_closing_fee">Sulkemismaksu: %1$s</string>
     <string name="exchange_tos_accept">Hyväksy käyttöehdot</string>
-    <string name="exchange_tos_error">Virhe näytettäessä käyttöehtoja: %s</string>
+    <string name="exchange_tos_error">Virhe näytettäessä käyttöehtoja: %1$s</string>
     <string name="pending_operations_title">Odottavat toiminnot</string>
     <string name="pending_operations_refuse">Hylkää ehdotus</string>
     <string name="pending_operations_no_action">(ei toimintaa)</string>
@@ -284,5 +284,5 @@
     <string name="refund_error">Palautuksen käsittelyssä tapahtui virhe</string>
     <string name="refund_success">Palautus saatu!</string>
     <string name="wifi_disabled_error">Ota Wi-Fi käyttöön saadaksesi ilmaisen Wi-Fi-yhteyden</string>
-    <string name="wifi_connect_error">Ei voitu muodostaa yhteyttä ilmaiseen Wi-Fi-verkkoon: %s</string>
+    <string name="wifi_connect_error">Ei voitu muodostaa yhteyttä ilmaiseen Wi-Fi-verkkoon: %1$s</string>
 </resources>
