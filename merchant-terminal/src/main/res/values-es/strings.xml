@@ -74,4 +74,5 @@
     <string name="config_merchant_url">URL de vendedor</string>
     <string name="config_new_label">Vendedor (nuevo)</string>
     <string name="config_token">Token de acceso</string>
+    <string name="host_apdu_service_desc">Pagos NFC en Taler Merchant</string>
 </resources>
