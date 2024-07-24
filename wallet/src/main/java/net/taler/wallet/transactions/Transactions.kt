@@ -43,7 +43,6 @@ import net.taler.wallet.TAG
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.common.CurrencySpecification
-import net.taler.wallet.cleanExchange
 import net.taler.wallet.refund.RefundPaymentInfo
 import net.taler.wallet.transactions.TransactionMajorState.None
 import net.taler.wallet.transactions.TransactionMajorState.Pending
@@ -170,7 +169,7 @@ class TransactionWithdrawal(
 
     @Transient
     override val amountType = AmountType.Positive
-    override fun getTitle(context: Context) = cleanExchange(exchangeBaseUrl)
+    override fun getTitle(context: Context) = context.getString(R.string.withdraw_title)
     override val generalTitleRes = R.string.withdraw_title
     val confirmed: Boolean
         get() = txState.major != Pending && (
@@ -309,7 +308,7 @@ class TransactionPayment(
     override val amountEffective: Amount,
     val posConfirmation: String? = null,
 ) : Transaction() {
-    override val icon = R.drawable.ic_cash_usd_outline
+    override val icon = R.drawable.transaction_payment
     override val detailPageNav = R.id.action_nav_transactions_detail_payment
 
     @Transient
@@ -396,7 +395,7 @@ class TransactionDeposit(
     val targetPaytoUri: String,
     val depositGroupId: String,
 ) : Transaction() {
-    override val icon = R.drawable.ic_cash_usd_outline
+    override val icon = R.drawable.transaction_deposit
     override val detailPageNav = R.id.action_nav_transactions_detail_deposit
 
     @Transient
@@ -433,7 +432,7 @@ class TransactionPeerPullDebit(
     override val amountEffective: Amount,
     val info: PeerInfoShort,
 ) : Transaction() {
-    override val icon = R.drawable.ic_cash_usd_outline
+    override val icon = R.drawable.transaction_p2p_outgoing
     override val detailPageNav = R.id.nav_transactions_detail_peer
 
     @Transient
@@ -463,7 +462,7 @@ class TransactionPeerPullCredit(
     val talerUri: String,
     // val completed: Boolean, maybe
 ) : Transaction() {
-    override val icon = R.drawable.transaction_withdrawal
+    override val icon = R.drawable.transaction_p2p_incoming
     override val detailPageNav = R.id.nav_transactions_detail_peer
 
     override val amountType get() = AmountType.Positive
@@ -492,7 +491,7 @@ class TransactionPeerPushDebit(
     val talerUri: String? = null,
     // val completed: Boolean, definitely
 ) : Transaction() {
-    override val icon = R.drawable.ic_cash_usd_outline
+    override val icon = R.drawable.transaction_p2p_outgoing
     override val detailPageNav = R.id.nav_transactions_detail_peer
 
     @Transient
@@ -520,7 +519,7 @@ class TransactionPeerPushCredit(
     override val amountEffective: Amount,
     val info: PeerInfoShort,
 ) : Transaction() {
-    override val icon = R.drawable.transaction_withdrawal
+    override val icon = R.drawable.transaction_p2p_incoming
     override val detailPageNav = R.id.nav_transactions_detail_peer
 
     @Transient
@@ -585,7 +584,7 @@ class DummyTransaction(
     override val txActions: List<TransactionAction> = emptyList()
     override val amountRaw: Amount = Amount.zero("TESTKUDOS")
     override val amountEffective: Amount = Amount.zero("TESTKUDOS")
-    override val icon: Int = R.drawable.ic_bug_report
+    override val icon: Int = R.drawable.transaction_dummy
     override val detailPageNav: Int = R.id.nav_transactions_detail_dummy
     override val amountType: AmountType = AmountType.Neutral
     override val generalTitleRes: Int = R.string.transaction_dummy_title
