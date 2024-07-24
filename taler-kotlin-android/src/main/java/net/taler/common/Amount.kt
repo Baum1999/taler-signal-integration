@@ -239,8 +239,8 @@ data class Amount(
 
         // There is currency spec, so we can do things right
         val format = NumberFormat.getCurrencyInstance()
-        format.maximumFractionDigits = spec.numFractionalNormalDigits
         format.minimumFractionDigits = spec.numFractionalTrailingZeroDigits
+        format.maximumFractionDigits = MAX_FRACTION_LENGTH
         s.currencySymbol = spec.symbol ?: ""
         (format as DecimalFormat).decimalFormatSymbols = s
 

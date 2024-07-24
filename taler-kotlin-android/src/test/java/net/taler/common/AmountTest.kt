@@ -26,15 +26,6 @@ import kotlin.random.Random
 
 class AmountTest {
 
-    companion object {
-        fun getRandomAmount() = getRandomAmount(getRandomString(1, Random.nextInt(1, 12)))
-        fun getRandomAmount(currency: String): Amount {
-            val value = Random.nextLong(0, Amount.MAX_VALUE)
-            val fraction = Random.nextInt(0, Amount.MAX_FRACTION)
-            return Amount(currency, value, fraction)
-        }
-    }
-
     @Test
     fun testFromJSONString() {
         var str = "TESTKUDOS:23.42"
@@ -89,8 +80,25 @@ class AmountTest {
             ),
             rawStr = "23.42",
             fraction = 42000000,
-            specAmount = "23",
+            specAmount = "23.42",
             noSpecAmount = "23.42",
+            currency = "TESTKUDOS",
+            symbol = "テ",
+        )
+
+        amountToString(
+            amount = Amount.fromString("TESTKUDOS", "23"),
+            spec = CurrencySpecification(
+                name = "Test (Taler Unstable Demostrator)",
+                numFractionalInputDigits = 0,
+                numFractionalNormalDigits = 0,
+                numFractionalTrailingZeroDigits = 0,
+                altUnitNames = mapOf(0 to "テ"),
+            ),
+            rawStr = "23",
+            fraction = 0,
+            specAmount = "23",
+            noSpecAmount = "23",
             currency = "TESTKUDOS",
             symbol = "テ",
         )
@@ -134,7 +142,7 @@ class AmountTest {
             spec = specEUR,
             rawStr = "1500000000.00000003",
             fraction = 3,
-            specAmount = "1,500,000,000.00",
+            specAmount = "1,500,000,000.00000003",
             noSpecAmount = "1,500,000,000.00000003",
             currency = "EUR",
             symbol = "€",
@@ -145,7 +153,7 @@ class AmountTest {
             spec = specEUR,
             rawStr = "500000000.126",
             fraction = 12600000,
-            specAmount = "500,000,000.13",
+            specAmount = "500,000,000.126",
             noSpecAmount = "500,000,000.126",
             currency = "EUR",
             symbol = "€",
