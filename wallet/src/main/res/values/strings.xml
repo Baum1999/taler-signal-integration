@@ -138,7 +138,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="transaction_state_expired">This transaction has expired</string>
     <string name="transaction_state_failed">This transaction has failed</string>
     <string name="transaction_state_pending">This transaction is pending</string>
-    <string name="transaction_state_pending_bank">Waiting for confirmation in the bank</string>
+    <string name="transaction_state_pending_bank">Waiting for authorization in the bank</string>
     <string name="transaction_state_suspended">This transaction is suspended</string>
     <string name="transactions_abort">Abort</string>
     <string name="transactions_abort_dialog_message">Are you sure you want to abort this transaction? Funds still in transit might get lost.</string>
@@ -232,7 +232,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="withdraw_account_currency">Account #%1$d (%2$s)</string>
     <string name="withdraw_amount_error">Enter valid amount</string>
     <string name="withdraw_button_confirm">Confirm Withdraw</string>
-    <string name="withdraw_button_confirm_bank">Confirm with bank</string>
+    <string name="withdraw_button_confirm_bank">Authorize in bank</string>
     <string name="withdraw_button_tos">Review Terms</string>
     <string name="withdraw_error_message">Withdrawing is currently not possible. Please try again later!</string>
     <string name="withdraw_error_test">Error withdrawing TESTKUDOS</string>
