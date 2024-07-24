@@ -133,11 +133,17 @@ private fun SendFundsIntro(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         var text by rememberSaveable { mutableStateOf("0") }
+        val amount: Amount? = remember(currency, text) {
+            getAmount(currency, text)
+        }
 
         var fees by remember { mutableStateOf<CheckFeeResult>(CheckFeeResult.None) }
-
         val insufficientBalance: Boolean = remember(fees) {
             fees is CheckFeeResult.InsufficientBalance
+        }
+
+        val maxAmount = remember(amount, fees) {
+            (fees as? CheckFeeResult.InsufficientBalance)?.maxAmountEffective
         }
 
         val calculateFees = { input: String ->
@@ -162,6 +168,7 @@ private fun SendFundsIntro(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 8.dp),
         ) {
+
             AmountInputField(
                 modifier = Modifier
                     .weight(1f)
@@ -173,7 +180,14 @@ private fun SendFundsIntro(
                 label = { Text(stringResource(R.string.amount_send)) },
                 supportingText = {
                     if (insufficientBalance) {
-                        Text(stringResource(R.string.payment_balance_insufficient))
+                        if (maxAmount != null) {
+                            Text(stringResource(
+                                R.string.payment_balance_insufficient_max,
+                                maxAmount.withSpec(spec).toString(),
+                            ))
+                        } else {
+                            Text(stringResource(R.string.payment_balance_insufficient))
+                        }
                     }
                 },
                 isError = insufficientBalance,
@@ -211,9 +225,6 @@ private fun SendFundsIntro(
         )
 
         Column(modifier = Modifier.padding(16.dp)) {
-            val amount: Amount? = remember(currency, text) {
-                getAmount(currency, text)
-            }
 
             Button(
                 modifier = Modifier.fillMaxWidth(),
@@ -288,9 +299,9 @@ fun PreviewSendFundsIntro() {
             currency = "TESTKUDOS",
             spec = null,
             checkFees = {
-                CheckFeeResult.Success(
-                    amountRaw = Amount.fromJSONString("TESTKUDOS:10"),
-                    amountEffective = Amount.fromJSONString("TESTKUDOS:10.2"),
+                CheckFeeResult.InsufficientBalance(
+                    maxAmountRaw = Amount.fromJSONString("TESTKUDOS:10"),
+                    maxAmountEffective = Amount.fromJSONString("TESTKUDOS:10.2"),
                 )
             },
             onDeposit = {},

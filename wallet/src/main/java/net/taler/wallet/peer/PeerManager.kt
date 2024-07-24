@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import net.taler.common.Amount
 import net.taler.common.Timestamp
 import net.taler.wallet.TAG
@@ -42,7 +44,10 @@ val DEFAULT_EXPIRY = ExpirationOption.DAYS_1
 sealed class CheckFeeResult {
     data object None: CheckFeeResult()
 
-    data object InsufficientBalance: CheckFeeResult()
+    data class InsufficientBalance(
+        val maxAmountEffective: Amount?,
+        val maxAmountRaw: Amount?,
+    ): CheckFeeResult()
 
     data class Success(
         val amountRaw: Amount,
@@ -150,7 +155,20 @@ class PeerManager(
         }.onError { error ->
             Log.e(TAG, "got checkPeerPushDebit error result $error")
             if (error.code == WALLET_PEER_PUSH_PAYMENT_INSUFFICIENT_BALANCE) {
-                response = CheckFeeResult.InsufficientBalance
+                error.extra["insufficientBalanceDetails"]?.let { details ->
+                    val maxAmountRaw = details.jsonObject["balanceAvailable"]?.let { amount ->
+                        Amount.fromJSONString(amount.jsonPrimitive.content)
+                    }
+
+                    val maxAmountEffective = details.jsonObject["maxEffectiveSpendAmount"]?.let { amount ->
+                        Amount.fromJSONString(amount.jsonPrimitive.content)
+                    } ?: maxAmountRaw
+
+                    response = CheckFeeResult.InsufficientBalance(
+                        maxAmountEffective = maxAmountEffective,
+                        maxAmountRaw = maxAmountRaw,
+                    )
+                }
             }
         }
 
