@@ -91,14 +91,14 @@
     <string name="withdraw_error_test">Ошибка при выводе TESTKUDOS</string>
     <string name="exchange_settings_title">Биржи</string>
     <string name="exchange_list_title">Биржи</string>
-    <string name="exchange_list_currency">Валюта: %s</string>
+    <string name="exchange_list_currency">Валюта: %1$s</string>
     <string name="exchange_list_add">Добавить биржу</string>
     <string name="exchange_add_url">Введите адрес биржи</string>
     <string name="exchange_menu_manual_withdraw">Вывести средства</string>
     <string name="exchange_fee_withdrawal_fee_label">Комиссия за вывод средств:</string>
-    <string name="exchange_fee_withdraw_fee">Комиссия за вывод средств: %s</string>
+    <string name="exchange_fee_withdraw_fee">Комиссия за вывод средств: %1$s</string>
     <string name="exchange_fee_wire_fee_timespan">Временной диапазон: %1$s - %2$s</string>
-    <string name="exchange_fee_wire_fee_wire_fee">Комиссия за перевод: %s</string>
+    <string name="exchange_fee_wire_fee_wire_fee">Комиссия за перевод: %1$s</string>
     <string name="exchange_tos_accept">Принять условия оказания услуг</string>
     <string name="pending_operations_title">Незавершенные операции</string>
     <string name="pending_operations_refuse">Отклонить предложение</string>
@@ -110,10 +110,10 @@
     <string name="settings_version_app">Версия приложения</string>
     <string name="settings_reset">Переустановить кошелёк (Опасно!)</string>
     <string name="nav_settings_backup">Резервная копия</string>
-    <string name="exchange_fee_refresh_fee">Комиссия за обмен: %s</string>
+    <string name="exchange_fee_refresh_fee">Комиссия за обмен: %1$s</string>
     <string name="exchange_fee_overhead_label">Округленные убытки:</string>
-    <string name="exchange_fee_refund_fee">Комиссия за возврат: %s</string>
-    <string name="exchange_fee_wire_fee_closing_fee">Комиссия за закрытие: %s</string>
+    <string name="exchange_fee_refund_fee">Комиссия за возврат: %1$s</string>
+    <string name="exchange_fee_wire_fee_closing_fee">Комиссия за закрытие: %1$s</string>
     <string name="settings_logcat_summary">Просмотреть/отправить внутренний журнал</string>
     <string name="settings_version_core">Базовая версия кошелька</string>
     <string name="settings_version_protocol_exchange">Поддерживаемые версии биржи</string>
@@ -123,7 +123,7 @@
     <string name="refund_error">Ошибка при обработке возврата</string>
     <string name="refund_success">Возврат получен: %s</string>
     <string name="tip_title">Вознаграждение</string>
-    <string name="wifi_connect_error">Не удалось подключиться к бесплатному Wi-Fi: %s</string>
+    <string name="wifi_connect_error">Не удалось подключиться к бесплатному Wi-Fi: %1$s</string>
     <string name="wifi_disabled_error">Включите Wi-Fi, чтобы получить бесплатный Wi-Fi</string>
     <string name="withdraw_amount_error">Введите допустимую сумму</string>
     <string name="exchange_settings_summary">Управление каталогом бирж, известных этому кошельку</string>
@@ -136,10 +136,10 @@
         <item quantity="many">Монеты: %s (использованы %d раз)</item>
         <item quantity="other">Монеты: %s (использованы %d раз)</item>
     </plurals>
-    <string name="exchange_tos_error">Ошибка при отображении условий оказания услуг: %s</string>
+    <string name="exchange_tos_error">Ошибка при отображении условий оказания услуг: %1$s</string>
     <string name="settings_dev_mode_summary">Показывает информацию, необходимую для отладки программы</string>
     <string name="settings_version_protocol_merchant">Поддерживаемые версии мерчанта</string>
-    <string name="exchange_fee_deposit_fee">Комиссия за пополнение: %s</string>
+    <string name="exchange_fee_deposit_fee">Комиссия за пополнение: %1$s</string>
     <string name="settings_version_unknown">Неизвестна</string>
     <string name="settings_reset_summary">Обнуляет ваши средства</string>
 </resources>
