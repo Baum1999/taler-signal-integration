@@ -132,7 +132,7 @@
     <string name="withdraw_manual_payment_options">Opciones de pago soportadas por %1$s:
 \n
 \n%2$s</string>
-    <string name="withdraw_error_message">El retiro no es posible ahora mismo. Por favor prueba de nuevo más tarde.</string>
+    <string name="withdraw_error_message">El retiro no es posible ahora mismo. Por favor prueba de nuevo más tarde!</string>
     <string name="exchange_menu_manual_withdraw">Retirar</string>
     <plurals name="exchange_fee_coin">
         <item quantity="one">Moneda: %s (usada %d vez)</item>
@@ -319,4 +319,11 @@
     <string name="transaction_state_suspended">Esta transacción está suspendida</string>
     <string name="payment_aborting">Cancelando</string>
     <string name="settings_test_running">La prueba de integración se está ejecutando</string>
+    <string name="transaction_state_pending_bank">Esperando confirmación del banco</string>
+    <string name="amount_max">Monto máximo</string>
+    <string name="amount_excess">El monto excede el máximo</string>
+    <string name="amount_withdraw">Monto a retirar</string>
+    <string name="withdraw_fee">+%1$s comisiones de retiro</string>
+    <string name="withdraw_select_amount">Selecciona el monto</string>
+    <string name="settings_test_withdrawal">Retirándose ahora TESTKUDOS</string>
 </resources>
