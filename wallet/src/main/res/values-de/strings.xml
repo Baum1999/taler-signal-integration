@@ -313,4 +313,12 @@
     <string name="withdraw_manual_qr_epc">EPC-QR</string>
     <string name="withdraw_manual_qr_spc">Schweizer QR-Code</string>
     <string name="transaction_state_pending_bank">Warten auf Bestätigung in der Bank</string>
+    <string name="error_no_uri">Fehler: Kein Taler-URI gefunden</string>
+    <string name="payment_balance_insufficient_max">Unzureichende Deckung! Höchstbetrag ist %1$s</string>
+    <string name="withdraw_fee">+%1$s Abhebegebühr</string>
+    <string name="settings_test_withdrawal">TESTKUDOS werden nun abgehoben</string>
+    <string name="amount_max">Höchstbetrag</string>
+    <string name="amount_excess">Der Betrag ist zu hoch</string>
+    <string name="amount_withdraw">Betrag der Abhebung</string>
+    <string name="withdraw_select_amount">Betrag wählen</string>
 </resources>
