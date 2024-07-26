@@ -56,6 +56,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="char_count">%1$d/%2$d</string>
     <string name="copy" tools:override="true">Copy</string>
     <string name="currency">Currency</string>
+    <string name="edit">Edit</string>
     <string name="enter_uri">Enter taler:// URI</string>
     <string name="import_db">Import</string>
     <string name="loading">Loading</string>
@@ -95,7 +96,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="amount_lost">Amount lost</string>
     <string name="amount_negative">-%s</string>
     <string name="amount_max">Maximum amount</string>
-    <string name="amount_excess">Amount exceeds maximum</string>
+    <string name="amount_excess">Amount exceeds maximum of %1$s</string>
     <string name="amount_positive">+%s</string>
     <string name="amount_receive">Amount to receive</string>
     <string name="amount_received">Amount received</string>

@@ -22,14 +22,19 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import io.noties.markwon.Markwon
+import kotlinx.coroutines.launch
 import net.taler.common.fadeIn
 import net.taler.common.fadeOut
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.databinding.FragmentReviewExchangeTosBinding
 import java.text.ParseException
+import net.taler.wallet.withdraw.WithdrawStatus.Status.*
 
 class ReviewExchangeTosFragment : Fragment() {
 
@@ -48,38 +53,46 @@ class ReviewExchangeTosFragment : Fragment() {
         ui = FragmentReviewExchangeTosBinding.inflate(inflater, container, false)
         return ui.root
     }
-
+    
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         ui.acceptTosCheckBox.isChecked = false
         ui.acceptTosCheckBox.setOnCheckedChangeListener { _, _ ->
-            withdrawManager.acceptCurrentTermsOfService()
+            withdrawManager.acceptCurrentTos()
         }
-        withdrawManager.withdrawStatus.observe(viewLifecycleOwner) {
-            when (it) {
-                is WithdrawStatus.TosReviewRequired -> {
-                    val sections = try {
-                        // TODO remove next line once exchange delivers proper markdown
-                        val text = it.tosText.replace("****************", "================")
-                        parseTos(markwon, text)
-                    } catch (e: ParseException) {
-                        onTosError(e.message ?: "Unknown Error")
-                        return@observe
-                    }
-                    adapter.setSections(sections)
-                    ui.tosList.adapter = adapter
-                    ui.tosList.fadeIn()
 
-                    ui.acceptTosCheckBox.fadeIn()
-                    ui.progressBar.fadeOut()
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                withdrawManager.withdrawStatus.collect { status ->
+                    when (status.status) {
+                        TosReviewRequired -> {
+                            val tos = status.tosDetails!!.content
+                            val sections = try {
+                                parseTos(markwon, tos)
+                            } catch (e: ParseException) {
+                                onTosError(e.message ?: "Unknown Error")
+                                return@collect
+                            }
+
+                            adapter.setSections(sections)
+                            ui.tosList.adapter = adapter
+                            ui.tosList.fadeIn()
+
+                            ui.acceptTosCheckBox.fadeIn()
+                            ui.progressBar.fadeOut()
+                        }
+
+                        Loading -> {
+                            findNavController().navigate(R.id.action_reviewExchangeTOS_to_promptWithdraw)
+                        }
+
+                        InfoReceived -> {
+                            findNavController().navigate(R.id.action_reviewExchangeTOS_to_promptWithdraw)
+                        }
+
+                        else -> {}
+                    }
                 }
-                is WithdrawStatus.Loading -> {
-                    findNavController().navigate(R.id.action_reviewExchangeTOS_to_promptWithdraw)
-                }
-                is WithdrawStatus.ReceivedDetails -> {
-                    findNavController().navigate(R.id.action_reviewExchangeTOS_to_promptWithdraw)
-                }
-                else -> {}
             }
         }
     }

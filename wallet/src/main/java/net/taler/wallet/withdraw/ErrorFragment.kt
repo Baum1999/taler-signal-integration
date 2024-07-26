@@ -57,9 +57,9 @@ class ErrorFragment : Fragment() {
 
         // show dev error message if dev mode is on
         val status = withdrawManager.withdrawStatus.value
-        if (model.devMode.value == true && status is WithdrawStatus.Error) {
+        if (model.devMode.value == true && status.error != null) {
             ui.errorDevMessage.visibility = VISIBLE
-            ui.errorDevMessage.text = status.message
+            ui.errorDevMessage.text = status.error.userFacingMsg
         } else {
             ui.errorDevMessage.visibility = GONE
         }

@@ -93,7 +93,6 @@ class ManualWithdrawFragment : Fragment() {
 
         withdrawManager.getWithdrawalDetails(
             exchangeBaseUrl = exchangeItem.exchangeBaseUrl,
-            currency = currency,
             amount = amount,
         )
         findNavController().navigate(R.id.action_nav_exchange_manual_withdrawal_to_promptWithdraw)

@@ -21,6 +21,9 @@ import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
 import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -29,6 +32,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_SHORT
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 import net.taler.common.showError
 import net.taler.wallet.BuildConfig.FLAVOR
 import net.taler.wallet.BuildConfig.VERSION_CODE
@@ -36,7 +40,7 @@ import net.taler.wallet.BuildConfig.VERSION_NAME
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.showError
-import net.taler.wallet.withdraw.WithdrawTestStatus
+import net.taler.wallet.withdraw.TestWithdrawStatus
 import java.lang.System.currentTimeMillis
 
 
@@ -117,16 +121,21 @@ class SettingsFragment : PreferenceFragmentCompat() {
             true
         }
 
-        withdrawManager.testWithdrawalStatus.observe(viewLifecycleOwner) { status ->
-            if (status == null) return@observe
-            val loading = status is WithdrawTestStatus.Withdrawing
-            prefWithdrawTest.isEnabled = !loading
-            model.showProgressBar.value = loading
-            if (status is WithdrawTestStatus.Error) {
-                requireActivity().showError(R.string.withdraw_error_test, status.message)
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                withdrawManager.withdrawTestStatus.collect { status ->
+                    if (status is TestWithdrawStatus.None) return@collect
+                    val loading = status is TestWithdrawStatus.Withdrawing
+                    prefWithdrawTest.isEnabled = !loading
+                    model.showProgressBar.value = loading
+                    if (status is TestWithdrawStatus.Error) {
+                        requireActivity().showError(R.string.withdraw_error_test, status.message)
+                    }
+                    withdrawManager.resetTestWithdrawal()
+                }
             }
-            withdrawManager.testWithdrawalStatus.value = null
         }
+
         prefWithdrawTest.setOnPreferenceClickListener {
             withdrawManager.withdrawTestkudos()
             Snackbar.make(requireView(), getString(R.string.settings_test_withdrawal), LENGTH_LONG).show()

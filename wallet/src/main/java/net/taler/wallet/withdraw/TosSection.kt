@@ -16,7 +16,6 @@
 
 package net.taler.wallet.withdraw
 
-import android.util.Log
 import io.noties.markwon.Markwon
 import kotlinx.serialization.Serializable
 import org.commonmark.node.Code
@@ -41,7 +40,8 @@ internal fun parseTos(markwon: Markwon, text: String): List<TosSection> {
     val sections = ArrayList<TosSection>()
     while (node != null) {
         val next: Node? = node.next
-        if (node is Heading && node.level == 1) {
+        // TODO: better sectioning logic! level 1+2 is a hack
+        if (node is Heading && (node.level == 1 || node.level == 2)) {
             // if lastHeading exists, close previous section
             if (lastHeading != null) {
                 sections.add(TosSection(lastHeading, section))

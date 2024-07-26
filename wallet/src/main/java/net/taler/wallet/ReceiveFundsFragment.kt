@@ -64,6 +64,7 @@ import net.taler.wallet.compose.AmountInputField
 import net.taler.wallet.compose.DEFAULT_INPUT_DECIMALS
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.exchanges.ExchangeItem
+import net.taler.wallet.withdraw.WithdrawalDetailsForUri
 
 class ReceiveFundsFragment : Fragment() {
     private val model: MainViewModel by activityViewModels()
@@ -113,9 +114,13 @@ class ReceiveFundsFragment : Fragment() {
 
         // now that we have the exchange, we can navigate
         exchangeManager.withdrawalExchange = exchange
+        withdrawManager.resetWithdrawal()
         withdrawManager.getWithdrawalDetails(
             exchangeBaseUrl = exchange.exchangeBaseUrl,
-            currency = amount.currency,
+            uriInfo = WithdrawalDetailsForUri(
+                amount = amount,
+                currency = amount.currency,
+            ),
             amount = amount,
         )
         findNavController().navigate(R.id.action_receiveFunds_to_nav_prompt_withdraw)

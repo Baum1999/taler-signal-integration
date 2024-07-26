@@ -53,6 +53,7 @@ import net.taler.common.CurrencySpecification
 import net.taler.wallet.CURRENCY_BTC
 import net.taler.wallet.R
 import net.taler.common.canAppHandleUri
+import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.ShareButton
 import net.taler.wallet.compose.copyToClipBoard
 import net.taler.wallet.transactions.AmountType
@@ -64,10 +65,11 @@ import net.taler.wallet.withdraw.QrCodeSpec.Type.EpcQr
 import net.taler.wallet.withdraw.QrCodeSpec.Type.SPC
 import net.taler.wallet.withdraw.TransferData
 import net.taler.wallet.withdraw.WithdrawStatus
+import net.taler.wallet.withdraw.WithdrawalDetailsForAmount
 
 @Composable
 fun ScreenTransfer(
-    status: WithdrawStatus.ManualTransferRequired,
+    status: WithdrawStatus,
     qrCodes: List<QrCodeSpec>,
     spec: CurrencySpecification?,
     getQrCodes: (account: WithdrawalExchangeAccountDetails) -> Unit,
@@ -123,22 +125,22 @@ fun ScreenTransfer(
             when (val transfer = selectedTransfer) {
                 is TransferData.Taler -> TransferTaler(
                     transfer = transfer,
-                    exchangeBaseUrl = status.exchangeBaseUrl,
-                    transactionAmountRaw = status.transactionAmountRaw.withSpec(spec),
-                    transactionAmountEffective = status.transactionAmountEffective.withSpec(spec),
+                    exchangeBaseUrl = status.exchangeBaseUrl!!,
+                    transactionAmountRaw = status.amountInfo!!.amountRaw.withSpec(spec),
+                    transactionAmountEffective = status.amountInfo.amountEffective.withSpec(spec),
                 )
 
                 is TransferData.IBAN -> TransferIBAN(
                     transfer = transfer,
-                    exchangeBaseUrl = status.exchangeBaseUrl,
-                    transactionAmountRaw = status.transactionAmountRaw.withSpec(spec),
-                    transactionAmountEffective = status.transactionAmountEffective.withSpec(spec),
+                    exchangeBaseUrl = status.exchangeBaseUrl!!,
+                    transactionAmountRaw = status.amountInfo!!.amountRaw.withSpec(spec),
+                    transactionAmountEffective = status.amountInfo.amountEffective.withSpec(spec),
                 )
 
                 is TransferData.Bitcoin -> TransferBitcoin(
                     transfer = transfer,
-                    transactionAmountRaw = status.transactionAmountRaw.withSpec(spec),
-                    transactionAmountEffective = status.transactionAmountEffective.withSpec(spec),
+                    transactionAmountRaw = status.amountInfo!!.amountRaw.withSpec(spec),
+                    transactionAmountEffective = status.amountInfo.amountEffective.withSpec(spec),
                 )
             }
 
@@ -313,10 +315,15 @@ fun TransferAccountChooser(
 fun ScreenTransferPreview() {
     Surface {
         ScreenTransfer(
-            status = WithdrawStatus.ManualTransferRequired(
+            status = WithdrawStatus(
                 transactionId = "",
-                transactionAmountRaw = Amount.fromJSONString("KUDOS:10"),
-                transactionAmountEffective = Amount.fromJSONString("KUDOS:9.5"),
+                amountInfo = WithdrawalDetailsForAmount(
+                    amountRaw = Amount.fromJSONString("KUDOS:10"),
+                    amountEffective = Amount.fromJSONString("KUDOS:9.5"),
+                    scopeInfo = ScopeInfo.Global("KUDOS"),
+                    tosAccepted = true,
+                    withdrawalAccountsList = listOf(),
+                ),
                 exchangeBaseUrl = "test.exchange.taler.net",
                 withdrawalTransfers = listOf(
                     TransferData.IBAN(

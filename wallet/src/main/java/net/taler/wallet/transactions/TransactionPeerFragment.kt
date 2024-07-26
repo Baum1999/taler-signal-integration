@@ -21,6 +21,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -29,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -127,15 +129,26 @@ fun TransactionAmountComposable(label: String, amount: Amount, amountType: Amoun
 }
 
 @Composable
-fun TransactionInfoComposable(label: String, info: String) {
+fun TransactionInfoComposable(
+    label: String,
+    info: String,
+    trailing: (@Composable () -> Unit)? = null,
+) {
     Text(
         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
         text = label,
         style = MaterialTheme.typography.bodyMedium,
     )
-    Text(
+
+    Row(
         modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
-        text = info,
-        fontSize = 24.sp,
-    )
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = info,
+            fontSize = 24.sp,
+        )
+
+        trailing?.let { it() }
+    }
 }

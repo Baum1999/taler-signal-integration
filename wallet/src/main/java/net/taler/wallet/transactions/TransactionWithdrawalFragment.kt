@@ -26,12 +26,12 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
+import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.transactions.WithdrawalDetails.ManualTransfer
 import net.taler.wallet.transactions.WithdrawalDetails.TalerBankIntegrationApi
 import net.taler.wallet.withdraw.TransactionWithdrawalComposable
-import net.taler.wallet.withdraw.createManualTransferRequired
 
 class TransactionWithdrawalFragment : TransactionDetailFragment(), ActionListener {
 
@@ -79,14 +79,19 @@ class TransactionWithdrawalFragment : TransactionDetailFragment(), ActionListene
                 if (tx !is TransactionWithdrawal) return
                 if (tx.withdrawalDetails !is ManualTransfer) return
                 if (tx.withdrawalDetails.exchangeCreditAccountDetails.isNullOrEmpty()) return
-                val status = createManualTransferRequired(
+
+                withdrawManager.viewManualWithdrawal(
                     transactionId = tx.transactionId,
                     exchangeBaseUrl = tx.exchangeBaseUrl,
                     amountRaw = tx.amountRaw,
                     amountEffective = tx.amountEffective,
                     withdrawalAccountList = tx.withdrawalDetails.exchangeCreditAccountDetails,
+                    scopeInfo = transactionManager.selectedScope ?: ScopeInfo.Exchange(
+                        currency = tx.amountRaw.currency,
+                        url = tx.exchangeBaseUrl,
+                    ),
                 )
-                withdrawManager.viewManualWithdrawal(status)
+
                 findNavController().navigate(
                     R.id.action_nav_transactions_detail_withdrawal_to_nav_exchange_manual_withdrawal_success,
                 )

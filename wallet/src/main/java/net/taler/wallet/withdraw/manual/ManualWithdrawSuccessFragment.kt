@@ -40,13 +40,13 @@ class ManualWithdrawSuccessFragment : Fragment() {
     private val withdrawManager by lazy { model.withdrawManager }
     private val balanceManager by lazy { model.balanceManager }
 
-    private lateinit var status: WithdrawStatus.ManualTransferRequired
+    private lateinit var status: WithdrawStatus
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View = ComposeView(requireContext()).apply {
-        status = withdrawManager.withdrawStatus.value as WithdrawStatus.ManualTransferRequired
+        status = withdrawManager.withdrawStatus.value
 
         // Set action bar subtitle and unset on exit
         if (status.withdrawalTransfers.size > 1) {
@@ -73,7 +73,7 @@ class ManualWithdrawSuccessFragment : Fragment() {
                     status = status,
                     qrCodes = qrCodes ?: emptyList(),
                     getQrCodes = { withdrawManager.getQrCodesForPayto(it.paytoUri) },
-                    spec = balanceManager.getSpecForCurrency(status.transactionAmountRaw.currency),
+                    spec = status.amountInfo?.amountRaw?.currency?.let { balanceManager.getSpecForCurrency(it) },
                     bankAppClick = { onBankAppClick(it) },
                     shareClick = { onShareClick(it) },
                 )

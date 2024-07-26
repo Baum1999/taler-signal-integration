@@ -188,7 +188,7 @@ class MainViewModel(
 
     @UiThread
     fun dangerouslyReset() {
-        withdrawManager.testWithdrawalStatus.value = null
+        withdrawManager.resetTestWithdrawal()
         balanceManager.resetBalances()
     }
 
