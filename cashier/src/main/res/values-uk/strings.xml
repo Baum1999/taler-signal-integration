@@ -1,2 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="app_name">Касир Taler</string>
+    <string name="config_bank_url">API адреса банку</string>
+    <string name="config_username">Ім\'я користувача</string>
+    <string name="config_password">Пароль</string>
+    <string name="config_button_save">Зберегти</string>
+    <string name="config_bank_url_error">Адреса недійсна.</string>
+    <string name="config_username_error">Будь ласка, введіть своє ім\'я користувача!</string>
+    <string name="config_error">Помилка отримання конфігурації</string>
+    <string name="balance_current_label">Поточний баланс</string>
+    <string name="balance_error">ПОМИЛКА: %s</string>
+    <string name="balance_offline">Офлайн. Будь ласка, підключіться до Інтернету.</string>
+    <string name="ok">ОК</string>
+    <string name="action_reconfigure">Переконфігурувати</string>
+    <string name="action_lock">Заблокувати</string>
+    <string name="action_about">Про програму</string>
+    <string name="withdraw_input_amount">Сума</string>
+    <string name="withdraw_into">Скільки електронних грошей слід зняти?</string>
+    <string name="withdraw_error_zero">Введіть позитивну суму!</string>
+    <string name="withdraw_error_currency_mismatch">Помилка: банк використовує іншу валюту</string>
+    <string name="withdraw_error_fetch">Помилка зв\'язку з банком: %s</string>
+    <string name="withdraw_button_confirm">Зняти</string>
+    <string name="transaction_intro_nfc">Скануйте код або використовуйте NFC з додатком гаманця Taler, щоб зняти кошти:</string>
+    <string name="transaction_intro_scanned">Будь ласка, підтвердіть транзакцію!</string>
+    <string name="transaction_confirm">Підтвердити</string>
+    <string name="transaction_abort">Скасувати</string>
+    <string name="transaction_aborted">Транзакцію скасовано</string>
+    <string name="transaction_button_back">Повернутися</string>
+    <string name="transaction_last_success">Остання транзакція: знято %s</string>
+    <string name="transaction_last_aborted">Остання транзакція: скасовано</string>
+    <string name="about_title">GNU Taler Касир</string>
+    <string name="about_version">Версія: %s</string>
+    <string name="about_license">Ліцензія: %s</string>
+    <string name="about_copyright">Авторські права: %s</string>
+    <string name="about_supported_bank_api">Версія API банку: %s</string>
+    <string name="host_apdu_service_desc">Платежі Taler Cashier NFC</string>
+    <string name="config_error_auth">Недійсне ім\'я користувача або пароль!</string>
+    <string name="config_demo_hint">Для тестування ви можете &lt;a href=%s&gt;створити тестовий обліковий запис у демо-банку&lt;/a&gt;.</string>
+    <string name="withdraw_error_insufficient_balance">Недостатній баланс</string>
+    <string name="withdraw_error_timeout">Жоден гаманець не спробував зняти кошти. Будь ласка, спробуйте ще раз.</string>
+    <string name="transaction_intro">Скануйте код за допомогою додатку гаманця Taler, щоб зняти кошти:</string>
+    <string name="transaction_last_error">Остання транзакція: не вдалася</string>
+</resources>
