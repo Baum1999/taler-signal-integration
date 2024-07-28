@@ -17,7 +17,7 @@
     <string name="app_name">Гаманець Taler</string>
     <!-- Google Play Store -->
 
-    <string name="google_play_title" tools:keep="@string/google_play_title"/>
+    <string name="google_play_title" tools:keep="@string/google_play_title">Гаманець Taler (експериментальний)</string>
     <string name="google_play_short_desc" tools:keep="@string/google_play_short_desc"/>
     <string name="google_play_full_desc" tools:keep="@string/google_play_full_desc"/>
     <!-- Navigation  -->
