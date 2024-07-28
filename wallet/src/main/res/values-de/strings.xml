@@ -44,7 +44,7 @@
     <string name="withdraw_fees">Gebühr</string>
     <string name="withdraw_exchange">Zahlungsdienstleister</string>
     <string name="withdraw_button_confirm">Abhebung bestätigen</string>
-    <string name="withdraw_button_confirm_bank">Überweisen Sie vom Bankkonto</string>
+    <string name="withdraw_button_confirm_bank">Überweisungsauftrag in der Bank erteilen</string>
     <string name="withdraw_button_tos">Nutzungsbedingungen einsehen</string>
     <string name="withdraw_waiting_confirm">Warte auf Bestätigung</string>
     <string name="withdraw_manual_title">Führen Sie eine manuelle Überweisung an den Zahlungsdienstleister durch</string>
