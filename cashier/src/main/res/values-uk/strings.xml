@@ -34,7 +34,7 @@
     <string name="about_license">Ліцензія: %s</string>
     <string name="about_copyright">Авторські права: %s</string>
     <string name="about_supported_bank_api">Версія API банку: %s</string>
-    <string name="host_apdu_service_desc">Платежі Taler Cashier NFC</string>
+    <string name="host_apdu_service_desc">NFC платежі Taler Cashier</string>
     <string name="config_error_auth">Недійсне ім\'я користувача або пароль!</string>
     <string name="config_demo_hint">Для тестування ви можете &lt;a href=%s&gt;створити тестовий обліковий запис у демо-банку&lt;/a&gt;.</string>
     <string name="withdraw_error_insufficient_balance">Недостатній баланс</string>
