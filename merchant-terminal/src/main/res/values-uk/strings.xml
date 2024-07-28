@@ -1,2 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="app_name">GNU Taler Точка Продажу</string>
+    <string name="app_name_short">Термінал продавця</string>
+    <string name="project_name">GNU Taler</string>
+    <string name="menu_order">Замовлення</string>
+    <string name="menu_history">Історія</string>
+    <string name="menu_settings">Налаштування</string>
+    <string name="order_label_title">Замовлення #%s</string>
+    <string name="order_total">Загальна сума: %s</string>
+    <string name="order_restart">Перезапустити</string>
+    <string name="order_undo">Відмінити</string>
+    <string name="order_previous">Попереднє</string>
+    <string name="order_next">Наступне</string>
+    <string name="order_custom">Додати користувацький продукт</string>
+    <string name="order_complete">Завершити</string>
+    <string name="order_custom_product">Назва користувацького продукту</string>
+    <string name="order_custom_product_default">Чайові</string>
+    <string name="order_custom_add_button">Додати</string>
+    <string name="config_old_label">JSON файл (старий)</string>
+    <string name="config_new_label">Продавець (новий)</string>
+    <string name="config_url">URL конфігурації</string>
+    <string name="config_password">Пароль</string>
+    <string name="config_merchant_url">URL продавця</string>
+    <string name="config_token">Токен доступу</string>
+    <string name="config_ok">Отримати конфігурацію</string>
+    <string name="config_error_network">Помилка: не вдалося підключитися до сервера конфігурації</string>
+    <string name="config_error_malformed">Помилка: конфігураційний JSON некоректний</string>
+    <string name="config_error_currency">Помилка: продукт %1$s має валюту %2$s, але очікувалось %3$s</string>
+    <string name="config_error_product_zero">Помилка: не знайдено дійсних продуктів</string>
+    <string name="config_error_unknown">Помилка: Недійсна конфігурація</string>
+    <string name="config_fetching">Отримання конфігурації…</string>
+    <string name="config_save_password">Запам\'ятати пароль</string>
+    <string name="config_forget_password">Не зберігати пароль</string>
+    <string name="config_fetching_label">Отримання конфігурації</string>
+    <string name="payment_intro_nfc">Будь ласка, дозвольте клієнту відсканувати QR-код або використати NFC для оплати.</string>
+    <string name="payment_intro">Будь ласка, дозвольте клієнту відсканувати QR-код для оплати.</string>
+    <string name="payment_claimed">Очікування підтвердження оплати клієнтом…</string>
+    <string name="payment_cancel">Скасувати оплату</string>
+    <string name="payment_received">Оплату отримано</string>
+    <string name="payment_back_button">Продовжити</string>
+    <string name="payment_order_id">Квитанція #%s</string>
+    <string name="payment_process_label">Необхідна оплата</string>
+    <string name="payment_canceled">Оплату скасовано</string>
+    <string name="history_label">Історія платежів</string>
+    <string name="history_unpaid">Неоплачено</string>
+    <string name="history_refund">Повернення</string>
+    <string name="refund_amount">Сума</string>
+    <string name="refund_abort">Скасувати</string>
+    <string name="refund_complete">Отримано</string>
+    <string name="refund_confirm">Затвердити повернення</string>
+    <string name="refund_error_max_amount">Більше, ніж сума замовлення %s</string>
+    <string name="refund_error_invalid_amount">Недійсна сума</string>
+    <string name="refund_error_zero">Сума повинна бути додатним числом</string>
+    <string name="refund_error_backend">Помилка обробки повернення</string>
+    <string name="refund_error_deadline">Термін повернення минув</string>
+    <string name="refund_error_already_refunded">Вже повернуто</string>
+    <string name="refund_intro_nfc">Будь ласка, дозвольте клієнту відсканувати QR-код або використати NFC для пропозиції повернення</string>
+    <string name="refund_intro">Будь ласка, дозвольте клієнту відсканувати QR-код для пропозиції повернення</string>
+    <string name="refund_order_ref">Посилання на покупку: %1$s
+\n
+\n%2$s</string>
+    <string name="error_payment">Помилка: Оплату не отримано</string>
+    <string name="error_timeout">Оплату не зроблено протягом періоду оплати, будь ласка, спробуйте ще раз!</string>
+    <string name="error_cancelled">Оплату скасовано</string>
+    <string name="error_history">Помилка отримання історії замовлень</string>
+    <string name="toast_back_to_exit">Натисніть «назад» ще раз, щоб вийти</string>
+    <string name="host_apdu_service_desc">Платежі Taler Merchant NFC</string>
+    <string name="config_username">Ім\'я користувача</string>
+    <string name="config_label">Налаштування продавця</string>
+    <string name="config_old_deprecation">Цей метод конфігурації застарілий, будь ласка, використовуйте нову конфігурацію API продавця.</string>
+    <string name="config_auth_error">Помилка: недійсне ім\'я користувача або пароль</string>
+    <string name="config_error_category">Помилка: не знайдено дійсної категорії продукту</string>
+    <string name="config_error_product_category_id">Помилка: продукт %1$s посилається на невідомий ідентифікатор категорії %2$d</string>
+    <string name="config_changed">Змінено на нового продавця, використовуючи %s</string>
+    <string name="config_docs">Будь ласка, зверніться до <a href="https://docs.taler.net/taler-merchant-pos-terminal.html#apis-and-data-formats">документації</a> для формату конфігурації.</string>
+    <string name="refund_reason">Причина повернення</string>
+</resources>
