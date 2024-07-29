@@ -97,6 +97,8 @@ class PromptWithdrawFragment: Fragment() {
 
     private val selectExchangeDialog = SelectExchangeDialogFragment()
 
+    private var startup: Boolean = true
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -115,9 +117,9 @@ class PromptWithdrawFragment: Fragment() {
                     }
 
                     when (s.status) {
-                        None, Loading, TosReviewRequired -> LoadingScreen()
+                        None, Loading -> LoadingScreen()
 
-                        InfoReceived, Updating -> {
+                        InfoReceived, TosReviewRequired, Updating -> {
                             val spec = remember(s) {
                                 defaultExchange?.scopeInfo?.let { scopeInfo ->
                                     balanceManager.getSpecForScopeInfo(scopeInfo)
@@ -138,9 +140,15 @@ class PromptWithdrawFragment: Fragment() {
                                         loading = false,
                                     )
                                 },
+                                onTosReview = {
+                                    // TODO: rewrite ToS review screen in compose
+                                    findNavController().navigate(
+                                        R.id.action_promptWithdraw_to_reviewExchangeTOS,
+                                    )
+                                },
                                 onConfirm = { age ->
                                     withdrawManager.acceptWithdrawal(age)
-                                }
+                                },
                             )
                         }
                         else -> {}
@@ -149,8 +157,8 @@ class PromptWithdrawFragment: Fragment() {
             }
 
             LaunchedEffect(Unit) {
+                val s = status
                 coroutineScope.launch {
-                    val s = status
                     if (s.uriInfo?.amount == null && s.uriInfo?.defaultExchangeBaseUrl != null) {
                         defaultExchange = exchangeManager.findExchangeByUrl(s.uriInfo.defaultExchangeBaseUrl)
                     }
@@ -175,10 +183,12 @@ class PromptWithdrawFragment: Fragment() {
                     }
 
                     when (status.status) {
-                        // TODO: rewrite ToS review screen in compose
-                        TosReviewRequired -> {
-                            findNavController().navigate(
-                                R.id.action_promptWithdraw_to_reviewExchangeTOS,
+                        InfoReceived -> if (startup) { // only fire at startup
+                            startup = false
+                            withdrawManager.getWithdrawalDetails(
+                                amount = status.amountInfo?.amountRaw ?: status.uriInfo?.amount,
+                                exchangeBaseUrl = status.exchangeBaseUrl ?: status.uriInfo?.defaultExchangeBaseUrl,
+                                loading = true,
                             )
                         }
 
@@ -228,9 +238,10 @@ fun WithdrawalShowInfo(
     spec: CurrencySpecification?,
     onSelectAmount: (amount: Amount) -> Unit,
     onSelectExchange: () -> Unit,
+    onTosReview: () -> Unit,
     onConfirm: (age: Int?) -> Unit,
 ) {
-    val defaultAmount = status.uriInfo?.amount
+    val defaultAmount = status.amountInfo?.amountRaw ?: status.uriInfo?.amount
     val maxAmount = status.uriInfo?.maxAmount
     val editableAmount = status.uriInfo?.editableAmount ?: false
     val wireFee = status.uriInfo?.wireFee ?: Amount.zero(currency)
@@ -238,16 +249,17 @@ fun WithdrawalShowInfo(
     val possibleExchanges = status.uriInfo?.possibleExchanges ?: emptyList()
     val ageRestrictionOptions = status.amountInfo?.ageRestrictionOptions ?: emptyList()
 
+    var startup by remember { mutableStateOf(true) }
     var selectedAmount by remember { mutableStateOf(defaultAmount) }
     var selectedAge by remember { mutableStateOf<Int?>(null) }
     var error by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
 
     selectedAmount.useDebounce {
-        it?.let { amount ->
-            if (editableAmount) {
-                onSelectAmount(amount)
-            }
+        if (startup) { // do not fire at startup
+            startup = false
+        } else it?.let {
+            onSelectAmount(it)
         }
     }
 
@@ -374,15 +386,17 @@ fun WithdrawalShowInfo(
                         && status.status != Updating
                         && selectedAmount?.let { !it.isZero() } == true,
                 onClick = {
-                    selectedAmount?.let { onConfirm(selectedAge) }
+                    if (status.status == TosReviewRequired) {
+                        onTosReview()
+                    } else selectedAmount?.let {
+                        onConfirm(selectedAge)
+                    }
                 },
             ) {
-                if (status.status == Updating) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(15.dp)
-                    )
-                } else {
-                    Text(stringResource(R.string.withdraw_button_confirm))
+                when (status.status) {
+                    Updating -> CircularProgressIndicator(modifier = Modifier.size(15.dp))
+                    TosReviewRequired -> Text(stringResource(R.string.withdraw_button_tos))
+                    else -> Text(stringResource(R.string.withdraw_button_confirm))
                 }
             }
         }
@@ -507,6 +521,7 @@ fun WithdrawalShowInfoPreview() {
             spec = null,
             onSelectExchange = {},
             onSelectAmount = {},
+            onTosReview = {},
             onConfirm = {},
         )
     }

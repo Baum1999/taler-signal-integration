@@ -272,8 +272,16 @@ class WithdrawManager(
         val status = _withdrawStatus.getAndUpdate { value ->
             value.copy(status = if (loading) Loading else Updating)
         }
-        val exchangeBaseUrl2 = exchangeBaseUrl ?: status.exchangeBaseUrl!!
-        val amount2 = amount?.toJSONString() ?: status.amountInfo!!.amountRaw.toJSONString()
+
+        val exchangeBaseUrl2 = exchangeBaseUrl
+            ?: status.exchangeBaseUrl
+            ?: error("no exchangeBaseUrl")
+
+        val amount2 = amount?.toJSONString()
+            ?: status.uriInfo?.amount?.toJSONString()
+            ?: status.amountInfo?.amountRaw?.toJSONString()
+            ?: error("no amount")
+
         api.request("getWithdrawalDetailsForAmount", WithdrawalDetailsForAmount.serializer()) {
             put("exchangeBaseUrl", exchangeBaseUrl2)
             put("amount", amount2)
@@ -285,12 +293,15 @@ class WithdrawManager(
                     value.copy(
                         status = InfoReceived,
                         exchangeBaseUrl = exchangeBaseUrl2,
-                        uriInfo = uriInfo,
+                        uriInfo = uriInfo ?: value.uriInfo,
                         amountInfo = details,
                         currency = details.amountRaw.currency,
                     )
                 }
-            } else getExchangeTos(exchangeBaseUrl2)
+            } else getExchangeTos(
+                exchangeBaseUrl2,
+                amountInfo = details,
+            )
         }
     }
 
@@ -310,6 +321,7 @@ class WithdrawManager(
 
     private fun getExchangeTos(
         exchangeBaseUrl: String,
+        amountInfo: WithdrawalDetailsForAmount? = null,
     ) = scope.launch {
         api.request("getExchangeTos", TosResponse.serializer()) {
             put("exchangeBaseUrl", exchangeBaseUrl)
@@ -319,6 +331,7 @@ class WithdrawManager(
             _withdrawStatus.update { value ->
                 value.copy(
                     status = TosReviewRequired,
+                    amountInfo = amountInfo ?: value.amountInfo,
                     tosDetails = tos,
                 )
             }
@@ -329,8 +342,11 @@ class WithdrawManager(
      * Accept the currently displayed terms of service.
      */
     fun acceptCurrentTos() = scope.launch {
-        val exchangeBaseUrl = withdrawStatus.value.exchangeBaseUrl!!
-        val tos = withdrawStatus.value.tosDetails!!
+        val exchangeBaseUrl = withdrawStatus.value.exchangeBaseUrl
+            ?: error("no exchangeBaseUrl")
+        val tos = withdrawStatus.value.tosDetails
+            ?: error("no tosDetails")
+
         api.request<Unit>("setExchangeTosAccepted") {
             put("exchangeBaseUrl", exchangeBaseUrl)
             put("etag", tos.currentEtag)
@@ -360,9 +376,10 @@ class WithdrawManager(
         status: WithdrawStatus,
         restrictAge: Int? = null,
     ) {
-        val exchangeBaseUrl = status.exchangeBaseUrl!!
-        val talerWithdrawUri = status.talerWithdrawUri!!
-        val amountInfo = status.amountInfo!!
+        val exchangeBaseUrl = status.exchangeBaseUrl ?: error("no exchangeBaseUrl")
+        val talerWithdrawUri = status.talerWithdrawUri ?: error("no talerWithdrawUri")
+        val amountInfo = status.amountInfo ?: error("no amountInfo")
+
         api.request("acceptBankIntegratedWithdrawal", AcceptWithdrawalResponse.serializer()) {
             restrictAge?.let { put("restrictAge", it) }
             put("exchangeBaseUrl", exchangeBaseUrl)
@@ -384,8 +401,9 @@ class WithdrawManager(
         status: WithdrawStatus,
         restrictAge: Int? = null,
     ) {
-        val exchangeBaseUrl = status.exchangeBaseUrl!!
-        val amountInfo = status.amountInfo!!
+        val exchangeBaseUrl = status.exchangeBaseUrl ?: error("no exchangeBaseUrl")
+        val amountInfo = status.amountInfo ?: error("no amountInfo")
+
         api.request("acceptManualWithdrawal", AcceptManualWithdrawalResponse.serializer()) {
             restrictAge?.let { put("restrictAge", it) }
             put("exchangeBaseUrl", exchangeBaseUrl)
@@ -458,7 +476,7 @@ class WithdrawManager(
         status = ManualTransferRequired,
         manualTransferResponse = response,
         withdrawalTransfers = response.withdrawalAccountsList.mapNotNull {
-            val details = status.amountInfo!!
+            val details = status.amountInfo ?: error("no amountInfo")
             val uri = Uri.parse(it.paytoUri.replace("receiver-name=", "receiver_name="))
             if ("bitcoin".equals(uri.authority, true)) {
                 val msg = uri.getQueryParameter("message").orEmpty()
