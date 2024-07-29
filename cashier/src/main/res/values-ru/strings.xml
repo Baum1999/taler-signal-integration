@@ -40,5 +40,5 @@
     <string name="about_license">Лицензия: %s</string>
     <string name="about_copyright">Авторские права: %s</string>
     <string name="about_supported_bank_api">Версия API банка: %s</string>
-    <string name="host_apdu_service_desc">Taler кассир NFC платежи</string>
+    <string name="host_apdu_service_desc">Taler Cashier NFC платежи</string>
 </resources>
