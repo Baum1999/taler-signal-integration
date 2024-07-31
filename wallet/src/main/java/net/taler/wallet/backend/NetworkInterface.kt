@@ -18,7 +18,6 @@ package net.taler.wallet.backend
 
 import android.util.Log
 import io.ktor.client.call.body
-import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.request.header
 import io.ktor.client.request.headers
