@@ -18,6 +18,7 @@ package net.taler.wallet.backend
 
 import android.util.Log
 import io.ktor.client.call.body
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.request.header
 import io.ktor.client.request.headers
@@ -74,8 +75,7 @@ class NetworkInterface: Networking.RequestHandler {
                     }
                 }
             } catch (e: ResponseException) {
-                Log.d(TAG, "Exception handling HTTP response", e)
-                null
+                e.response // send non-200 responses to wallet-core anyway
             } catch (e: IOException) {
                 Log.d(TAG,  "Exception handling HTTP response", e)
                 null
