@@ -14,10 +14,10 @@
   ~ You should have received a copy of the GNU General Public License along with
   ~ GNU Taler; see the file COPYING.  If not, see <http://www.gnu.org/licenses/>
   --><!-- NOTE: please organize strings in alphabetic order! --><resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name">Гаманець Taler</string>
+    <string name="app_name">Taler Wallet</string>
     <!-- Google Play Store -->
 
-    <string name="google_play_title" tools:keep="@string/google_play_title">Гаманець Taler (експериментальний)</string>
+    <string name="google_play_title" tools:keep="@string/google_play_title">Taler Wallet (експериментальний)</string>
     <string name="google_play_short_desc" tools:keep="@string/google_play_short_desc">GNU Taler робить конфіденційні онлайн-транзакції швидкими та легкими.</string>
     <string name="google_play_full_desc" tools:keep="@string/google_play_full_desc">Цей додаток є гаманцем для GNU Taler. Він є дуже експериментальним і ще не готовий до використання в продукції. GNU Taler — це система платежів, що зберігає конфіденційність. Клієнти можуть залишатися анонімними, але продавці не можуть приховати свої доходи через платежі за допомогою GNU Taler. Це допомагає уникнути ухилення від сплати податків і відмивання грошей. Основний випадок використання GNU Taler — це платежі; він не призначений для зберігання вартості. Платежі завжди забезпечуються існуючою валютою. Платежі здійснюються після обміну існуючих грошей на електронні гроші за допомогою служби обміну, тобто постачальника платіжних послуг для Taler. Під час здійснення платежу клієнтам потрібен лише заряджений гаманець. Продавець може приймати платежі без реєстрації клієнтів на вебсайті продавця. GNU Taler стійкий до багатьох видів шахрайства, таких як фішинг інформації про кредитні картки або шахрайство з поверненням платежів. У разі втрати або крадіжки зникнути може лише обмежена сума грошей, що залишилася в гаманці.</string>
     <!-- Navigation  -->
@@ -191,8 +191,8 @@
     <string name="send_deposit_check_fees_button">Перевірити комісії</string>
     <string name="send_deposit_create_button">Зробити депозит</string>
     <string name="send_deposit_bitcoin_create_button">Переказати Bitcoin</string>
-    <string name="send_peer">На інший гаманець</string>
-    <string name="send_peer_bitcoin">На інший гаманець Taler</string>
+    <string name="send_peer">На інший wallet</string>
+    <string name="send_peer_bitcoin">На інший Taler wallet</string>
     <string name="send_peer_title">Надіслати гроші на інший гаманець</string>
     <string name="send_peer_create_button">Надіслати кошти зараз</string>
     <string name="send_peer_payment_instruction">Дозвольте отримувачу відсканувати цей QR-код для отримання:</string>
@@ -276,7 +276,7 @@
     <string name="exchange_menu_manual_withdraw">Зняття</string>
     <string name="exchange_not_contacted">Постачальник не контактував</string>
     <string name="exchange_reload">Оновити інформацію</string>
-    <string name="exchange_settings_summary">Управління списком постачальників, відомих цьому гаманцю</string>
+    <string name="exchange_settings_summary">Управління списком постачальників, відомих цьому wallet</string>
     <string name="exchange_settings_title">Постачальники</string>
     <string name="exchange_tos_accept">Прийняти умови надання послуг</string>
     <string name="exchange_tos_error">Помилка показу умов надання послуг: %1$s</string>
@@ -322,7 +322,7 @@
     <string name="settings_test_summary">Виконує тестові транзакції з демо-набором</string>
     <string name="settings_test_withdrawal">Зараз знімаємо TESTKUDOS</string>
     <string name="settings_version_app">Версія додатка</string>
-    <string name="settings_version_core">Версія ядра гаманця</string>
+    <string name="settings_version_core">Версія ядра wallet</string>
     <string name="settings_version_protocol_exchange">Підтримувані версії обміну</string>
     <string name="settings_version_protocol_merchant">Підтримувані версії продавця</string>
     <string name="settings_version_unknown">Невідомо</string>
@@ -335,7 +335,7 @@
     <string name="refund_title">Повернення</string>
     <!-- Miscellaneous -->
 
-    <string name="host_apdu_service_desc">Платежі Taler NFC</string>
+    <string name="host_apdu_service_desc">NFC платежі Taler</string>
     <string name="wifi_connect_error">Не вдалося підключитися до безкоштовного Wi-Fi: %1$s</string>
     <string name="wifi_disabled_error">Увімкніть Wi-Fi, щоб отримати безкоштовний Wi-Fi</string>
     <string name="error_no_uri">Помилка: Taler URI не знайдено</string>
