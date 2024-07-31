@@ -22,7 +22,7 @@ plugins {
     id "kotlinx-serialization"
 }
 
-def qtart_version = "0.12.6"
+def qtart_version = "0.12.7"
 
 static def versionCodeEpoch() {
     return (new Date().getTime() / 1000).toInteger()
@@ -141,7 +141,7 @@ dependencies {
     implementation "androidx.compose.runtime:runtime-livedata"
     implementation "androidx.lifecycle:lifecycle-viewmodel-compose"
     implementation "com.google.accompanist:accompanist-themeadapter-material3:0.28.0"
-    implementation 'androidx.activity:activity-compose:1.9.0'
+    implementation 'androidx.activity:activity-compose:1.9.1'
     implementation 'androidx.compose.ui:ui-tooling-preview'
     debugImplementation 'androidx.compose.ui:ui-tooling'
 
@@ -170,7 +170,7 @@ dependencies {
     implementation "io.noties.markwon:ext-tables:$markwon_version"
     implementation "io.noties.markwon:recycler:$markwon_version"
 
-    // Java Native access for qtart
+    // Java Native Access (must always match JNA in qtart)
     implementation "net.java.dev.jna:jna:5.13.0@aar"
 
     testImplementation "junit:junit:$junit_version"
