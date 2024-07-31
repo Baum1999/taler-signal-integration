@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">GNU Taler Точка Продажу</string>
+    <string name="app_name">GNU Taler Point-of-Sale</string>
     <string name="app_name_short">Термінал продавця</string>
     <string name="project_name">GNU Taler</string>
     <string name="menu_order">Замовлення</string>
@@ -65,7 +65,7 @@
     <string name="error_cancelled">Оплату скасовано</string>
     <string name="error_history">Помилка отримання історії замовлень</string>
     <string name="toast_back_to_exit">Натисніть «назад» ще раз, щоб вийти</string>
-    <string name="host_apdu_service_desc">Платежі Taler Merchant NFC</string>
+    <string name="host_apdu_service_desc">NFC платежі Taler Merchant</string>
     <string name="config_username">Ім\'я користувача</string>
     <string name="config_label">Налаштування продавця</string>
     <string name="config_old_deprecation">Цей метод конфігурації застарілий, будь ласка, використовуйте нову конфігурацію API продавця.</string>
