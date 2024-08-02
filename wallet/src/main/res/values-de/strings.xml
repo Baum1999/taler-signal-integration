@@ -321,4 +321,5 @@
     <string name="amount_excess">Der Betrag ist zu hoch</string>
     <string name="amount_withdraw">Betrag der Abhebung</string>
     <string name="withdraw_select_amount">Betrag wählen</string>
+    <string name="edit">Bearbeiten</string>
 </resources>
