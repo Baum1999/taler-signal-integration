@@ -135,7 +135,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="transaction_refresh">Coin expiry change fee</string>
     <string name="transaction_refund">Refund</string>
     <string name="transaction_state_aborted">This transaction was aborted</string>
-    <string name="transaction_state_aborted_manual">This transaction was aborted. If you have already sent money to this exchange, it will be transferred back to you in %1$s</string>
+    <string name="transaction_state_aborted_manual">This transaction was aborted. If you already sent money to this exchange, it will be transferred back to you in %1$s</string>
     <string name="transaction_state_aborting">This transaction is aborting</string>
     <string name="transaction_state_expired">This transaction has expired</string>
     <string name="transaction_state_failed">This transaction has failed</string>
