@@ -43,6 +43,7 @@ import net.taler.wallet.TAG
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.common.CurrencySpecification
+import net.taler.common.RelativeTime
 import net.taler.wallet.refund.RefundPaymentInfo
 import net.taler.wallet.transactions.TransactionMajorState.None
 import net.taler.wallet.transactions.TransactionMajorState.Pending
@@ -184,6 +185,7 @@ sealed class WithdrawalDetails {
     @SerialName("manual-transfer")
     class ManualTransfer(
         val exchangeCreditAccountDetails: List<WithdrawalExchangeAccountDetails>? = null,
+        val reserveClosingDelay: RelativeTime,
     ) : WithdrawalDetails()
 
     @Serializable

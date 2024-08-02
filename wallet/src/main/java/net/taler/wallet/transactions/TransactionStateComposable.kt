@@ -27,10 +27,15 @@ import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import net.taler.common.Amount
+import net.taler.common.RelativeTime
+import net.taler.common.Timestamp
+import net.taler.common.toAbsoluteTime
 import net.taler.wallet.R
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.transactions.TransactionMajorState.Aborted
@@ -41,16 +46,24 @@ import net.taler.wallet.transactions.TransactionMajorState.Failed
 import net.taler.wallet.transactions.TransactionMajorState.Pending
 import net.taler.wallet.transactions.TransactionMajorState.Suspended
 import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
+import net.taler.wallet.transactions.WithdrawalDetails.ManualTransfer
 
 @Composable
 fun TransactionStateComposable(
     modifier: Modifier = Modifier,
     state: TransactionState,
+    tx: Transaction? = null,
 ) {
+    val context = LocalContext.current
     val message = when (state) {
         TransactionState(Pending, BankConfirmTransfer) -> stringResource(R.string.transaction_state_pending_bank)
         TransactionState(Pending) -> stringResource(R.string.transaction_state_pending)
-        TransactionState(Aborted) -> stringResource(R.string.transaction_state_aborted)
+        TransactionState(Aborted) -> if (tx is TransactionWithdrawal && tx.withdrawalDetails is ManualTransfer) {
+            stringResource(
+                R.string.transaction_state_aborted_manual,
+                (tx.timestamp + tx.withdrawalDetails.reserveClosingDelay).ms.toAbsoluteTime(context).toString(),
+            )
+        } else stringResource(R.string.transaction_state_aborted)
         TransactionState(Aborting) -> stringResource(R.string.transaction_state_aborting)
         TransactionState(Suspended) -> stringResource(R.string.transaction_state_suspended)
         TransactionState(Failed) -> stringResource(R.string.transaction_state_failed)
@@ -106,6 +119,20 @@ fun TransactionStateComposablePreview() {
             TransactionStateComposable(modifier, state = TransactionState(Failed))
             TransactionStateComposable(modifier, state = TransactionState(Expired))
             TransactionStateComposable(modifier, state = TransactionState(Done))
+
+            TransactionStateComposable(modifier, state = TransactionState(Aborted), tx = TransactionWithdrawal(
+                transactionId = "1234",
+                timestamp = Timestamp.fromMillis(1722629432000L),
+                txState = TransactionState(Aborted),
+                txActions = emptyList(),
+                exchangeBaseUrl = "exchange.demo.taler.net",
+                withdrawalDetails = ManualTransfer(
+                    exchangeCreditAccountDetails = emptyList(),
+                    reserveClosingDelay = RelativeTime(10_000_000_000_000),
+                ),
+                amountRaw = Amount.zero("KUDOS"),
+                amountEffective = Amount.zero("KUDOS"),
+            ))
         }
     }
 }

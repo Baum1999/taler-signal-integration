@@ -32,13 +32,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
+import net.taler.common.CurrencySpecification
+import net.taler.common.RelativeTime
 import net.taler.common.Timestamp
 import net.taler.common.toAbsoluteTime
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.cleanExchange
-import net.taler.common.CurrencySpecification
 import net.taler.wallet.transactions.ActionButton
 import net.taler.wallet.transactions.ActionListener
 import net.taler.wallet.transactions.AmountType
@@ -75,7 +76,7 @@ fun TransactionWithdrawalComposable(
     ) {
         val context = LocalContext.current
 
-        TransactionStateComposable(state = t.txState)
+        TransactionStateComposable(state = t.txState, tx = t)
 
         Text(
             modifier = Modifier.padding(16.dp),
@@ -145,6 +146,7 @@ fun TransactionWithdrawalComposablePreview() {
                     ),
                 ),
             ),
+            reserveClosingDelay = RelativeTime.fromMillis(1000),
         ),
         amountRaw = Amount.fromString("TESTKUDOS", "42.23"),
         amountEffective = Amount.fromString("TESTKUDOS", "42.1337"),

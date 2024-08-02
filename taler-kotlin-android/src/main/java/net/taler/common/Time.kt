@@ -50,6 +50,12 @@ data class Timestamp(
         else -> RelativeTime.fromMillis(ms - other.ms)
     }
 
+    operator fun plus(other: RelativeTime): Timestamp = when {
+        ms == NEVER -> this
+        other.ms == RelativeTime.FOREVER -> never()
+        else -> fromMillis(ms + other.ms)
+    }
+
     operator fun minus(other: RelativeTime): Timestamp = when {
         ms == NEVER -> this
         other.ms == RelativeTime.FOREVER -> fromMillis(0)
@@ -76,9 +82,9 @@ data class RelativeTime(
      */
     @SerialName("d_us")
     @Serializable(ForeverSerializer::class)
-    private val s: Long,
+    private val us: Long,
 ) {
-    val ms: Long = s * 1000L
+    val ms: Long = us / 1000L
 
     companion object {
         internal const val FOREVER: Long = -1
