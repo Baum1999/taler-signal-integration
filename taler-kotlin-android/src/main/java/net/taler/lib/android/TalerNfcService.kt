@@ -303,8 +303,11 @@ class TalerNfcService : HostApduService() {
         fun setDefaultHandler(activity: Activity) {
             val adapter = getDefaultAdapter(activity) ?: return
             val emulation = CardEmulation.getInstance(adapter)
-            val cn = ComponentName(activity.packageName, TalerNfcService::class.java.canonicalName!!)
-            emulation.setPreferredService(activity, cn)
+            // TODO: find an alternative for when canonicalName is null
+            TalerNfcService::class.java.canonicalName?.let {
+                val cn = ComponentName(activity.packageName, it)
+                emulation.setPreferredService(activity, cn)
+            } ?: Log.d(TAG, "Not setting this app as the preferred NFC handler!")
         }
 
         fun unsetDefaultHandler(activity: Activity) {
