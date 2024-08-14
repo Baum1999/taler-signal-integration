@@ -55,6 +55,8 @@ class NetworkInterface: Networking.RequestHandler {
                 logging = req.debug,
             )
 
+            var errorMsg: String? = null
+
             val resp = try {
                 // TODO: reuse the same client for every request
                 client.request {
@@ -74,25 +76,26 @@ class NetworkInterface: Networking.RequestHandler {
                     }
                 }
             } catch (e: ResponseException) {
+                errorMsg = e.message
                 e.response // send non-200 responses to wallet-core anyway
             } catch (e: IOException) {
                 Log.d(TAG,  "Exception handling HTTP response", e)
+                errorMsg = e.message
                 null
             } catch (e: SerializationException) {
                 Log.d(TAG, "Exception handling HTTP response", e)
+                errorMsg = e.message
                 null
             } finally {
                 cleanupRequest(id)
                 client.close()
             }
 
-            if (resp == null) return@launch
-
             // HTTP response status code or 0 on error.
-            val status = if (resp.status.value in 200 until 300) resp.status.value else 0
-
-            // When status is 0, error message.
-            val errorMsg = if (status == 0) "There was an error" else null
+            val status = if (
+                resp?.status?.value != null &&
+                resp.status.value in 200 until 300
+            ) resp.status.value else 0
 
             Log.d(TAG, "Sending response to wallet-core")
             sendResponse(
@@ -100,10 +103,11 @@ class NetworkInterface: Networking.RequestHandler {
                     requestId = id,
                     status = status,
                     errorMsg = errorMsg,
-                    headers = resp.headers.toMap()
-                        .map { (k, v) -> "$k: $v" }
-                        .toTypedArray(),
-                    body = resp.body(),
+                    headers = resp?.headers?.toMap()
+                        ?.map { (k, v) -> "$k: $v" }
+                        ?.toTypedArray()
+                        ?: emptyArray(),
+                    body = resp?.body(),
                 )
             )
         }
