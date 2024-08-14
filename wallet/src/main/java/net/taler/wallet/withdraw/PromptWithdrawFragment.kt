@@ -123,22 +123,26 @@ class PromptWithdrawFragment: Fragment() {
                             val spec = remember(s) {
                                 defaultExchange?.scopeInfo?.let { scopeInfo ->
                                     balanceManager.getSpecForScopeInfo(scopeInfo)
-                                } ?: balanceManager.getSpecForCurrency(s.currency!!)
+                                } ?: s.currency?.let {
+                                    balanceManager.getSpecForCurrency(it)
+                                }
                             }
 
                             WithdrawalShowInfo(
                                 status = s,
-                                currency = s.currency!!,
+                                currency = s.currency ?: error("no currency specified"),
                                 spec = spec,
                                 onSelectExchange = {
                                     selectExchange()
                                 },
                                 onSelectAmount = { amount ->
-                                    withdrawManager.getWithdrawalDetails(
-                                        amount = amount,
-                                        exchangeBaseUrl = s.exchangeBaseUrl!!,
-                                        loading = false,
-                                    )
+                                    if (s.exchangeBaseUrl != null) {
+                                        withdrawManager.getWithdrawalDetails(
+                                            amount = amount,
+                                            exchangeBaseUrl = s.exchangeBaseUrl,
+                                            loading = false,
+                                        )
+                                    }
                                 },
                                 onTosReview = {
                                     // TODO: rewrite ToS review screen in compose
@@ -200,10 +204,12 @@ class PromptWithdrawFragment: Fragment() {
 
                         Success -> lifecycleScope.launch {
                             Snackbar.make(requireView(), R.string.withdraw_initiated, LENGTH_LONG).show()
-                            if (transactionManager.selectTransaction(status.transactionId!!)) {
-                                findNavController().navigate(R.id.action_promptWithdraw_to_nav_transactions_detail_withdrawal)
-                            } else {
-                                findNavController().navigate(R.id.action_promptWithdraw_to_nav_main)
+                            status.transactionId?.let {
+                                if (transactionManager.selectTransaction(it)) {
+                                    findNavController().navigate(R.id.action_promptWithdraw_to_nav_transactions_detail_withdrawal)
+                                } else {
+                                    findNavController().navigate(R.id.action_promptWithdraw_to_nav_main)
+                                }
                             }
                         }
 

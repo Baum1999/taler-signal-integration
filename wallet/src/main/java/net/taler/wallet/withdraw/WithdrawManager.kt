@@ -333,6 +333,7 @@ class WithdrawManager(
                     status = TosReviewRequired,
                     amountInfo = amountInfo ?: value.amountInfo,
                     tosDetails = tos,
+                    currency = amountInfo?.amountRaw?.currency,
                 )
             }
         }
