@@ -76,7 +76,6 @@ class NetworkInterface: Networking.RequestHandler {
                     }
                 }
             } catch (e: ResponseException) {
-                errorMsg = e.message
                 e.response // send non-200 responses to wallet-core anyway
             } catch (e: IOException) {
                 Log.d(TAG,  "Exception handling HTTP response", e)
@@ -92,10 +91,7 @@ class NetworkInterface: Networking.RequestHandler {
             }
 
             // HTTP response status code or 0 on error.
-            val status = if (
-                resp?.status?.value != null &&
-                resp.status.value in 200 until 300
-            ) resp.status.value else 0
+            val status = if (resp?.status?.value != null) resp.status.value else 0
 
             Log.d(TAG, "Sending response to wallet-core")
             sendResponse(
