@@ -27,6 +27,7 @@ import android.nfc.NfcAdapter.getDefaultAdapter
 import android.nfc.cardemulation.CardEmulation
 import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
+import android.os.UserHandle
 import android.util.Log
 import java.math.BigInteger
 
@@ -304,10 +305,12 @@ class TalerNfcService : HostApduService() {
             val adapter = getDefaultAdapter(activity) ?: return
             val emulation = CardEmulation.getInstance(adapter)
             // TODO: find an alternative for when canonicalName is null
-            TalerNfcService::class.java.canonicalName?.let {
-                val cn = ComponentName(activity.packageName, it)
+            try {
+                val cn = ComponentName(activity, TalerNfcService::class.java)
                 emulation.setPreferredService(activity, cn)
-            } ?: Log.d(TAG, "Not setting this app as the preferred NFC handler!")
+            } catch (e: NullPointerException) {
+                Log.d(TAG, "Not setting this app as the preferred NFC handler!")
+            }
         }
 
         fun unsetDefaultHandler(activity: Activity) {

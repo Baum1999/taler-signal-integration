@@ -8,7 +8,7 @@ buildscript {
         constraintlayout_version = '2.1.4'
         junit_version = "4.13.2"
         // should debug build types be minified with D8 as well? good for catching issues early
-        minify_debug = true
+        minify_debug = false
     }
     repositories {
         google()

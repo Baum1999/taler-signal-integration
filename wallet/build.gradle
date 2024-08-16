@@ -41,7 +41,7 @@ android {
     compileSdk 34
 
     defaultConfig {
-        applicationId "net.taler.wallet"
+        applicationId "net.taler.wallet.nfc"
         minSdkVersion 24
         targetSdkVersion 34
         versionCode 44
