@@ -168,10 +168,6 @@
             app:argType="string"
             app:nullable="false" />
         <argument
-            android:name="exchangeBaseUrl"
-            app:argType="string"
-            app:nullable="false" />
-        <argument
             android:name="hideScanQr"
             app:argType="boolean"
             app:nullable="false" />
