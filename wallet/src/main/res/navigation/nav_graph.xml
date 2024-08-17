@@ -57,11 +57,6 @@
             app:popUpTo="@id/nav_main" />
 
         <action
-            android:id="@+id/action_handleUri_to_withdrawAmount"
-            app:destination="@id/withdrawAmount"
-            app:popUpTo="@id/nav_main" />
-
-        <action
             android:id="@+id/action_handleUri_to_manualWithdrawal"
             app:destination="@id/nav_exchange_manual_withdrawal"
             app:popUpTo="@id/nav_main" />
@@ -170,6 +165,10 @@
             app:destination="@id/promptWithdraw" />
         <argument
             android:name="amount"
+            app:argType="string"
+            app:nullable="false" />
+        <argument
+            android:name="exchangeBaseUrl"
             app:argType="string"
             app:nullable="false" />
         <argument
@@ -338,20 +337,9 @@
         android:label="@string/transactions_detail_title" />
 
     <fragment
-        android:id="@+id/withdrawAmount"
-        android:name="net.taler.wallet.withdraw.WithdrawAmountFragment"
-        android:label="@string/withdraw_title">
-        <action
-            android:id="@+id/action_withdrawAmount_to_promptWithdraw"
-            app:destination="@id/promptWithdraw"
-            app:popUpTo="@id/promptWithdraw"/>
-    </fragment>
-
-    <fragment
         android:id="@+id/promptWithdraw"
         android:name="net.taler.wallet.withdraw.PromptWithdrawFragment"
-        android:label="@string/nav_prompt_withdraw"
-        tools:layout="@layout/fragment_prompt_withdraw">
+        android:label="@string/nav_prompt_withdraw">
         <action
             android:id="@+id/action_promptWithdraw_to_reviewExchangeTOS"
             app:destination="@id/reviewExchangeTOS" />
@@ -359,9 +347,6 @@
             android:id="@+id/action_promptWithdraw_to_nav_main"
             app:destination="@id/nav_main"
             app:popUpTo="@id/nav_main" />
-        <action
-            android:id="@+id/action_promptWithdraw_to_withdrawAmount"
-            app:destination="@id/withdrawAmount" />
         <action
             android:id="@+id/action_promptWithdraw_to_nav_exchange_manual_withdrawal_success"
             app:destination="@id/nav_exchange_manual_withdrawal_success"
