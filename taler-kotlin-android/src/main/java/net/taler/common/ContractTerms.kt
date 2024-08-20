@@ -65,11 +65,18 @@ data class ContractProduct(
     override val location: String? = null,
     override val image: String? = null,
     val quantity: Int = 1,
+    val taxes: List<Tax>? = null,
 ) : Product() {
     val totalPrice: Amount? by lazy {
         price?.let { price * quantity }
     }
 }
+
+@Serializable
+data class Tax(
+    val name: String,
+    val tax: Amount,
+)
 
 @Serializable
 data class ContractMerchant(

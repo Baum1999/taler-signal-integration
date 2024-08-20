@@ -16,6 +16,7 @@
 
 package net.taler.wallet.payment
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory.decodeByteArray
 import android.util.Base64
@@ -26,9 +27,11 @@ import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.compose.ui.util.fastDistinctBy
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import net.taler.common.Amount
 import net.taler.common.ContractProduct
 import net.taler.wallet.R
 import net.taler.wallet.payment.ProductAdapter.ProductViewHolder
@@ -41,6 +44,7 @@ internal class ProductAdapter(private val listener: ProductImageClickListener) :
     RecyclerView.Adapter<ProductViewHolder>() {
 
     private var items = emptyList<ContractProduct>()
+    private var taxesEqual = true
 
     override fun getItemCount() = items.size
 
@@ -62,12 +66,16 @@ internal class ProductAdapter(private val listener: ProductImageClickListener) :
         diffResult.dispatchUpdatesTo(this)
 
         items = newItems
+        taxesEqual = newItems.distinctBy { it.taxes }.size > 1
     }
 
     internal inner class ProductViewHolder(v: View) : ViewHolder(v) {
+        private val context: Context = v.context
+
         private val quantity: TextView = v.findViewById(R.id.quantity)
         private val image: ImageView = v.findViewById(R.id.image)
         private val name: TextView = v.findViewById(R.id.name)
+        private val taxes: TextView = v.findViewById(R.id.taxes)
         private val price: TextView = v.findViewById(R.id.price)
 
         fun bind(product: ContractProduct) {
@@ -87,10 +95,24 @@ internal class ProductAdapter(private val listener: ProductImageClickListener) :
                 }
             }
             name.text = product.description
-            price.visibility = product.totalPrice?.let {
-                price.text = it.toString()
-                VISIBLE
-            } ?: GONE
+
+            if (product.totalPrice != null) {
+                price.visibility = VISIBLE
+                price.text = product.totalPrice.toString()
+            } else {
+                price.visibility = GONE
+            }
+
+            if (!taxesEqual && product.taxes != null) {
+                taxes.visibility = VISIBLE
+                taxes.text = product.taxes!!.filter {
+                    !it.tax.isZero()
+                }.joinToString(separator = "\n") {
+                    context.getString(R.string.payment_tax, it.name, it.tax)
+                }
+            } else {
+                taxes.visibility = GONE
+            }
         }
     }
 }

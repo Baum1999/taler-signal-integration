@@ -188,6 +188,8 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="payment_pay_template_title">Customize your order</string>
     <string name="payment_pending">Payment not completed, it will be retried</string>
     <string name="payment_prompt_title">Review Payment</string>
+    <!-- including <amount> <tax name> -->
+    <string name="payment_tax">incl. %1$s %2$s</string>
     <string name="payment_template_error">Error creating order</string>
     <string name="payment_title">Payment</string>
 
