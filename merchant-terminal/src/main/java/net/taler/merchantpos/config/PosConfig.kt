@@ -100,6 +100,7 @@ data class ConfigProduct(
         price = price,
         location = location,
         image = image,
+        taxes = taxes,
         quantity = quantity
     )
 

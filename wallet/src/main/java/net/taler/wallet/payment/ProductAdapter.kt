@@ -64,7 +64,7 @@ internal class ProductAdapter(private val listener: ProductImageClickListener) :
         diffResult.dispatchUpdatesTo(this)
 
         items = newItems
-        taxesEqual = newItems.distinctBy { it.taxes }.size > 1
+        taxesEqual = newItems.distinctBy { it.taxes }.size == 1
     }
 
     internal inner class ProductViewHolder(v: View) : ViewHolder(v) {
@@ -100,8 +100,8 @@ internal class ProductAdapter(private val listener: ProductImageClickListener) :
             } else {
                 price.visibility = GONE
             }
-
-            if (!taxesEqual && product.taxes != null) {
+    
+            if (!taxesEqual && product.taxes != null && product.taxes!!.isNotEmpty()) {
                 taxes.visibility = VISIBLE
                 taxes.text = product.taxes!!.filter {
                     !it.tax.isZero()
