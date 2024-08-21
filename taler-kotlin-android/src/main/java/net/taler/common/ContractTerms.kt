@@ -45,6 +45,7 @@ abstract class Product {
     abstract val price: Amount?
     abstract val location: String?
     abstract val image: String?
+    abstract val taxes: List<Tax>?
     val localizedDescription: String
         get() = if (Build.VERSION.SDK_INT >= 26) {
             getLocalizedString(descriptionI18n, description)
@@ -64,8 +65,8 @@ data class ContractProduct(
     @SerialName("delivery_location")
     override val location: String? = null,
     override val image: String? = null,
+    override val taxes: List<Tax>? = null,
     val quantity: Int = 1,
-    val taxes: List<Tax>? = null,
 ) : Product() {
     val totalPrice: Amount? by lazy {
         price?.let { price * quantity }

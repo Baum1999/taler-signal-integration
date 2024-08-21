@@ -23,6 +23,7 @@ import net.taler.common.Amount
 import net.taler.common.ContractProduct
 import net.taler.common.Product
 import net.taler.common.TalerUtils
+import net.taler.common.Tax
 import net.taler.merchantlib.MerchantConfig
 import java.util.UUID
 
@@ -86,6 +87,7 @@ data class ConfigProduct(
     @SerialName("delivery_location")
     override val location: String? = null,
     override val image: String? = null,
+    override val taxes: List<Tax>? = null,
     val categories: List<Int>,
     val quantity: Int = 0
 ) : Product() {
