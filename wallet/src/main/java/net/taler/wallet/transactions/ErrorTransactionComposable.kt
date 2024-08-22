@@ -40,9 +40,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.sp
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import net.taler.common.copyToClipBoard
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorInfo
-import net.taler.wallet.compose.copyToClipBoard
 
 @Composable
 fun ErrorTransactionButton(

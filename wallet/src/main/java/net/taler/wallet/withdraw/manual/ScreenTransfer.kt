@@ -53,9 +53,9 @@ import net.taler.common.CurrencySpecification
 import net.taler.wallet.CURRENCY_BTC
 import net.taler.wallet.R
 import net.taler.common.canAppHandleUri
+import net.taler.common.copyToClipBoard
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.ShareButton
-import net.taler.wallet.compose.copyToClipBoard
 import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.TransactionAmountComposable
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
