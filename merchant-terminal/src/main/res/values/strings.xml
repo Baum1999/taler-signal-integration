@@ -6,6 +6,7 @@
     <string name="menu_order">Orders</string>
     <string name="menu_history">History</string>
     <string name="menu_settings">Settings</string>
+    <string name="menu_reload">Reload</string>
 
     <string name="order_label_title">Order #%s</string>
     <!-- The placeholder is the total order amount with currency -->
@@ -79,6 +80,7 @@
     <string name="error_cancelled">Payment cancelled</string>
     <string name="error_history">Error fetching the order history</string>
 
+    <string name="toast_reloading">Reloading inventory</string>
     <string name="toast_back_to_exit">Click «back» again to exit</string>
 
     <string name="host_apdu_service_desc">Taler Merchant NFC payments</string>

@@ -26,9 +26,11 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG
 import com.google.android.material.snackbar.Snackbar
 import net.taler.common.QrCodeManager.makeQrCode
+import net.taler.common.copyToClipBoard
 import net.taler.common.fadeIn
 import net.taler.common.fadeOut
 import net.taler.common.navigate
+import net.taler.common.shareText
 import net.taler.common.showError
 import net.taler.lib.android.TalerNfcService.Companion.hasNfc
 import net.taler.merchantpos.MainViewModel
@@ -80,12 +82,18 @@ class ProcessPaymentFragment : Fragment() {
             return
         }
         if (payment.claimed) {
-            ui.qrcodeView.fadeOut()
+            ui.qrcodeLayout.fadeOut()
             ui.payIntroView.setText(R.string.payment_claimed)
         } else {
             payment.talerPayUri?.let {
                 ui.qrcodeView.setImageBitmap(makeQrCode(it))
-                ui.qrcodeView.fadeIn()
+                ui.shareButton.setOnClickListener { _ ->
+                    requireContext().shareText(it)
+                }
+                ui.copyButton.setOnClickListener { _ ->
+                    copyToClipBoard(requireContext(), "Payment URI", it)
+                }
+                ui.qrcodeLayout.fadeIn()
                 ui.progressBar.fadeOut()
             }
         }

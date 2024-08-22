@@ -18,10 +18,16 @@ package net.taler.merchantpos.order
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.transition.TransitionManager.beginDelayedTransition
 import net.taler.common.navigate
 import net.taler.merchantpos.MainViewModel
@@ -52,6 +58,29 @@ class OrderFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        requireActivity().addMenuProvider(object: MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.order, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when(menuItem.itemId) {
+                    R.id.reload -> {
+                        viewModel.configManager.reloadConfig()
+                        Toast.makeText(
+                            requireContext(),
+                            getString(R.string.toast_reloading),
+                            Toast.LENGTH_LONG,
+                        ).show()
+                        true
+                    }
+
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+
         orderManager.currentOrderId.observe(viewLifecycleOwner) { orderId ->
             val liveOrder = orderManager.getOrder(orderId)
             onOrderSwitched(orderId, liveOrder)

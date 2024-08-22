@@ -18,6 +18,8 @@ package net.taler.common
 
 import android.Manifest.permission.ACCESS_NETWORK_STATE
 import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Context.CONNECTIVITY_SERVICE
 import android.content.Intent
@@ -46,6 +48,7 @@ import android.view.inputmethod.InputMethodManager
 import androidx.annotation.RequiresPermission
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.content.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavDirections
@@ -200,4 +203,10 @@ fun Version.getIncompatibleStringOrNull(context: Context, otherVersion: String):
     if (match.currentCmp < 0) return context.getString(R.string.version_too_old)
     if (match.currentCmp > 0) return context.getString(R.string.version_too_new)
     throw AssertionError("$this == $other")
+}
+
+fun copyToClipBoard(context: Context, label: String, str: String) {
+    val clipboard = context.getSystemService<ClipboardManager>()
+    val clip = ClipData.newPlainText(label, str)
+    clipboard?.setPrimaryClip(clip)
 }

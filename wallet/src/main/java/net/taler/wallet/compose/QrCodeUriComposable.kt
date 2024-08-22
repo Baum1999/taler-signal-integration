@@ -51,8 +51,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
-import androidx.core.content.getSystemService
 import net.taler.common.QrCodeManager
+import net.taler.common.copyToClipBoard
 import net.taler.wallet.R
 
 @Composable
@@ -147,10 +147,4 @@ fun CopyToClipboardButton(
         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
         Text(buttonText)
     }
-}
-
-fun copyToClipBoard(context: Context, label: String, str: String) {
-    val clipboard = context.getSystemService<ClipboardManager>()
-    val clip = ClipData.newPlainText(label, str)
-    clipboard?.setPrimaryClip(clip)
 }

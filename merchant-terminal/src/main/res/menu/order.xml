@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?><!--
   ~ This file is part of GNU Taler
-  ~ (C) 2020 Taler Systems S.A.
+  ~ (C) 2024 Taler Systems S.A.
   ~
   ~ GNU Taler is free software; you can redistribute it and/or modify it under the
   ~ terms of the GNU General Public License as published by the Free Software
@@ -14,12 +14,11 @@
   ~ GNU Taler; see the file COPYING.  If not, see <http://www.gnu.org/licenses/>
   -->
 
-<resources>
-    <string name="version_invalid">Invalid version. Please try again later!</string>
-    <string name="version_too_old">App too old. Please upgrade!</string>
-    <string name="version_too_new">Service outdated. Please wait until it gets upgraded.</string>
-
-    <string name="close">Close</string>
-    <string name="share">Share</string>
-    <string name="copy">Copy</string>
-</resources>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/reload"
+        android:icon="@drawable/ic_menu_reload"
+        android:title="@string/menu_reload"
+        app:showAsAction="ifRoom" />
+</menu>

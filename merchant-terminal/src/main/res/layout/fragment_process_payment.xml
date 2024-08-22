@@ -21,29 +21,59 @@
     android:layout_height="match_parent"
     tools:context=".payment.ProcessPaymentFragment">
 
-    <ImageView
-        android:id="@+id/qrcodeView"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/qrcodeLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_margin="32dp"
-        android:visibility="invisible"
+        android:layout_margin="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/guideline"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="ContentDescription"
-        tools:src="@tools:sample/avatars"
-        tools:visibility="visible" />
+        android:visibility="invisible"
+        tools:visibility="visible">
+
+        <ImageView
+            android:id="@+id/qrcodeView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_margin="12dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/shareButton"
+            tools:ignore="ContentDescription"
+            tools:src="@tools:sample/avatars" />
+
+        <Button
+            android:id="@+id/shareButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/copyButton"
+            android:text="@string/share"/>
+
+        <Button
+            android:id="@+id/copyButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/shareButton"
+            android:text="@string/copy"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ProgressBar
         android:id="@+id/progressBar"
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="@+id/qrcodeView"
-        app:layout_constraintEnd_toEndOf="@+id/qrcodeView"
-        app:layout_constraintStart_toStartOf="@+id/qrcodeView"
-        app:layout_constraintTop_toTopOf="@+id/qrcodeView" />
+        app:layout_constraintBottom_toBottomOf="@+id/qrcodeLayout"
+        app:layout_constraintEnd_toEndOf="@+id/qrcodeLayout"
+        app:layout_constraintStart_toStartOf="@+id/qrcodeLayout"
+        app:layout_constraintTop_toTopOf="@+id/qrcodeLayout" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline"

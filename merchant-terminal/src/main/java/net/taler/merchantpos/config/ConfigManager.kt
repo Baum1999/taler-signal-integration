@@ -119,6 +119,11 @@ class ConfigManager(
     }
 
     @UiThread
+    fun reloadConfig() {
+        fetchConfig(config, true, config.hasPassword())
+    }
+
+    @UiThread
     fun fetchConfig(config: Config, save: Boolean, savePassword: Boolean = false) {
         mConfigUpdateResult.value = null
         val configToSave = if (save) {
