@@ -87,7 +87,7 @@ data class ConfigProduct(
     @SerialName("delivery_location")
     override val location: String? = null,
     override val image: String? = null,
-    override val taxes: List<Tax>? = null,
+    override val taxes: Set<Tax>? = null,
     val categories: List<Int>,
     val quantity: Int = 0
 ) : Product() {

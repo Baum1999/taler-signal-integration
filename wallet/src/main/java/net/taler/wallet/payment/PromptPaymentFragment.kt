@@ -156,7 +156,7 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
         }
     }
 
-    private fun compileTaxes(contractTerms: ContractTerms): List<Tax>? {
+    private fun compileTaxes(contractTerms: ContractTerms): Set<Tax>? {
         val distinct = contractTerms.products.distinctBy { it.taxes }
         return if (distinct.size == 1) {
             distinct.first().taxes
@@ -169,7 +169,7 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
         contractTerms: ContractTerms,
         amount: Amount,
         totalFees: Amount? = null,
-        taxes: List<Tax>? = null,
+        taxes: Set<Tax>? = null,
     ) {
         ui.details.orderView.text = contractTerms.summary
         adapter.update(contractTerms.products)
