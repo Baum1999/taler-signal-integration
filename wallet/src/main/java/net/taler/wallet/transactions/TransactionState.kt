@@ -82,6 +82,12 @@ enum class TransactionMinorState {
     @SerialName("kyc")
     KycRequired,
 
+    @SerialName("balance-kyc")
+    BalanceKycRequired,
+
+    @SerialName("balance-kyc-init")
+    BalanceKycInit,
+
     @SerialName("exchange")
     Exchange,
 

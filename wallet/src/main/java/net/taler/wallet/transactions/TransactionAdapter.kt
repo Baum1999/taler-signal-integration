@@ -43,6 +43,8 @@ import net.taler.wallet.transactions.TransactionMajorState.Aborted
 import net.taler.wallet.transactions.TransactionMajorState.Aborting
 import net.taler.wallet.transactions.TransactionMajorState.Failed
 import net.taler.wallet.transactions.TransactionMajorState.Pending
+import net.taler.wallet.transactions.TransactionMinorState.BalanceKycInit
+import net.taler.wallet.transactions.TransactionMinorState.BalanceKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
 import net.taler.wallet.transactions.TransactionMinorState.KycRequired
 
@@ -170,7 +172,13 @@ internal class TransactionAdapter(
                         extraInfoView.visibility = VISIBLE
                     }
 
-                    KycRequired -> {
+                    BalanceKycInit -> {
+                        extraInfoView.setText(R.string.transaction_preparing_kyc)
+                        extraInfoView.setTextColor(amountColor)
+                        extraInfoView.visibility = VISIBLE
+                    }
+
+                    KycRequired, BalanceKycRequired -> {
                         extraInfoView.setText(R.string.transaction_action_kyc)
                         extraInfoView.setTextColor(amountColor)
                         extraInfoView.visibility = VISIBLE

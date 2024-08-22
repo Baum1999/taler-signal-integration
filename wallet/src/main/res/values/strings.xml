@@ -132,6 +132,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="transaction_peer_push_credit">Push payment</string>
     <string name="transaction_peer_push_debit">Push payment</string>
     <string name="transaction_pending">PENDING</string>
+    <string name="transaction_preparing_kyc">KYC required, preparing challenge</string>
     <string name="transaction_refresh">Coin expiry change fee</string>
     <string name="transaction_refund">Refund</string>
     <string name="transaction_state_aborted">This transaction was aborted</string>
@@ -141,6 +142,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="transaction_state_failed">This transaction has failed</string>
     <string name="transaction_state_pending">This transaction is pending</string>
     <string name="transaction_state_pending_bank">Waiting for authorization in the bank</string>
+    <string name="transaction_state_pending_kyc">Waiting for KYC verification</string>
     <string name="transaction_state_suspended">This transaction is suspended</string>
     <string name="transactions_abort">Abort</string>
     <string name="transactions_abort_dialog_message">Are you sure you want to abort this transaction? Funds still in transit might get lost.</string>

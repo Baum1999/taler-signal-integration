@@ -45,7 +45,9 @@ import net.taler.wallet.transactions.TransactionMajorState.Expired
 import net.taler.wallet.transactions.TransactionMajorState.Failed
 import net.taler.wallet.transactions.TransactionMajorState.Pending
 import net.taler.wallet.transactions.TransactionMajorState.Suspended
+import net.taler.wallet.transactions.TransactionMinorState.BalanceKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
+import net.taler.wallet.transactions.TransactionMinorState.KycRequired
 import net.taler.wallet.transactions.WithdrawalDetails.ManualTransfer
 
 @Composable
@@ -57,6 +59,7 @@ fun TransactionStateComposable(
     val context = LocalContext.current
     val message = when (state) {
         TransactionState(Pending, BankConfirmTransfer) -> stringResource(R.string.transaction_state_pending_bank)
+        TransactionState(Pending, KycRequired), TransactionState(Pending, BalanceKycRequired) -> stringResource(R.string.transaction_state_pending_kyc)
         TransactionState(Pending) -> stringResource(R.string.transaction_state_pending)
         TransactionState(Aborted) -> if (tx is TransactionWithdrawal && tx.withdrawalDetails is ManualTransfer) {
             stringResource(
@@ -112,6 +115,7 @@ fun TransactionStateComposablePreview() {
 
             val modifier = Modifier.padding(vertical = 6.dp)
             TransactionStateComposable(modifier, state = TransactionState(Pending, BankConfirmTransfer))
+            TransactionStateComposable(modifier, state = TransactionState(Pending, KycRequired))
             TransactionStateComposable(modifier, state = TransactionState(Pending))
             TransactionStateComposable(modifier, state = TransactionState(Aborted))
             TransactionStateComposable(modifier, state = TransactionState(Aborting))

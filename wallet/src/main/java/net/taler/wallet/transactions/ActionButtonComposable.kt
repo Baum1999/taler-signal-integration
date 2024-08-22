@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import net.taler.wallet.R
 import net.taler.wallet.transactions.TransactionMajorState.Pending
+import net.taler.wallet.transactions.TransactionMinorState.BalanceKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
 import net.taler.wallet.transactions.TransactionMinorState.ExchangeWaitReserve
 import net.taler.wallet.transactions.TransactionMinorState.KycRequired
@@ -52,7 +53,7 @@ fun ActionButton(
 ) {
     if (tx.txState.major == Pending) {
         when (tx.txState.minor) {
-            KycRequired -> KycButton(modifier, tx, listener)
+            KycRequired, BalanceKycRequired -> KycButton(modifier, tx, listener)
             BankConfirmTransfer -> ConfirmBankButton(modifier, tx, listener)
             ExchangeWaitReserve -> ConfirmManualButton(modifier, tx, listener)
             else -> {}
