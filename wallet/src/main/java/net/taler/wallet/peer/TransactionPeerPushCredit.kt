@@ -26,8 +26,11 @@ import net.taler.common.Timestamp
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode.EXCHANGE_GENERIC_KYC_REQUIRED
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.transactions.ActionButton
+import net.taler.wallet.transactions.ActionListener
 import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.PeerInfoShort
+import net.taler.wallet.transactions.Transaction
 import net.taler.wallet.transactions.TransactionAction.Abort
 import net.taler.wallet.transactions.TransactionAction.Retry
 import net.taler.wallet.transactions.TransactionAction.Suspend
@@ -39,7 +42,13 @@ import net.taler.wallet.transactions.TransactionPeerPushCredit
 import net.taler.wallet.transactions.TransactionState
 
 @Composable
-fun TransactionPeerPushCreditComposable(t: TransactionPeerPushCredit, spec: CurrencySpecification?) {
+fun TransactionPeerPushCreditComposable(
+    t: TransactionPeerPushCredit,
+    spec: CurrencySpecification?,
+    actionListener: ActionListener,
+) {
+    ActionButton(tx = t, listener = actionListener)
+
     TransactionAmountComposable(
         label = stringResource(id = R.string.amount_sent),
         amount = t.amountRaw.withSpec(spec),
@@ -85,6 +94,8 @@ fun TransactionPeerPushCreditPreview() {
         error = TalerErrorInfo(code = EXCHANGE_GENERIC_KYC_REQUIRED),
     )
     Surface {
-        TransactionPeerComposable(t, true, null) {}
+        TransactionPeerComposable(t, true, null, object : ActionListener {
+            override fun onActionButtonClicked(tx: Transaction, type: ActionListener.Type) {}
+        }) {}
     }
 }

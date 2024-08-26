@@ -48,7 +48,7 @@ interface ActionListener {
 @Composable
 fun ActionButton(
     modifier: Modifier = Modifier,
-    tx: TransactionWithdrawal,
+    tx: Transaction,
     listener: ActionListener,
 ) {
     if (tx.txState.major == Pending) {
@@ -64,21 +64,28 @@ fun ActionButton(
 @Composable
 private fun KycButton(
     modifier: Modifier = Modifier,
-    tx: TransactionWithdrawal,
+    tx: Transaction,
     listener: ActionListener,
 ) {
     Button(
         onClick = { listener.onActionButtonClicked(tx, ActionListener.Type.COMPLETE_KYC) },
         modifier = modifier,
     ) {
-        Text(stringResource(R.string.transaction_action_kyc))
+        val label = stringResource(R.string.transaction_action_kyc)
+        Icon(
+            Icons.Default.Link,
+            label,
+            modifier = Modifier.size(ButtonDefaults.IconSize)
+        )
+        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+        Text(label)
     }
 }
 
 @Composable
 private fun ConfirmBankButton(
     modifier: Modifier = Modifier,
-    tx: TransactionWithdrawal,
+    tx: Transaction,
     listener: ActionListener,
 ) {
     Button(
@@ -99,7 +106,7 @@ private fun ConfirmBankButton(
 @Composable
 private fun ConfirmManualButton(
     modifier: Modifier = Modifier,
-    tx: TransactionWithdrawal,
+    tx: Transaction,
     listener: ActionListener,
 ) {
     Button(

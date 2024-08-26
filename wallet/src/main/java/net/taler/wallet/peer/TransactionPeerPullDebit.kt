@@ -26,8 +26,10 @@ import net.taler.common.Timestamp
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode.EXCHANGE_GENERIC_KYC_REQUIRED
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.transactions.ActionListener
 import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.PeerInfoShort
+import net.taler.wallet.transactions.Transaction
 import net.taler.wallet.transactions.TransactionAction.Abort
 import net.taler.wallet.transactions.TransactionAction.Retry
 import net.taler.wallet.transactions.TransactionAction.Suspend
@@ -85,6 +87,8 @@ fun TransactionPeerPullDebitPreview() {
         error = TalerErrorInfo(code = EXCHANGE_GENERIC_KYC_REQUIRED),
     )
     Surface {
-        TransactionPeerComposable(t, true, null) {}
+        TransactionPeerComposable(t, true, null, object: ActionListener {
+            override fun onActionButtonClicked(tx: Transaction, type: ActionListener.Type) {}
+        }) {}
     }
 }
