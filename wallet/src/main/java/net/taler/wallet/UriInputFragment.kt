@@ -24,7 +24,9 @@ import android.view.ViewGroup
 import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
 import androidx.core.content.getSystemService
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import net.taler.wallet.databinding.FragmentUriInputBinding
 
 class UriInputFragment : Fragment() {
@@ -60,7 +62,8 @@ class UriInputFragment : Fragment() {
             if (trimmedText?.startsWith("taler://", ignoreCase = true) == true ||
                 trimmedText?.startsWith("payto://", ignoreCase = true) == true) {
                 ui.uriLayout.error = null
-                launchInAppBrowser(requireContext(), trimmedText.toString())
+                val args = bundleOf("uri" to trimmedText.toString(), "from" to "URI input")
+                findNavController().navigate(R.id.action_global_handle_uri, args)
             } else {
                 ui.uriLayout.error = getString(R.string.uri_invalid)
             }
