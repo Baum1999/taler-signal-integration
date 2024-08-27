@@ -22,7 +22,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
-import android.view.View.VISIBLE
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -34,7 +33,6 @@ import com.google.android.material.snackbar.Snackbar.LENGTH_LONG
 import kotlinx.coroutines.launch
 import net.taler.common.Amount
 import net.taler.common.ContractTerms
-import net.taler.common.Tax
 import net.taler.common.fadeIn
 import net.taler.common.fadeOut
 import net.taler.common.showError
@@ -104,8 +102,7 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
             is PayStatus.Prepared -> {
                 showLoading(false)
                 val fees = payStatus.amountEffective - payStatus.amountRaw
-                val taxes = compileTaxes(payStatus.contractTerms)
-                showOrder(payStatus.contractTerms, payStatus.amountRaw, fees, taxes)
+                showOrder(payStatus.contractTerms, payStatus.amountRaw, fees)
                 ui.bottom.confirmButton.isEnabled = true
                 ui.bottom.confirmButton.setOnClickListener {
                     model.showProgressBar.value = true
@@ -156,20 +153,10 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
         }
     }
 
-    private fun compileTaxes(contractTerms: ContractTerms): Set<Tax>? {
-        val distinct = contractTerms.products.distinctBy { it.taxes }
-        return if (distinct.size == 1) {
-            distinct.first().taxes
-        } else {
-            null
-        }
-    }
-
     private fun showOrder(
         contractTerms: ContractTerms,
         amount: Amount,
         totalFees: Amount? = null,
-        taxes: Set<Tax>? = null,
     ) {
         ui.details.orderView.text = contractTerms.summary
         adapter.update(contractTerms.products)
@@ -179,17 +166,6 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
         if (totalFees != null && !totalFees.isZero()) {
             ui.bottom.feeView.text = getString(R.string.payment_fee, totalFees)
             ui.bottom.feeView.fadeIn()
-        } else {
-            ui.bottom.feeView.visibility = GONE
-        }
-
-        if (taxes != null) {
-            ui.bottom.feeView.visibility = VISIBLE
-            ui.bottom.feeView.text = taxes.filter {
-                !it.tax.isZero()
-            }.joinToString(separator = "\n") {
-                requireContext().getString(R.string.payment_tax, it.name, it.tax)
-            }
         } else {
             ui.bottom.feeView.visibility = GONE
         }
