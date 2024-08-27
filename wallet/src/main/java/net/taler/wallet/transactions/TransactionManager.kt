@@ -89,13 +89,16 @@ class TransactionManager(
             mProgress.value = false
             liveData.value = TransactionsResult.Success(transactions)
 
-            // update selected transaction on UiThread (if it exists)
-            val selected = selectedTransaction.value
-            if (selected != null) transactions.find {
-                it.transactionId == selected.transactionId
-            }?.let {
-                mSelectedTransaction.value = it
-            }
+                // update selected transaction on UiThread (if it exists)
+                val selected = selectedTransaction.value
+                if (selected != null) transactions.find {
+                    it.transactionId == selected.transactionId
+                }?.let {
+                    mSelectedTransaction.value = it
+                    Log.d(TAG, "selected transaction (${it.transactionId}) was updated")
+                } ?: let {
+                    Log.d(TAG, "selected transaction (${selected.transactionId}) was not updated")
+                }
 
             // update all transactions on UiThread if there was a scope info
             if (searchQuery == null) allTransactions[scopeInfo] = transactions
