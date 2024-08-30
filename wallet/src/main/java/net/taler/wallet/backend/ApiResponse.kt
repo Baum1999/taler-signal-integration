@@ -37,6 +37,7 @@ data class NotificationPayload(
     val type: String,
     val id: String? = null,
     val event: ObservabilityEvent? = null,
+    val transactionId: String? = null,
 )
 
 @Serializable

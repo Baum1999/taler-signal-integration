@@ -66,6 +66,23 @@ class TransactionManager(
         }
 
     @UiThread
+    fun updateTransactionIfSelected(id: String) = scope.launch {
+        val selectedTransaction = selectedTransaction.value
+        if (selectedTransaction?.transactionId != id) return@launch
+        mProgress.value = true
+        api.request("getTransactionById", Transaction.serializer()) {
+            put("transactionId", id)
+        }.onError {
+            mProgress.value = false
+        }.onSuccess { result ->
+            mProgress.value = false
+            if (result.transactionId != selectedTransaction.transactionId) return@onSuccess
+            Log.d(TAG, "updating selected transaction: ${result.transactionId}")
+            mSelectedTransaction.value = result
+        }
+    }
+
+    @UiThread
     fun loadTransactions(searchQuery: String? = null) = scope.launch {
         val scopeInfo = selectedScope ?: return@launch
         val liveData = mTransactions.getOrPut(scopeInfo) { MutableLiveData() }
@@ -88,17 +105,6 @@ class TransactionManager(
 
             mProgress.value = false
             liveData.value = TransactionsResult.Success(transactions)
-
-                // update selected transaction on UiThread (if it exists)
-                val selected = selectedTransaction.value
-                if (selected != null) transactions.find {
-                    it.transactionId == selected.transactionId
-                }?.let {
-                    mSelectedTransaction.value = it
-                    Log.d(TAG, "selected transaction (${it.transactionId}) was updated")
-                } ?: let {
-                    Log.d(TAG, "selected transaction (${selected.transactionId}) was not updated")
-                }
 
             // update all transactions on UiThread if there was a scope info
             if (searchQuery == null) allTransactions[scopeInfo] = transactions
