@@ -71,7 +71,12 @@ private fun KycButton(
         onClick = { listener.onActionButtonClicked(tx, ActionListener.Type.COMPLETE_KYC) },
         modifier = modifier,
     ) {
-        val label = stringResource(R.string.transaction_action_kyc)
+        val label = when (tx.txState.minor) {
+            KycRequired -> stringResource(R.string.transaction_action_kyc_balance)
+            BalanceKycRequired -> stringResource(R.string.transaction_action_kyc_bank)
+            else -> return@Button
+        }
+
         Icon(
             Icons.Default.Link,
             label,

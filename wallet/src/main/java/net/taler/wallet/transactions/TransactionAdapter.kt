@@ -178,8 +178,14 @@ internal class TransactionAdapter(
                         extraInfoView.visibility = VISIBLE
                     }
 
-                    KycRequired, BalanceKycRequired -> {
-                        extraInfoView.setText(R.string.transaction_action_kyc)
+                    KycRequired -> {
+                        extraInfoView.setText(R.string.transaction_action_kyc_bank)
+                        extraInfoView.setTextColor(amountColor)
+                        extraInfoView.visibility = VISIBLE
+                    }
+
+                    BalanceKycRequired -> {
+                        extraInfoView.setText(R.string.transaction_action_kyc_balance)
                         extraInfoView.setTextColor(amountColor)
                         extraInfoView.visibility = VISIBLE
                     }
