@@ -18,6 +18,7 @@ package net.taler.common
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.HttpRedirect
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.ANDROID
@@ -58,6 +59,9 @@ fun getDefaultHttpClient(
 
         socketTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
         connectTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
+    }
+    install(HttpRedirect) {
+        checkHttpMethod = !followRedirect
     }
     install(Logging) {
         logger = Logger.ANDROID

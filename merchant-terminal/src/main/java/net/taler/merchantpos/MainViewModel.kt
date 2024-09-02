@@ -29,7 +29,7 @@ import net.taler.merchantpos.refund.RefundManager
 
 class MainViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val httpClient = getDefaultHttpClient()
+    private val httpClient = getDefaultHttpClient(followRedirect = true)
     private val api = MerchantApi(httpClient)
 
     val orderManager = OrderManager(app)
