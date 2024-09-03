@@ -20,11 +20,16 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.launch
 import net.taler.common.Amount
 import net.taler.common.showError
 import net.taler.wallet.CURRENCY_BTC
@@ -52,27 +57,45 @@ class DepositFragment : Fragment() {
         val spec = scopeInfo?.let { balanceManager.getSpecForScopeInfo(it) }
         val receiverName = arguments?.getString("receiverName")
         val iban = arguments?.getString("IBAN")
+
         if (receiverName != null && iban != null) {
-            onDepositButtonClicked(amount, receiverName, iban)
+            depositManager.makeIbanDeposit(amount, receiverName, iban)
         }
+
         return ComposeView(requireContext()).apply {
             setContent {
                 TalerSurface {
                     val state = depositManager.depositState.collectAsStateLifecycleAware()
+                    val wireTypes = remember { mutableStateListOf<WireType>() }
+                    val coroutine = rememberCoroutineScope()
+
                     if (amount.currency == CURRENCY_BTC) MakeBitcoinDepositComposable(
                         state = state.value,
                         amount = amount.withSpec(spec),
                         bitcoinAddress = null,
                         onMakeDeposit = { amount, bitcoinAddress ->
-                            depositManager.onDepositButtonClicked(amount, bitcoinAddress)
+                            depositManager.makeBitcoinDeposit(amount, bitcoinAddress)
                         },
                     ) else MakeDepositComposable(
                         state = state.value,
+                        supportedWireTypes = wireTypes,
                         amount = amount.withSpec(spec),
                         presetName = receiverName,
                         presetIban = iban,
-                        onMakeDeposit = this@DepositFragment::onDepositButtonClicked,
+                        validateIban = depositManager::validateIban,
+                        onMakeIbanDeposit = depositManager::makeIbanDeposit,
+                        onMakeTalerBankDeposit = depositManager::makeTalerDeposit,
                     )
+
+                    LaunchedEffect(Unit) {
+                        coroutine.launch {
+                            scopeInfo?.let {
+                                depositManager
+                                    .getDepositWireTypesForCurrency(it)
+                                    ?.let { types -> wireTypes.addAll(types) }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -105,13 +128,5 @@ class DepositFragment : Fragment() {
         if (!requireActivity().isChangingConfigurations) {
             depositManager.resetDepositState()
         }
-    }
-
-    private fun onDepositButtonClicked(
-        amount: Amount,
-        receiverName: String,
-        iban: String,
-    ) {
-        depositManager.onDepositButtonClicked(amount, receiverName, iban)
     }
 }

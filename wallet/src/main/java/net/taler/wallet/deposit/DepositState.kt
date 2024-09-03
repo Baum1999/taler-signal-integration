@@ -20,30 +20,30 @@ import net.taler.common.Amount
 import net.taler.wallet.backend.TalerErrorInfo
 
 sealed class DepositState {
-
     open val showFees: Boolean = false
     open val totalDepositCost: Amount? = null
     open val effectiveDepositAmount: Amount? = null
 
-    object Start : DepositState()
-    object CheckingFees : DepositState()
-    object IbanInvalid : DepositState()
-    class FeesChecked(
+    data object Start : DepositState()
+
+    data object CheckingFees : DepositState()
+
+    data class FeesChecked(
         override val totalDepositCost: Amount,
         override val effectiveDepositAmount: Amount,
     ) : DepositState() {
         override val showFees = true
     }
 
-    class MakingDeposit(
+    data class MakingDeposit(
         override val totalDepositCost: Amount,
         override val effectiveDepositAmount: Amount,
     ) : DepositState() {
         override val showFees = true
     }
 
-    object Success : DepositState()
+    data object Success : DepositState()
 
-    class Error(val error: TalerErrorInfo) : DepositState()
+    data class Error(val error: TalerErrorInfo) : DepositState()
 
 }

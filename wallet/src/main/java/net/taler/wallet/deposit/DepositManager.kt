@@ -23,12 +23,18 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import net.taler.common.Amount
 import net.taler.wallet.TAG
 import net.taler.wallet.accounts.PaytoUriBitcoin
 import net.taler.wallet.accounts.PaytoUriIban
+import net.taler.wallet.accounts.PaytoUriTalerBank
+import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.WalletBackendApi
+import net.taler.wallet.balances.ScopeInfo
+import org.json.JSONObject
 
 class DepositManager(
     private val api: WalletBackendApi,
@@ -46,33 +52,7 @@ class DepositManager(
     }
 
     @UiThread
-    fun onDepositButtonClicked(amount: Amount, receiverName: String, iban: String) {
-        if (depositState.value is DepositState.FeesChecked) {
-            // fees already checked, so IBAN was validated, can make deposit directly
-            makeIbanDeposit(amount, receiverName, iban)
-        } else {
-            // validate IBAN first
-            mDepositState.value = DepositState.CheckingFees
-            scope.launch {
-                api.request("validateIban", ValidateIbanResponse.serializer()) {
-                    put("iban", iban)
-                }.onError {
-                    Log.e(TAG, "Error validateIban $it")
-                    mDepositState.value = DepositState.Error(it)
-                }.onSuccess { response ->
-                    if (response.valid) {
-                        // only prepare/make deposit, if IBAN is valid
-                        makeIbanDeposit(amount, receiverName, iban)
-                    } else {
-                        mDepositState.value = DepositState.IbanInvalid
-                    }
-                }
-            }
-        }
-    }
-
-    @UiThread
-    private fun makeIbanDeposit(amount: Amount, receiverName: String, iban: String) {
+    fun makeIbanDeposit(amount: Amount, receiverName: String, iban: String) {
         val paytoUri: String = PaytoUriIban(
             iban = iban,
             bic = null,
@@ -83,7 +63,18 @@ class DepositManager(
     }
 
     @UiThread
-    fun onDepositButtonClicked(amount: Amount, bitcoinAddress: String) {
+    fun makeTalerDeposit(amount: Amount, receiverName: String, host: String, account: String) {
+        val paytoUri: String = PaytoUriTalerBank(
+            host = host,
+            account = account,
+            targetPath = "",
+            params = mapOf("receiver-name" to receiverName),
+        ).paytoUri
+        makeDeposit(amount, paytoUri)
+    }
+
+    @UiThread
+    fun makeBitcoinDeposit(amount: Amount, bitcoinAddress: String) {
         val paytoUri: String = PaytoUriBitcoin(
             segwitAddresses = listOf(bitcoinAddress),
             targetPath = bitcoinAddress,
@@ -149,6 +140,32 @@ class DepositManager(
     fun resetDepositState() {
         mDepositState.value = DepositState.Start
     }
+
+    suspend fun validateIban(iban: String): Boolean {
+        var response = false
+        api.request("validateIban", ValidateIbanResponse.serializer()) {
+            put("iban", iban)
+        }.onError {
+            Log.d(TAG, "Error validateIban $it")
+            response = false
+        }.onSuccess {
+            response = it.valid
+        }
+        return response
+    }
+
+    suspend fun getDepositWireTypesForCurrency(scopeInfo: ScopeInfo): List<WireType>? {
+        var result: List<WireType>? = null
+        api.request("getDepositWireTypesForCurrency", GetDepositWireTypesForCurrencyResponse.serializer()) {
+            put("currency", scopeInfo.currency)
+            put("scopeInfo", JSONObject(BackendManager.json.encodeToString(scopeInfo)))
+        }.onError {
+            Log.e(TAG, "Error getDepositWireTypesForCurrency $it")
+        }.onSuccess {
+            result = it.wireTypes
+        }
+        return result
+    }
 }
 
 @Serializable
@@ -167,3 +184,19 @@ data class CreateDepositGroupResponse(
     val depositGroupId: String,
     val transactionId: String,
 )
+
+@Serializable
+data class GetDepositWireTypesForCurrencyResponse(
+    val wireTypes: List<WireType>,
+)
+
+@Serializable
+enum class WireType {
+    Unknown,
+
+    @SerialName("iban")
+    IBAN,
+
+    @SerialName("x-taler-bank")
+    TalerBank,
+}

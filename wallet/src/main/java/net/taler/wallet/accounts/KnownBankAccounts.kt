@@ -82,7 +82,20 @@ class PaytoUriTalerBank(
 ) : PaytoUri(
     isKnown = true,
     targetType = "x-taler-bank",
-)
+) {
+    val paytoUri: String
+        get() = Uri.Builder()
+            .scheme("payto")
+            .authority(targetType)
+            .appendPath(host)
+            .appendPath(account)
+            .apply {
+                params.forEach { (key, value) ->
+                    appendQueryParameter(key, value)
+                }
+            }
+            .build().toString()
+}
 
 @Serializable
 @SerialName("bitcoin")
