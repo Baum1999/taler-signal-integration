@@ -46,7 +46,12 @@ class ConfigFetcherFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        configManager.fetchConfig(configManager.config, false)
+        if (configManager.config.savePassword()) {
+            configManager.fetchConfig(configManager.config, false)
+        } else {
+            navigate(actionConfigFetcherToMerchantSettings())
+        }
+
         configManager.configUpdateResult.observe(viewLifecycleOwner) { result ->
             when (result) {
                 null -> return@observe

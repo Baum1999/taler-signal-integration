@@ -56,6 +56,7 @@ internal const val CONFIG_VERSION_NEW = 1
 private const val SETTINGS_CONFIG_URL = "configUrl"
 private const val SETTINGS_USERNAME = "username"
 private const val SETTINGS_PASSWORD = "password"
+private const val SETTINGS_SAVE_PASSWORD = "savePassword"
 
 internal const val OLD_CONFIG_URL_DEMO = "https://docs.taler.net/_static/sample-pos-config.json"
 internal const val OLD_CONFIG_USERNAME_DEMO = ""
@@ -67,7 +68,6 @@ private const val SETTINGS_MERCHANT_URL = "merchantUrl"
 private const val SETTINGS_ACCESS_TOKEN = "accessToken"
 
 internal const val NEW_CONFIG_URL_DEMO = "https://backend.demo.taler.net/instances/pos"
-internal const val NEW_CONFIG_ACCESS_TOKEN_DEMO = "sandbox"
 
 private val VERSION = Version.parse(BuildConfig.BACKEND_API_VERSION)!!
 
@@ -93,13 +93,15 @@ class ConfigManager(
     var config: Config = if (prefs.getInt(SETTINGS_CONFIG_VERSION, CONFIG_VERSION_NEW) == CONFIG_VERSION_NEW) {
         Config.New(
             merchantUrl = prefs.getString(SETTINGS_MERCHANT_URL, "")!!,
-            accessToken = prefs.getString(SETTINGS_ACCESS_TOKEN, NEW_CONFIG_ACCESS_TOKEN_DEMO)!!,
+            accessToken = prefs.getString(SETTINGS_ACCESS_TOKEN, "")!!,
+            savePassword = prefs.getBoolean(SETTINGS_SAVE_PASSWORD, true),
         )
     } else {
         Config.Old(
             configUrl = prefs.getString(SETTINGS_CONFIG_URL, "")!!,
             username = prefs.getString(SETTINGS_USERNAME, OLD_CONFIG_USERNAME_DEMO)!!,
             password = prefs.getString(SETTINGS_PASSWORD, OLD_CONFIG_PASSWORD_DEMO)!!,
+            savePassword = prefs.getBoolean(SETTINGS_SAVE_PASSWORD, true)
         )
     }
 
@@ -120,14 +122,14 @@ class ConfigManager(
 
     @UiThread
     fun reloadConfig() {
-        fetchConfig(config, true, config.hasPassword())
+        fetchConfig(config, true)
     }
 
     @UiThread
-    fun fetchConfig(config: Config, save: Boolean, savePassword: Boolean = false) {
+    fun fetchConfig(config: Config, save: Boolean) {
         mConfigUpdateResult.value = null
         val configToSave = if (save) {
-            if (savePassword) config else when (val c = config) {
+            if (config.savePassword()) config else when (val c = config) {
                 is Config.Old -> c.copy(password = "")
                 is Config.New -> c.copy(accessToken = "")
             }
@@ -237,11 +239,13 @@ class ConfigManager(
                 .putString(SETTINGS_CONFIG_URL, c.configUrl)
                 .putString(SETTINGS_USERNAME, c.username)
                 .putString(SETTINGS_PASSWORD, c.password)
+                .putBoolean(SETTINGS_SAVE_PASSWORD, c.savePassword)
                 .apply()
             is Config.New -> prefs.edit()
                 .putInt(SETTINGS_CONFIG_VERSION, CONFIG_VERSION_NEW)
                 .putString(SETTINGS_MERCHANT_URL, c.merchantUrl)
                 .putString(SETTINGS_ACCESS_TOKEN, c.accessToken)
+                .putBoolean(SETTINGS_SAVE_PASSWORD, c.savePassword)
                 .apply()
         }
     }

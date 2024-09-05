@@ -89,9 +89,10 @@ class ConfigFragment : Fragment() {
             val config = Config.Old(
                 configUrl = url,
                 username = ui.usernameView.editText!!.text.toString(),
-                password = ui.passwordView.editText!!.text.toString()
+                password = ui.passwordView.editText!!.text.toString(),
+                savePassword = ui.savePasswordCheckBox.isChecked,
             )
-            configManager.fetchConfig(config, true, ui.savePasswordCheckBox.isChecked)
+            configManager.fetchConfig(config, true)
             configManager.configUpdateResult.observe(viewLifecycleOwner) { result ->
                 if (onConfigUpdate(result)) {
                     configManager.configUpdateResult.removeObservers(viewLifecycleOwner)
@@ -124,8 +125,9 @@ class ConfigFragment : Fragment() {
             val config = Config.New(
                 merchantUrl = url,
                 accessToken = ui.tokenView.editText!!.text.toString(),
+                savePassword = ui.saveTokenCheckBox.isChecked,
             )
-            configManager.fetchConfig(config, true, ui.saveTokenCheckBox.isChecked)
+            configManager.fetchConfig(config, true)
             configManager.configUpdateResult.observe(viewLifecycleOwner) { result ->
                 if (onConfigUpdate(result)) {
                     configManager.configUpdateResult.removeObservers(viewLifecycleOwner)
@@ -154,7 +156,6 @@ class ConfigFragment : Fragment() {
             ui.passwordView.editText!!.setText(OLD_CONFIG_PASSWORD_DEMO)
 
             ui.merchantUrlView.editText!!.setText(NEW_CONFIG_URL_DEMO)
-            ui.tokenView.editText!!.setText(NEW_CONFIG_ACCESS_TOKEN_DEMO)
 
             when (val config = configManager.config) {
                 is Config.Old -> {
@@ -166,9 +167,11 @@ class ConfigFragment : Fragment() {
                         ui.usernameView.editText!!.setText(config.username)
                     }
 
-                    if (config.password.isNotBlank()) {
+                    if (config.password.isNotBlank() && config.savePassword) {
                         ui.passwordView.editText!!.setText(config.password)
                     }
+
+                    ui.savePasswordCheckBox.isChecked = config.savePassword
                 }
 
                 is Config.New -> {
@@ -176,25 +179,23 @@ class ConfigFragment : Fragment() {
                         ui.merchantUrlView.editText!!.setText(config.merchantUrl)
                     }
 
-                    if (config.accessToken.isNotBlank()) {
+                    if (config.accessToken.isNotBlank() && config.savePassword) {
                         ui.tokenView.editText!!.setText(config.accessToken)
                     }
+
+                    ui.saveTokenCheckBox.isChecked = config.savePassword
                 }
             }
         }
 
-        when (val config = configManager.config) {
+        when (configManager.config) {
             is Config.Old -> {
                 ui.configToggle.check(R.id.oldConfigButton)
                 showOldConfig()
-
-                ui.forgetPasswordButton.visibility = if (config.hasPassword()) VISIBLE else GONE
             }
             is Config.New -> {
                 ui.configToggle.check(R.id.newConfigButton)
                 showNewConfig()
-
-                ui.tokenView.visibility = if (config.hasPassword()) VISIBLE else GONE
             }
         }
 

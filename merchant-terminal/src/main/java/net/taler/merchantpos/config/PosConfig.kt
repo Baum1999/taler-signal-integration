@@ -30,6 +30,7 @@ import java.util.UUID
 sealed class Config {
     abstract fun isValid(): Boolean
     abstract fun hasPassword(): Boolean
+    abstract fun savePassword(): Boolean
 
     /**
      * JSON config URL + user/password
@@ -38,9 +39,11 @@ sealed class Config {
         val configUrl: String,
         val username: String,
         val password: String,
+        val savePassword: Boolean,
     ): Config() {
         override fun isValid() = configUrl.isNotBlank()
         override fun hasPassword() = password.isNotBlank()
+        override fun savePassword() = savePassword
     }
 
     /**
@@ -49,9 +52,11 @@ sealed class Config {
     data class New(
         val merchantUrl: String,
         val accessToken: String,
+        val savePassword: Boolean,
     ): Config() {
         override fun isValid() = merchantUrl.isNotBlank()
         override fun hasPassword() = accessToken.isNotBlank()
+        override fun savePassword() = savePassword
     }
 }
 
