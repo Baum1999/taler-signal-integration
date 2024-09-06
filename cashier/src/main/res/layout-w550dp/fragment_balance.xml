@@ -167,7 +167,6 @@
         android:id="@+id/amountLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:weightSum="2"
         android:orientation="horizontal"
         android:gravity="center_horizontal"
         app:layout_constraintStart_toStartOf="@id/guideline"
@@ -193,8 +192,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:imeOptions="actionGo"
-                android:inputType="number|numberDecimal"
-                android:maxLength="4" />
+                android:inputType="number|numberDecimal" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
