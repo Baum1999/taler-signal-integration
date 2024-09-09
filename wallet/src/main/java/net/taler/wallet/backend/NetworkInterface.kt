@@ -24,7 +24,7 @@ import io.ktor.client.request.headers
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
-import io.ktor.util.toMap
+import io.ktor.util.flattenForEach
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -93,16 +93,17 @@ class NetworkInterface: Networking.RequestHandler {
             // HTTP response status code or 0 on error.
             val status = if (resp?.status?.value != null) resp.status.value else 0
 
+            val headers = mutableListOf<String>().apply {
+                resp?.headers?.flattenForEach { k, v -> add("$k: $v") }
+            }.toTypedArray()
+
             Log.d(TAG, "Sending response to wallet-core")
             sendResponse(
                 Networking.ResponseInfo(
                     requestId = id,
                     status = status,
                     errorMsg = errorMsg,
-                    headers = resp?.headers?.toMap()
-                        ?.map { (k, v) -> "$k: $v" }
-                        ?.toTypedArray()
-                        ?: emptyArray(),
+                    headers = headers,
                     body = resp?.body(),
                 )
             )
