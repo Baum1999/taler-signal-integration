@@ -67,6 +67,7 @@ class DepositFragment : Fragment() {
                 TalerSurface {
                     val state = depositManager.depositState.collectAsStateLifecycleAware()
                     val wireTypes = remember { mutableStateListOf<WireType>() }
+                    val talerBankHostnames = remember { mutableStateListOf<String>() }
                     val coroutine = rememberCoroutineScope()
 
                     if (amount.currency == CURRENCY_BTC) MakeBitcoinDepositComposable(
@@ -79,6 +80,7 @@ class DepositFragment : Fragment() {
                     ) else MakeDepositComposable(
                         state = state.value,
                         supportedWireTypes = wireTypes,
+                        talerBankHostnames = talerBankHostnames,
                         amount = amount.withSpec(spec),
                         presetName = receiverName,
                         presetIban = iban,
@@ -89,10 +91,15 @@ class DepositFragment : Fragment() {
 
                     LaunchedEffect(Unit) {
                         coroutine.launch {
-                            scopeInfo?.let {
+                            scopeInfo?.let { scopeInfo ->
                                 depositManager
-                                    .getDepositWireTypesForCurrency(it)
-                                    ?.let { types -> wireTypes.addAll(types) }
+                                    .getDepositWireTypesForCurrency(scopeInfo)
+                                    ?.let { result ->
+                                        wireTypes.addAll(result.wireTypes)
+                                        talerBankHostnames.addAll(result.wireTypeDetails.flatMap {
+                                            it.talerBankHostnames
+                                        }.distinct())
+                                    }
                             }
                         }
                     }

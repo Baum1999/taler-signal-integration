@@ -24,13 +24,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,9 +37,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -58,6 +53,7 @@ import net.taler.wallet.transactions.TransactionAmountComposable
 fun MakeDepositComposable(
     state: DepositState,
     supportedWireTypes: List<WireType>,
+    talerBankHostnames: List<String>,
     amount: Amount,
     presetName: String? = null,
     presetIban: String? = null,
@@ -93,7 +89,7 @@ fun MakeDepositComposable(
         var ibanName by rememberSaveable { mutableStateOf(presetName ?: "") }
         var ibanIban by rememberSaveable { mutableStateOf(presetIban ?: "") }
         var talerName by rememberSaveable { mutableStateOf(presetName ?: "") }
-        var talerHost by rememberSaveable { mutableStateOf("") }
+        var talerHost by rememberSaveable { mutableStateOf(talerBankHostnames.firstOrNull() ?: "") }
         var talerAccount by rememberSaveable { mutableStateOf("") }
 
         when(selectedWireType) {
@@ -101,7 +97,7 @@ fun MakeDepositComposable(
                 var ibanError by rememberSaveable { mutableStateOf(false) }
                 val coroutineScope = rememberCoroutineScope()
 
-                MakeDepositIbanForm(
+                MakeDepositIBAN(
                     name = ibanName,
                     iban = ibanIban,
                     state = state,
@@ -118,10 +114,11 @@ fun MakeDepositComposable(
                 )
             }
 
-            WireType.TalerBank -> MakeDepositTalerBankForm(
+            WireType.TalerBank -> MakeDepositTaler(
                 name = talerName,
                 host = talerHost,
                 account = talerAccount,
+                supportedHosts = talerBankHostnames,
                 state = state,
                 onFormEdited = { name, host, account ->
                     talerName = name
@@ -232,153 +229,6 @@ fun MakeDepositWireTypeChooser(
     }
 }
 
-@Composable
-fun MakeDepositIbanForm(
-    state: DepositState,
-    name: String,
-    iban: String,
-    ibanError: Boolean,
-    onFormEdited: (name: String, iban: String) -> Unit
-) {
-    val focusRequester = remember { FocusRequester() }
-
-    OutlinedTextField(
-        modifier = Modifier
-            .padding(16.dp)
-            .focusRequester(focusRequester)
-            .fillMaxWidth(),
-        value = name,
-        enabled = !state.showFees,
-        onValueChange = { input ->
-            onFormEdited(input, iban)
-        },
-        singleLine = true,
-        isError = name.isBlank(),
-        label = {
-            Text(
-                stringResource(R.string.send_deposit_name),
-                color = if (name.isBlank()) {
-                    MaterialTheme.colorScheme.error
-                } else Color.Unspecified,
-            )
-        }
-    )
-
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
-
-    OutlinedTextField(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .fillMaxWidth(),
-        value = iban,
-        singleLine = true,
-        enabled = !state.showFees,
-        onValueChange = { input ->
-            onFormEdited(name, input.uppercase())
-
-        },
-        isError = ibanError,
-        supportingText = {
-            if (ibanError) {
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(R.string.send_deposit_iban_error),
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-        },
-        label = {
-            Text(
-                text = stringResource(R.string.send_deposit_iban),
-                color = if (ibanError) {
-                    MaterialTheme.colorScheme.error
-                } else Color.Unspecified,
-            )
-        }
-    )
-}
-
-@Composable
-fun MakeDepositTalerBankForm(
-    state: DepositState,
-    name: String,
-    host: String,
-    account: String,
-    onFormEdited: (name: String, host: String, account: String) -> Unit
-) {
-    val focusRequester = remember { FocusRequester() }
-
-    OutlinedTextField(
-        modifier = Modifier
-            .padding(16.dp)
-            .focusRequester(focusRequester)
-            .fillMaxWidth(),
-        value = name,
-        enabled = !state.showFees,
-        onValueChange = { input ->
-            onFormEdited(input, host, account)
-        },
-        singleLine = true,
-        isError = name.isBlank(),
-        label = {
-            Text(
-                stringResource(R.string.send_deposit_name),
-                color = if (name.isBlank()) {
-                    MaterialTheme.colorScheme.error
-                } else Color.Unspecified,
-            )
-        }
-    )
-
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
-
-    OutlinedTextField(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .fillMaxWidth(),
-        value = host,
-        enabled = !state.showFees,
-        onValueChange = { input ->
-            onFormEdited(name, input, account)
-        },
-        singleLine = true,
-        isError = host.isBlank(),
-        label = {
-            Text(
-                stringResource(R.string.send_deposit_host),
-                color = if (host.isBlank()) {
-                    MaterialTheme.colorScheme.error
-                } else Color.Unspecified,
-            )
-        }
-    )
-
-    OutlinedTextField(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth(),
-        value = account,
-        singleLine = true,
-        enabled = !state.showFees,
-        onValueChange = { input ->
-            onFormEdited(name, host, input)
-        },
-        isError = account.isBlank(),
-        label = {
-            Text(
-                text = stringResource(R.string.send_deposit_account),
-                color = if (account.isBlank()) {
-                    MaterialTheme.colorScheme.error
-                } else Color.Unspecified,
-            )
-        }
-    )
-}
-
 @Preview
 @Composable
 fun PreviewMakeDepositComposable() {
@@ -390,6 +240,7 @@ fun PreviewMakeDepositComposable() {
         MakeDepositComposable(
             state = state,
             supportedWireTypes = listOf(WireType.TalerBank, WireType.IBAN),
+            talerBankHostnames = listOf("bank.demo.taler.net", "bank.test.taler.net"),
             amount = Amount.fromString("TESTKUDOS", "42.23"),
             validateIban = { true },
             onMakeIbanDeposit = { _, _, _ -> },

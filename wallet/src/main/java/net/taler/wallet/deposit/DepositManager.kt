@@ -154,15 +154,15 @@ class DepositManager(
         return response
     }
 
-    suspend fun getDepositWireTypesForCurrency(scopeInfo: ScopeInfo): List<WireType>? {
-        var result: List<WireType>? = null
+    suspend fun getDepositWireTypesForCurrency(scopeInfo: ScopeInfo): GetDepositWireTypesForCurrencyResponse? {
+        var result: GetDepositWireTypesForCurrencyResponse? = null
         api.request("getDepositWireTypesForCurrency", GetDepositWireTypesForCurrencyResponse.serializer()) {
             put("currency", scopeInfo.currency)
             put("scopeInfo", JSONObject(BackendManager.json.encodeToString(scopeInfo)))
         }.onError {
             Log.e(TAG, "Error getDepositWireTypesForCurrency $it")
         }.onSuccess {
-            result = it.wireTypes
+            result = it
         }
         return result
     }
@@ -188,6 +188,7 @@ data class CreateDepositGroupResponse(
 @Serializable
 data class GetDepositWireTypesForCurrencyResponse(
     val wireTypes: List<WireType>,
+    val wireTypeDetails: List<WireTypeDetails>,
 )
 
 @Serializable
@@ -200,3 +201,9 @@ enum class WireType {
     @SerialName("x-taler-bank")
     TalerBank,
 }
+
+@Serializable
+data class WireTypeDetails(
+    val paymentTargetType: WireType,
+    val talerBankHostnames: List<String>,
+)
