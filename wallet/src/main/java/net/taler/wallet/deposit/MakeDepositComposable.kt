@@ -58,8 +58,7 @@ fun MakeDepositComposable(
     presetName: String? = null,
     presetIban: String? = null,
     validateIban: suspend (iban: String) -> Boolean,
-    onMakeIbanDeposit: (Amount, String, String) -> Unit,
-    onMakeTalerBankDeposit: (Amount, String, String, String) -> Unit,
+    onMakeDeposit: (Amount, String) -> Unit,
 ) {
     // TODO: show some placeholder
     if (supportedWireTypes.isEmpty()) return
@@ -91,6 +90,12 @@ fun MakeDepositComposable(
         var talerName by rememberSaveable { mutableStateOf(presetName ?: "") }
         var talerHost by rememberSaveable { mutableStateOf(talerBankHostnames.firstOrNull() ?: "") }
         var talerAccount by rememberSaveable { mutableStateOf("") }
+
+        val paytoUri = when(selectedWireType) {
+            WireType.IBAN -> getIbanPayto(ibanName, ibanIban)
+            WireType.TalerBank -> getTalerPayto(talerName, talerHost, talerAccount)
+            else -> null
+        }
 
         when(selectedWireType) {
             WireType.IBAN -> {
@@ -178,11 +183,7 @@ fun MakeDepositComposable(
             enabled = !formError,
             onClick = {
                 focusManager.clearFocus()
-                when (selectedWireType) {
-                    WireType.IBAN -> onMakeIbanDeposit(amount, ibanName, ibanIban)
-                    WireType.TalerBank -> onMakeTalerBankDeposit(amount, talerName, talerHost, talerAccount)
-                    else -> {}
-                }
+                paytoUri?.let { onMakeDeposit(amount, it) }
             },
         ) {
             Text(
@@ -243,8 +244,7 @@ fun PreviewMakeDepositComposable() {
             talerBankHostnames = listOf("bank.demo.taler.net", "bank.test.taler.net"),
             amount = Amount.fromString("TESTKUDOS", "42.23"),
             validateIban = { true },
-            onMakeIbanDeposit = { _, _, _ -> },
-            onMakeTalerBankDeposit = { _, _, _, _ -> },
+            onMakeDeposit = { _, _ -> },
         )
     }
 }

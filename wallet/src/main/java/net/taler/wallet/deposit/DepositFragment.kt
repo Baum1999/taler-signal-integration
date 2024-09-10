@@ -59,7 +59,8 @@ class DepositFragment : Fragment() {
         val iban = arguments?.getString("IBAN")
 
         if (receiverName != null && iban != null) {
-            depositManager.makeIbanDeposit(amount, receiverName, iban)
+            val paytoUri = getIbanPayto(receiverName, iban)
+            depositManager.makeDeposit(amount, paytoUri)
         }
 
         return ComposeView(requireContext()).apply {
@@ -75,7 +76,8 @@ class DepositFragment : Fragment() {
                         amount = amount.withSpec(spec),
                         bitcoinAddress = null,
                         onMakeDeposit = { amount, bitcoinAddress ->
-                            depositManager.makeBitcoinDeposit(amount, bitcoinAddress)
+                            val paytoUri = getBitcoinPayto(bitcoinAddress)
+                            depositManager.makeDeposit(amount, paytoUri)
                         },
                     ) else MakeDepositComposable(
                         state = state.value,
@@ -85,8 +87,7 @@ class DepositFragment : Fragment() {
                         presetName = receiverName,
                         presetIban = iban,
                         validateIban = depositManager::validateIban,
-                        onMakeIbanDeposit = depositManager::makeIbanDeposit,
-                        onMakeTalerBankDeposit = depositManager::makeTalerDeposit,
+                        onMakeDeposit = depositManager::makeDeposit,
                     )
 
                     LaunchedEffect(Unit) {

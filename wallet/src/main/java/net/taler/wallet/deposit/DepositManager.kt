@@ -51,38 +51,7 @@ class DepositManager(
         return u.pathSegments.size >= 1
     }
 
-    @UiThread
-    fun makeIbanDeposit(amount: Amount, receiverName: String, iban: String) {
-        val paytoUri: String = PaytoUriIban(
-            iban = iban,
-            bic = null,
-            targetPath = "",
-            params = mapOf("receiver-name" to receiverName),
-        ).paytoUri
-        makeDeposit(amount, paytoUri)
-    }
-
-    @UiThread
-    fun makeTalerDeposit(amount: Amount, receiverName: String, host: String, account: String) {
-        val paytoUri: String = PaytoUriTalerBank(
-            host = host,
-            account = account,
-            targetPath = "",
-            params = mapOf("receiver-name" to receiverName),
-        ).paytoUri
-        makeDeposit(amount, paytoUri)
-    }
-
-    @UiThread
-    fun makeBitcoinDeposit(amount: Amount, bitcoinAddress: String) {
-        val paytoUri: String = PaytoUriBitcoin(
-            segwitAddresses = listOf(bitcoinAddress),
-            targetPath = bitcoinAddress,
-        ).paytoUri
-        makeDeposit(amount, paytoUri)
-    }
-
-    private fun makeDeposit(amount: Amount, uri: String) {
+    fun makeDeposit(amount: Amount, uri: String) {
         if (depositState.value is DepositState.FeesChecked) makeDeposit(
             paytoUri = uri,
             amount = amount,
@@ -167,6 +136,25 @@ class DepositManager(
         return result
     }
 }
+
+fun getIbanPayto(receiverName: String, iban: String) = PaytoUriIban(
+    iban = iban,
+    bic = null,
+    targetPath = "",
+    params = mapOf("receiver-name" to receiverName),
+).paytoUri
+
+fun getTalerPayto(receiverName: String, host: String, account: String) = PaytoUriTalerBank(
+    host = host,
+    account = account,
+    targetPath = "",
+    params = mapOf("receiver-name" to receiverName),
+).paytoUri
+
+fun getBitcoinPayto(bitcoinAddress: String) = PaytoUriBitcoin(
+    segwitAddresses = listOf(bitcoinAddress),
+    targetPath = bitcoinAddress,
+).paytoUri
 
 @Serializable
 data class ValidateIbanResponse(
