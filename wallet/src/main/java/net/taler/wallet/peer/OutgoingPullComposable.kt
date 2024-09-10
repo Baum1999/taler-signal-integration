@@ -16,6 +16,7 @@
 
 package net.taler.wallet.peer
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -201,8 +202,9 @@ fun PeerErrorComposable(state: OutgoingError, onClose: () -> Unit) {
     Column(
         modifier = Modifier
             .padding(16.dp)
-            .fillMaxWidth(),
+            .fillMaxSize(),
         horizontalAlignment = CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
         Text(
             color = MaterialTheme.colorScheme.error,

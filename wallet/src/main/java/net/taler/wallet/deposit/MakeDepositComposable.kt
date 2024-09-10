@@ -45,6 +45,10 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import net.taler.common.Amount
 import net.taler.wallet.R
+import net.taler.wallet.backend.TalerErrorCode
+import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.peer.OutgoingError
+import net.taler.wallet.peer.PeerErrorComposable
 import net.taler.wallet.transactions.AmountType.Negative
 import net.taler.wallet.transactions.AmountType.Positive
 import net.taler.wallet.transactions.TransactionAmountComposable
@@ -59,9 +63,14 @@ fun MakeDepositComposable(
     presetIban: String? = null,
     validateIban: suspend (iban: String) -> Boolean,
     onMakeDeposit: (Amount, String) -> Unit,
+    onClose: () -> Unit,
 ) {
-    // TODO: show some placeholder
-    if (supportedWireTypes.isEmpty()) return
+    if (supportedWireTypes.isEmpty()) {
+        return MakeDepositErrorComposable(
+            message = stringResource(R.string.send_deposit_no_methods_error),
+            onClose = onClose,
+        )
+    }
 
     val scrollState = rememberScrollState()
     Column(
@@ -230,6 +239,20 @@ fun MakeDepositWireTypeChooser(
     }
 }
 
+@Composable
+fun MakeDepositErrorComposable(
+    message: String,
+    onClose: () -> Unit,
+) {
+    PeerErrorComposable(
+        state = OutgoingError(info = TalerErrorInfo(
+            message = message,
+            code = TalerErrorCode.UNKNOWN,
+        )),
+        onClose = onClose,
+    )
+}
+
 @Preview
 @Composable
 fun PreviewMakeDepositComposable() {
@@ -245,6 +268,7 @@ fun PreviewMakeDepositComposable() {
             amount = Amount.fromString("TESTKUDOS", "42.23"),
             validateIban = { true },
             onMakeDeposit = { _, _ -> },
+            onClose = {},
         )
     }
 }

@@ -88,6 +88,7 @@ class DepositFragment : Fragment() {
                         presetIban = iban,
                         validateIban = depositManager::validateIban,
                         onMakeDeposit = depositManager::makeDeposit,
+                        onClose = { findNavController().popBackStack() },
                     )
 
                     LaunchedEffect(Unit) {
