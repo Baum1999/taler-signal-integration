@@ -113,7 +113,7 @@ class PaymentManager(
     }
 
     @UiThread
-    fun cancelPayment(error: String) {
+    fun cancelPayment(error: String? = null) {
         // delete unpaid order
         val merchantConfig = configManager.merchantConfig!!
         mPayment.value?.let { payment ->

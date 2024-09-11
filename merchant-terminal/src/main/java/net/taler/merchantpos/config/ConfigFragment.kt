@@ -167,20 +167,12 @@ class ConfigFragment : Fragment() {
                         ui.usernameView.editText!!.setText(config.username)
                     }
 
-                    if (config.password.isNotBlank() && config.savePassword) {
-                        ui.passwordView.editText!!.setText(config.password)
-                    }
-
                     ui.savePasswordCheckBox.isChecked = config.savePassword
                 }
 
                 is Config.New -> {
                     if (config.merchantUrl.isNotBlank()) {
                         ui.merchantUrlView.editText!!.setText(config.merchantUrl)
-                    }
-
-                    if (config.accessToken.isNotBlank() && config.savePassword) {
-                        ui.tokenView.editText!!.setText(config.accessToken)
                     }
 
                     ui.saveTokenCheckBox.isChecked = config.savePassword

@@ -67,7 +67,7 @@ class ProcessPaymentFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        paymentManager.cancelPayment(getString(R.string.error_cancelled))
+        paymentManager.cancelPayment()
     }
 
     private fun onPaymentStateChanged(payment: Payment) {
@@ -106,7 +106,7 @@ class ProcessPaymentFragment : Fragment() {
     }
 
     private fun onPaymentCancel() {
-        paymentManager.cancelPayment(getString(R.string.error_cancelled))
+        paymentManager.cancelPayment()
         findNavController().navigateUp()
         Snackbar.make(requireView(), R.string.payment_canceled, LENGTH_LONG).show()
     }
