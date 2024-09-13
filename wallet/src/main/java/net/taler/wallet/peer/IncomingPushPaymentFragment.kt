@@ -17,17 +17,23 @@
 package net.taler.wallet.peer
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.launch
 import net.taler.common.showError
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
+import net.taler.wallet.TAG
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.showError
@@ -35,31 +41,44 @@ import net.taler.wallet.showError
 class IncomingPushPaymentFragment : Fragment() {
     private val model: MainViewModel by activityViewModels()
     private val peerManager get() = model.peerManager
+    private val exchangeManager get() = model.exchangeManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        lifecycleScope.launchWhenResumed {
-            peerManager.incomingPushState.collect {
-                if (it is IncomingAccepted) {
-                    findNavController().navigate(R.id.action_promptPushPayment_to_nav_main)
-                } else if (it is IncomingError) {
-                    if (model.devMode.value == true) {
-                        showError(it.info)
-                    } else {
-                        showError(it.info.userFacingMsg)
-                    }
-                }
-            }
-        }
         return ComposeView(requireContext()).apply {
             setContent {
                 TalerSurface {
                     val state = peerManager.incomingPushState.collectAsStateLifecycleAware()
                     IncomingComposable(state, incomingPush) { terms ->
-                        peerManager.confirmPeerPushCredit(terms)
+                        if (terms is IncomingTosReview) {
+                            val args = bundleOf("exchangeBaseUrl" to terms.exchangeBaseUrl)
+                            findNavController().navigate(R.id.action_promptPushPayment_to_reviewExchangeTOS, args)
+                        } else {
+                            peerManager.confirmPeerPushCredit(terms)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                peerManager.incomingPushState.collect {
+                    Log.d(TAG, "incomingPushState is $it")
+                    if (it is IncomingAccepted) {
+                        findNavController().navigate(R.id.action_promptPushPayment_to_nav_main)
+                    } else if (it is IncomingError) {
+                        if (model.devMode.value == true) {
+                            showError(it.info)
+                        } else {
+                            showError(it.info.userFacingMsg)
+                        }
                     }
                 }
             }
@@ -69,5 +88,14 @@ class IncomingPushPaymentFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         activity?.setTitle(R.string.receive_peer_payment_title)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // FIXME: not sure that this is the best approach!
+        exchangeManager.exchanges.observe(viewLifecycleOwner) {
+            // detect ToS acceptation
+            peerManager.refreshPeerPushCreditTos()
+        }
     }
 }

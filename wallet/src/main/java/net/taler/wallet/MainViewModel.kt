@@ -110,12 +110,12 @@ class MainViewModel(
     private val api = WalletBackendApi(app, walletConfig, this, this)
 
     val networkManager = NetworkManager(app.applicationContext)
-    val withdrawManager = WithdrawManager(api, viewModelScope)
     val paymentManager = PaymentManager(api, viewModelScope)
     val transactionManager: TransactionManager = TransactionManager(api, viewModelScope)
     val refundManager = RefundManager(api, viewModelScope)
     val balanceManager = BalanceManager(api, viewModelScope)
     val exchangeManager: ExchangeManager = ExchangeManager(api, viewModelScope)
+    val withdrawManager = WithdrawManager(api, viewModelScope, exchangeManager)
     val peerManager: PeerManager = PeerManager(api, exchangeManager, viewModelScope)
     val settingsManager: SettingsManager = SettingsManager(app.applicationContext, api, viewModelScope)
     val accountManager: AccountManager = AccountManager(api, viewModelScope)

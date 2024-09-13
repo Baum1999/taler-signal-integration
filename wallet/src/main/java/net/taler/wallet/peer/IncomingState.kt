@@ -21,18 +21,34 @@ import net.taler.common.Amount
 import net.taler.wallet.backend.TalerErrorInfo
 
 sealed class IncomingState
-object IncomingChecking : IncomingState()
+
+data object IncomingChecking : IncomingState()
+
 open class IncomingTerms(
-    val amountRaw: Amount,
-    val amountEffective: Amount,
-    val contractTerms: PeerContractTerms,
-    val id: String,
+    open val amountRaw: Amount,
+    open val amountEffective: Amount,
+    open val contractTerms: PeerContractTerms,
+    open val id: String,
 ) : IncomingState()
+
+class IncomingTosReview(
+    override val amountRaw: Amount,
+    override val amountEffective: Amount,
+    override val contractTerms: PeerContractTerms,
+    val exchangeBaseUrl: String,
+    override val id: String,
+) : IncomingTerms(
+    amountRaw = amountRaw,
+    amountEffective = amountEffective,
+    contractTerms = contractTerms,
+    id = id,
+)
 
 class IncomingAccepting(s: IncomingTerms) :
     IncomingTerms(s.amountRaw, s.amountEffective, s.contractTerms, s.id)
 
-object IncomingAccepted : IncomingState()
+data object IncomingAccepted : IncomingState()
+
 data class IncomingError(
     val info: TalerErrorInfo,
 ) : IncomingState()
@@ -57,4 +73,5 @@ data class PreparePeerPushCreditResponse(
     val amountRaw: Amount,
     val amountEffective: Amount,
     val transactionId: String,
+    val exchangeBaseUrl: String,
 )

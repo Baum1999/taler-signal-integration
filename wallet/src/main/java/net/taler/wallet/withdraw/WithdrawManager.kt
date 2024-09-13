@@ -39,6 +39,8 @@ import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.exchanges.ExchangeFees
 import net.taler.wallet.exchanges.ExchangeItem
+import net.taler.wallet.exchanges.ExchangeManager
+import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
 import net.taler.wallet.withdraw.WithdrawStatus.Status.*
 
@@ -62,7 +64,6 @@ data class WithdrawStatus(
     val currency: String? = null,
     val uriInfo: WithdrawalDetailsForUri? = null,
     val amountInfo: WithdrawalDetailsForAmount? = null,
-    val tosDetails: TosResponse? = null,
 
     // manual transfer
     val manualTransferResponse: AcceptManualWithdrawalResponse? = null,
@@ -207,6 +208,7 @@ data class QrCodeSpec(
 class WithdrawManager(
     private val api: WalletBackendApi,
     private val scope: CoroutineScope,
+    private val exchangeManager: ExchangeManager,
 ) {
     private val _withdrawStatus = MutableStateFlow(WithdrawStatus())
     val withdrawStatus: StateFlow<WithdrawStatus> = _withdrawStatus.asStateFlow()
@@ -288,20 +290,29 @@ class WithdrawManager(
         }.onError { error ->
             handleError("getWithdrawalDetailsForAmount", error)
         }.onSuccess { details ->
-            if (details.tosAccepted) {
-                _withdrawStatus.update { value ->
-                    value.copy(
-                        status = InfoReceived,
-                        exchangeBaseUrl = exchangeBaseUrl2,
-                        uriInfo = uriInfo ?: value.uriInfo,
-                        amountInfo = details,
-                        currency = details.amountRaw.currency,
-                    )
+            scope.launch {
+                val exchange = exchangeManager.findExchangeByUrl(exchangeBaseUrl2)
+                if (exchange?.tosStatus == ExchangeTosStatus.Accepted) {
+                    _withdrawStatus.update { value ->
+                        value.copy(
+                            status = InfoReceived,
+                            exchangeBaseUrl = exchangeBaseUrl2,
+                            uriInfo = uriInfo ?: value.uriInfo,
+                            amountInfo = details,
+                            currency = details.amountRaw.currency,
+                        )
+                    }
+                } else {
+                    _withdrawStatus.update { value ->
+                        value.copy(
+                            status = TosReviewRequired,
+                            amountInfo = details,
+                            currency = details.amountRaw.currency,
+                            exchangeBaseUrl = exchangeBaseUrl,
+                        )
+                    }
                 }
-            } else getExchangeTos(
-                exchangeBaseUrl2,
-                amountInfo = details,
-            )
+            }
         }
     }
 
@@ -319,45 +330,18 @@ class WithdrawManager(
         return response
     }
 
-    private fun getExchangeTos(
-        exchangeBaseUrl: String,
-        amountInfo: WithdrawalDetailsForAmount? = null,
-    ) = scope.launch {
-        api.request("getExchangeTos", TosResponse.serializer()) {
-            put("exchangeBaseUrl", exchangeBaseUrl)
-        }.onError {
-            handleError("getExchangeTos", it)
-        }.onSuccess { tos ->
-            _withdrawStatus.update { value ->
-                value.copy(
-                    status = TosReviewRequired,
-                    amountInfo = amountInfo ?: value.amountInfo,
-                    tosDetails = tos,
-                    currency = amountInfo?.amountRaw?.currency,
-                    exchangeBaseUrl = exchangeBaseUrl,
-                )
+    @UiThread
+    fun refreshTosStatus() = scope.launch {
+        _withdrawStatus.update { status ->
+            var newStatus = status
+            status.exchangeBaseUrl?.let { exchangeBaseUrl ->
+                exchangeManager.findExchangeByUrl(exchangeBaseUrl)?.let { exchange ->
+                    if (exchange.tosStatus == ExchangeTosStatus.Accepted) {
+                        newStatus = status.copy(status = InfoReceived)
+                    }
+                }
             }
-        }
-    }
-
-    /**
-     * Accept the currently displayed terms of service.
-     */
-    fun acceptCurrentTos() = scope.launch {
-        val exchangeBaseUrl = withdrawStatus.value.exchangeBaseUrl
-            ?: error("no exchangeBaseUrl")
-        val tos = withdrawStatus.value.tosDetails
-            ?: error("no tosDetails")
-
-        api.request<Unit>("setExchangeTosAccepted") {
-            put("exchangeBaseUrl", exchangeBaseUrl)
-            put("etag", tos.currentEtag)
-        }.onError { error ->
-            handleError("setExchangeTosAccepted", error)
-        }.onSuccess {
-            _withdrawStatus.update { value ->
-                value.copy(status = InfoReceived)
-            }
+            newStatus
         }
     }
 

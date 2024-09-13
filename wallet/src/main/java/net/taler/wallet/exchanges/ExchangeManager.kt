@@ -31,15 +31,11 @@ import net.taler.common.toEvent
 import net.taler.wallet.TAG
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
+import net.taler.wallet.withdraw.TosResponse
 
 @Serializable
 data class ExchangeListResponse(
     val exchanges: List<ExchangeItem>,
-)
-
-@Serializable
-data class ExchangeDetailedResponse(
-    val exchange: ExchangeItem,
 )
 
 class ExchangeManager(
@@ -150,14 +146,48 @@ class ExchangeManager(
     @WorkerThread
     suspend fun findExchangeByUrl(exchangeUrl: String): ExchangeItem? {
         var exchange: ExchangeItem? = null
-        api.request("getExchangeDetailedInfo", ExchangeDetailedResponse.serializer()) {
+        api.request("getExchangeEntryByUrl", ExchangeItem.serializer()) {
             put("exchangeBaseUrl", exchangeUrl)
         }.onError {
-            Log.e(TAG, "Error getExchangeDetailedInfo: $it")
+            Log.e(TAG, "Error getExchangeEntryByUrl: $it")
         }.onSuccess {
-            exchange = it.exchange
+            exchange = it
         }
         return exchange
+    }
+
+    /**
+     * Fetch exchange terms of service.
+     */
+    suspend fun getExchangeTos(exchangeBaseUrl: String): TosResponse? {
+        var result: TosResponse? = null
+        api.request("getExchangeTos", TosResponse.serializer()) {
+            put("exchangeBaseUrl", exchangeBaseUrl)
+        }.onError { error ->
+            Log.d(TAG, "Error getExchangeTos: $error")
+        }.onSuccess {
+            result = it
+        }
+        return result
+    }
+
+    /**
+     * Accept the currently displayed terms of service.
+     */
+    suspend fun acceptCurrentTos(
+        exchangeBaseUrl: String,
+        currentEtag: String,
+    ): Boolean {
+        var success = false
+        api.request<Unit>("setExchangeTosAccepted") {
+            put("exchangeBaseUrl", exchangeBaseUrl)
+            put("etag", currentEtag)
+        }.onError { error ->
+            Log.d(TAG, "Error setExchangeTosAccepted: $error")
+        }.onSuccess {
+            success = true
+        }
+        return success
     }
 
     fun addDevExchanges() {

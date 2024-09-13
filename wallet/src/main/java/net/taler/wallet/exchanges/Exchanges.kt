@@ -16,6 +16,7 @@
 
 package net.taler.wallet.exchanges
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.cleanExchange
@@ -33,6 +34,24 @@ data class ExchangeItem(
     val currency: String? = null,
     val paytoUris: List<String>,
     val scopeInfo: ScopeInfo? = null,
+    val tosStatus: ExchangeTosStatus,
 ) {
     val name: String get() = cleanExchange(exchangeBaseUrl)
+}
+
+@Serializable
+enum class ExchangeTosStatus {
+    Unknown,
+
+    @SerialName("pending")
+    Pending,
+
+    @SerialName("proposed")
+    Proposed,
+
+    @SerialName("accepted")
+    Accepted,
+
+    @SerialName("missing-tos")
+    MissingTos,
 }

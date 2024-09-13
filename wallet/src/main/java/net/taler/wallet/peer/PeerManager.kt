@@ -17,10 +17,12 @@
 package net.taler.wallet.peer
 
 import android.util.Log
+import androidx.annotation.UiThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -35,6 +37,7 @@ import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.exchanges.ExchangeManager
+import net.taler.wallet.exchanges.ExchangeTosStatus
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit.HOURS
 
@@ -238,12 +241,27 @@ class PeerManager(
             api.request("preparePeerPushCredit", PreparePeerPushCreditResponse.serializer()) {
                 put("talerUri", talerUri)
             }.onSuccess { response ->
-                _incomingPushState.value = IncomingTerms(
-                    amountRaw = response.amountRaw,
-                    amountEffective = response.amountEffective,
-                    contractTerms = response.contractTerms,
-                    id = response.transactionId,
-                )
+                scope.launch(Dispatchers.IO) {
+                    // FIXME: make sure that exchange gets added to wallet! handle null properly!
+                    exchangeManager.findExchangeByUrl(response.exchangeBaseUrl)?.let { exchange ->
+                        _incomingPushState.value = if (exchange.tosStatus == ExchangeTosStatus.Accepted) {
+                            IncomingTerms(
+                                amountRaw = response.amountRaw,
+                                amountEffective = response.amountEffective,
+                                contractTerms = response.contractTerms,
+                                id = response.transactionId,
+                            )
+                        } else {
+                            IncomingTosReview(
+                                amountRaw = response.amountRaw,
+                                amountEffective = response.amountEffective,
+                                contractTerms = response.contractTerms,
+                                exchangeBaseUrl = response.exchangeBaseUrl,
+                                id = response.transactionId,
+                            )
+                        }
+                    }
+                }
             }.onError { error ->
                 Log.e(TAG, "got preparePeerPushCredit error result $error")
                 _incomingPushState.value = IncomingError(error)
@@ -265,4 +283,24 @@ class PeerManager(
         }
     }
 
+    @UiThread
+    fun refreshPeerPushCreditTos() = scope.launch {
+        _incomingPushState.update { state ->
+            var newState = state
+            if (state is IncomingTosReview) {
+                // FIXME: better null handling!
+                exchangeManager.findExchangeByUrl(state.exchangeBaseUrl)?.let { exchange ->
+                    if (exchange.tosStatus == ExchangeTosStatus.Accepted) {
+                        newState = IncomingTerms(
+                            amountRaw = state.amountRaw,
+                            amountEffective = state.amountEffective,
+                            contractTerms = state.contractTerms,
+                            id = state.id,
+                        )
+                    }
+                }
+            }
+            newState
+        }
+    }
 }

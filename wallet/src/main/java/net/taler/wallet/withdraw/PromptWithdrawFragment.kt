@@ -55,6 +55,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -79,6 +80,7 @@ import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.exchanges.ExchangeItem
+import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.exchanges.SelectExchangeDialogFragment
 import net.taler.wallet.getAmount
 import net.taler.wallet.showError
@@ -146,9 +148,8 @@ class PromptWithdrawFragment: Fragment() {
                                 },
                                 onTosReview = {
                                     // TODO: rewrite ToS review screen in compose
-                                    findNavController().navigate(
-                                        R.id.action_promptWithdraw_to_reviewExchangeTOS,
-                                    )
+                                    val args = bundleOf("exchangeBaseUrl" to s.exchangeBaseUrl)
+                                    findNavController().navigate(R.id.action_promptWithdraw_to_reviewExchangeTOS, args)
                                 },
                                 onConfirm = { age ->
                                     withdrawManager.acceptWithdrawal(age)
@@ -222,6 +223,15 @@ class PromptWithdrawFragment: Fragment() {
         selectExchangeDialog.exchangeSelection.observe(viewLifecycleOwner, EventObserver {
             onExchangeSelected(it)
         })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // FIXME: not sure this is an ultra reliable approach!
+        exchangeManager.exchanges.observe(viewLifecycleOwner) {
+            // detect ToS acceptation
+            withdrawManager.refreshTosStatus()
+        }
     }
 
     private fun selectExchange() {
@@ -502,12 +512,14 @@ fun WithdrawalShowInfoPreview() {
                             currency = "KUDOS",
                             paytoUris = emptyList(),
                             scopeInfo = null,
+                            tosStatus = ExchangeTosStatus.Accepted,
                         ),
                         ExchangeItem(
                             exchangeBaseUrl = "exchange.head.taler.net",
                             currency = "KUDOS",
                             paytoUris = emptyList(),
                             scopeInfo = null,
+                            tosStatus = ExchangeTosStatus.Accepted,
                         ),
                     ),
                 ),

@@ -263,6 +263,9 @@
             android:id="@+id/action_promptPushPayment_to_nav_main"
             app:destination="@id/nav_main"
             app:popUpTo="@id/nav_main" />
+        <action
+            android:id="@+id/action_promptPushPayment_to_reviewExchangeTOS"
+            app:destination="@id/reviewExchangeTOS" />
     </fragment>
 
     <fragment

@@ -34,16 +34,17 @@ import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.databinding.FragmentReviewExchangeTosBinding
 import java.text.ParseException
-import net.taler.wallet.withdraw.WithdrawStatus.Status.*
 
 class ReviewExchangeTosFragment : Fragment() {
 
     private val model: MainViewModel by activityViewModels()
-    private val withdrawManager by lazy { model.withdrawManager }
+    private val exchangeManager by lazy { model.exchangeManager }
 
     private lateinit var ui: FragmentReviewExchangeTosBinding
     private val markwon by lazy { Markwon.builder(requireContext()).build() }
     private val adapter by lazy { TosAdapter(markwon) }
+
+    private var tos: TosResponse? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -56,42 +57,42 @@ class ReviewExchangeTosFragment : Fragment() {
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val exchangeBaseUrl = arguments?.getString("exchangeBaseUrl")
+            ?: error("no exchangeBaseUrl passed")
+
         ui.acceptTosCheckBox.isChecked = false
         ui.acceptTosCheckBox.setOnCheckedChangeListener { _, _ ->
-            withdrawManager.acceptCurrentTos()
+            tos?.let {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    if (exchangeManager.acceptCurrentTos(
+                        exchangeBaseUrl = exchangeBaseUrl,
+                        currentEtag = it.currentEtag,
+                    )) {
+                        findNavController().navigateUp()
+                    }
+                }
+            }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                withdrawManager.withdrawStatus.collect { status ->
-                    when (status.status) {
-                        TosReviewRequired -> {
-                            val tos = status.tosDetails!!.content
-                            val sections = try {
-                                parseTos(markwon, tos)
-                            } catch (e: ParseException) {
-                                onTosError(e.message ?: "Unknown Error")
-                                return@collect
-                            }
-
-                            adapter.setSections(sections)
-                            ui.tosList.adapter = adapter
-                            ui.tosList.fadeIn()
-
-                            ui.acceptTosCheckBox.fadeIn()
-                            ui.progressBar.fadeOut()
-                        }
-
-                        Loading -> {
-                            findNavController().navigate(R.id.action_reviewExchangeTOS_to_promptWithdraw)
-                        }
-
-                        InfoReceived -> {
-                            findNavController().navigate(R.id.action_reviewExchangeTOS_to_promptWithdraw)
-                        }
-
-                        else -> {}
+                tos = exchangeManager.getExchangeTos(exchangeBaseUrl)
+                // FIXME: better null handling!
+                tos?.let {
+                    val sections = try {
+                        parseTos(markwon, it.content)
+                    } catch (e: ParseException) {
+                        onTosError(e.message ?: "Unknown Error")
+                        return@repeatOnLifecycle
                     }
+
+                    adapter.setSections(sections)
+                    ui.tosList.adapter = adapter
+                    ui.tosList.fadeIn()
+
+                    ui.acceptTosCheckBox.fadeIn()
+                    ui.progressBar.fadeOut()
                 }
             }
         }
