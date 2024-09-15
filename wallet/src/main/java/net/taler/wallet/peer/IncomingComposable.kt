@@ -184,10 +184,10 @@ fun ColumnScope.PeerPullTermsComposable(
                 ) {
                     Text(
                         text = if (terms is IncomingTosReview) {
-                            stringResource(id = data.button)
-                        } else {
                             stringResource(id = R.string.exchange_tos_accept)
-                        },
+                        } else {
+                            stringResource(id = data.button)
+                        }
                     )
                 }
             }

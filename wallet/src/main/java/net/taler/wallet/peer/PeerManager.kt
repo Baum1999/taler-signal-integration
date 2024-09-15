@@ -35,6 +35,7 @@ import net.taler.wallet.backend.TalerErrorCode.UNKNOWN
 import net.taler.wallet.backend.TalerErrorCode.WALLET_PEER_PUSH_PAYMENT_INSUFFICIENT_BALANCE
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
+import net.taler.wallet.cleanExchange
 import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.exchanges.ExchangeManager
 import net.taler.wallet.exchanges.ExchangeTosStatus
@@ -237,29 +238,38 @@ class PeerManager(
 
     fun preparePeerPushCredit(talerUri: String) {
         _incomingPushState.value = IncomingChecking
-        scope.launch(Dispatchers.IO) {
+        scope.launch(Dispatchers.IO) a@ {
             api.request("preparePeerPushCredit", PreparePeerPushCreditResponse.serializer()) {
                 put("talerUri", talerUri)
             }.onSuccess { response ->
-                scope.launch(Dispatchers.IO) {
-                    // FIXME: make sure that exchange gets added to wallet! handle null properly!
-                    exchangeManager.findExchangeByUrl(response.exchangeBaseUrl)?.let { exchange ->
-                        _incomingPushState.value = if (exchange.tosStatus == ExchangeTosStatus.Accepted) {
-                            IncomingTerms(
-                                amountRaw = response.amountRaw,
-                                amountEffective = response.amountEffective,
-                                contractTerms = response.contractTerms,
-                                id = response.transactionId,
+                scope.launch(Dispatchers.IO) b@ {
+                    val exchange = exchangeManager.findExchangeByUrl(response.exchangeBaseUrl)
+
+                    if (exchange == null) {
+                        Log.d(TAG, "exchange entry for ${response.exchangeBaseUrl} was not found")
+                        _incomingPushState.value = IncomingError(
+                            TalerErrorInfo.makeCustomError( // TODO: localize error
+                                "No provider with URL ${cleanExchange(response.exchangeBaseUrl)} was found in the wallet",
                             )
-                        } else {
-                            IncomingTosReview(
-                                amountRaw = response.amountRaw,
-                                amountEffective = response.amountEffective,
-                                contractTerms = response.contractTerms,
-                                exchangeBaseUrl = response.exchangeBaseUrl,
-                                id = response.transactionId,
-                            )
-                        }
+                        )
+                        return@b
+                    }
+
+                    _incomingPushState.value = if (exchange.tosStatus == ExchangeTosStatus.Accepted) {
+                        IncomingTerms(
+                            amountRaw = response.amountRaw,
+                            amountEffective = response.amountEffective,
+                            contractTerms = response.contractTerms,
+                            id = response.transactionId,
+                        )
+                    } else {
+                        IncomingTosReview(
+                            amountRaw = response.amountRaw,
+                            amountEffective = response.amountEffective,
+                            contractTerms = response.contractTerms,
+                            exchangeBaseUrl = response.exchangeBaseUrl,
+                            id = response.transactionId,
+                        )
                     }
                 }
             }.onError { error ->

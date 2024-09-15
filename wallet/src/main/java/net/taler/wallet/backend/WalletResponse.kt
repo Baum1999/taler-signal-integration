@@ -93,6 +93,18 @@ data class TalerErrorInfo(
 
     fun getStringExtra(key: String): String? =
         extra[key]?.jsonPrimitive?.content
+
+    companion object {
+        fun makeCustomError(
+            message: String,
+            hint: String? = null,
+            code: TalerErrorCode = TalerErrorCode.UNKNOWN,
+        ) = TalerErrorInfo(
+            message = message,
+            hint = hint,
+            code = code,
+        )
+    }
 }
 
 class TalerErrorInfoSerializer : KSerializer<TalerErrorInfo> {
