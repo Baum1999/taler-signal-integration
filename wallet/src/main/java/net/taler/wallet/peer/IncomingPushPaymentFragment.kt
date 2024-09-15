@@ -41,7 +41,6 @@ import net.taler.wallet.showError
 class IncomingPushPaymentFragment : Fragment() {
     private val model: MainViewModel by activityViewModels()
     private val peerManager get() = model.peerManager
-    private val exchangeManager get() = model.exchangeManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -92,10 +91,6 @@ class IncomingPushPaymentFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // FIXME: not sure that this is the best approach!
-        exchangeManager.exchanges.observe(viewLifecycleOwner) {
-            // detect ToS acceptation
-            peerManager.refreshPeerPushCreditTos()
-        }
+        peerManager.refreshPeerPushCreditTos()
     }
 }

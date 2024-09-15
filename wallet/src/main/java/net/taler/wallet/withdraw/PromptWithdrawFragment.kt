@@ -100,6 +100,7 @@ class PromptWithdrawFragment: Fragment() {
     private val selectExchangeDialog = SelectExchangeDialogFragment()
 
     private var startup: Boolean = true
+    private var navigating: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -206,6 +207,10 @@ class PromptWithdrawFragment: Fragment() {
                         Success -> lifecycleScope.launch {
                             Snackbar.make(requireView(), R.string.withdraw_initiated, LENGTH_LONG).show()
                             status.transactionId?.let {
+                                if (!navigating) {
+                                    navigating = true
+                                } else return@let
+
                                 if (transactionManager.selectTransaction(it)) {
                                     findNavController().navigate(R.id.action_promptWithdraw_to_nav_transactions_detail_withdrawal)
                                 } else {
@@ -227,11 +232,8 @@ class PromptWithdrawFragment: Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // FIXME: not sure this is an ultra reliable approach!
-        exchangeManager.exchanges.observe(viewLifecycleOwner) {
-            // detect ToS acceptation
-            withdrawManager.refreshTosStatus()
-        }
+        // detect ToS acceptation
+        withdrawManager.refreshTosStatus()
     }
 
     private fun selectExchange() {
