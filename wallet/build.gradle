@@ -22,7 +22,7 @@ plugins {
     id "kotlinx-serialization"
 }
 
-def qtart_version = "0.13.2"
+def qtart_version = "0.13.3"
 
 static def versionCodeEpoch() {
     return (new Date().getTime() / 1000).toInteger()
