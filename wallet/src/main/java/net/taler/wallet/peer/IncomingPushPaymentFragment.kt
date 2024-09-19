@@ -41,6 +41,7 @@ import net.taler.wallet.showError
 class IncomingPushPaymentFragment : Fragment() {
     private val model: MainViewModel by activityViewModels()
     private val peerManager get() = model.peerManager
+    private val exchangeManager get() = model.exchangeManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -82,15 +83,14 @@ class IncomingPushPaymentFragment : Fragment() {
                 }
             }
         }
+
+        exchangeManager.exchanges.observe(viewLifecycleOwner) { exchanges ->
+            peerManager.refreshPeerPushCreditTos(exchanges)
+        }
     }
 
     override fun onStart() {
         super.onStart()
         activity?.setTitle(R.string.receive_peer_payment_title)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        peerManager.refreshPeerPushCreditTos()
     }
 }

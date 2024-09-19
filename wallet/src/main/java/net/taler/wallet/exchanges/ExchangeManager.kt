@@ -186,6 +186,8 @@ class ExchangeManager(
             Log.d(TAG, "Error setExchangeTosAccepted: $error")
         }.onSuccess {
             success = true
+            // update exchange list
+            list()
         }
         return success
     }

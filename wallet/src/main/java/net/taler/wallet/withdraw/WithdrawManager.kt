@@ -331,15 +331,17 @@ class WithdrawManager(
     }
 
     @UiThread
-    fun refreshTosStatus() = scope.launch {
+    fun refreshTosStatus(exchanges: List<ExchangeItem>) = scope.launch {
         _withdrawStatus.update { status ->
             var newStatus = status
             status.exchangeBaseUrl?.let { exchangeBaseUrl ->
-                exchangeManager.findExchangeByUrl(exchangeBaseUrl)?.let { exchange ->
+                exchanges.find { it.exchangeBaseUrl == exchangeBaseUrl }?.let { exchange ->
                     if (exchange.tosStatus == ExchangeTosStatus.Accepted) {
                         newStatus = status.copy(status = InfoReceived)
                     }
                 }
+            } ?: run {
+                Log.d(TAG, "could not refresh ToS status, exchange ${status.exchangeBaseUrl} was not found")
             }
             newStatus
         }

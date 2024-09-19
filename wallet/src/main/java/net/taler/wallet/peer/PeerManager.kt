@@ -294,12 +294,11 @@ class PeerManager(
     }
 
     @UiThread
-    fun refreshPeerPushCreditTos() = scope.launch {
+    fun refreshPeerPushCreditTos(exchanges: List<ExchangeItem>) = scope.launch {
         _incomingPushState.update { state ->
             var newState = state
             if (state is IncomingTosReview) {
-                // FIXME: better null handling!
-                exchangeManager.findExchangeByUrl(state.exchangeBaseUrl)?.let { exchange ->
+                exchanges.find { it.exchangeBaseUrl == state.exchangeBaseUrl }?.let { exchange ->
                     if (exchange.tosStatus == ExchangeTosStatus.Accepted) {
                         newState = IncomingTerms(
                             amountRaw = state.amountRaw,
@@ -308,6 +307,8 @@ class PeerManager(
                             id = state.id,
                         )
                     }
+                } ?: run {
+                    Log.d(TAG, "could not refresh ToS status, exchange ${state.exchangeBaseUrl} was not found")
                 }
             }
             newState

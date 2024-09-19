@@ -228,12 +228,11 @@ class PromptWithdrawFragment: Fragment() {
         selectExchangeDialog.exchangeSelection.observe(viewLifecycleOwner, EventObserver {
             onExchangeSelected(it)
         })
-    }
 
-    override fun onResume() {
-        super.onResume()
-        // detect ToS acceptation
-        withdrawManager.refreshTosStatus()
+        exchangeManager.exchanges.observe(viewLifecycleOwner) { exchanges ->
+            // detect ToS acceptation
+            withdrawManager.refreshTosStatus(exchanges)
+        }
     }
 
     private fun selectExchange() {
