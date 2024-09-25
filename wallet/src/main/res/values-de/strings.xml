@@ -144,10 +144,10 @@
     <string name="withdraw_manual_ready_title">Der Zahlungsdienstleister ist für den Abhebevorgang bereit!</string>
     <string name="withdraw_manual_ready_intro">Zum Abschluss des Abhebevorgangs müssen Sie %s auf das Bankkonto des Zahlungsdienstleisters überweisen</string>
     <string name="withdraw_manual_ready_details_intro">Details der Überweisung</string>
-    <string name="withdraw_manual_ready_subject">Überweisungsvermerk</string>
+    <string name="withdraw_manual_ready_subject">Buchungsvermerk</string>
     <string name="withdraw_manual_ready_bank_button">In Banking-App öffnen</string>
     <string name="withdraw_manual_ready_cancel">Abhebevorgang abbrechen</string>
-    <string name="withdraw_manual_ready_warning">Bitte vergewissern Sie sich, dass Sie den Überweisungsvermerk richtig angeben, da sonst der überwiesene Betrag nicht im Wallet ankommt.</string>
+    <string name="withdraw_manual_ready_warning">Bitte vergewissern Sie sich, dass Sie den Buchungsvermerk richtig angeben, da sonst das e-Geld nicht im Wallet ankommt.</string>
     <string name="reset">Zurücksetzen</string>
     <string name="payment_prompt_title">Zahlung überprüfen</string>
     <string name="send_deposit_iban_error">IBAN ist ungültig</string>
@@ -164,7 +164,7 @@
     <string name="transactions_abort">Abbruch ausführen</string>
     <string name="payment_pay_template_title">Passen Sie Ihre Bestellung an</string>
     <string name="send_intro">Wählen Sie aus, wohin Sie Geld senden möchten:</string>
-    <string name="send_deposit_title">Einzahlung auf ein Bankkonto</string>
+    <string name="send_deposit_title">Auszahlung auf ein Bankkonto</string>
     <string name="withdraw_bank">Bank</string>
     <string name="withdraw_manual_ready_account">Konto</string>
     <string name="withdraw_manual_ready_receiver">Name des Empfängers</string>
@@ -227,7 +227,7 @@
     <string name="settings_dialog_reset_message">Möchten Sie das Wallet wirklich zurücksetzen und alle Münzen und Einkäufe verlieren?</string>
     <string name="settings_alert_reset_done">Wallet wurde zurückgesetzt</string>
     <string name="send_deposit_bitcoin">An ein Bitcoin-Wallet</string>
-    <string name="send_peer_purpose">Zweck</string>
+    <string name="send_peer_purpose">Buchungsvermerk</string>
     <string name="exchange_list_select">Zahlungsdienstleister auswählen</string>
     <string name="exchange_dialog_delete_message">Sind Sie sicher, dass Sie diesen Zahlungsdienstleister löschen möchten? Wenn Sie diesen Vorgang erzwingen, führt dies zu einem Geldverlust.</string>
     <string name="settings_db_import_success">Datenbank aus Datei importiert</string>
@@ -237,7 +237,7 @@
     <string name="transactions_detail_title_currency">%s Transaktionen</string>
     <string name="receive_withdraw">Vom Bankkonto abheben</string>
     <string name="send_deposit_amount_effective">Effektiver Betrag</string>
-    <string name="send_deposit_create_button">Einzahlung tätigen</string>
+    <string name="send_deposit_create_button">Auszahlung ausführen</string>
     <string name="receive_amount">Zu erhaltender Betrag</string>
     <string name="receive_amount_invalid">Betrag ungültig</string>
     <string name="receive_intro">Wählen Sie aus, woher Sie Geld erhalten möchten:</string>
@@ -279,9 +279,9 @@
     <string name="amount_effective">Endbetrag</string>
     <string name="amount_fee">Gebühr</string>
     <string name="amount_invalid">Ungültiger Betrag</string>
-    <string name="amount_invoiced">Betrag abgerechnet</string>
+    <string name="amount_invoiced">Betrag in Rechnung gestellt</string>
     <string name="amount_receive">Zu erhaltender Betrag</string>
-    <string name="amount_send">Zu sendender Betrag</string>
+    <string name="amount_send">Betrag, der überwiesen wird</string>
     <string name="amount_total">Gesamtbetrag</string>
     <string name="amount_total_label">Gesamt:</string>
     <string name="amount_transfer">Überweisung</string>
