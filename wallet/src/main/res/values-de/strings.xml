@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="amount_chosen">Gewählter Betrag</string>
+    <string name="amount_chosen">Zu überweisender Betrag</string>
     <string name="settings_version_app">App-Version</string>
     <string name="host_apdu_service_desc">Taler-NFC-Zahlungen</string>
     <string name="exchange_settings_title">Zahlungsdienstleister</string>
@@ -241,12 +241,12 @@
     <string name="receive_amount">Zu erhaltender Betrag</string>
     <string name="receive_amount_invalid">Betrag ungültig</string>
     <string name="receive_intro">Wählen Sie aus, woher Sie Geld erhalten möchten:</string>
-    <string name="amount_sent">Gesendeter Betrag</string>
+    <string name="amount_sent">Abzubuchender Betrag</string>
     <string name="amount_received">Empfangener Betrag</string>
     <string name="payment_pending">Zahlung nicht abgeschlossen - sie wird erneut versucht</string>
     <string name="receive_peer_amount_invoiced">Rechnungsbetrag</string>
     <string name="send_peer_payment_instruction">Lassen Sie den Geldempfänger diesen QR-Code scannen, um den Wert zu erhalten:</string>
-    <string name="transaction_deposit">Einlösen</string>
+    <string name="transaction_deposit">Überweisung</string>
     <string name="exchange_list_error">Es konnten keine Zahlungsdienstleister angezeigt werden</string>
     <string name="withdraw_conversion_support">Dieser Zahlungsdienstleister unterstützt Währungsumtausch</string>
     <string name="exchange_list_add_dev">Zahlungsdienstleister im Entwicklermodus hinzufügen</string>
@@ -287,7 +287,7 @@
     <string name="amount_transfer">Überweisung</string>
     <string name="balances_inbound_amount">+%1$s eingehend</string>
     <string name="balances_outbound_amount">-%1$s abgehend</string>
-    <string name="transaction_deposit_to">Überweisen an %1$s</string>
+    <string name="transaction_deposit_to">Überweisung an %1$s</string>
     <string name="transaction_peer_push_credit">Push-Zahlung</string>
     <string name="transaction_state_aborted">Die Transaktion wurde abgebrochen</string>
     <string name="transaction_state_aborting">Diese Transaktion wird gerade abgebrochen</string>
