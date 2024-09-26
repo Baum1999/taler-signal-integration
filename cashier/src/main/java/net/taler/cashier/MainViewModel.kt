@@ -71,14 +71,22 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
                 try {
                     val balanceObj = response.json.getJSONObject("balance")
                     val balanceAmount = balanceObj.getString("amount")
+                    val debitThreshold = response.json.getString("debit_threshold")
+                    val minCashout = if (response.json.has("min_cashout")) {
+                        response.json.getString("min_cashout")
+                    } else null
                     val positive = when (val creditDebitIndicator =
                         balanceObj.getString("credit_debit_indicator")) {
                         "credit" -> true
                         "debit" -> false
                         else -> throw AmountParserException("Unexpected credit_debit_indicator: $creditDebitIndicator")
                     }
-                    BalanceResult.Success(SignedAmount(positive,
-                        Amount.fromJSONString(balanceAmount)))
+                    BalanceResult.Success(
+                        amount = SignedAmount(positive, Amount.fromJSONString(balanceAmount)),
+                        debitThreshold = Amount.fromJSONString(debitThreshold),
+                        minCashout = minCashout?.let { Amount.fromJSONString(it) }
+
+                    )
                 } catch (e: Exception) {
                     Log.e(TAG, "Error parsing balance", e)
                     BalanceResult.Error("Invalid amount:\n${response.json.toString(2)}")

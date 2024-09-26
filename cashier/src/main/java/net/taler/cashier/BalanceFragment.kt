@@ -38,9 +38,13 @@ import net.taler.common.fadeIn
 import net.taler.common.fadeOut
 
 sealed class BalanceResult {
-    class Error(val msg: String) : BalanceResult()
-    object Offline : BalanceResult()
-    class Success(val amount: SignedAmount) : BalanceResult()
+    data class Error(val msg: String) : BalanceResult()
+    data object Offline : BalanceResult()
+    data class Success(
+        val amount: SignedAmount,
+        val debitThreshold: Amount,
+        val minCashout: Amount? = null,
+    ) : BalanceResult()
 }
 
 class BalanceFragment : Fragment() {
@@ -137,14 +141,23 @@ class BalanceFragment : Fragment() {
         when (result) {
             is BalanceResult.Success -> {
                 ui.balanceView.text = result.amount.toString()
+                if (!result.debitThreshold.isZero()) {
+                    ui.debitView.text = getString(
+                        R.string.balance_debit_threshold,
+                        result.debitThreshold.toString(),
+                    )
+                    ui.debitView.fadeIn()
+                }
                 uiList.forEach { it.fadeIn() }
             }
             is BalanceResult.Error -> {
                 ui.balanceView.text = getString(R.string.balance_error, result.msg)
+                ui.debitView.fadeOut()
                 uiList.forEach { it.fadeOut() }
             }
             BalanceResult.Offline -> {
                 ui.balanceView.text = getString(R.string.balance_offline)
+                ui.debitView.fadeOut()
                 uiList.forEach { it.fadeOut() }
             }
         }.exhaustive
@@ -164,8 +177,12 @@ class BalanceFragment : Fragment() {
     }
 
     private fun onAmountConfirmed(amount: Amount) {
+        val balance = viewModel.balance.value as? BalanceResult.Success
+        val minCashout = balance?.minCashout
         if (amount.isZero()) {
             ui.amountView.error = getString(R.string.withdraw_error_zero)
+        } else if (minCashout != null && amount < minCashout) {
+            ui.amountView.error = getString(R.string.withdraw_error_under_min_cashout, minCashout.toString())
         } else when (withdrawManager.hasSufficientBalance(amount)) {
             true -> {
                 ui.amountView.error = null

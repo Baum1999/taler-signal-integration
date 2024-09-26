@@ -45,7 +45,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="@color/background"
-        app:layout_constraintBottom_toBottomOf="@+id/balanceView"
+        app:layout_constraintBottom_toBottomOf="@+id/debitView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/lastTransactionView" />
@@ -75,6 +75,22 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/balanceLabel"
         tools:text="100 KUDOS" />
+
+    <TextView
+        android:id="@+id/debitView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingStart="@dimen/default_margin"
+        android:paddingTop="8dp"
+        android:paddingEnd="@dimen/default_margin"
+        android:paddingBottom="@dimen/default_margin"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/balanceView"
+        android:visibility="gone"
+        tools:visibility="visible"
+        tools:text="@string/balance_debit_threshold" />
 
     <ProgressBar
         android:id="@+id/progressBar"

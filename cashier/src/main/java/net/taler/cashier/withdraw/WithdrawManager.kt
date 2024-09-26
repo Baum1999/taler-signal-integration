@@ -80,7 +80,9 @@ class WithdrawManager(
         val balanceResult = viewModel.balance.value
         if (balanceResult !is BalanceResult.Success) return false
         return try {
-            balanceResult.amount.positive && amount <= balanceResult.amount.amount
+            (balanceResult.amount.positive && amount <= (balanceResult.debitThreshold + balanceResult.amount.amount)) ||
+                    (!balanceResult.amount.positive && amount <= (balanceResult.debitThreshold - balanceResult.amount.amount))
+
         } catch (e: IllegalStateException) {
             Log.e(TAG, "Error comparing amounts", e)
             null
