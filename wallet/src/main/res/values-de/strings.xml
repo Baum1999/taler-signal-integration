@@ -111,7 +111,7 @@
     <string name="google_play_full_desc" tools:keep="@string/google_play_full_desc">Diese App ist eine Geldbörse für GNU Taler (Wallet). Taler ist ein Bezahlsystem mit Datenschutz für die Käufer. Die Käufer bleiben anonym, das Einkommen der Händler hingegen ist offengelegt. Dies vermindert systematisch die Möglichkeit von Steuerhinterziehung und Geldwäsche. Die Hauptfunktion von GNU Taler ist die Abwicklung von Zahlungsvorgängen; es ist kein Mittel zur Geldaufbewahrung. Alle Zahlungen werden durch eine existierende Währung gedeckt. Zahlungen werden mit Hilfe eines Taler-Zahlungsdiensts (Exchange) durchgeführt, indem die Käufer Geld an den Zahlungsdienst überweisen und dieser elektronische Zahlungsmittel (Coins, Token) in die Wallets überträgt. Um eine Zahlung durchzuführen, benötigen Kunden ausreichende Coin-Werte im Wallet. Verkäufer können Zahlungen akzeptieren, ohne Kunden zur Registrierung auf Webseiten zwingen zu müssen. GNU Taler ist immun gegen viele Formen von Betrug wie z.B. Phishing von Kreditkartendaten oder Betrug durch Rückbuchungen. Im Fall von Verlust oder Diebstahl von Wallets verliert man höchstens die Werte, welche sich noch im Wallet befinden.</string>
     <string name="nav_header_title">GNU Taler</string>
     <string name="nav_header_subtitle">Wallet</string>
-    <string name="nav_prompt_withdraw">Digitales Bargeld abheben</string>
+    <string name="nav_prompt_withdraw">e-Geld abheben</string>
     <string name="nav_exchange_tos">Allgemeine Geschäftsbedingungen des Zahlungsdienstleisters</string>
     <string name="nav_exchange_select">Zahlungsdienstleister auswählen</string>
     <string name="nav_exchange_fees">Gebühren des Zahlungsdienstleisters</string>
@@ -318,7 +318,7 @@
     <string name="withdraw_fee">+%1$s Abhebegebühr</string>
     <string name="settings_test_withdrawal">TESTKUDOS werden nun abgehoben</string>
     <string name="amount_max">Höchstbetrag</string>
-    <string name="amount_excess">Der Betrag ist zu hoch</string>
+    <string name="amount_excess">Der Betrag übersteigt das Maximum von %1$s</string>
     <string name="amount_withdraw">Betrag der Abhebung</string>
     <string name="withdraw_select_amount">Betrag wählen</string>
     <string name="edit">Bearbeiten</string>
