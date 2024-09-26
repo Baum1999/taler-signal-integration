@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="amount_chosen">Zu überweisender Betrag</string>
+    <string name="amount_chosen">Betrag der Abbuchung</string>
     <string name="settings_version_app">App-Version</string>
     <string name="host_apdu_service_desc">Taler-NFC-Zahlungen</string>
     <string name="exchange_settings_title">Zahlungsdienstleister</string>
@@ -90,7 +90,7 @@
     <string name="settings_dev_mode">Entwicklermodus</string>
     <string name="settings_dev_mode_summary">Zeigt weitere Informationen zum Debuggen an</string>
     <string name="settings_withdraw_testkudos">TESTKUDOS abheben</string>
-    <string name="settings_withdraw_testkudos_summary">Geld für Testen bereitstellen</string>
+    <string name="settings_withdraw_testkudos_summary">e-Geld zum Testen bereitstellen</string>
     <string name="settings_logcat">Fehlerprotokoll</string>
     <string name="settings_logcat_summary">Internes Protokoll speichern</string>
     <string name="settings_version_core">Wallet Core-Version</string>
