@@ -199,6 +199,10 @@ class PromptWithdrawFragment: Fragment() {
                         }
 
                         ManualTransferRequired -> {
+                            if (!navigating) {
+                                navigating = true
+                            } else return@collect
+
                             findNavController().navigate(
                                 R.id.action_promptWithdraw_to_nav_exchange_manual_withdrawal_success,
                             )

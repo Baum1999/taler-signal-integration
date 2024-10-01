@@ -73,10 +73,16 @@ fun TransferIBAN(
                 .padding(all = 16.dp)
         )
 
-        DetailRow(stringResource(R.string.withdraw_manual_ready_subject), transfer.subject)
+        DetailRow(
+            stringResource(R.string.withdraw_manual_ready_subject),
+            transfer.subject,
+            characterBreak = true,
+        )
+
         transfer.receiverName?.let {
             DetailRow(stringResource(R.string.withdraw_manual_ready_receiver), it)
         }
+
         DetailRow(stringResource(R.string.withdraw_manual_ready_iban), transfer.iban)
 
         TransactionInfoComposable(

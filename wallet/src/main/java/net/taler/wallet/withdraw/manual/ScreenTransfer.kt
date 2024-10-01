@@ -45,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -189,6 +190,7 @@ fun DetailRow(
     label: String,
     content: String,
     copy: Boolean = true,
+    characterBreak: Boolean = false,
 ) {
     val context = LocalContext.current
 
@@ -209,7 +211,11 @@ fun DetailRow(
                 end = 6.dp,
             ),
             text = content,
-            style = MaterialTheme.typography.bodyLarge,
+            style = if (characterBreak) {
+                MaterialTheme.typography.bodyLarge.copy(
+                    lineBreak = LineBreak.Heading,
+                )
+            } else MaterialTheme.typography.bodyLarge,
             fontFamily = if (copy) FontFamily.Monospace else FontFamily.Default,
             textAlign = TextAlign.Center,
         )
