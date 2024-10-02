@@ -142,7 +142,7 @@
     <string name="button_scan_qr_code">Taler-QR-Code einscannen</string>
     <string name="withdraw_manual_ready_iban">IBAN</string>
     <string name="withdraw_manual_ready_title">Der Zahlungsdienstleister ist für den Abhebevorgang bereit!</string>
-    <string name="withdraw_manual_ready_intro">Zum Abschluss des Abhebevorgangs müssen Sie %s auf das Bankkonto des Zahlungsdienstleisters überweisen</string>
+    <string name="withdraw_manual_ready_intro">Um den Abhebevorgang abzuschließen, müssen Sie %s auf das Bankkonto des Zahlungsdienstleisters überweisen</string>
     <string name="withdraw_manual_ready_details_intro">Details der Überweisung</string>
     <string name="withdraw_manual_ready_subject">Buchungsvermerk</string>
     <string name="withdraw_manual_ready_bank_button">In Banking-App öffnen</string>
@@ -276,7 +276,7 @@
     <string name="qr_scan_context_title">Möglicherweise unbeabsichtigte Aktion</string>
     <string name="qr_scan_context_receive_message">Es scheint, dass Sie Geld erhalten wollten, doch entspricht der eingescannte QR-Code einer anderen Aktion. Möchten Sie dennoch fortfahren?</string>
     <string name="qr_scan_context_send_message">Es scheint, dass Sie Geld senden wollten, doch entspricht der eingescannte QR-Code einer anderen Aktion. Möchten Sie dennoch fortfahren?</string>
-    <string name="amount_effective">Endbetrag</string>
+    <string name="amount_effective">Gesamtbetrag</string>
     <string name="amount_fee">Gebühr</string>
     <string name="amount_invalid">Ungültiger Betrag</string>
     <string name="amount_invoiced">Betrag in Rechnung gestellt</string>
@@ -297,7 +297,7 @@
     <string name="payment_template_error">Fehler beim Erstellen der Bestellung</string>
     <string name="payment_aborting">Abbruch wird durchgeführt</string>
     <string name="send_peer_expiration_days">Tage</string>
-    <string name="withdraw_manual_bitcoin_intro">Führen Sie nun eine Sammelbuchung mit den folgenden drei Ausgabewerten durch.</string>
+    <string name="withdraw_manual_bitcoin_intro">Führen Sie nun eine Mehrfachbuchung mit den folgenden drei Ausgabewerten durch.</string>
     <string name="loss_reason">Grund</string>
     <string name="loss_reason_unoffered">Der Zahlungsdienstleister bietet nicht mehr die Stückelung für das Guthaben an</string>
     <string name="observability_hide_json">JSON ausblenden</string>
@@ -323,4 +323,16 @@
     <string name="withdraw_select_amount">Betrag wählen</string>
     <string name="edit">Bearbeiten</string>
     <string name="transaction_state_aborted_manual">Diese Transaktion wurde abgebrochen. Falls Sie bereits Geld an den Zahlungsdienst überwiesen haben, wird dieses an Sie zurücküberwiesen in %1$s</string>
+    <string name="transaction_preparing_kyc">Die Abfrage des wirtschaftlich Berechtigten wird vorbereitet</string>
+    <string name="exchange_tos_view">AGB ansehen</string>
+    <string name="transaction_state_pending_kyc_bank">Diese Geldüberweisung würde den Maximalbetrag einer Abhebung von Ihrem Bankkonto übersteigen. Um fortzufahren, ist eine vollständige KYC-Prüfung nötig</string>
+    <string name="exchange_tos_forget">AGB ablehnen</string>
+    <string name="transaction_action_kyc_balance">Gesamtguthaben (KYC)</string>
+    <string name="transaction_action_kyc_bank">Gesamte Abhebungen (KYC)</string>
+    <string name="transaction_state_pending_kyc_balance">Diese Geldüberweisung würde den Maximalbetrag einer Abhebung von Ihrem Bankkonto übersteigen. Um fortzufahren, ist eine vollständige KYC-Prüfung nötig</string>
+    <string name="payment_tax">einschließlich %1$s %2$s</string>
+    <string name="send_deposit_account">Konto</string>
+    <string name="send_deposit_host">Host</string>
+    <string name="send_deposit_no_methods_error">Nichtunterstützte Überweisungen</string>
+    <string name="send_deposit_taler">x-taler-bank</string>
 </resources>
