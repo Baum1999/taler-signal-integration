@@ -19,6 +19,8 @@ package net.taler.wallet.withdraw
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -60,7 +62,9 @@ class ReviewExchangeTosFragment : Fragment() {
 
         val exchangeBaseUrl = arguments?.getString("exchangeBaseUrl")
             ?: error("no exchangeBaseUrl passed")
+        val readOnly = arguments?.getBoolean("readOnly") ?: false
 
+        ui.buttonCard.visibility = if (readOnly) GONE else VISIBLE
         ui.acceptTosCheckBox.isChecked = false
         ui.acceptTosCheckBox.setOnCheckedChangeListener { _, _ ->
             tos?.let {

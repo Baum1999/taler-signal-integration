@@ -25,6 +25,15 @@
         android:id="@+id/action_reload"
         android:title="@string/exchange_reload" />
     <item
+        android:id="@+id/action_view_tos"
+        android:title="@string/exchange_tos_view" />
+    <item
+        android:id="@+id/action_accept_tos"
+        android:title="@string/exchange_tos_accept" />
+    <item
+        android:id="@+id/action_forget_tos"
+        android:title="@string/exchange_tos_forget" />
+    <item
         android:id="@+id/action_delete"
         android:title="@string/transactions_delete" />
 </menu>

@@ -94,7 +94,8 @@ class PeerManager(
                 _outgoingPullState.value = OutgoingChecked(
                     amountRaw = it.amountRaw,
                     amountEffective = it.amountEffective,
-                    exchangeItem = exchangeItem,
+                    exchangeBaseUrl = exchangeItem.exchangeBaseUrl,
+                    tosStatus = exchangeItem.tosStatus,
                 )
             }.onError { error ->
                 Log.e(TAG, "got checkPeerPullCredit error result $error")
@@ -103,12 +104,12 @@ class PeerManager(
         }
     }
 
-    fun initiatePeerPullCredit(amount: Amount, summary: String, expirationHours: Long, exchange: ExchangeItem) {
+    fun initiatePeerPullCredit(amount: Amount, summary: String, expirationHours: Long, exchangeBaseUrl: String) {
         _outgoingPullState.value = OutgoingCreating
         scope.launch(Dispatchers.IO) {
             val expiry = Timestamp.fromMillis(System.currentTimeMillis() + HOURS.toMillis(expirationHours))
             api.request("initiatePeerPullCredit", InitiatePeerPullPaymentResponse.serializer()) {
-                put("exchangeBaseUrl", exchange.exchangeBaseUrl)
+                put("exchangeBaseUrl", exchangeBaseUrl)
                 put("partialContractTerms", JSONObject().apply {
                     put("amount", amount.toJSONString())
                     put("summary", summary)
@@ -133,11 +134,15 @@ class PeerManager(
             api.request("checkPeerPushDebit", CheckPeerPushDebitResponse.serializer()) {
                 put("amount", amount.toJSONString())
             }.onSuccess { response ->
-                _outgoingPushState.value = OutgoingChecked(
-                    amountRaw = response.amountRaw,
-                    amountEffective = response.amountEffective,
-                    // FIXME add exchangeItem once available in API
-                )
+                scope.launch {
+                    val exchangeItem = exchangeManager.findExchangeByUrl(response.exchangeBaseUrl)
+                    _outgoingPushState.value = OutgoingChecked(
+                        amountRaw = response.amountRaw,
+                        amountEffective = response.amountEffective,
+                        exchangeBaseUrl = response.exchangeBaseUrl,
+                        tosStatus = exchangeItem?.tosStatus,
+                    )
+                }
             }.onError { error ->
                 Log.e(TAG, "got checkPeerPushDebit error result $error")
                 _outgoingPushState.value = OutgoingError(error)
@@ -305,6 +310,28 @@ class PeerManager(
                             amountEffective = state.amountEffective,
                             contractTerms = state.contractTerms,
                             id = state.id,
+                        )
+                    }
+                } ?: run {
+                    Log.d(TAG, "could not refresh ToS status, exchange ${state.exchangeBaseUrl} was not found")
+                }
+            }
+            newState
+        }
+    }
+
+    @UiThread
+    fun refreshPeerPullCreditTos(exchanges: List<ExchangeItem>) = scope.launch {
+        _outgoingPullState.update { state ->
+            var newState = state
+            if (state is OutgoingChecked) {
+                exchanges.find { it.exchangeBaseUrl == state.exchangeBaseUrl }?.let { exchange ->
+                    if (exchange.tosStatus == ExchangeTosStatus.Accepted) {
+                        newState = OutgoingChecked(
+                            amountRaw = state.amountRaw,
+                            amountEffective = state.amountEffective,
+                            exchangeBaseUrl = state.exchangeBaseUrl,
+                            tosStatus = exchange.tosStatus,
                         )
                     }
                 } ?: run {

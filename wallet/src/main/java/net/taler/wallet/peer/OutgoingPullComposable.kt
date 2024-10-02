@@ -55,7 +55,6 @@ import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.TalerSurface
-import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.TransactionAmountComposable
@@ -66,7 +65,8 @@ import kotlin.random.Random
 fun OutgoingPullComposable(
     amount: Amount,
     state: OutgoingState,
-    onCreateInvoice: (amount: Amount, subject: String, hours: Long, exchange: ExchangeItem) -> Unit,
+    onCreateInvoice: (amount: Amount, subject: String, hours: Long, exchangeBaseUrl: String) -> Unit,
+    onTosAccept: (exchangeBaseUrl: String) -> Unit,
     onClose: () -> Unit,
 ) {
     when(state) {
@@ -75,6 +75,7 @@ fun OutgoingPullComposable(
             amount = amount,
             state = state,
             onCreateInvoice = onCreateInvoice,
+            onTosAccept = onTosAccept,
         )
         is OutgoingError -> PeerErrorComposable(state, onClose)
     }
@@ -98,7 +99,8 @@ fun PeerCreatingComposable() {
 fun OutgoingPullIntroComposable(
     amount: Amount,
     state: OutgoingState,
-    onCreateInvoice: (amount: Amount, subject: String, hours: Long, exchange: ExchangeItem) -> Unit,
+    onCreateInvoice: (amount: Amount, subject: String, hours: Long, exchangeBaseUrl: String) -> Unit,
+    onTosAccept: (exchangeBaseUrl: String) -> Unit,
 ) {
     val scrollState = rememberScrollState()
     Column(
@@ -160,10 +162,10 @@ fun OutgoingPullIntroComposable(
             )
         }
 
-        val exchangeItem = (state as? OutgoingChecked)?.exchangeItem
+        val exchangeBaseUrl = (state as? OutgoingChecked)?.exchangeBaseUrl
         TransactionInfoComposable(
             label = stringResource(id = R.string.withdraw_exchange),
-            info = if (exchangeItem == null) "" else cleanExchange(exchangeItem.exchangeBaseUrl),
+            info = if (exchangeBaseUrl == null) "" else cleanExchange(exchangeBaseUrl),
         )
 
         Text(
@@ -183,17 +185,22 @@ fun OutgoingPullIntroComposable(
 
         Button(
             modifier = Modifier.padding(16.dp),
-            enabled = subject.isNotBlank() && state is OutgoingChecked,
+            enabled = subject.isNotBlank() && (state is OutgoingChecked),
             onClick = {
-                onCreateInvoice(
+                val ex = exchangeBaseUrl ?: error("clickable without exchange")
+                if (state.tosStatus == ExchangeTosStatus.Accepted) onCreateInvoice(
                     amount,
                     subject,
                     hours,
-                    exchangeItem ?: error("clickable without exchange")
-                )
+                    ex
+                ) else onTosAccept(ex)
             },
         ) {
-            Text(text = stringResource(R.string.receive_peer_create_button))
+            if (state is OutgoingChecked && state.tosStatus != ExchangeTosStatus.Accepted) {
+                Text(text = stringResource(R.string.exchange_tos_accept))
+            } else {
+                Text(text = stringResource(R.string.receive_peer_create_button))
+            }
         }
     }
 }
@@ -234,6 +241,7 @@ fun PeerPullComposableCreatingPreview() {
             amount = Amount.fromString("TESTKUDOS", "42.23"),
             state = OutgoingCreating,
             onCreateInvoice = { _, _, _, _ -> },
+            onTosAccept = {},
             onClose = {},
         )
     }
@@ -247,6 +255,7 @@ fun PeerPullComposableCheckingPreview() {
             amount = Amount.fromString("TESTKUDOS", "42.23"),
             state = if (Random.nextBoolean()) OutgoingIntro else OutgoingChecking,
             onCreateInvoice = { _, _, _, _ -> },
+            onTosAccept = {},
             onClose = {},
         )
     }
@@ -258,11 +267,11 @@ fun PeerPullComposableCheckedPreview() {
     TalerSurface {
         val amountRaw = Amount.fromString("TESTKUDOS", "42.42")
         val amountEffective = Amount.fromString("TESTKUDOS", "42.23")
-            val exchangeItem = ExchangeItem("https://example.org", "TESTKUDOS", emptyList(), null, ExchangeTosStatus.Accepted)
         OutgoingPullComposable(
             amount = Amount.fromString("TESTKUDOS", "42.23"),
-            state = OutgoingChecked(amountRaw, amountEffective, exchangeItem),
+            state = OutgoingChecked(amountRaw, amountEffective, "https://exchange.demo.taler.net/", ExchangeTosStatus.Accepted),
             onCreateInvoice = { _, _, _, _ -> },
+            onTosAccept = {},
             onClose = {},
         )
     }
@@ -278,6 +287,7 @@ fun PeerPullComposableErrorPreview() {
             amount = Amount.fromString("TESTKUDOS", "42.23"),
             state = state,
             onCreateInvoice = { _, _, _, _ -> },
+            onTosAccept = {},
             onClose = {},
         )
     }

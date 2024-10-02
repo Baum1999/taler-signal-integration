@@ -55,7 +55,7 @@ class IncomingPushPaymentFragment : Fragment() {
                     IncomingComposable(state, incomingPush) { terms ->
                         if (terms is IncomingTosReview) {
                             val args = bundleOf("exchangeBaseUrl" to terms.exchangeBaseUrl)
-                            findNavController().navigate(R.id.action_promptPushPayment_to_reviewExchangeTOS, args)
+                            findNavController().navigate(R.id.action_global_reviewExchangeTos, args)
                         } else {
                             peerManager.confirmPeerPushCredit(terms)
                         }

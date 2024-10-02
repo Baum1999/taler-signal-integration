@@ -36,11 +36,15 @@ interface ExchangeClickListener {
     fun onPeerReceive(item: ExchangeItem)
     fun onExchangeReload(item: ExchangeItem)
     fun onExchangeDelete(item: ExchangeItem)
+    fun onExchangeTosAccept(item: ExchangeItem)
+    fun onExchangeTosForget(item: ExchangeItem)
+    fun onExchangeTosView(item: ExchangeItem)
 }
 
 internal class ExchangeAdapter(
     private val selectOnly: Boolean,
     private val listener: ExchangeClickListener,
+    private val devMode: Boolean,
 ) : Adapter<ExchangeItemViewHolder>() {
 
     private var items = emptyList<ExchangeItem>()
@@ -95,6 +99,15 @@ internal class ExchangeAdapter(
 
         private fun openMenu(anchor: View, item: ExchangeItem) = PopupMenu(context, anchor).apply {
             inflate(R.menu.exchange)
+            if (item.tosStatus == ExchangeTosStatus.Accepted) {
+                menu.findItem(R.id.action_view_tos).isVisible = true
+                menu.findItem(R.id.action_accept_tos).isVisible = false
+                menu.findItem(R.id.action_forget_tos).isVisible = devMode
+            } else {
+                menu.findItem(R.id.action_view_tos).isVisible = false
+                menu.findItem(R.id.action_accept_tos).isVisible = true
+                menu.findItem(R.id.action_forget_tos).isVisible = false
+            }
             setOnMenuItemClickListener { menuItem ->
                 when (menuItem.itemId) {
                     R.id.action_manual_withdrawal -> {
@@ -107,6 +120,18 @@ internal class ExchangeAdapter(
                     }
                     R.id.action_reload -> {
                         listener.onExchangeReload(item)
+                        true
+                    }
+                    R.id.action_view_tos -> {
+                        listener.onExchangeTosView(item)
+                        true
+                    }
+                    R.id.action_accept_tos -> {
+                        listener.onExchangeTosAccept(item)
+                        true
+                    }
+                    R.id.action_forget_tos -> {
+                        listener.onExchangeTosForget(item)
                         true
                     }
                     R.id.action_delete -> {

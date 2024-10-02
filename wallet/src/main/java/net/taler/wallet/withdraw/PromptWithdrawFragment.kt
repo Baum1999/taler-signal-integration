@@ -150,7 +150,7 @@ class PromptWithdrawFragment: Fragment() {
                                 onTosReview = {
                                     // TODO: rewrite ToS review screen in compose
                                     val args = bundleOf("exchangeBaseUrl" to s.exchangeBaseUrl)
-                                    findNavController().navigate(R.id.action_promptWithdraw_to_reviewExchangeTOS, args)
+                                    findNavController().navigate(R.id.action_global_reviewExchangeTos, args)
                                 },
                                 onConfirm = { age ->
                                     withdrawManager.acceptWithdrawal(age)

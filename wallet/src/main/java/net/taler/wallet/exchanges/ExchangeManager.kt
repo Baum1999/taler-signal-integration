@@ -192,6 +192,26 @@ class ExchangeManager(
         return success
     }
 
+    /**
+     * Un-accept the terms of service of an exchange
+     */
+    suspend fun forgetCurrentTos(
+        exchangeBaseUrl: String,
+        currentEtag: String,
+    ): Boolean {
+        var success = false
+        api.request<Unit>("setExchangeTosForgotten") {
+            put("exchangeBaseUrl", exchangeBaseUrl)
+            put("etag", currentEtag)
+        }.onError { error ->
+            Log.d(TAG, "Error setExchangeTosForgotten: $error")
+        }.onSuccess {
+            success = true
+            list()
+        }
+        return success
+    }
+
     fun addDevExchanges() {
         scope.launch {
             listOf(

@@ -25,14 +25,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
+import androidx.core.os.bundleOf
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle.State.RESUMED
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager.VERTICAL
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.launch
 import net.taler.common.EventObserver
 import net.taler.common.fadeIn
 import net.taler.common.fadeOut
@@ -50,7 +53,7 @@ open class ExchangeListFragment : Fragment(), ExchangeClickListener {
 
     protected lateinit var ui: FragmentExchangeListBinding
     protected open val isSelectOnly = false
-    private val exchangeAdapter by lazy { ExchangeAdapter(isSelectOnly, this) }
+    private val exchangeAdapter by lazy { ExchangeAdapter(isSelectOnly, this, model.devMode.value == true) }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -176,5 +179,26 @@ open class ExchangeListFragment : Fragment(), ExchangeClickListener {
             }
             .setPositiveButton(R.string.cancel) { _, _ -> }
             .show()
+    }
+
+    override fun onExchangeTosView(item: ExchangeItem) {
+        val bundle = bundleOf(
+            "exchangeBaseUrl" to item.exchangeBaseUrl,
+            "readOnly" to true,
+        )
+        findNavController().navigate(R.id.action_global_reviewExchangeTos, bundle)
+    }
+
+    override fun onExchangeTosAccept(item: ExchangeItem) {
+        val bundle = bundleOf("exchangeBaseUrl" to item.exchangeBaseUrl)
+        findNavController().navigate(R.id.action_global_reviewExchangeTos, bundle)
+    }
+
+    override fun onExchangeTosForget(item: ExchangeItem) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            exchangeManager.getExchangeTos(item.exchangeBaseUrl)?.let { tos ->
+                exchangeManager.forgetCurrentTos(item.exchangeBaseUrl, tos.currentEtag)
+            }
+        }
     }
 }

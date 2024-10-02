@@ -19,17 +19,23 @@ package net.taler.wallet.peer
 import kotlinx.serialization.Serializable
 import net.taler.common.Amount
 import net.taler.wallet.backend.TalerErrorInfo
-import net.taler.wallet.exchanges.ExchangeItem
+import net.taler.wallet.exchanges.ExchangeTosStatus
 
 sealed class OutgoingState
-object OutgoingIntro : OutgoingState()
-object OutgoingChecking : OutgoingState()
+
+data object OutgoingIntro : OutgoingState()
+
+data object OutgoingChecking : OutgoingState()
+
 data class OutgoingChecked(
     val amountRaw: Amount,
     val amountEffective: Amount,
-    val exchangeItem: ExchangeItem? = null,
+    val exchangeBaseUrl: String,
+    val tosStatus: ExchangeTosStatus?,
 ) : OutgoingState()
-object OutgoingCreating : OutgoingState()
+
+data object OutgoingCreating : OutgoingState()
+
 data class OutgoingResponse(
     val transactionId: String,
 ) : OutgoingState()
@@ -54,6 +60,7 @@ data class InitiatePeerPullPaymentResponse(
 data class CheckPeerPushDebitResponse(
     val amountRaw: Amount,
     val amountEffective: Amount,
+    val exchangeBaseUrl: String,
 )
 
 @Serializable

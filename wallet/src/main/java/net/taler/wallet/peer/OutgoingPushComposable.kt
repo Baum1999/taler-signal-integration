@@ -48,6 +48,7 @@ import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.exchanges.ExchangeTosStatus
 import kotlin.random.Random
 
 @Composable
@@ -192,7 +193,7 @@ fun PeerPushComposableCheckedPreview() {
     TalerSurface {
         val amountEffective = Amount.fromString("TESTKUDOS", "42.42")
         val amountRaw = Amount.fromString("TESTKUDOS", "42.23")
-        val state = OutgoingChecked(amountRaw, amountEffective)
+        val state = OutgoingChecked(amountRaw, amountEffective, "https://exchange.demo.taler.net", ExchangeTosStatus.Accepted)
         OutgoingPushComposable(
             state = state,
             amount = amountEffective,

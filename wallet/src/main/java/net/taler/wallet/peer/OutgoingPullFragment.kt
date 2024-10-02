@@ -21,6 +21,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -33,13 +34,13 @@ import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
-import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.showError
 
 class OutgoingPullFragment : Fragment() {
     private val model: MainViewModel by activityViewModels()
     private val peerManager get() = model.peerManager
     private val transactionManager get() = model.transactionManager
+    private val exchangeManager get() = model.exchangeManager
     private val balanceManager get() = model.balanceManager
 
     override fun onCreateView(
@@ -61,6 +62,7 @@ class OutgoingPullFragment : Fragment() {
                         amount = amount.withSpec(spec),
                         state = state,
                         onCreateInvoice = this@OutgoingPullFragment::onCreateInvoice,
+                        onTosAccept = this@OutgoingPullFragment::onTosAccept,
                         onClose = {
                             findNavController().navigate(R.id.action_nav_peer_pull_to_nav_main)
                         }
@@ -89,6 +91,11 @@ class OutgoingPullFragment : Fragment() {
                 }
             }
         }
+
+        exchangeManager.exchanges.observe(viewLifecycleOwner) { exchanges ->
+            // detect ToS acceptation
+            peerManager.refreshPeerPullCreditTos(exchanges)
+        }
     }
 
     override fun onStart() {
@@ -101,7 +108,12 @@ class OutgoingPullFragment : Fragment() {
         if (!requireActivity().isChangingConfigurations) peerManager.resetPullPayment()
     }
 
-    private fun onCreateInvoice(amount: Amount, summary: String, hours: Long, exchange: ExchangeItem) {
-        peerManager.initiatePeerPullCredit(amount, summary, hours, exchange)
+    private fun onTosAccept(exchangeBaseUrl: String) {
+        val bundle = bundleOf("exchangeBaseUrl" to exchangeBaseUrl)
+        findNavController().navigate(R.id.action_global_reviewExchangeTos, bundle)
+    }
+
+    private fun onCreateInvoice(amount: Amount, summary: String, hours: Long, exchangeBaseUrl: String) {
+        peerManager.initiatePeerPullCredit(amount, summary, hours, exchangeBaseUrl)
     }
 }

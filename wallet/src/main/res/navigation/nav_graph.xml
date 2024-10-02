@@ -263,9 +263,6 @@
             android:id="@+id/action_promptPushPayment_to_nav_main"
             app:destination="@id/nav_main"
             app:popUpTo="@id/nav_main" />
-        <action
-            android:id="@+id/action_promptPushPayment_to_reviewExchangeTOS"
-            app:destination="@id/reviewExchangeTOS" />
     </fragment>
 
     <fragment
@@ -339,9 +336,6 @@
         android:id="@+id/promptWithdraw"
         android:name="net.taler.wallet.withdraw.PromptWithdrawFragment"
         android:label="@string/nav_prompt_withdraw">
-        <action
-            android:id="@+id/action_promptWithdraw_to_reviewExchangeTOS"
-            app:destination="@id/reviewExchangeTOS" />
         <action
             android:id="@+id/action_promptWithdraw_to_nav_main"
             app:destination="@id/nav_main"
@@ -427,5 +421,9 @@
     <action
         android:id="@+id/action_nav_payto_uri"
         app:destination="@id/nav_payto_uri" />
+
+    <action
+        android:id="@+id/action_global_reviewExchangeTos"
+        app:destination="@id/reviewExchangeTOS" />
 
 </navigation>
