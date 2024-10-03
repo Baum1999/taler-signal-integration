@@ -325,14 +325,14 @@
     <string name="transaction_state_aborted_manual">Diese Transaktion wurde abgebrochen. Falls Sie bereits Geld an den Zahlungsdienst überwiesen haben, wird dieses an Sie zurücküberwiesen in %1$s</string>
     <string name="transaction_preparing_kyc">Die Abfrage des wirtschaftlich Berechtigten wird vorbereitet</string>
     <string name="exchange_tos_view">AGB ansehen</string>
-    <string name="transaction_state_pending_kyc_bank">Diese Geldüberweisung würde den Maximalbetrag einer Abhebung von Ihrem Bankkonto übersteigen. Um fortzufahren, ist eine vollständige KYC-Prüfung nötig</string>
+    <string name="transaction_state_pending_kyc_bank">Diese Überweisung würde die von Ihrer Bank maximal erlaubte Abhebung übersteigen. Um fortzufahren ist eine vollständige KYC-Prüfung nötig</string>
     <string name="exchange_tos_forget">AGB ablehnen</string>
     <string name="transaction_action_kyc_balance">Gesamtguthaben (KYC)</string>
     <string name="transaction_action_kyc_bank">Gesamte Abhebungen (KYC)</string>
-    <string name="transaction_state_pending_kyc_balance">Diese Geldüberweisung würde den Maximalbetrag einer Abhebung von Ihrem Bankkonto übersteigen. Um fortzufahren, ist eine vollständige KYC-Prüfung nötig</string>
+    <string name="transaction_state_pending_kyc_balance">Diese Überweisung würde die von Ihrer Bank maximal erlaubte Abhebung übersteigen. Um fortzufahren ist eine vollständige KYC-Prüfung nötig</string>
     <string name="payment_tax">einschließlich %1$s %2$s</string>
     <string name="send_deposit_account">Konto</string>
     <string name="send_deposit_host">Host</string>
-    <string name="send_deposit_no_methods_error">Nichtunterstützte Überweisungen</string>
+    <string name="send_deposit_no_methods_error">Keine unterstützten Überweisungsmethoden</string>
     <string name="send_deposit_taler">x-taler-bank</string>
 </resources>
