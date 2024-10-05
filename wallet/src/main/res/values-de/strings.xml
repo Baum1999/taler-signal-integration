@@ -247,7 +247,7 @@
     <string name="receive_peer_amount_invoiced">Rechnungsbetrag</string>
     <string name="send_peer_payment_instruction">Lassen Sie den Geldempfänger diesen QR-Code scannen, um den Betrag zu erhalten:</string>
     <string name="transaction_deposit">Überweisung</string>
-    <string name="exchange_list_error">Es konnten keine Zahlungsdienstleister angezeigt werden</string>
+    <string name="exchange_list_error">Zahlungsdienstleister konnten nicht aufgelistet werden</string>
     <string name="withdraw_conversion_support">Dieser Zahlungsdienstleister unterstützt Währungsumtausch</string>
     <string name="exchange_list_add_dev">Zahlungsdienstleister im Entwicklermodus hinzufügen</string>
     <string name="send_peer_expiration_30d">30 Tage</string>
@@ -265,7 +265,7 @@
     <string name="transactions_fail_dialog_message">Sind Sie sicher, dass die Transaktion abgebrochen werden soll? Bereits abgesendete Guthaben GEHEN VERLOREN.</string>
     <string name="transactions_receive_funds_title">%1$s erhalten</string>
     <string name="transactions_send_funds_title">%1$s senden</string>
-    <string name="payment_create_order">Bestellung anlegen</string>
+    <string name="payment_create_order">Auftrag anlegen</string>
     <string name="loading">Lädt</string>
     <string name="open">Öffnen</string>
     <string name="loss_reason_expired">Das Guthaben wurde nicht aufgefrischt, weil die Wallet-Anwendung zu lange keinen Internet-Zugang hatte</string>
@@ -312,7 +312,7 @@
     <string name="show_logs">Protokolle anzeigen</string>
     <string name="withdraw_manual_qr_epc">EPC-QR</string>
     <string name="withdraw_manual_qr_spc">Schweizer QR-Code</string>
-    <string name="transaction_state_pending_bank">Warten auf Bestätigung in der Bank</string>
+    <string name="transaction_state_pending_bank">Warten auf Überweisungsfreigabe in der Bank</string>
     <string name="error_no_uri">Fehler: Kein Taler-URI gefunden</string>
     <string name="payment_balance_insufficient_max">Unzureichende Deckung! Höchstbetrag ist %1$s</string>
     <string name="withdraw_fee">+%1$s Abhebegebühr</string>
@@ -322,7 +322,7 @@
     <string name="amount_withdraw">Betrag der Abhebung</string>
     <string name="withdraw_select_amount">Betrag wählen</string>
     <string name="edit">Bearbeiten</string>
-    <string name="transaction_state_aborted_manual">Diese Transaktion wurde abgebrochen. Falls Sie bereits Geld an den Zahlungsdienst überwiesen haben, wird dieses an Sie zurücküberwiesen in %1$s</string>
+    <string name="transaction_state_aborted_manual">Diese Transaktion wurde abgebrochen. Falls Sie bereits Geld an den Zahlungsdienst überwiesen haben, wird dieses an Sie zurücküberwiesen am %1$s</string>
     <string name="transaction_preparing_kyc">Die Abfrage des wirtschaftlich Berechtigten wird vorbereitet</string>
     <string name="exchange_tos_view">AGB ansehen</string>
     <string name="transaction_state_pending_kyc_bank">Diese Überweisung würde die von Ihrer Bank maximal erlaubte Abhebung übersteigen. Um fortzufahren ist eine vollständige KYC-Prüfung nötig</string>
