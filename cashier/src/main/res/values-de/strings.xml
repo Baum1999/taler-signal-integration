@@ -27,7 +27,7 @@
     <string name="app_name">Taler Cashier</string>
     <string name="config_bank_url">Bank API Adresse</string>
     <string name="config_demo_hint">Zum Testen können Sie <![CDATA[<a href="%s">ein Testkonto bei der Demobank erstellen</a>]]>.</string>
-    <string name="transaction_intro">Scannen Sie zum Abheben den Code mit dem Taler-Wallet:</string>
+    <string name="transaction_intro">Scannen Sie zum Abheben diesen Code mit dem Taler-Wallet:</string>
     <string name="transaction_intro_scanned">Bitte bestätigen Sie die Transaktion!</string>
     <string name="transaction_last_aborted">Letzte Transaktion: Abgebrochen</string>
     <string name="config_username">Benutzername</string>
