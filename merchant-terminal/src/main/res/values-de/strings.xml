@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name_short">Merchant Terminal</string>
+    <string name="app_name_short">\"Merchant Terminal\"</string>
     <string name="project_name">GNU Taler</string>
     <string name="menu_order">Bestellungen</string>
     <string name="menu_history">Verlauf</string>
@@ -71,4 +71,10 @@
     <string name="config_new_label">Händler (neu)</string>
     <string name="config_merchant_url">Händler-URL</string>
     <string name="config_token">Zugriffstoken</string>
+    <string name="order_custom">Benutzerdefinierten Artikel hinzufügen</string>
+    <string name="menu_reload">Erneut laden</string>
+    <string name="order_custom_product">Bezeichnung des Artikels</string>
+    <string name="host_apdu_service_desc">Taler-NFC-Zahlungen</string>
+    <string name="toast_reloading">Inventar wird neu geladen</string>
+    <string name="config_old_deprecation">Diese Konfigurationsmethode ist unterdrückt, bitte benutzen Sie die neue Schnittstellenkonfiguration.</string>
 </resources>
