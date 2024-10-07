@@ -174,7 +174,7 @@
     <string name="settings_db_clear_error">Fehler beim Bereinigen der Datenbank</string>
     <string name="settings_alert_reset_canceled">Zurücksetzen abgebrochen</string>
     <string name="exchange_not_contacted">Zahlungsdienstleister nicht kontaktiert</string>
-    <string name="send_peer_expiration_1d">1Tag</string>
+    <string name="send_peer_expiration_1d">1 Tag</string>
     <string name="settings_test">Integrationstest durchführen</string>
     <string name="settings_test_summary">Führt Test-Transaktionen mit Demo-Setup durch</string>
     <string name="copy" tools:override="true">Kopieren</string>
