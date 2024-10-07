@@ -40,4 +40,7 @@
     <string name="about_copyright">Copyright: %s</string>
     <string name="about_supported_bank_api">Bankschnittstellen-Version: %s</string>
     <string name="withdraw_error_currency_mismatch">Fehler: Die Bank hat eine andere Währung gemeldet</string>
+    <string name="host_apdu_service_desc">Taler-NFC-Zahlungen mit der Cashier-App</string>
+    <string name="balance_debit_threshold">Höchstes zulässiges Minus: %1$s</string>
+    <string name="withdraw_error_under_min_cashout">Dieser Wert ist unterhalb des geringsten Auszahlungsbetrags von %1$s</string>
 </resources>
