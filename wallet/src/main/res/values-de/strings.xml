@@ -266,7 +266,7 @@
     <string name="transactions_receive_funds_title">%1$s erhalten</string>
     <string name="transactions_send_funds_title">%1$s senden</string>
     <string name="payment_create_order">Auftrag anlegen</string>
-    <string name="loading">Lädt</string>
+    <string name="loading">Lädt Daten</string>
     <string name="open">Öffnen</string>
     <string name="loss_reason_expired">Das Guthaben wurde nicht aufgefrischt, weil die Wallet-Anwendung zu lange keinen Internet-Zugang hatte</string>
     <string name="settings_test_running">Der Integrationstest läuft gerade</string>
