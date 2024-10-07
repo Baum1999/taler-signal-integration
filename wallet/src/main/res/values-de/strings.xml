@@ -272,7 +272,7 @@
     <string name="settings_test_running">Der Integrationstest läuft gerade</string>
     <string name="amount_lost">Verlorener Betrag</string>
     <string name="transaction_state_pending">Diese Transaktion hat den Status \"ausstehend\"</string>
-    <string name="transaction_peer_push_debit">Push-Zahlung (Debit)</string>
+    <string name="transaction_peer_push_debit">Push-Zahlung</string>
     <string name="qr_scan_context_title">Möglicherweise unbeabsichtigte Aktion</string>
     <string name="qr_scan_context_receive_message">Es scheint, dass Sie Geld erhalten wollten, doch entspricht der eingescannte QR-Code einer anderen Aktion. Möchten Sie dennoch fortfahren?</string>
     <string name="qr_scan_context_send_message">Es scheint, dass Sie Geld senden wollten, doch entspricht der eingescannte QR-Code einer anderen Aktion. Möchten Sie dennoch fortfahren?</string>
