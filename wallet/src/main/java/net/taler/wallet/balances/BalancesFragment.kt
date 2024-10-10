@@ -31,6 +31,7 @@ import androidx.recyclerview.widget.LinearLayoutManager.VERTICAL
 import net.taler.common.fadeIn
 import net.taler.common.showError
 import net.taler.wallet.MainViewModel
+import net.taler.wallet.R
 import net.taler.wallet.balances.BalanceState.Error
 import net.taler.wallet.balances.BalanceState.Loading
 import net.taler.wallet.balances.BalanceState.None
@@ -68,6 +69,11 @@ class BalancesFragment : Fragment(),
         model.balanceManager.state.observe(viewLifecycleOwner) {
             onBalancesChanged(it)
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        requireActivity().title = getString(R.string.balances_title)
     }
 
     private fun onBalancesChanged(state: BalanceState) {

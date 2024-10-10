@@ -169,6 +169,11 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        requireActivity().title = getString(R.string.menu_settings)
+    }
+
     private fun showImportDialog() {
         MaterialAlertDialogBuilder(requireContext(), R.style.MaterialAlertDialog_Material3)
             .setMessage(R.string.settings_dialog_import_message)

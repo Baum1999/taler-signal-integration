@@ -86,7 +86,7 @@ class TransactionWithdrawalFragment : TransactionDetailFragment(), ActionListene
                     amountRaw = tx.amountRaw,
                     amountEffective = tx.amountEffective,
                     withdrawalAccountList = tx.withdrawalDetails.exchangeCreditAccountDetails,
-                    scopeInfo = transactionManager.selectedScope ?: ScopeInfo.Exchange(
+                    scopeInfo = transactionManager.selectedScope.value ?: ScopeInfo.Exchange(
                         currency = tx.amountRaw.currency,
                         url = tx.exchangeBaseUrl,
                     ),

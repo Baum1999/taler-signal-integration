@@ -30,6 +30,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import net.taler.common.Amount
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
@@ -55,12 +56,6 @@ class OutgoingPushFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        val amount = arguments?.getString("amount")?.let {
-            Amount.fromJSONString(it)
-        } ?: error("no amount passed")
-        val scopeInfo = transactionManager.selectedScope
-        val spec = scopeInfo?.let { balanceManager.getSpecForScopeInfo(it) }
-
         requireActivity().onBackPressedDispatcher.addCallback(
             viewLifecycleOwner, backPressedCallback
         )
@@ -70,8 +65,14 @@ class OutgoingPushFragment : Fragment() {
                 TalerSurface {
                     val state = peerManager.pushState.collectAsStateLifecycleAware().value
                     OutgoingPushComposable(
-                        amount = amount.withSpec(spec),
                         state = state,
+                        defaultCurrency = transactionManager.selectedScope.value?.currency,
+                        currencies = balanceManager.getCurrencies(),
+                        getCurrencySpec = balanceManager::getSpecForCurrency,
+                        getFees = { fees ->
+                            // TODO: make this async!!!
+                            runBlocking { peerManager.checkPeerPushFees(fees) }
+                        },
                         onSend = this@OutgoingPushFragment::onSend,
                         onClose = {
                             findNavController().navigate(R.id.action_nav_peer_push_to_nav_main)

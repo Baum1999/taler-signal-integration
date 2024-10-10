@@ -26,14 +26,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -42,22 +39,17 @@ import net.taler.wallet.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MakeDepositTaler(
-    state: DepositState,
     supportedHosts: List<String>,
     name: String,
     host: String,
     account: String,
     onFormEdited: (name: String, host: String, account: String) -> Unit
 ) {
-    val focusRequester = remember { FocusRequester() }
-
     OutlinedTextField(
         modifier = Modifier
             .padding(16.dp)
-            .focusRequester(focusRequester)
             .fillMaxWidth(),
         value = name,
-        enabled = !state.showFees,
         onValueChange = { input ->
             onFormEdited(input, host, account)
         },
@@ -73,10 +65,6 @@ fun MakeDepositTaler(
         }
     )
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
-
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -88,7 +76,6 @@ fun MakeDepositTaler(
                 .fillMaxWidth()
                 .menuAnchor(),
             readOnly = true,
-            enabled = !state.showFees,
             value = host,
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
             onValueChange = {},
@@ -124,7 +111,6 @@ fun MakeDepositTaler(
             .fillMaxWidth(),
         value = account,
         singleLine = true,
-        enabled = !state.showFees,
         onValueChange = { input ->
             onFormEdited(name, host, input)
         },

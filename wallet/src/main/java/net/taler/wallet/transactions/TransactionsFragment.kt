@@ -24,9 +24,9 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
-import android.view.View.INVISIBLE
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.SearchView.OnQueryTextListener
 import androidx.fragment.app.Fragment
@@ -63,7 +63,7 @@ class TransactionsFragment : Fragment(), OnTransactionClickListener, ActionMode.
 
     private lateinit var ui: FragmentTransactionsBinding
     private val transactionAdapter by lazy { TransactionAdapter(this) }
-    private val scopeInfo by lazy { transactionManager.selectedScope!! }
+    private val scopeInfo by lazy { transactionManager.selectedScope.value!! }
     private var tracker: SelectionTracker<String>? = null
     private var actionMode: ActionMode? = null
 
@@ -85,6 +85,7 @@ class TransactionsFragment : Fragment(), OnTransactionClickListener, ActionMode.
             adapter = transactionAdapter
             addItemDecoration(DividerItemDecoration(context, VERTICAL))
         }
+
         val tracker = SelectionTracker.Builder(
             "transaction-selection-id",
             ui.list,
@@ -115,13 +116,33 @@ class TransactionsFragment : Fragment(), OnTransactionClickListener, ActionMode.
         balanceManager.state.observe(viewLifecycleOwner) { state ->
             if (state !is Success) return@observe
             val balances = state.balances
-            // hide extra fab when in single currency mode (uses MainFragment's FAB)
-            if (balances.size == 1) ui.mainFab.visibility = INVISIBLE
 
             balances.find { it.scopeInfo == scopeInfo }?.let { balance ->
+                val spec = balanceManager.getSpecForScopeInfo(scopeInfo)
+
                 ui.actionsBar.amount.text = balance.available.toString(showSymbol = false)
+                ui.actionsBar.currencyLabel.text = if (spec != null) {
+                    if (spec.symbol != null && spec.name != spec.symbol) {
+                        // Name (symbol)
+                        getString(R.string.transactions_currency, spec.name, spec.symbol)
+                    } else if (spec.name != balance.currency) {
+                        // Name (currency string)
+                        getString(R.string.transactions_currency, spec.name, balance.currency)
+                    } else balance.currency
+                } else balance.currency
+
+                if (balance.scopeInfo is ScopeInfo.Exchange) {
+                    ui.actionsBar.exchangeLabel.text = cleanExchange(balance.scopeInfo.url)
+                    ui.actionsBar.exchangeLabel.visibility = VISIBLE
+                } else {
+                    ui.actionsBar.exchangeLabel.visibility = GONE
+                }
                 transactionAdapter.update(updatedCurrencySpec = balance.available.spec)
             }
+        }
+
+        ui.actionsBar.currencyCard.setOnClickListener {
+            requireActivity().onBackPressed()
         }
 
         // TODO: refactor and unify progress bar handling
@@ -136,23 +157,11 @@ class TransactionsFragment : Fragment(), OnTransactionClickListener, ActionMode.
         networkManager.networkStatus.observe(viewLifecycleOwner) { state ->
             transactionAdapter.update(updatedNetworkAvailable = state)
         }
+    }
 
-        ui.actionsBar.sendButton.setOnClickListener {
-            findNavController().navigate(R.id.sendFunds)
-        }
-
-        ui.actionsBar.receiveButton.setOnClickListener {
-            findNavController().navigate(R.id.action_global_receiveFunds)
-        }
-
-        ui.mainFab.setOnClickListener {
-            model.scanCode()
-        }
-
-        ui.mainFab.setOnLongClickListener {
-            findNavController().navigate(R.id.action_nav_transactions_to_nav_uri_input)
-            true
-        }
+    override fun onStart() {
+        super.onStart()
+        requireActivity().title = getString(R.string.transactions_title)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -164,13 +173,6 @@ class TransactionsFragment : Fragment(), OnTransactionClickListener, ActionMode.
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.transactions, menu)
         setupSearch(menu.findItem(R.id.action_search))
-    }
-
-    override fun onStart() {
-        super.onStart()
-        requireActivity().title = getString(R.string.transactions_detail_title_currency, scopeInfo.currency)
-        (requireActivity() as AppCompatActivity).supportActionBar?.subtitle =
-            (scopeInfo as? ScopeInfo.Exchange)?.url?.let { cleanExchange(it) }
     }
 
     private fun setupSearch(item: MenuItem) {
@@ -280,11 +282,6 @@ class TransactionsFragment : Fragment(), OnTransactionClickListener, ActionMode.
         return true
     }
 
-    override fun onStop() {
-        super.onStop()
-        (requireActivity() as AppCompatActivity).supportActionBar?.subtitle = null
-    }
-
     override fun onDestroyActionMode(mode: ActionMode) {
         tracker?.clearSelection()
         actionMode = null
@@ -295,5 +292,4 @@ class TransactionsFragment : Fragment(), OnTransactionClickListener, ActionMode.
             actionMode?.title = num
         }
     }
-
 }

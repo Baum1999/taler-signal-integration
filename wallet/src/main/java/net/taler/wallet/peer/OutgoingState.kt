@@ -52,6 +52,14 @@ data class CheckPeerPullCreditResponse(
 )
 
 @Serializable
+data class CheckPeerPullCreditResult(
+    val exchangeBaseUrl: String,
+    val amountRaw: Amount,
+    val amountEffective: Amount,
+    val tosStatus: ExchangeTosStatus?,
+)
+
+@Serializable
 data class InitiatePeerPullPaymentResponse(
     val transactionId: String,
 )

@@ -20,16 +20,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import net.taler.common.Amount
 import net.taler.common.showError
 import net.taler.wallet.CURRENCY_BTC
@@ -50,30 +46,26 @@ class DepositFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        val amount = arguments?.getString("amount")?.let {
-            Amount.fromJSONString(it)
-        } ?: error("no amount passed")
-        val scopeInfo = transactionManager.selectedScope
+        val presetAmount = arguments?.getString("amount")?.let { Amount.fromJSONString(it) }
+        val scopeInfo = transactionManager.selectedScope.value
         val spec = scopeInfo?.let { balanceManager.getSpecForScopeInfo(it) }
         val receiverName = arguments?.getString("receiverName")
         val iban = arguments?.getString("IBAN")
 
-        if (receiverName != null && iban != null) {
+        if (presetAmount != null && receiverName != null && iban != null) {
             val paytoUri = getIbanPayto(receiverName, iban)
-            depositManager.makeDeposit(amount, paytoUri)
+            depositManager.makeDeposit(presetAmount, paytoUri)
         }
 
         return ComposeView(requireContext()).apply {
             setContent {
                 TalerSurface {
                     val state = depositManager.depositState.collectAsStateLifecycleAware()
-                    val wireTypes = remember { mutableStateListOf<WireType>() }
-                    val talerBankHostnames = remember { mutableStateListOf<String>() }
-                    val coroutine = rememberCoroutineScope()
 
-                    if (amount.currency == CURRENCY_BTC) MakeBitcoinDepositComposable(
+                    // TODO: refactor Bitcoin as wire method
+                    if (presetAmount?.currency == CURRENCY_BTC) MakeBitcoinDepositComposable(
                         state = state.value,
-                        amount = amount.withSpec(spec),
+                        amount = presetAmount.withSpec(spec),
                         bitcoinAddress = null,
                         onMakeDeposit = { amount, bitcoinAddress ->
                             val paytoUri = getBitcoinPayto(bitcoinAddress)
@@ -81,30 +73,19 @@ class DepositFragment : Fragment() {
                         },
                     ) else MakeDepositComposable(
                         state = state.value,
-                        supportedWireTypes = wireTypes,
-                        talerBankHostnames = talerBankHostnames,
-                        amount = amount.withSpec(spec),
+                        defaultCurrency = scopeInfo?.currency,
+                        currencies = balanceManager.getCurrencies(),
+                        getCurrencySpec = { runBlocking { balanceManager.getSpecForCurrency(it) } },
+                        checkDeposit = { a, p -> runBlocking { depositManager.checkDepositFees(p, a) } },
+                        getDepositWireTypes = { currency ->
+                            runBlocking { depositManager.getDepositWireTypesForCurrency(currency) }
+                        },
                         presetName = receiverName,
                         presetIban = iban,
                         validateIban = depositManager::validateIban,
                         onMakeDeposit = depositManager::makeDeposit,
                         onClose = { findNavController().popBackStack() },
                     )
-
-                    LaunchedEffect(Unit) {
-                        coroutine.launch {
-                            scopeInfo?.let { scopeInfo ->
-                                depositManager
-                                    .getDepositWireTypesForCurrency(scopeInfo)
-                                    ?.let { result ->
-                                        wireTypes.addAll(result.wireTypes)
-                                        talerBankHostnames.addAll(result.wireTypeDetails.flatMap {
-                                            it.talerBankHostnames
-                                        }.distinct())
-                                    }
-                            }
-                        }
-                    }
                 }
             }
         }

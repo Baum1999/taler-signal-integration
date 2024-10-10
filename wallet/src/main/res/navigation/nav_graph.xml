@@ -26,9 +26,6 @@
         android:label="@string/balances_title"
         tools:layout="@layout/fragment_balances">
         <action
-            android:id="@+id/action_nav_main_to_nav_transactions"
-            app:destination="@id/nav_transactions" />
-        <action
             android:id="@+id/action_nav_main_to_nav_uri_input"
             app:destination="@id/nav_uri_input" />
     </fragment>
@@ -45,16 +42,6 @@
             android:name="from"
             app:argType="string"
             app:nullable="false" />
-
-        <action
-            android:id="@+id/action_handleUri_to_receiveFunds"
-            app:destination="@id/receiveFunds"
-            app:popUpTo="@id/nav_main" />
-
-        <action
-            android:id="@+id/action_handleUri_to_sendFunds"
-            app:destination="@id/sendFunds"
-            app:popUpTo="@id/nav_main" />
 
         <action
             android:id="@+id/action_handleUri_to_manualWithdrawal"
@@ -88,30 +75,6 @@
     </fragment>
 
     <fragment
-        android:id="@+id/receiveFunds"
-        android:name="net.taler.wallet.ReceiveFundsFragment"
-        android:label="@string/transactions_receive_funds">
-        <action
-            android:id="@+id/action_receiveFunds_to_nav_prompt_withdraw"
-            app:destination="@id/promptWithdraw" />
-        <action
-            android:id="@+id/action_receiveFunds_to_nav_peer_pull"
-            app:destination="@id/nav_peer_pull" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/sendFunds"
-        android:name="net.taler.wallet.SendFundsFragment"
-        android:label="@string/transactions_send_funds">
-        <action
-            android:id="@+id/action_sendFunds_to_nav_deposit"
-            app:destination="@id/nav_deposit" />
-        <action
-            android:id="@+id/action_sendFunds_to_nav_peer_push"
-            app:destination="@id/nav_peer_push" />
-    </fragment>
-
-    <fragment
         android:id="@+id/nav_payto_uri"
         android:name="net.taler.wallet.deposit.PayToUriFragment"
         android:label="@string/transactions_send_funds">
@@ -136,15 +99,6 @@
             android:id="@+id/action_promptPayment_to_nav_transactions_detail_payment"
             app:destination="@id/nav_transactions_detail_payment"
             app:popUpTo="@id/nav_main" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/nav_settings"
-        android:name="net.taler.wallet.settings.SettingsFragment"
-        android:label="@string/menu_settings">
-        <action
-            android:id="@+id/action_nav_settings_to_nav_settings_exchanges"
-            app:destination="@id/nav_settings_exchanges" />
     </fragment>
 
     <fragment
@@ -279,16 +233,6 @@
     </fragment>
 
     <fragment
-        android:id="@+id/nav_transactions"
-        android:name="net.taler.wallet.transactions.TransactionsFragment"
-        android:label="@string/transactions_title"
-        tools:layout="@layout/fragment_transactions">
-        <action
-            android:id="@+id/action_nav_transactions_to_nav_uri_input"
-            app:destination="@id/nav_uri_input" />
-    </fragment>
-
-    <fragment
         android:id="@+id/nav_transactions_detail_withdrawal"
         android:name="net.taler.wallet.transactions.TransactionWithdrawalFragment"
         android:label="@string/transactions_detail_title">
@@ -336,6 +280,10 @@
         android:id="@+id/promptWithdraw"
         android:name="net.taler.wallet.withdraw.PromptWithdrawFragment"
         android:label="@string/nav_prompt_withdraw">
+        <argument
+            android:name="editableCurrency"
+            android:defaultValue="true"
+            app:argType="boolean" />
         <action
             android:id="@+id/action_promptWithdraw_to_nav_main"
             app:destination="@id/nav_main"
@@ -380,14 +328,6 @@
     <action
         android:id="@+id/action_global_handle_uri"
         app:destination="@id/handleUri" />
-
-    <action
-        android:id="@+id/action_global_receiveFunds"
-        app:destination="@id/receiveFunds" />
-
-    <action
-        android:id="@+id/action_global_sendFunds"
-        app:destination="@id/sendFunds" />
 
     <action
         android:id="@+id/action_handleUri_to_promptWithdraw"

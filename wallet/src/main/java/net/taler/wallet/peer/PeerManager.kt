@@ -31,7 +31,6 @@ import kotlinx.serialization.json.jsonPrimitive
 import net.taler.common.Amount
 import net.taler.common.Timestamp
 import net.taler.wallet.TAG
-import net.taler.wallet.backend.TalerErrorCode.UNKNOWN
 import net.taler.wallet.backend.TalerErrorCode.WALLET_PEER_PUSH_PAYMENT_INSUFFICIENT_BALANCE
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
@@ -77,31 +76,25 @@ class PeerManager(
     private val _incomingPushState = MutableStateFlow<IncomingState>(IncomingChecking)
     val incomingPushState: StateFlow<IncomingState> = _incomingPushState
 
-    fun checkPeerPullCredit(amount: Amount) {
-        _outgoingPullState.value = OutgoingChecking
-        scope.launch(Dispatchers.IO) {
-            val exchangeItem = exchangeManager.findExchange(amount.currency)
-            if (exchangeItem == null) {
-                _outgoingPullState.value = OutgoingError(
-                    TalerErrorInfo(UNKNOWN, "No exchange found for ${amount.currency}")
-                )
-                return@launch
-            }
-            api.request("checkPeerPullCredit", CheckPeerPullCreditResponse.serializer()) {
-                put("exchangeBaseUrl", exchangeItem.exchangeBaseUrl)
-                put("amount", amount.toJSONString())
-            }.onSuccess {
-                _outgoingPullState.value = OutgoingChecked(
-                    amountRaw = it.amountRaw,
-                    amountEffective = it.amountEffective,
-                    exchangeBaseUrl = exchangeItem.exchangeBaseUrl,
-                    tosStatus = exchangeItem.tosStatus,
-                )
-            }.onError { error ->
-                Log.e(TAG, "got checkPeerPullCredit error result $error")
-                _outgoingPullState.value = OutgoingError(error)
-            }
+    suspend fun checkPeerPullCredit(amount: Amount, exchangeBaseUrl: String? = null): CheckPeerPullCreditResult? {
+        var response: CheckPeerPullCreditResult? = null
+        val exchangeItem = exchangeManager.findExchange(amount.currency) ?: return null
+
+        api.request("checkPeerPullCredit", CheckPeerPullCreditResponse.serializer()) {
+            exchangeBaseUrl?.let { put("exchangeBaseUrl", it) }
+            put("amount", amount.toJSONString())
+        }.onSuccess {
+            response = CheckPeerPullCreditResult(
+                amountEffective = it.amountEffective,
+                amountRaw = it.amountRaw,
+                exchangeBaseUrl = it.exchangeBaseUrl,
+                tosStatus = exchangeItem.tosStatus,
+            )
+        }.onError { error ->
+            Log.e(TAG, "got checkPeerPullCredit error result $error")
         }
+
+        return response
     }
 
     fun initiatePeerPullCredit(amount: Amount, summary: String, expirationHours: Long, exchangeBaseUrl: String) {
@@ -126,28 +119,6 @@ class PeerManager(
 
     fun resetPullPayment() {
         _outgoingPullState.value = OutgoingIntro
-    }
-
-    fun checkPeerPushDebit(amount: Amount) {
-        _outgoingPushState.value = OutgoingChecking
-        scope.launch(Dispatchers.IO) {
-            api.request("checkPeerPushDebit", CheckPeerPushDebitResponse.serializer()) {
-                put("amount", amount.toJSONString())
-            }.onSuccess { response ->
-                scope.launch {
-                    val exchangeItem = exchangeManager.findExchangeByUrl(response.exchangeBaseUrl)
-                    _outgoingPushState.value = OutgoingChecked(
-                        amountRaw = response.amountRaw,
-                        amountEffective = response.amountEffective,
-                        exchangeBaseUrl = response.exchangeBaseUrl,
-                        tosStatus = exchangeItem?.tosStatus,
-                    )
-                }
-            }.onError { error ->
-                Log.e(TAG, "got checkPeerPushDebit error result $error")
-                _outgoingPushState.value = OutgoingError(error)
-            }
-        }
     }
 
     suspend fun checkPeerPushFees(amount: Amount, exchangeBaseUrl: String? = null): CheckFeeResult {

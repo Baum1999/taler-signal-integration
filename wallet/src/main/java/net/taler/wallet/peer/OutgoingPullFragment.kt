@@ -29,6 +29,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import net.taler.common.Amount
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
@@ -48,21 +49,21 @@ class OutgoingPullFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        val amount = arguments?.getString("amount")?.let {
-            Amount.fromJSONString(it)
-        } ?: error("no amount passed")
-        val scopeInfo = transactionManager.selectedScope
-        val spec = scopeInfo?.let { balanceManager.getSpecForScopeInfo(it) }
-
         return ComposeView(requireContext()).apply {
             setContent {
                 TalerSurface {
                     val state = peerManager.pullState.collectAsStateLifecycleAware().value
                     OutgoingPullComposable(
-                        amount = amount.withSpec(spec),
                         state = state,
                         onCreateInvoice = this@OutgoingPullFragment::onCreateInvoice,
                         onTosAccept = this@OutgoingPullFragment::onTosAccept,
+                        defaultCurrency = transactionManager.selectedScope.value?.currency,
+                        currencies = balanceManager.getCurrencies(),
+                        getCurrencySpec = balanceManager::getSpecForCurrency,
+                        checkPeerPullCredit = { amount ->
+                            // TODO: make this async!!!
+                            runBlocking { peerManager.checkPeerPullCredit(amount) }
+                        },
                         onClose = {
                             findNavController().navigate(R.id.action_nav_peer_pull_to_nav_main)
                         }

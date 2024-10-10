@@ -26,12 +26,15 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import net.taler.common.Amount
 import net.taler.wallet.TAG
 import net.taler.wallet.accounts.PaytoUriBitcoin
 import net.taler.wallet.accounts.PaytoUriIban
 import net.taler.wallet.accounts.PaytoUriTalerBank
 import net.taler.wallet.backend.BackendManager
+import net.taler.wallet.backend.TalerErrorCode.WALLET_DEPOSIT_GROUP_INSUFFICIENT_BALANCE
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.balances.ScopeInfo
 import org.json.JSONObject
@@ -51,47 +54,46 @@ class DepositManager(
         return u.pathSegments.size >= 1
     }
 
-    fun makeDeposit(amount: Amount, uri: String) {
-        if (depositState.value is DepositState.FeesChecked) makeDeposit(
-            paytoUri = uri,
-            amount = amount,
-            totalDepositCost = depositState.value.totalDepositCost
-                ?: Amount.zero(amount.currency),
-            effectiveDepositAmount = depositState.value.effectiveDepositAmount
-                ?: Amount.zero(amount.currency),
-        ) else {
-            prepareDeposit(uri, amount)
-        }
-    }
+    suspend fun checkDepositFees(paytoUri: String, amount: Amount): CheckDepositResult {
+        var response: CheckDepositResult = CheckDepositResult.None
 
-    private fun prepareDeposit(paytoUri: String, amount: Amount) {
-        mDepositState.value = DepositState.CheckingFees
-        scope.launch {
-            api.request("prepareDeposit", PrepareDepositResponse.serializer()) {
-                put("depositPaytoUri", paytoUri)
-                put("amount", amount.toJSONString())
-            }.onError {
-                Log.e(TAG, "Error prepareDeposit $it")
-                mDepositState.value = DepositState.Error(it)
-            }.onSuccess {
-                mDepositState.value = DepositState.FeesChecked(
-                    totalDepositCost = it.totalDepositCost,
-                    effectiveDepositAmount = it.effectiveDepositAmount,
-                )
+        api.request("checkDeposit", CheckDepositResponse.serializer()) {
+            put("depositPaytoUri", paytoUri)
+            put("amount", amount.toJSONString())
+        }.onSuccess {
+            response = CheckDepositResult.Success(
+                totalDepositCost = it.totalDepositCost,
+                effectiveDepositAmount = it.effectiveDepositAmount,
+                kycSoftLimit = it.kycSoftLimit,
+                kycHardLimit = it.kycHardLimit,
+                kycExchanges = it.kycExchanges,
+            )
+        }.onError { error ->
+            Log.e(TAG, "Error prepareDeposit $error")
+            if (error.code == WALLET_DEPOSIT_GROUP_INSUFFICIENT_BALANCE) {
+                error.extra["insufficientBalanceDetails"]?.let { details ->
+                    val maxAmountRaw = details.jsonObject["balanceAvailable"]?.let { amount ->
+                        Amount.fromJSONString(amount.jsonPrimitive.content)
+                    }
+
+                    val maxAmountEffective = details.jsonObject["maxEffectiveSpendAmount"]?.let { amount ->
+                        Amount.fromJSONString(amount.jsonPrimitive.content)
+                    } ?: maxAmountRaw
+
+                    response = CheckDepositResult.InsufficientBalance(
+                        maxAmountEffective = maxAmountEffective,
+                        maxAmountRaw = maxAmountRaw,
+                    )
+                }
             }
         }
+
+        return response
     }
 
-    private fun makeDeposit(
-        paytoUri: String,
-        amount: Amount,
-        totalDepositCost: Amount,
-        effectiveDepositAmount: Amount,
-    ) {
-        mDepositState.value = DepositState.MakingDeposit(
-            totalDepositCost = totalDepositCost,
-            effectiveDepositAmount = effectiveDepositAmount,
-        )
+    fun makeDeposit(amount: Amount, paytoUri: String) {
+        mDepositState.value = DepositState.MakingDeposit
+
         scope.launch {
             api.request("createDepositGroup", CreateDepositGroupResponse.serializer()) {
                 put("depositPaytoUri", paytoUri)
@@ -123,11 +125,11 @@ class DepositManager(
         return response
     }
 
-    suspend fun getDepositWireTypesForCurrency(scopeInfo: ScopeInfo): GetDepositWireTypesForCurrencyResponse? {
+    suspend fun getDepositWireTypesForCurrency(currency: String, scopeInfo: ScopeInfo? = null): GetDepositWireTypesForCurrencyResponse? {
         var result: GetDepositWireTypesForCurrencyResponse? = null
         api.request("getDepositWireTypesForCurrency", GetDepositWireTypesForCurrencyResponse.serializer()) {
-            put("currency", scopeInfo.currency)
-            put("scopeInfo", JSONObject(BackendManager.json.encodeToString(scopeInfo)))
+            scopeInfo?.let { put("scopeInfo", JSONObject(BackendManager.json.encodeToString(it))) }
+            put("currency", currency)
         }.onError {
             Log.e(TAG, "Error getDepositWireTypesForCurrency $it")
         }.onSuccess {
@@ -162,10 +164,31 @@ data class ValidateIbanResponse(
 )
 
 @Serializable
-data class PrepareDepositResponse(
+data class CheckDepositResponse(
     val totalDepositCost: Amount,
     val effectiveDepositAmount: Amount,
+    val kycSoftLimit: Amount? = null,
+    val kycHardLimit: Amount? = null,
+    val kycExchanges: List<String>? = null,
 )
+
+@Serializable
+sealed class CheckDepositResult {
+    data object None: CheckDepositResult()
+
+    data class InsufficientBalance(
+        val maxAmountEffective: Amount?,
+        val maxAmountRaw: Amount?,
+    ): CheckDepositResult()
+
+    data class Success(
+        val totalDepositCost: Amount,
+        val effectiveDepositAmount: Amount,
+        val kycSoftLimit: Amount? = null,
+        val kycHardLimit: Amount? = null,
+        val kycExchanges: List<String>? = null,
+    ): CheckDepositResult()
+}
 
 @Serializable
 data class CreateDepositGroupResponse(

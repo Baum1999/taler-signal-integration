@@ -174,7 +174,7 @@ class MainViewModel(
      */
     @UiThread
     fun showTransactions(scopeInfo: ScopeInfo) {
-        mTransactionsEvent.value = scopeInfo.toEvent()
+        transactionManager.selectedScope.value = scopeInfo
     }
 
     @UiThread

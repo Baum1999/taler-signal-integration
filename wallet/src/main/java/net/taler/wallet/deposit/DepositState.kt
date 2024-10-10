@@ -26,24 +26,15 @@ sealed class DepositState {
 
     data object Start : DepositState()
 
-    data object CheckingFees : DepositState()
-
     data class FeesChecked(
         override val totalDepositCost: Amount,
         override val effectiveDepositAmount: Amount,
     ) : DepositState() {
         override val showFees = true
     }
-
-    data class MakingDeposit(
-        override val totalDepositCost: Amount,
-        override val effectiveDepositAmount: Amount,
-    ) : DepositState() {
-        override val showFees = true
-    }
+    data object MakingDeposit : DepositState()
 
     data object Success : DepositState()
 
     data class Error(val error: TalerErrorInfo) : DepositState()
-
 }

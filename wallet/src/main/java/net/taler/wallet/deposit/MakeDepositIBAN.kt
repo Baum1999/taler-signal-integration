@@ -22,11 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -34,21 +30,16 @@ import net.taler.wallet.R
 
 @Composable
 fun MakeDepositIBAN(
-    state: DepositState,
     name: String,
     iban: String,
     ibanError: Boolean,
     onFormEdited: (name: String, iban: String) -> Unit
 ) {
-    val focusRequester = remember { FocusRequester() }
-
     OutlinedTextField(
         modifier = Modifier
             .padding(16.dp)
-            .focusRequester(focusRequester)
             .fillMaxWidth(),
         value = name,
-        enabled = !state.showFees,
         onValueChange = { input ->
             onFormEdited(input, iban)
         },
@@ -64,20 +55,14 @@ fun MakeDepositIBAN(
         }
     )
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
-
     OutlinedTextField(
         modifier = Modifier
             .padding(horizontal = 16.dp)
             .fillMaxWidth(),
         value = iban,
         singleLine = true,
-        enabled = !state.showFees,
         onValueChange = { input ->
             onFormEdited(name, input.uppercase())
-
         },
         isError = ibanError,
         supportingText = {

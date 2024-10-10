@@ -17,6 +17,7 @@
 package net.taler.wallet.peer
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -44,25 +45,39 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.JsonPrimitive
 import net.taler.common.Amount
+import net.taler.common.CurrencySpecification
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.compose.AmountInputField
+import net.taler.wallet.compose.DEFAULT_INPUT_DECIMALS
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.deposit.CurrencyDropdown
 import net.taler.wallet.exchanges.ExchangeTosStatus
+import net.taler.wallet.getAmount
+import net.taler.wallet.peer.CheckFeeResult.InsufficientBalance
+import net.taler.wallet.peer.CheckFeeResult.None
+import net.taler.wallet.peer.CheckFeeResult.Success
+import net.taler.wallet.useDebounce
 import kotlin.random.Random
 
 @Composable
 fun OutgoingPushComposable(
     state: OutgoingState,
-    amount: Amount,
+    defaultCurrency: String?,
+    currencies: List<String>,
+    getCurrencySpec: (currency: String) -> CurrencySpecification?,
+    getFees: (amount: Amount) -> CheckFeeResult?,
     onSend: (amount: Amount, summary: String, hours: Long) -> Unit,
     onClose: () -> Unit,
 ) {
     when(state) {
         is OutgoingChecking, is OutgoingCreating, is OutgoingResponse -> PeerCreatingComposable()
         is OutgoingIntro, is OutgoingChecked -> OutgoingPushIntroComposable(
-            amount = amount,
-            state = state,
+            defaultCurrency = defaultCurrency,
+            currencies = currencies,
+            getCurrencySpec = getCurrencySpec,
+            getFees = getFees,
             onSend = onSend,
         )
         is OutgoingError -> PeerErrorComposable(state, onClose)
@@ -71,8 +86,10 @@ fun OutgoingPushComposable(
 
 @Composable
 fun OutgoingPushIntroComposable(
-    state: OutgoingState,
-    amount: Amount,
+    defaultCurrency: String?,
+    currencies: List<String>,
+    getCurrencySpec: (currency: String) -> CurrencySpecification?,
+    getFees: (amount: Amount) -> CheckFeeResult?,
     onSend: (amount: Amount, summary: String, hours: Long) -> Unit,
 ) {
     val scrollState = rememberScrollState()
@@ -83,21 +100,65 @@ fun OutgoingPushIntroComposable(
             .verticalScroll(scrollState),
         horizontalAlignment = CenterHorizontally,
     ) {
-        Text(
-            modifier = Modifier.padding(vertical = 16.dp),
-            text = amount.toString(),
-            softWrap = false,
-            style = MaterialTheme.typography.titleLarge,
-        )
+        var selectedCurrency by rememberSaveable { mutableStateOf(defaultCurrency ?: currencies[0]) }
+        val selectedSpec: CurrencySpecification? = getCurrencySpec(selectedCurrency)
+        var text by rememberSaveable { mutableStateOf("0") }
+        val amount = remember(selectedCurrency, text) { getAmount(selectedCurrency, text) }
+        var feeResult by remember { mutableStateOf<CheckFeeResult>(None) }
 
-        if (state is OutgoingChecked && state.amountEffective > state.amountRaw) {
-            val fee = state.amountEffective - state.amountRaw
-            Text(
-                modifier = Modifier.padding(vertical = 16.dp),
-                text = stringResource(id = R.string.payment_fee, fee.withSpec(amount.spec)),
-                softWrap = false,
-                color = MaterialTheme.colorScheme.error,
+        // TODO: make getFees asynchronous!
+        amount.useDebounce {
+            feeResult = amount?.let { getFees(amount) } ?: None
+        }
+
+        LaunchedEffect(Unit) {
+            feeResult = amount?.let { getFees(amount) } ?: None
+        }
+
+        Row(Modifier.padding(bottom = 16.dp)) {
+            AmountInputField(
+                modifier = Modifier
+                    .weight(1f, true)
+                    .padding(end = 16.dp),
+                value = text,
+                onValueChange = { input ->
+                    text = input
+                },
+                label = { Text(stringResource(R.string.amount_send)) },
+                numberOfDecimals = selectedSpec?.numFractionalInputDigits ?: DEFAULT_INPUT_DECIMALS,
             )
+
+            CurrencyDropdown(
+                modifier = Modifier.weight(1f),
+                currencies = currencies,
+                onCurrencyChanged = { selectedCurrency = it },
+                initialCurrency = defaultCurrency,
+                readOnly = false,
+            )
+        }
+
+        when(val res = feeResult) {
+            is Success -> if (res.amountEffective > res.amountRaw) {
+                val fee = res.amountEffective - res.amountRaw
+                Text(
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    text = stringResource(id = R.string.payment_fee, fee.withSpec(selectedSpec)),
+                        softWrap = false,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+            }
+
+            is InsufficientBalance -> if (res.maxAmountRaw != null) {
+                Text(
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    text = stringResource(
+                        R.string.payment_balance_insufficient_max,
+                        res.maxAmountRaw.withSpec(selectedSpec),
+                    ),
+                )
+            }
+
+            else -> {}
         }
 
         var subject by rememberSaveable { mutableStateOf("") }
@@ -152,8 +213,8 @@ fun OutgoingPushIntroComposable(
         ) { hours = it }
 
         Button(
-            enabled = state is OutgoingChecked && subject.isNotBlank(),
-            onClick = { onSend(amount, subject, hours) },
+            enabled = feeResult is Success && subject.isNotBlank(),
+            onClick = { amount?.let { onSend(it, subject, hours) } },
         ) {
             Text(text = stringResource(R.string.send_peer_create_button))
         }
@@ -165,8 +226,14 @@ fun OutgoingPushIntroComposable(
 fun PeerPushComposableCreatingPreview() {
     TalerSurface {
         OutgoingPushComposable(
-            amount = Amount.fromString("TESTKUDOS", "42.23"),
             state = OutgoingCreating,
+            defaultCurrency = "KUDOS",
+            currencies = listOf("KUDOS", "TESTKUDOS", "NETZBON"),
+            getCurrencySpec = { null },
+            getFees = { Success(
+                amountEffective = Amount.fromJSONString("KUDOS:10"),
+                amountRaw = Amount.fromJSONString("KUDOS:12"),
+            ) },
             onSend = { _, _, _ -> },
             onClose = {},
         )
@@ -180,7 +247,13 @@ fun PeerPushComposableCheckingPreview() {
         val state = if (Random.nextBoolean()) OutgoingIntro else OutgoingChecking
         OutgoingPushComposable(
             state = state,
-            amount = Amount.fromString("TESTKUDOS", "42.23"),
+            defaultCurrency = "KUDOS",
+            currencies = listOf("KUDOS", "TESTKUDOS", "NETZBON"),
+            getCurrencySpec = { null },
+            getFees = { Success(
+                amountEffective = Amount.fromJSONString("KUDOS:10"),
+                amountRaw = Amount.fromJSONString("KUDOS:12"),
+            ) },
             onSend = { _, _, _ -> },
             onClose = {},
         )
@@ -196,7 +269,13 @@ fun PeerPushComposableCheckedPreview() {
         val state = OutgoingChecked(amountRaw, amountEffective, "https://exchange.demo.taler.net", ExchangeTosStatus.Accepted)
         OutgoingPushComposable(
             state = state,
-            amount = amountEffective,
+            defaultCurrency = "KUDOS",
+            currencies = listOf("KUDOS", "TESTKUDOS", "NETZBON"),
+            getCurrencySpec = { null },
+            getFees = { Success(
+                amountEffective = Amount.fromJSONString("KUDOS:10"),
+                amountRaw = Amount.fromJSONString("KUDOS:12"),
+            ) },
             onSend = { _, _, _ -> },
             onClose = {},
         )
@@ -210,8 +289,14 @@ fun PeerPushComposableErrorPreview() {
         val json = mapOf("foo" to JsonPrimitive("bar"))
         val state = OutgoingError(TalerErrorInfo(TalerErrorCode.WALLET_WITHDRAWAL_KYC_REQUIRED, "hint", "message", json))
         OutgoingPushComposable(
-            amount = Amount.fromString("TESTKUDOS", "42.23"),
             state = state,
+            defaultCurrency = "KUDOS",
+            currencies = listOf("KUDOS", "TESTKUDOS", "NETZBON"),
+            getCurrencySpec = { null },
+            getFees = { Success(
+                amountEffective = Amount.fromJSONString("KUDOS:10"),
+                amountRaw = Amount.fromJSONString("KUDOS:12"),
+            ) },
             onSend = { _, _, _ -> },
             onClose = {},
         )

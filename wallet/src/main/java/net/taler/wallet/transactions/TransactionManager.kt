@@ -49,7 +49,8 @@ class TransactionManager(
 
     // FIXME if the app gets killed, this will not be restored and thus be unexpected null
     //  we should keep this in a savable, maybe using Hilt and SavedStateViewModel
-    var selectedScope: ScopeInfo? = null
+    // var selectedScope: ScopeInfo? = null
+    val selectedScope: MutableLiveData<ScopeInfo?> = MutableLiveData(null)
 
     val searchQuery = MutableLiveData<String>(null)
     private val mSelectedTransaction = MutableLiveData<Transaction?>(null)
@@ -60,14 +61,14 @@ class TransactionManager(
         @UiThread
         get() = searchQuery.switchMap { query ->
             val scopeInfo = selectedScope
-            check(scopeInfo != null) { "Did not select scope before getting transactions" }
+            check(scopeInfo.value != null) { "Did not select scope before getting transactions" }
             loadTransactions(query)
-            mTransactions[scopeInfo]!! // non-null because filled in [loadTransactions]
+            mTransactions[scopeInfo.value]!! // non-null because filled in [loadTransactions]
         }
 
     @UiThread
     fun loadTransactions(searchQuery: String? = null) = scope.launch {
-        val scopeInfo = selectedScope ?: return@launch
+        val scopeInfo = selectedScope.value ?: return@launch
         val liveData = mTransactions.getOrPut(scopeInfo) { MutableLiveData() }
         if (searchQuery == null && allTransactions.containsKey(scopeInfo)) {
             liveData.value = TransactionsResult.Success(allTransactions[scopeInfo]!!)
@@ -217,7 +218,7 @@ class TransactionManager(
         }
 
     fun deleteTransactions(transactionIds: List<String>, onError: (it: TalerErrorInfo) -> Unit) {
-        allTransactions[selectedScope]?.filter { transaction ->
+        allTransactions[selectedScope.value]?.filter { transaction ->
             transaction.transactionId in transactionIds
         }?.forEach { toBeDeletedTx ->
             if (Delete in toBeDeletedTx.txActions) {

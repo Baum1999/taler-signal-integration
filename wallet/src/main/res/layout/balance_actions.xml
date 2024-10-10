@@ -20,42 +20,75 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/sendButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginVertical="10dp"
-        android:paddingHorizontal="18dp"
-        android:text="@string/transactions_send_funds"
-        app:icon="@drawable/ic_funds_send"
-        tools:ignore="MissingConstraints" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/receiveButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="10dp"
-        android:layout_marginVertical="10dp"
-        android:paddingHorizontal="18dp"
-        android:text="@string/transactions_receive_funds"
-        app:icon="@drawable/ic_funds_receive"
-        tools:ignore="MissingConstraints" />
-
-    <androidx.constraintlayout.helper.widget.Flow
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/currencyCard"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="sendButton,receiveButton"
-        android:paddingHorizontal="10dp"
-        app:flow_horizontalGap="10dp"
-        app:flow_horizontalBias="0"
-        app:flow_horizontalAlign="start"
-        app:flow_horizontalStyle="packed"
-        app:flow_wrapMode="chain"
-        app:layout_constraintTop_toTopOf="parent"
+        android:layout_margin="9dp"
+        app:contentPadding="15dp"
+        app:contentPaddingLeft="18dp"
+        android:elevation="10dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/amountBarrier"
-        app:layout_constraintBottom_toBottomOf="@id/topBarrier"/>
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/topBarrier"
+        style="@style/Widget.Material3.CardView.Outlined"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?selectableItemBackground">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/currencyLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                style="@style/TextAppearance.Material3.TitleMedium"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/dropdownIcon"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/exchangeLabel"
+                tools:text="Euro (€)"/>
+
+            <TextView
+                android:id="@+id/exchangeLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:paddingTop="3dp"
+                style="@style/TextAppearance.Material3.BodySmall"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/dropdownIcon"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:visibility="gone"
+                tools:text="exchange.demo.taler.net"
+                tools:visibility="visible"/>
+
+<!--            <ImageButton-->
+<!--                android:id="@+id/backButton"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:padding="6dp"-->
+<!--                android:layout_marginStart="9dp"-->
+<!--                android:src="@drawable/ic_dropdown"-->
+<!--                app:layout_constraintStart_toStartOf="parent"-->
+<!--                app:layout_constraintTop_toTopOf="parent"-->
+<!--                app:layout_constraintBottom_toBottomOf="parent"-->
+<!--                android:contentDescription="@string/button_back"-->
+<!--                android:background="?android:selectableItemBackground"/>-->
+
+            <ImageView
+                android:id="@+id/dropdownIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_dropdown"
+                android:contentDescription="@string/button_back"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/amountBarrier"
@@ -104,7 +137,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:barrierDirection="bottom"
-        app:constraint_referenced_ids="sendButton,receiveButton,amountLayout" />
+        app:constraint_referenced_ids="currencyCard" />
 
     <com.google.android.material.divider.MaterialDivider
         android:id="@+id/divider"

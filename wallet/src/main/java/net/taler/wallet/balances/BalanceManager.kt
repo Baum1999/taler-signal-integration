@@ -70,7 +70,10 @@ class BalanceManager(
 
     @UiThread
     fun loadBalances() {
-        mState.value = BalanceState.Loading
+        if (mState.value == BalanceState.None) {
+            mState.value = BalanceState.Loading
+        }
+
         scope.launch {
             val response = api.request("getBalances", BalanceResponse.serializer())
             response.onError {

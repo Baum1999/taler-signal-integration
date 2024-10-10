@@ -28,20 +28,17 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View.GONE
 import android.view.View.VISIBLE
-import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.bundleOf
 import androidx.core.view.GravityCompat.START
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceFragmentCompat.OnPreferenceStartFragmentCallback
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.navigation.NavigationView.OnNavigationItemSelectedListener
 import com.google.zxing.client.android.Intents.Scan.MIXED_SCAN
 import com.google.zxing.client.android.Intents.Scan.SCAN_TYPE
 import com.journeyapps.barcodescanner.ScanContract
@@ -49,16 +46,12 @@ import com.journeyapps.barcodescanner.ScanOptions
 import com.journeyapps.barcodescanner.ScanOptions.QR_CODE
 import net.taler.common.EventObserver
 import net.taler.lib.android.TalerNfcService
-import net.taler.wallet.BuildConfig.VERSION_CODE
-import net.taler.wallet.BuildConfig.VERSION_NAME
 import net.taler.wallet.databinding.ActivityMainBinding
 import net.taler.wallet.events.ObservabilityDialog
 import net.taler.wallet.transactions.TransactionPeerPullCredit
 import net.taler.wallet.transactions.TransactionPeerPushDebit
 
-class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
-    OnPreferenceStartFragmentCallback {
-
+class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
     private val model: MainViewModel by viewModels()
 
     private lateinit var ui: ActivityMainBinding
@@ -81,31 +74,13 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         nav = navHostFragment.navController
-        ui.navView.setupWithNavController(nav)
-        ui.navView.setNavigationItemSelectedListener(this)
-        if (savedInstanceState == null) {
-            ui.navView.menu.getItem(0).isChecked = true
-        }
 
         setSupportActionBar(ui.content.toolbar)
-        val appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.nav_main, R.id.nav_settings),
-            ui.drawerLayout
-        )
-        ui.content.toolbar.setupWithNavController(nav, appBarConfiguration)
+        ui.content.toolbar.setupWithNavController(nav)
 
         // TODO: refactor and unify progress bar handling
         // model.showProgressBar.observe(this) { show ->
         //     ui.content.progressBar.visibility = if (show) VISIBLE else INVISIBLE
-        // }
-
-        val versionView: TextView = ui.navView.getHeaderView(0).findViewById(R.id.versionView)
-        @SuppressLint("SetTextI18n")
-        versionView.text = "$VERSION_NAME ($VERSION_CODE)"
-
-        // Uncomment if any dev options are added in the future
-        // model.devMode.observe(this) { enabled ->
-        //     ui.navView.menu.findItem(R.id.nav_dev).isVisible = enabled
         // }
 
         handleIntents(intent)
@@ -147,7 +122,13 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         if (ui.drawerLayout.isDrawerOpen(START)) ui.drawerLayout.closeDrawer(START)
-        else super.onBackPressed()
+        else if (nav.currentDestination?.id == R.id.nav_main) {
+            if (model.transactionManager.selectedScope.value != null) {
+                model.transactionManager.selectedScope.value = null
+            }
+        } else {
+            super.onBackPressed()
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -190,15 +171,6 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
         return super.onCreateOptionsMenu(menu)
     }
 
-    override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.nav_home -> nav.navigate(R.id.nav_main)
-            R.id.nav_settings -> nav.navigate(R.id.nav_settings)
-        }
-        ui.drawerLayout.closeDrawer(START)
-        return true
-    }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_show_logs -> {
@@ -237,7 +209,7 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener,
         pref: Preference,
     ): Boolean {
         when (pref.key) {
-            "pref_exchanges" -> nav.navigate(R.id.action_nav_settings_to_nav_settings_exchanges)
+            "pref_exchanges" -> nav.navigate(R.id.nav_settings_exchanges)
         }
         return true
     }

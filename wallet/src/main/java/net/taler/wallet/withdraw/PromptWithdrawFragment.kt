@@ -20,6 +20,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -79,6 +80,7 @@ import net.taler.wallet.compose.DEFAULT_INPUT_DECIMALS
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
+import net.taler.wallet.deposit.CurrencyDropdown
 import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.exchanges.SelectExchangeDialogFragment
@@ -99,6 +101,7 @@ class PromptWithdrawFragment: Fragment() {
 
     private val selectExchangeDialog = SelectExchangeDialogFragment()
 
+    private var editableCurrency: Boolean = true
     private var startup: Boolean = true
     private var navigating: Boolean = false
 
@@ -107,6 +110,8 @@ class PromptWithdrawFragment: Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ) = ComposeView(requireContext()).apply {
+        editableCurrency = arguments?.getBoolean("editableCurrency") ?: true
+
         setContent {
             val status by withdrawManager.withdrawStatus.collectAsStateLifecycleAware()
             val coroutineScope = rememberCoroutineScope()
@@ -120,9 +125,9 @@ class PromptWithdrawFragment: Fragment() {
                     }
 
                     when (s.status) {
-                        None, Loading -> LoadingScreen()
+                        Loading -> LoadingScreen()
 
-                        InfoReceived, TosReviewRequired, Updating -> {
+                        None, InfoReceived, TosReviewRequired, Updating -> {
                             val spec = remember(s) {
                                 defaultExchange?.scopeInfo?.let { scopeInfo ->
                                     balanceManager.getSpecForScopeInfo(scopeInfo)
@@ -131,20 +136,26 @@ class PromptWithdrawFragment: Fragment() {
                                 }
                             }
 
+                            val currencies = balanceManager.getCurrencies()
+
+                            // TODO: use scopeInfo instead of currency!
                             WithdrawalShowInfo(
                                 status = s,
-                                currency = s.currency ?: error("no currency specified"),
+                                defaultCurrency = s.currency
+                                    ?: transactionManager.selectedScope.value?.currency
+                                    ?: currencies.firstOrNull()
+                                    ?: error("no default currency specified"),
+                                editableCurrency = editableCurrency,
+                                currencies = currencies,
                                 spec = spec,
                                 onSelectExchange = {
                                     selectExchange()
                                 },
                                 onSelectAmount = { amount ->
-                                    if (s.exchangeBaseUrl != null) {
-                                        withdrawManager.getWithdrawalDetails(
-                                            amount = amount,
-                                            exchangeBaseUrl = s.exchangeBaseUrl,
-                                            loading = false,
-                                        )
+                                    if (s.status == None) {
+                                        getInitialDetails(amount)
+                                    } else {
+                                        getUpdatedDetails(s, amount)
                                     }
                                 },
                                 onTosReview = {
@@ -194,7 +205,8 @@ class PromptWithdrawFragment: Fragment() {
                             withdrawManager.getWithdrawalDetails(
                                 amount = status.amountInfo?.amountRaw ?: status.uriInfo?.amount,
                                 exchangeBaseUrl = status.exchangeBaseUrl ?: status.uriInfo?.defaultExchangeBaseUrl,
-                                loading = true,
+                                // don't show loading screen when withdrawal is not from QR/URI
+                                loading = !editableCurrency,
                             )
                         }
 
@@ -239,6 +251,62 @@ class PromptWithdrawFragment: Fragment() {
         }
     }
 
+    // TODO: move to manager, maybe?
+    private fun getInitialDetails(amount: Amount) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            exchangeManager.findExchangeForCurrency(amount.currency).collect { exchange ->
+                if (exchange == null) {
+                    Toast.makeText(requireContext(), "No exchange available", Toast.LENGTH_LONG).show()
+                    return@collect
+                }
+
+                exchangeManager.withdrawalExchange = exchange
+                withdrawManager.getWithdrawalDetails(
+                    exchangeBaseUrl = exchange.exchangeBaseUrl,
+                    uriInfo = WithdrawalDetailsForUri(
+                        amount = amount,
+                        currency = amount.currency,
+                        editableAmount = true,
+                    ),
+                    amount = amount,
+                    loading = false,
+                )
+            }
+        }
+    }
+
+    // TODO: move to manager, maybe?
+    private fun getUpdatedDetails(s: WithdrawStatus, amount: Amount) {
+        val oldAmount = s.amountInfo?.amountRaw ?: s.uriInfo?.amount
+        if (oldAmount == amount) return
+
+        if (oldAmount?.currency == amount.currency) {
+            withdrawManager.getWithdrawalDetails(
+                amount = amount,
+                exchangeBaseUrl = s.exchangeBaseUrl,
+                loading = false,
+            )
+            return
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            exchangeManager.findExchangeForCurrency(amount.currency).collect { exchange ->
+                if (exchange == null) {
+                    Toast.makeText(requireContext(), "No exchange available", Toast.LENGTH_LONG)
+                        .show()
+                    return@collect
+                }
+
+                exchangeManager.withdrawalExchange = exchange
+                withdrawManager.getWithdrawalDetails(
+                    amount = amount,
+                    exchangeBaseUrl = exchange.exchangeBaseUrl,
+                    loading = false,
+                )
+            }
+        }
+    }
+
     private fun selectExchange() {
         val exchanges = withdrawManager.withdrawStatus.value.uriInfo?.possibleExchanges ?: return
         selectExchangeDialog.setExchanges(exchanges)
@@ -255,7 +323,9 @@ class PromptWithdrawFragment: Fragment() {
 @Composable
 fun WithdrawalShowInfo(
     status: WithdrawStatus,
-    currency: String,
+    defaultCurrency: String,
+    editableCurrency: Boolean,
+    currencies: List<String>,
     spec: CurrencySpecification?,
     onSelectAmount: (amount: Amount) -> Unit,
     onSelectExchange: () -> Unit,
@@ -264,8 +334,8 @@ fun WithdrawalShowInfo(
 ) {
     val defaultAmount = status.amountInfo?.amountRaw ?: status.uriInfo?.amount
     val maxAmount = status.uriInfo?.maxAmount
-    val editableAmount = status.uriInfo?.editableAmount ?: false
-    val wireFee = status.uriInfo?.wireFee ?: Amount.zero(currency)
+    val editableAmount = status.uriInfo?.editableAmount ?: editableCurrency
+    val wireFee = status.uriInfo?.wireFee ?: Amount.zero(defaultCurrency)
     val exchange = status.exchangeBaseUrl
     val possibleExchanges = status.uriInfo?.possibleExchanges ?: emptyList()
     val ageRestrictionOptions = status.amountInfo?.ageRestrictionOptions ?: emptyList()
@@ -296,8 +366,9 @@ fun WithdrawalShowInfo(
             if (editableAmount) {
                 WithdrawAmountComposable(
                     defaultAmount = defaultAmount?.withSpec(spec),
+                    editableCurrency = editableCurrency,
+                    currencies = currencies,
                     maxAmount = maxAmount?.withSpec(spec),
-                    currency = currency,
                     spec = spec,
                     onAmountChanged = { amount, err ->
                         selectedAmount = amount
@@ -445,32 +516,35 @@ fun WithdrawalError(
 @Composable
 fun WithdrawAmountComposable(
     defaultAmount: Amount?,
+    editableCurrency: Boolean,
+    currencies: List<String>,
     maxAmount: Amount?,
-    currency: String,
     spec: CurrencySpecification?,
     onAmountChanged: (amount: Amount?, error: Boolean) -> Unit,
 ) {
     var text by remember { mutableStateOf(defaultAmount?.amountStr ?: "0") }
+    val currency = remember(defaultAmount, currencies) { defaultAmount?.currency ?: currencies[0] }
     val amount = remember(currency, text) { getAmount(currency, text) }
     val insufficientBalance = remember(amount, maxAmount) {
         amount?.let { maxAmount == null || it > maxAmount } == true
     }
 
     Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(horizontal = 16.dp),
+        modifier = Modifier
+            .padding(top = 16.dp)
+            .padding(horizontal = 16.dp),
     ) {
         AmountInputField(
             modifier = Modifier
-                .weight(1f)
-                .padding(16.dp),
+                .padding(end = 16.dp)
+                .weight(1f),
             value = text,
             onValueChange = { value ->
                 text = value
 
                 // Update selected amount
                 getAmount(currency, text)?.let {
-                    onAmountChanged(it, maxAmount == null || it > maxAmount)
+                    onAmountChanged(it, maxAmount != null && it > maxAmount)
                 } ?: onAmountChanged(null, true)
             },
             label = { Text(stringResource(R.string.amount_withdraw)) },
@@ -483,11 +557,17 @@ fun WithdrawAmountComposable(
             numberOfDecimals = spec?.numFractionalInputDigits ?: DEFAULT_INPUT_DECIMALS,
         )
 
-        Text(
-            modifier = Modifier,
-            text = spec?.symbol ?: currency,
-            softWrap = false,
-            style = MaterialTheme.typography.titleLarge,
+        CurrencyDropdown(
+            modifier = Modifier.weight(1f),
+            currencies = currencies,
+            onCurrencyChanged = { value ->
+                // Update selected amount
+                getAmount(value, text)?.let {
+                    onAmountChanged(it, maxAmount != null && it > maxAmount)
+                } ?: onAmountChanged(null, true)
+            },
+            initialCurrency = currency,
+            readOnly = !editableCurrency,
         )
     }
 }
@@ -540,7 +620,9 @@ fun WithdrawalShowInfoPreview() {
                     ),
                 )
             ),
-            currency = "KUDOS",
+            defaultCurrency = "KUDOS",
+            editableCurrency = true,
+            currencies = listOf("KUDOS", "TESTKUDOS", "NETZBON"),
             spec = null,
             onSelectExchange = {},
             onSelectAmount = {},

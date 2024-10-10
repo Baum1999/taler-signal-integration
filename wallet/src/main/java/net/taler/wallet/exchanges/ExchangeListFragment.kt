@@ -157,8 +157,8 @@ open class ExchangeListFragment : Fragment(), ExchangeClickListener {
     }
 
     override fun onPeerReceive(item: ExchangeItem) {
-        transactionManager.selectedScope = item.scopeInfo
-        findNavController().navigate(R.id.action_global_receiveFunds)
+        transactionManager.selectedScope.value = item.scopeInfo
+        findNavController().navigate(R.id.nav_peer_pull)
     }
 
     override fun onExchangeReload(item: ExchangeItem) {
