@@ -254,7 +254,7 @@
     <string name="send_peer_expiration_7d">1 Woche</string>
     <string name="balance_scope_exchange">Von: %1$s</string>
     <string name="balance_scope_auditor">Auditor %1$s</string>
-    <string name="receive_peer">Rechnung an anderes Wallet stellen</string>
+    <string name="receive_peer">Rechnung erstellen</string>
     <string name="char_count">%1$d/%2$d</string>
     <string name="withdraw_manual_bitcoin_title">Bitcoin-Exchange zur Auszahlung bereit</string>
     <string name="transactions_retry">Wiederholen</string>
