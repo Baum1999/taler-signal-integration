@@ -96,7 +96,7 @@
     <string name="settings_version_core">Wallet Core-Version</string>
     <string name="settings_version_protocol_merchant">Unterstützte Händler-Versionen</string>
     <string name="google_play_short_desc" tools:keep="@string/google_play_short_desc">GNU Taler ermöglicht schnelle und einfache Online-Transaktionen mit Datenschutz.</string>
-    <string name="google_play_title" tools:keep="@string/google_play_title">Taler-Wallet (experimental)</string>
+    <string name="google_play_title" tools:keep="@string/google_play_title">Taler-Wallet (experimentell)</string>
     <string name="settings_version_unknown">Unbekannt</string>
     <string name="settings_reset">Brieftasche zurücksetzen (gefährlich!)</string>
     <string name="settings_reset_summary">Wirft dein Geld weg</string>
@@ -268,7 +268,7 @@
     <string name="payment_create_order">Auftrag anlegen</string>
     <string name="loading">Lädt Daten</string>
     <string name="open">Öffnen</string>
-    <string name="loss_reason_expired">Das Guthaben wurde nicht aufgefrischt, weil die Wallet-Anwendung zu lange keinen Internet-Zugang hatte</string>
+    <string name="loss_reason_expired">Das Guthaben wurde nicht aufgefrischt, weil die Wallet-Anwendung zu lange keinen Internetzugang hatte</string>
     <string name="settings_test_running">Der Integrationstest läuft gerade</string>
     <string name="amount_lost">Verlorener Betrag</string>
     <string name="transaction_state_pending">Diese Transaktion hat den Status \"ausstehend\"</string>
