@@ -83,7 +83,7 @@
 \nDemo bankasından test parası alabilirsiniz:
 \n
 \nhttps://bank.demo.taler.net</string>
-    <string name="transaction_refresh"></string>
+    <string name="transaction_refresh"/>
     <string name="payment_initiated">Ödeme başlatıldı</string>
     <string name="withdraw_button_confirm">Para çekimini onayla</string>
     <string name="withdraw_amount_error">Geçerli tutarı girin</string>
@@ -111,8 +111,8 @@
     <string name="exchange_menu_manual_withdraw">Para çek</string>
     <string name="exchange_fee_withdrawal_fee_label">Para çekme ücreti:</string>
     <string name="exchange_fee_overhead_label">Yuvarlama kaybı:</string>
-    <string name="exchange_fee_coin_expiration_label"></string>
-    <string name="exchange_fee_coin_fees_label"></string>
+    <string name="exchange_fee_coin_expiration_label"/>
+    <string name="exchange_fee_coin_fees_label"/>
     <string name="exchange_fee_refresh_fee">Değişim ücreti: %1$s</string>
     <string name="pending_operations_no_action">(Hiçbir eylem)</string>
     <string name="exchange_fee_wire_fees_label">Havale ücretleri</string>
