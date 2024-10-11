@@ -256,7 +256,7 @@
     <string name="transactions_fail">Matar</string>
     <string name="transactions_suspend">Suspendre</string>
     <string name="transactions_fail_dialog_title">Matar transacció</string>
-    <string name="transactions_fail_dialog_message">Estàs segur que vols matar aquesta transacció\? Els diners en transit ES PERDRAN.</string>
+    <string name="transactions_fail_dialog_message">Estàs segur que vols matar aquesta transacció? Els diners en transit ES PERDRAN.</string>
     <string name="transactions_resume">Continuar</string>
     <string name="transactions_abort_dialog_title">Avortar transacció</string>
     <string name="transactions_abort_dialog_message">Estàs segur que vols avortar aquesta transacció\? Els diners en trànsit es podrien perdre.</string>
