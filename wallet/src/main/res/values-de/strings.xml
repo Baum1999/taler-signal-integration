@@ -189,7 +189,7 @@
     <string name="send_peer_expiration_hours">Stunden</string>
     <string name="share_payment">Zahlungs-Link teilen</string>
     <string name="offline_banner">Kein Internetzugang</string>
-    <string name="transactions_fail_dialog_title">Transaktion sofort abbrechen</string>
+    <string name="transactions_fail_dialog_title">Transaktion verwerfen</string>
     <string name="transaction_dummy_title">Unbekannte Transaktion</string>
     <string name="receive_peer_title">Zahlung anfordern</string>
     <string name="send_deposit">Auf ein Bankkonto</string>
@@ -261,8 +261,8 @@
     <string name="send_peer_expiration_period">Läuft ab in</string>
     <string name="transactions_suspend">Aussetzen</string>
     <string name="transactions_abort_dialog_message">Sind Sie sicher, dass Sie diese Transaktion abbrechen möchten? Gelder, die gerade noch übertragen werden, könnten verloren gehen.</string>
-    <string name="transactions_fail">Stornieren</string>
-    <string name="transactions_fail_dialog_message">Sind Sie sicher, dass die Transaktion abgebrochen werden soll? Bereits abgesendete Guthaben GEHEN VERLOREN.</string>
+    <string name="transactions_fail">Verwerfen</string>
+    <string name="transactions_fail_dialog_message">Sind Sie sicher, dass die Transaktion verworfen werden soll? Bereits abgesendete Guthaben GEHEN VERLOREN.</string>
     <string name="transactions_receive_funds_title">%1$s erhalten</string>
     <string name="transactions_send_funds_title">%1$s senden</string>
     <string name="payment_create_order">Auftrag anlegen</string>
@@ -292,7 +292,7 @@
     <string name="transaction_state_aborted">Die Transaktion wurde abgebrochen</string>
     <string name="transaction_state_aborting">Diese Transaktion wird gerade abgebrochen</string>
     <string name="transaction_state_expired">Diese Transaktion hat ihre zeitliche Gültigkeit überschritten</string>
-    <string name="transaction_state_failed">Diese Transaktion ist fehlgeschlagen</string>
+    <string name="transaction_state_failed">Diese Transaktion ist fehlgeschlagen oder wurde verworfen</string>
     <string name="transaction_state_suspended">Diese Transaktion ist ausgesetzt</string>
     <string name="payment_template_error">Fehler beim Erstellen der Bestellung</string>
     <string name="payment_aborting">Abbruch wird durchgeführt</string>
