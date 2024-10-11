@@ -244,7 +244,7 @@
     <string name="transactions_suspend">Suspender</string>
     <string name="transactions_resume">Resumir</string>
     <string name="transactions_abort_dialog_title">Abortar transacción</string>
-    <string name="transactions_fail_dialog_message">¿Estás seguro de que deseas matar esta transacción\? Los fondos en tránsito SE PERDERÁN.</string>
+    <string name="transactions_fail_dialog_message">¿Estás seguro de que deseas matar esta transacción? Los fondos en tránsito SE PERDERÁN.</string>
     <string name="exchange_not_contacted">Proveedor aún no contactado</string>
     <string name="transactions_fail_dialog_title">Matar transacción</string>
     <string name="transactions_abort_dialog_message">¿Estás seguro de que deseas abortar esta transacción\? Los fondos en tránsito podrían perderse.</string>
