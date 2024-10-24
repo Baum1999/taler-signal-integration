@@ -70,7 +70,7 @@
     <string name="config_old_label">JSON-Datei (alt)</string>
     <string name="config_new_label">Händler (neu)</string>
     <string name="config_merchant_url">Händler-URL</string>
-    <string name="config_token">Zugriffstoken</string>
+    <string name="config_token">Zugangstoken</string>
     <string name="order_custom">Benutzerdefinierten Artikel hinzufügen</string>
     <string name="menu_reload">Erneut laden</string>
     <string name="order_custom_product">Bezeichnung des Artikels</string>
