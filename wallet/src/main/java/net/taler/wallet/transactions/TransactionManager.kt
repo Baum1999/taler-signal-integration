@@ -35,8 +35,9 @@ import org.json.JSONObject
 import java.util.LinkedList
 
 sealed class TransactionsResult {
-    class Error(val error: TalerErrorInfo) : TransactionsResult()
-    class Success(val transactions: List<Transaction>) : TransactionsResult()
+    data object None : TransactionsResult()
+    data class Error(val error: TalerErrorInfo) : TransactionsResult()
+    data class Success(val transactions: List<Transaction>) : TransactionsResult()
 }
 
 class TransactionManager(
@@ -61,10 +62,14 @@ class TransactionManager(
         @UiThread
         get() = searchQuery.switchMap { query ->
             val scopeInfo = selectedScope
-            check(scopeInfo.value != null) { "Did not select scope before getting transactions" }
-            loadTransactions(query)
-            mTransactions[scopeInfo.value]!! // non-null because filled in [loadTransactions]
+            if (scopeInfo.value != null) {
+                loadTransactions(query)
+                mTransactions[scopeInfo.value]!! // non-null because filled in [loadTransactions]
+            } else {
+                MutableLiveData(TransactionsResult.None)
+            }
         }
+
 
     @UiThread
     fun loadTransactions(searchQuery: String? = null) = scope.launch {

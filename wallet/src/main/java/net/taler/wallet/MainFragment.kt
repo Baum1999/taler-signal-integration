@@ -16,6 +16,7 @@
 
 package net.taler.wallet
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -69,16 +70,13 @@ import androidx.fragment.compose.FragmentState
 import androidx.fragment.compose.rememberFragmentState
 import androidx.navigation.fragment.findNavController
 import net.taler.wallet.balances.BalanceState
-import net.taler.wallet.balances.BalancesFragment
-import net.taler.wallet.balances.ScopeInfo
+import net.taler.wallet.balances.BalancesComposable
 import net.taler.wallet.compose.DemandAttention
 import net.taler.wallet.compose.GridMenu
 import net.taler.wallet.compose.GridMenuItem
-import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.settings.SettingsFragment
-import net.taler.wallet.transactions.TransactionsFragment
-import net.taler.wallet.withdraw.WithdrawalError
+import net.taler.wallet.transactions.TransactionsResult
 
 class MainFragment: Fragment() {
 
@@ -98,8 +96,6 @@ class MainFragment: Fragment() {
                 var showSheet by remember { mutableStateOf(false) }
                 val sheetState = rememberModalBottomSheetState()
 
-                val balancesFragmentState = rememberFragmentState()
-                val transactionsFragmentState = rememberFragmentState()
                 val settingsFragmentState = rememberFragmentState()
 
                 Scaffold(
@@ -149,18 +145,30 @@ class MainFragment: Fragment() {
                     }
                 ) { innerPadding ->
                     val balanceState by model.balanceManager.state.observeAsState(BalanceState.None)
+                    val txResult by model.transactionManager.transactions.observeAsState(TransactionsResult.None)
                     val selectedScope by model.transactionManager.selectedScope.observeAsState()
-                    Box(
-                        Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding),
-                    ) {
+                    val selectedSpec = remember(selectedScope) { selectedScope?.let { model.balanceManager.getSpecForScopeInfo(it) } }
+                    Box(Modifier.padding(innerPadding).fillMaxSize()) {
                         when (selectedTab) {
-                            Tab.BALANCES -> BalancesView(
+                            Tab.BALANCES -> BalancesComposable(
                                 state = balanceState,
+                                txResult = txResult,
                                 selectedScope = selectedScope,
-                                balancesFragmentState = balancesFragmentState,
-                                transactionsFragmentState = transactionsFragmentState,
+                                selectedCurrencySpec = selectedSpec,
+                                onBalanceClicked = {
+                                    model.showTransactions(it.scopeInfo)
+                                },
+                                onTransactionClicked = { tx ->
+                                    if (tx.detailPageNav != 0) {
+                                        model.transactionManager.selectTransaction(tx)
+                                        findNavController().navigate(tx.detailPageNav)
+                                    }
+                                },
+                                onShowBalancesClicked = {
+                                    if (model.transactionManager.selectedScope.value != null) {
+                                        model.transactionManager.selectedScope.value = null
+                                    }
+                                },
                             )
                             Tab.SETTINGS -> SettingsView(
                                 settingsFragmentState = settingsFragmentState,
@@ -212,31 +220,6 @@ class MainFragment: Fragment() {
 
     private fun onEnterUri() {
         findNavController().navigate(R.id.nav_uri_input)
-    }
-}
-
-@Composable
-fun BalancesView(
-    selectedScope: ScopeInfo? = null,
-    state: BalanceState,
-    balancesFragmentState: FragmentState,
-    transactionsFragmentState: FragmentState,
-) {
-    when (state) {
-        is BalanceState.None -> {}
-        is BalanceState.Loading -> LoadingScreen()
-        is BalanceState.Error -> WithdrawalError(state.error)
-        is BalanceState.Success -> {
-            if (selectedScope == null) AndroidFragment(
-                BalancesFragment::class.java,
-                modifier = Modifier.fillMaxSize(),
-                fragmentState = balancesFragmentState
-            ) else AndroidFragment(
-                TransactionsFragment::class.java,
-                modifier = Modifier.fillMaxSize(),
-                fragmentState = transactionsFragmentState,
-            )
-        }
     }
 }
 

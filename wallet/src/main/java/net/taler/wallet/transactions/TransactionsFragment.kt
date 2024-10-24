@@ -206,6 +206,11 @@ class TransactionsFragment : Fragment(), OnTransactionClickListener, ActionMode.
     }
 
     private fun onTransactionsResult(result: TransactionsResult) = when (result) {
+        is TransactionsResult.None -> {
+            ui.list.fadeOut()
+            ui.emptyState.fadeIn()
+        }
+
         is TransactionsResult.Error -> {
             ui.list.fadeOut()
             ui.emptyState.text = getString(R.string.transactions_error, result.error.userFacingMsg)

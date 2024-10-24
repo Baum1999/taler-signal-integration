@@ -28,7 +28,6 @@ data class BalanceItem(
     val pendingOutgoing: Amount,
 ) {
     val currency: String get() = available.currency
-    val hasPending: Boolean get() = !pendingIncoming.isZero() || !pendingOutgoing.isZero()
 }
 
 @Serializable
