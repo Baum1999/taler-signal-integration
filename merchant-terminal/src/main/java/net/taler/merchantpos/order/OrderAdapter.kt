@@ -19,7 +19,10 @@ package net.taler.merchantpos.order
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.selection.ItemDetailsLookup
 import androidx.recyclerview.selection.ItemKeyProvider
@@ -79,12 +82,22 @@ internal class OrderAdapter : Adapter<OrderViewHolder>() {
         private val quantity: TextView = v.findViewById(R.id.quantity)
         private val name: TextView = v.findViewById(R.id.name)
         private val price: TextView = v.findViewById(R.id.price)
+        private val image: ImageView = v.findViewById(R.id.image)
 
         fun bind(product: ConfigProduct, selected: Boolean) {
             v.isActivated = selected
             quantity.text = product.quantity.toString()
             name.text = product.localizedDescription
             price.text = product.totalPrice.amountStr
+
+            // base64 encoded image
+            val bitmap = product.imageBitmap
+            if (bitmap == null) {
+                image.visibility = GONE
+            } else {
+                image.visibility = VISIBLE
+                image.setImageBitmap(bitmap)
+            }
         }
     }
 

@@ -18,8 +18,6 @@ package net.taler.wallet.payment
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory.decodeByteArray
-import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
@@ -76,20 +74,19 @@ internal class ProductAdapter(private val listener: ProductImageClickListener) :
 
         fun bind(product: ContractProduct) {
             quantity.text = product.quantity.toString()
-            val productImage = product.image
-            if (productImage == null) {
+
+            // base64 encoded image
+            val bitmap = product.imageBitmap
+            if (bitmap == null) {
                 image.visibility = GONE
-            } else REGEX_PRODUCT_IMAGE.matchEntire(productImage)?.let { match ->
-                match.groups[2]?.value?.let { group ->
-                    image.visibility = VISIBLE
-                    val decodedString = Base64.decode(group, Base64.DEFAULT)
-                    val bitmap = decodeByteArray(decodedString, 0, decodedString.size)
-                    image.setImageBitmap(bitmap)
-                    image.setOnClickListener {
-                        listener.onImageClick(bitmap)
-                    }
+            } else {
+                image.visibility = VISIBLE
+                image.setImageBitmap(bitmap)
+                image.setOnClickListener {
+                    listener.onImageClick(bitmap)
                 }
             }
+
             name.text = product.description
 
             if (product.totalPrice != null) {

@@ -16,11 +16,16 @@
 
 package net.taler.merchantpos.order
 
+import android.graphics.BitmapFactory.decodeByteArray
 import android.os.Bundle
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
 import android.view.View.INVISIBLE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -103,10 +108,21 @@ private class ProductAdapter(
     inner class ProductViewHolder(private val v: View) : ViewHolder(v) {
         private val name: TextView = v.findViewById(R.id.name)
         private val price: TextView = v.findViewById(R.id.price)
+        private val image: ImageView = v.findViewById(R.id.image)
 
         fun bind(product: ConfigProduct) {
             name.text = product.localizedDescription
             price.text = product.price.amountStr
+
+            // base64 encoded image
+            val bitmap = product.imageBitmap
+            if (bitmap == null) {
+                image.visibility = GONE
+            } else {
+                image.visibility = VISIBLE
+                image.setImageBitmap(bitmap)
+            }
+
             v.setOnClickListener { listener.onProductSelected(product) }
         }
     }

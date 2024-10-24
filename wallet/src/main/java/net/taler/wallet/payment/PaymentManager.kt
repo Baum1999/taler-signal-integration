@@ -37,8 +37,6 @@ import net.taler.wallet.payment.PreparePayResponse.InsufficientBalanceResponse
 import net.taler.wallet.payment.PreparePayResponse.PaymentPossibleResponse
 import org.json.JSONObject
 
-val REGEX_PRODUCT_IMAGE = Regex("^data:image/(jpeg|png);base64,([A-Za-z0-9+/=]+)$")
-
 sealed class PayStatus {
     data object None : PayStatus()
     data object Loading : PayStatus()

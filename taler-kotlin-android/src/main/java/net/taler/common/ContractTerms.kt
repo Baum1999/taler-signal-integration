@@ -16,10 +16,15 @@
 
 package net.taler.common
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory.decodeByteArray
 import android.os.Build
+import android.util.Base64
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.taler.common.TalerUtils.getLocalizedString
+
+val REGEX_PRODUCT_IMAGE = Regex("^data:image/(jpeg|png);base64,([A-Za-z0-9+/=]+)$")
 
 @Serializable
 data class ContractTerms(
@@ -51,6 +56,16 @@ abstract class Product {
             getLocalizedString(descriptionI18n, description)
         } else {
             description
+        }
+
+    val imageBitmap: Bitmap?
+        get() = image?.let {
+            REGEX_PRODUCT_IMAGE.matchEntire(it)?.let { match ->
+                match.groups[2]?.value?.let { group ->
+                    val decodedString = Base64.decode(group, Base64.DEFAULT)
+                    decodeByteArray(decodedString, 0, decodedString.size)
+                }
+            }
         }
 }
 

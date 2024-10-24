@@ -35,6 +35,20 @@
         app:layout_constraintVertical_bias="0.0"
         tools:text="31" />
 
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginHorizontal="10dp"
+        app:layout_constraintTop_toTopOf="@id/name"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/quantity"
+        android:visibility="gone"
+        android:contentDescription="@string/product_image"
+        app:layout_constraintVertical_bias="0.0"
+        tools:visibility="visible"
+        tools:src="@drawable/ic_launcher_background"/>
+
     <TextView
         android:id="@+id/name"
         android:layout_width="0dp"
@@ -43,7 +57,7 @@
         android:layout_marginEnd="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/price"
-        app:layout_constraintStart_toEndOf="@+id/quantity"
+        app:layout_constraintStart_toEndOf="@+id/image"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="An order product item that in some cases could have a very long name" />
 
