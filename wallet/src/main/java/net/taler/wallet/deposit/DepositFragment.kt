@@ -76,10 +76,8 @@ class DepositFragment : Fragment() {
                         defaultCurrency = scopeInfo?.currency,
                         currencies = balanceManager.getCurrencies(),
                         getCurrencySpec = { runBlocking { balanceManager.getSpecForCurrency(it) } },
-                        checkDeposit = { a, p -> runBlocking { depositManager.checkDepositFees(p, a) } },
-                        getDepositWireTypes = { currency ->
-                            runBlocking { depositManager.getDepositWireTypesForCurrency(currency) }
-                        },
+                        checkDeposit = { a, p -> depositManager.checkDepositFees(p, a) },
+                        getDepositWireTypes = depositManager::getDepositWireTypesForCurrency,
                         presetName = receiverName,
                         presetIban = iban,
                         validateIban = depositManager::validateIban,

@@ -94,6 +94,7 @@ import net.taler.wallet.transactions.TransactionMinorState.KycRequired
 import net.taler.wallet.transactions.TransactionsResult.Error
 import net.taler.wallet.transactions.TransactionsResult.None
 import net.taler.wallet.transactions.TransactionsResult.Success
+import net.taler.wallet.withdraw.WithdrawalError
 
 @Composable
 fun TransactionsComposable(
@@ -105,7 +106,7 @@ fun TransactionsComposable(
     onShowBalancesClicked: () -> Unit,
 ) = when (txResult) {
     is None -> LoadingScreen()
-    is Error -> {} // TODO: render error!
+    is Error -> WithdrawalError(txResult.error)
     is Success -> {
         var showDeleteDialog by remember { mutableStateOf(false) }
         var selectionMode by remember { mutableStateOf(false) }

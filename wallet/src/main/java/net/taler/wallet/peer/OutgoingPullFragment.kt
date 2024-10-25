@@ -20,6 +20,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
@@ -29,7 +30,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import net.taler.common.Amount
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
@@ -52,18 +52,16 @@ class OutgoingPullFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 TalerSurface {
-                    val state = peerManager.pullState.collectAsStateLifecycleAware().value
+                    val state by peerManager.pullState.collectAsStateLifecycleAware()
+                    val selectedScope by transactionManager.selectedScope.collectAsStateLifecycleAware()
                     OutgoingPullComposable(
                         state = state,
                         onCreateInvoice = this@OutgoingPullFragment::onCreateInvoice,
                         onTosAccept = this@OutgoingPullFragment::onTosAccept,
-                        defaultCurrency = transactionManager.selectedScope.value?.currency,
+                        defaultCurrency = selectedScope?.currency,
                         currencies = balanceManager.getCurrencies(),
                         getCurrencySpec = balanceManager::getSpecForCurrency,
-                        checkPeerPullCredit = { amount ->
-                            // TODO: make this async!!!
-                            runBlocking { peerManager.checkPeerPullCredit(amount) }
-                        },
+                        checkPeerPullCredit = peerManager::checkPeerPullCredit,
                         onClose = {
                             findNavController().navigate(R.id.action_nav_peer_pull_to_nav_main)
                         }

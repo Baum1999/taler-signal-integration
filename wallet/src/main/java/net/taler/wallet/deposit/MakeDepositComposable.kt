@@ -64,8 +64,8 @@ fun MakeDepositComposable(
     defaultCurrency: String?,
     currencies: List<String>,
     getCurrencySpec: (currency: String) -> CurrencySpecification?,
-    checkDeposit: (amount: Amount, paytoUri: String) -> CheckDepositResult,
-    getDepositWireTypes: (currency: String) -> GetDepositWireTypesForCurrencyResponse?,
+    checkDeposit: suspend (amount: Amount, paytoUri: String) -> CheckDepositResult,
+    getDepositWireTypes: suspend (currency: String) -> GetDepositWireTypesForCurrencyResponse?,
     presetName: String? = null,
     presetIban: String? = null,
     validateIban: suspend (iban: String) -> Boolean,
@@ -84,11 +84,14 @@ fun MakeDepositComposable(
         var checkResult by remember { mutableStateOf<CheckDepositResult>(CheckDepositResult.None) }
         var amount by remember { mutableStateOf(Amount.zero(defaultCurrency ?: currencies[0])) }
 
-        // TODO: make getDepositWireTypes asynchronous!
-        val depositWireTypes = remember(amount.currency) { getDepositWireTypes(amount.currency) }
+        var depositWireTypes by remember { mutableStateOf<GetDepositWireTypesForCurrencyResponse?>(null) }
         val supportedWireTypes = remember(depositWireTypes) { depositWireTypes?.wireTypes ?: emptyList() }
         val talerBankHostnames = remember(depositWireTypes) { depositWireTypes?.wireTypeDetails?.flatMap { it.talerBankHostnames }?.distinct() ?: emptyList() }
         var selectedWireType by remember { mutableStateOf(supportedWireTypes.firstOrNull()) }
+
+        LaunchedEffect(amount.currency) {
+            depositWireTypes = getDepositWireTypes(amount.currency)
+        }
 
         // payto:// stuff
         var formError by rememberSaveable { mutableStateOf(true) } // TODO: do an initial validation!
@@ -105,8 +108,8 @@ fun MakeDepositComposable(
         }
 
         // reset forms and selected wire type when switching currency
-        DisposableEffect(amount.currency) {
-            selectedWireType = supportedWireTypes.first()
+        DisposableEffect(supportedWireTypes, amount.currency) {
+            selectedWireType = supportedWireTypes.firstOrNull()
             formError = true
             ibanName = presetName ?: ""
             ibanIban = presetIban ?: ""
@@ -116,11 +119,8 @@ fun MakeDepositComposable(
             onDispose {  }
         }
 
-        // TODO: make checkDeposit asynchronous!
         amount.useDebounce {
             if (paytoUri != null) {
-                // TODO: handle insufficient balance!
-                // TODO: handle KYC limits!
                 checkResult = checkDeposit(amount, paytoUri)
             }
         }
@@ -164,7 +164,7 @@ fun MakeDepositComposable(
             initialAmount = amount,
             initialCurrency = defaultCurrency,
             onAmountChanged = { amount = it },
-            editableCurrency = false,
+            editableCurrency = true,
             currencies = currencies,
             getCurrencySpec = getCurrencySpec,
             isError = checkResult !is CheckDepositResult.Success,

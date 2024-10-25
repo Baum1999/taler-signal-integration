@@ -61,7 +61,7 @@ fun OutgoingPushComposable(
     defaultCurrency: String?,
     currencies: List<String>,
     getCurrencySpec: (currency: String) -> CurrencySpecification?,
-    getFees: (amount: Amount) -> CheckFeeResult?,
+    getFees: suspend (amount: Amount) -> CheckFeeResult?,
     onSend: (amount: Amount, summary: String, hours: Long) -> Unit,
     onClose: () -> Unit,
 ) {
@@ -83,7 +83,7 @@ fun OutgoingPushIntroComposable(
     defaultCurrency: String?,
     currencies: List<String>,
     getCurrencySpec: (currency: String) -> CurrencySpecification?,
-    getFees: (amount: Amount) -> CheckFeeResult?,
+    getFees: suspend (amount: Amount) -> CheckFeeResult?,
     onSend: (amount: Amount, summary: String, hours: Long) -> Unit,
 ) {
     val scrollState = rememberScrollState()
@@ -98,7 +98,6 @@ fun OutgoingPushIntroComposable(
         val selectedSpec = remember(amount) { getCurrencySpec(amount.currency) }
         var feeResult by remember { mutableStateOf<CheckFeeResult>(None) }
 
-        // TODO: make checkPeerPullCredit asynchronous!
         amount.useDebounce {
             feeResult = getFees(it) ?: None
         }

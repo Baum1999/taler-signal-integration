@@ -46,7 +46,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
@@ -116,7 +115,6 @@ class PromptWithdrawFragment: Fragment() {
 
         setContent {
             val status by withdrawManager.withdrawStatus.collectAsStateLifecycleAware()
-            val coroutineScope = rememberCoroutineScope()
             var defaultExchange by remember { mutableStateOf<ExchangeItem?>(null) }
 
             TalerSurface {
@@ -177,10 +175,8 @@ class PromptWithdrawFragment: Fragment() {
 
             LaunchedEffect(Unit) {
                 val s = status
-                coroutineScope.launch {
-                    if (s.uriInfo?.amount == null && s.uriInfo?.defaultExchangeBaseUrl != null) {
-                        defaultExchange = exchangeManager.findExchangeByUrl(s.uriInfo.defaultExchangeBaseUrl)
-                    }
+                if (s.uriInfo?.amount == null && s.uriInfo?.defaultExchangeBaseUrl != null) {
+                    defaultExchange = exchangeManager.findExchangeByUrl(s.uriInfo.defaultExchangeBaseUrl)
                 }
             }
         }

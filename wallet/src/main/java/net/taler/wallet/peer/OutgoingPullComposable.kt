@@ -66,7 +66,7 @@ fun OutgoingPullComposable(
     defaultCurrency: String?,
     currencies: List<String>,
     getCurrencySpec: (currency: String) -> CurrencySpecification?,
-    checkPeerPullCredit: (amount: Amount) -> CheckPeerPullCreditResult?,
+    checkPeerPullCredit: suspend (amount: Amount) -> CheckPeerPullCreditResult?,
     onCreateInvoice: (amount: Amount, subject: String, hours: Long, exchangeBaseUrl: String) -> Unit,
     onTosAccept: (exchangeBaseUrl: String) -> Unit,
     onClose: () -> Unit,
@@ -104,7 +104,7 @@ fun OutgoingPullIntroComposable(
     defaultCurrency: String?,
     currencies: List<String>,
     getCurrencySpec: (currency: String) -> CurrencySpecification?,
-    checkPeerPullCredit: (amount: Amount) -> CheckPeerPullCreditResult?,
+    checkPeerPullCredit: suspend (amount: Amount) -> CheckPeerPullCreditResult?,
     onCreateInvoice: (amount: Amount, subject: String, hours: Long, exchangeBaseUrl: String) -> Unit,
     onTosAccept: (exchangeBaseUrl: String) -> Unit,
 ) {
@@ -121,7 +121,6 @@ fun OutgoingPullIntroComposable(
         val selectedSpec = remember(amount) { getCurrencySpec(amount.currency) }
         var checkResult by remember { mutableStateOf<CheckPeerPullCreditResult?>(null) }
 
-        // TODO: make checkPeerPullCredit asynchronous!
         amount.useDebounce {
             checkResult = checkPeerPullCredit(it)
         }
