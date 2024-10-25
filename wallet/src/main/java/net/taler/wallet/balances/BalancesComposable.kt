@@ -19,12 +19,15 @@ package net.taler.wallet.balances
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
@@ -34,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -48,6 +52,7 @@ import net.taler.wallet.balances.ScopeInfo.Global
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.transactions.Transaction
 import net.taler.wallet.transactions.TransactionsComposable
 import net.taler.wallet.transactions.TransactionsResult
@@ -68,8 +73,8 @@ fun BalancesComposable(
         is BalanceState.None -> {}
         is BalanceState.Loading -> LoadingScreen()
         is BalanceState.Error -> WithdrawalError(state.error)
-        is BalanceState.Success -> if (selectedScope == null) {
-            if (state.balances.isNotEmpty()) {
+        is BalanceState.Success -> if (state.balances.isNotEmpty()) {
+            if (selectedScope == null) {
                 LazyColumn(Modifier.fillMaxSize()) {
                     items(state.balances, key = { it.scopeInfo.hashCode() }) { balance ->
                         BalanceRow(balance) {
@@ -78,23 +83,23 @@ fun BalancesComposable(
                     }
                 }
             } else {
-                EmptyBalancesComposable()
+                val balance = remember(state.balances, selectedScope) {
+                    state.balances.find { it.scopeInfo == selectedScope }
+                }
+
+                balance?.let {
+                    TransactionsComposable(
+                        balance = it,
+                        currencySpec = selectedCurrencySpec,
+                        txResult = txResult,
+                        onTransactionClick = onTransactionClicked,
+                        onTransactionsDelete = onTransactionsDelete,
+                        onShowBalancesClicked = onShowBalancesClicked,
+                    )
+                } ?: error("no balance matching scopeInfo")
             }
         } else {
-            val balance = remember(state.balances, selectedScope) {
-                state.balances.find { it.scopeInfo == selectedScope }
-            }
-
-            balance?.let {
-                TransactionsComposable(
-                    balance = it,
-                    currencySpec = selectedCurrencySpec,
-                    txResult = txResult,
-                    onTransactionClick = onTransactionClicked,
-                    onTransactionsDelete = onTransactionsDelete,
-                    onShowBalancesClicked = onShowBalancesClicked,
-                )
-            } ?: error("no balance matching scopeInfo")
+            EmptyBalancesComposable()
         }
     }
 }
@@ -173,16 +178,27 @@ fun BalanceRow(
 
 @Composable
 fun EmptyBalancesComposable() {
-    Box(
+    Column(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
+        val context = LocalContext.current
+
         // TODO: render hyperlink!
         Text(
             stringResource(R.string.balances_empty_state),
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodyMedium,
         )
+
+        Spacer(Modifier.height(32.dp))
+
+        Button(onClick = {
+            launchInAppBrowser(context, context.getString(R.string.balances_empty_demo_url))
+        }) {
+            Text(stringResource(R.string.balances_empty_get_money))
+        }
     }
 }
 

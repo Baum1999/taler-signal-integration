@@ -103,6 +103,12 @@ class MainFragment: Fragment() {
 
                 val settingsFragmentState = rememberFragmentState()
 
+                val context = LocalContext.current
+                val balanceState by model.balanceManager.state.observeAsState(BalanceState.None)
+                val selectedScope by model.transactionManager.selectedScope.collectAsStateLifecycleAware()
+                val txResult by remember(selectedScope) { model.transactionManager.transactionsFlow(selectedScope) }.collectAsStateLifecycleAware()
+                val selectedSpec = remember(selectedScope) { selectedScope?.let { model.balanceManager.getSpecForScopeInfo(it) } }
+
                 Scaffold(
                     bottomBar = {
                         NavigationBar {
@@ -149,12 +155,6 @@ class MainFragment: Fragment() {
                         }
                     }
                 ) { innerPadding ->
-                    val context = LocalContext.current
-                    val balanceState by model.balanceManager.state.observeAsState(BalanceState.None)
-                    val selectedScope by model.transactionManager.selectedScope.collectAsStateLifecycleAware()
-                    val txResult by remember(selectedScope) { model.transactionManager.transactionsFlow(selectedScope) }.collectAsStateLifecycleAware()
-                    val selectedSpec = remember(selectedScope) { selectedScope?.let { model.balanceManager.getSpecForScopeInfo(it) } }
-
                     LaunchedEffect(tab, selectedScope) {
                         setTitle(tab, selectedScope)
                     }
@@ -197,10 +197,15 @@ class MainFragment: Fragment() {
                     }
                 }
 
+                val disableActions = remember(balanceState) {
+                    (balanceState as? BalanceState.Success)?.balances?.isEmpty() ?: true
+                }
+
                 TalerActionsModal(
                     showSheet = showSheet,
                     sheetState = sheetState,
                     onDismiss = { showSheet = false },
+                    disableActions = disableActions,
                     onSend = this@MainFragment::onSend,
                     onReceive = this@MainFragment::onReceive,
                     onScanQr = this@MainFragment::onScanQr,
@@ -281,6 +286,7 @@ fun SettingsView(
 fun TalerActionsModal(
     showSheet: Boolean,
     sheetState: SheetState,
+    disableActions: Boolean,
     onDismiss: () -> Unit,
     onSend: () -> Unit,
     onReceive: () -> Unit,
@@ -308,12 +314,14 @@ fun TalerActionsModal(
                     icon = R.drawable.transaction_p2p_outgoing,
                     title = R.string.transactions_send_funds,
                     onClick = onSend,
+                    enabled = !disableActions,
                 )
 
                 GridMenuItem(
                     icon = R.drawable.transaction_p2p_incoming,
                     title = R.string.transactions_receive_funds,
                     onClick = onReceive,
+                    enabled = !disableActions,
                 )
 
                 GridMenuItem(
@@ -326,12 +334,14 @@ fun TalerActionsModal(
                     icon = R.drawable.transaction_deposit,
                     title = R.string.send_deposit_button_label,
                     onClick = onDeposit,
+                    enabled = !disableActions
                 )
 
                 GridMenuItem(
                     icon = R.drawable.transaction_withdrawal,
                     title = R.string.withdraw_button_label,
                     onClick = onWithdraw,
+                    enabled = !disableActions,
                 )
 
                 GridMenuItem(
