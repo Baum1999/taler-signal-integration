@@ -21,13 +21,16 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -37,6 +40,7 @@ import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
+import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -61,6 +65,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
@@ -76,6 +81,7 @@ import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.SelectionModeTopAppBar
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.transactions.AmountType.Negative
 import net.taler.wallet.transactions.AmountType.Neutral
 import net.taler.wallet.transactions.AmountType.Positive
@@ -107,7 +113,9 @@ fun TransactionsComposable(
 ) = when (txResult) {
     is None -> LoadingScreen()
     is Error -> WithdrawalError(txResult.error)
-    is Success -> {
+    is Success -> if (txResult.transactions.isEmpty()) {
+        EmptyTransactionsComposable()
+    } else {
         var showDeleteDialog by remember { mutableStateOf(false) }
         var selectionMode by remember { mutableStateOf(false) }
         val selectedItems = remember { mutableStateListOf<String>() }
@@ -205,6 +213,20 @@ fun TransactionsComposable(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun EmptyTransactionsComposable() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            stringResource(R.string.transactions_empty),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyMedium,
+        )
     }
 }
 
@@ -483,3 +505,19 @@ fun TransactionsComposablePendingPreview() {
         )
     }
 }
+
+@Preview
+@Composable
+fun TransactionsComposableEmptyPreview() {
+    TalerSurface {
+        TransactionsComposable(
+            balance = previewBalance,
+            currencySpec = null,
+            txResult = Success(listOf()),
+            onTransactionClick = {},
+            onTransactionsDelete = {},
+            onShowBalancesClicked = {},
+        )
+    }
+}
+
