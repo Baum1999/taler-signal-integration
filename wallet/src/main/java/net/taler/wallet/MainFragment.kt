@@ -16,7 +16,6 @@
 
 package net.taler.wallet
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -75,6 +74,7 @@ import net.taler.wallet.compose.DemandAttention
 import net.taler.wallet.compose.GridMenu
 import net.taler.wallet.compose.GridMenuItem
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.settings.SettingsFragment
 import net.taler.wallet.transactions.TransactionsResult
 
@@ -145,8 +145,8 @@ class MainFragment: Fragment() {
                     }
                 ) { innerPadding ->
                     val balanceState by model.balanceManager.state.observeAsState(BalanceState.None)
-                    val txResult by model.transactionManager.transactions.observeAsState(TransactionsResult.None)
-                    val selectedScope by model.transactionManager.selectedScope.observeAsState()
+                    val selectedScope by model.transactionManager.selectedScope.collectAsStateLifecycleAware()
+                    val txResult by remember(selectedScope) { model.transactionManager.transactionsFlow(selectedScope) }.collectAsStateLifecycleAware()
                     val selectedSpec = remember(selectedScope) { selectedScope?.let { model.balanceManager.getSpecForScopeInfo(it) } }
                     Box(Modifier.padding(innerPadding).fillMaxSize()) {
                         when (selectedTab) {
@@ -166,7 +166,7 @@ class MainFragment: Fragment() {
                                 },
                                 onShowBalancesClicked = {
                                     if (model.transactionManager.selectedScope.value != null) {
-                                        model.transactionManager.selectedScope.value = null
+                                        model.transactionManager.selectScope(null)
                                     }
                                 },
                             )
@@ -195,6 +195,14 @@ class MainFragment: Fragment() {
     override fun onStart() {
         super.onStart()
         model.balanceManager.loadBalances()
+        model.balanceManager.state.observe(viewLifecycleOwner) { res ->
+            if (res is BalanceState.Success) {
+                if (res.balances.size == 1) {
+                    // pre-select on startup if it's the only one
+                    model.transactionManager.selectScope(res.balances.first().scopeInfo)
+                }
+            }
+        }
     }
 
     private fun onSend() {

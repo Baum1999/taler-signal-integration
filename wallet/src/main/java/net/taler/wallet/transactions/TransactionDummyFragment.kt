@@ -26,12 +26,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.compose.collectAsStateLifecycleAware
 
 class TransactionDummyFragment : TransactionDetailFragment() {
 
@@ -42,8 +43,8 @@ class TransactionDummyFragment : TransactionDetailFragment() {
     ): View = ComposeView(requireContext()).apply {
         setContent {
             TalerSurface {
-                val t = transactionManager.selectedTransaction.observeAsState(null).value
-                if (t is DummyTransaction) TransactionDummyComposable(t)
+                val t by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
+                (t as? DummyTransaction)?.let { TransactionDummyComposable(it) }
             }
         }
     }

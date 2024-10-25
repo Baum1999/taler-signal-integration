@@ -174,7 +174,8 @@ class MainViewModel(
      */
     @UiThread
     fun showTransactions(scopeInfo: ScopeInfo) {
-        transactionManager.selectedScope.value = scopeInfo
+        Log.d(TAG, "selectedScope should change to $scopeInfo")
+        transactionManager.selectScope(scopeInfo)
     }
 
     @UiThread

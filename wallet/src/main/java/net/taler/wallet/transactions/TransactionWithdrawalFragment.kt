@@ -20,7 +20,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -28,6 +28,7 @@ import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.transactions.WithdrawalDetails.ManualTransfer
 import net.taler.wallet.transactions.WithdrawalDetails.TalerBankIntegrationApi
@@ -45,14 +46,16 @@ class TransactionWithdrawalFragment : TransactionDetailFragment(), ActionListene
     ): View = ComposeView(requireContext()).apply {
         setContent {
             TalerSurface {
-                val t = transactionManager.selectedTransaction.observeAsState().value
-                if (t is TransactionWithdrawal) TransactionWithdrawalComposable(
-                    t = t,
-                    devMode = devMode,
-                    spec = balanceManager.getSpecForCurrency(t.amountRaw.currency),
-                    actionListener = this@TransactionWithdrawalFragment,
-                ) {
-                    onTransitionButtonClicked(t, it)
+                val t by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
+                (t as? TransactionWithdrawal)?.let { tx ->
+                    TransactionWithdrawalComposable(
+                        t = tx,
+                        devMode = devMode,
+                        spec = balanceManager.getSpecForCurrency(tx.amountRaw.currency),
+                        actionListener = this@TransactionWithdrawalFragment,
+                    ) {
+                        onTransitionButtonClicked(tx, it)
+                    }
                 }
             }
         }

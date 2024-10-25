@@ -29,7 +29,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
@@ -44,6 +44,7 @@ import net.taler.common.CurrencySpecification
 import net.taler.common.toAbsoluteTime
 import net.taler.wallet.R
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.peer.TransactionPeerPullCreditComposable
 import net.taler.wallet.peer.TransactionPeerPullDebitComposable
@@ -59,12 +60,15 @@ class TransactionPeerFragment : TransactionDetailFragment(), ActionListener {
     ): View = ComposeView(requireContext()).apply {
         setContent {
             TalerSurface {
-                val t = transactionManager.selectedTransaction.observeAsState(null).value
-                if (t != null) TransactionPeerComposable(t, devMode,
-                    balanceManager.getSpecForCurrency(t.amountRaw.currency),
-                    this@TransactionPeerFragment,
-                ) {
-                    onTransitionButtonClicked(t, it)
+                val t by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
+                t?.let { tx ->
+                    TransactionPeerComposable(
+                        tx, devMode,
+                        balanceManager.getSpecForCurrency(tx.amountRaw.currency),
+                        this@TransactionPeerFragment,
+                    ) {
+                        onTransitionButtonClicked(tx, it)
+                    }
                 }
             }
         }

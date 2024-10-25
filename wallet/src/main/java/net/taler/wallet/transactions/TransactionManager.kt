@@ -1,6 +1,6 @@
 /*
  * This file is part of GNU Taler
- * (C) 2020 Taler Systems S.A.
+ * (C) 2024 Taler Systems S.A.
  *
  * GNU Taler is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -18,21 +18,20 @@ package net.taler.wallet.transactions
 
 import android.util.Log
 import androidx.annotation.UiThread
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.switchMap
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import net.taler.wallet.TAG
+import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.transactions.TransactionAction.Delete
 import net.taler.wallet.transactions.TransactionMajorState.Pending
 import org.json.JSONObject
-import java.util.LinkedList
 
 sealed class TransactionsResult {
     data object None : TransactionsResult()
@@ -44,60 +43,95 @@ class TransactionManager(
     private val api: WalletBackendApi,
     private val scope: CoroutineScope,
 ) {
-
-    private val mProgress = MutableLiveData<Boolean>()
-    val progress: LiveData<Boolean> = mProgress
-
-    // FIXME if the app gets killed, this will not be restored and thus be unexpected null
-    //  we should keep this in a savable, maybe using Hilt and SavedStateViewModel
-    // var selectedScope: ScopeInfo? = null
-    val selectedScope: MutableLiveData<ScopeInfo?> = MutableLiveData(null)
-
-    val searchQuery = MutableLiveData<String>(null)
-    private val mSelectedTransaction = MutableLiveData<Transaction?>(null)
-    val selectedTransaction: LiveData<Transaction?> = mSelectedTransaction
     private val allTransactions = HashMap<ScopeInfo, List<Transaction>>()
-    private val mTransactions = HashMap<ScopeInfo, MutableLiveData<TransactionsResult>>()
-    val transactions: LiveData<TransactionsResult>
-        @UiThread
-        get() = searchQuery.switchMap { query ->
-            val scopeInfo = selectedScope
-            if (scopeInfo.value != null) {
-                loadTransactions(query)
-                mTransactions[scopeInfo.value]!! // non-null because filled in [loadTransactions]
-            } else {
-                MutableLiveData(TransactionsResult.None)
-            }
-        }
+    private val mTransactions = HashMap<ScopeInfo, MutableStateFlow<TransactionsResult>>()
+    private val mSelectedTransaction = MutableStateFlow<Transaction?>(null)
+    private val mSelectedScope = MutableStateFlow<ScopeInfo?>(null)
+    private val mSearchQuery = MutableStateFlow<String?>(null)
 
+    val selectedTransaction = mSelectedTransaction.asStateFlow()
+    val selectedScope = mSelectedScope.asStateFlow()
+    val searchQuery = mSearchQuery.asStateFlow()
+
+    // This function must be called ONLY when scopeInfo / searchQuery change!
+    // Use remember() {} in Compose to prevent multiple calls during recomposition
+    fun transactionsFlow(
+        scopeInfo: ScopeInfo? = null,
+        searchQuery: String? = null,
+    ): StateFlow<TransactionsResult> {
+        loadTransactions()
+        return if (scopeInfo != null) {
+            loadTransactions(scopeInfo, searchQuery)
+            mTransactions[scopeInfo]?.asStateFlow()
+                ?: MutableStateFlow(TransactionsResult.None)
+        } else {
+            MutableStateFlow(TransactionsResult.None)
+        }
+    }
 
     @UiThread
-    fun loadTransactions(searchQuery: String? = null) = scope.launch {
-        val scopeInfo = selectedScope.value ?: return@launch
-        val liveData = mTransactions.getOrPut(scopeInfo) { MutableLiveData() }
-        if (searchQuery == null && allTransactions.containsKey(scopeInfo)) {
-            liveData.value = TransactionsResult.Success(allTransactions[scopeInfo]!!)
+    fun loadTransactions(
+        scopeInfo: ScopeInfo? = null,
+        searchQuery: String? = null,
+    ) {
+        Log.d(TAG, "loadTransactions($scopeInfo, $searchQuery)")
+        val s = scopeInfo ?: mSelectedScope.value ?: run {
+            MutableStateFlow(TransactionsResult.None)
+            return
         }
-        if (liveData.value == null) mProgress.value = true
 
+        // initialize key with empty state flow
+        if (mTransactions[s] == null) {
+            mTransactions[s] = MutableStateFlow(TransactionsResult.None)
+        }
+
+        scope.launch {
+            // return cached transactions if available
+            if(searchQuery == null) allTransactions[s]?.let { txs ->
+                mTransactions[s]?.value = TransactionsResult.Success(txs)
+            }
+
+            // ...then fetch new ones
+            val res = getTransactions(s, searchQuery)
+            if (res is TransactionsResult.Success) {
+                allTransactions[s] = res.transactions
+            }
+
+            // ...and then emit them when available
+            mTransactions[s]?.value = res
+        }
+    }
+
+    private suspend fun getTransactions(scope: ScopeInfo, searchQuery: String?): TransactionsResult {
+        var result: TransactionsResult = TransactionsResult.None
         api.request("getTransactions", Transactions.serializer()) {
             if (searchQuery != null) put("search", searchQuery)
-            put("scopeInfo", JSONObject(Json.encodeToString(scopeInfo)))
-        }.onError {
-            liveData.postValue(TransactionsResult.Error(it))
-            mProgress.postValue(false)
-        }.onSuccess { result ->
-            val transactions = LinkedList(result.transactions)
+            put("scopeInfo", JSONObject(BackendManager.json.encodeToString(scope)))
+        }.onError { error ->
+            Log.e(TAG, "Error: getTransactions error result: $error")
+            result = TransactionsResult.Error(error)
+        }.onSuccess { res ->
             val comparator = compareBy<Transaction> { it.txState.major == Pending }
-            transactions.sortWith(comparator)
-            transactions.reverse() // show latest first
-
-            mProgress.value = false
-            liveData.value = TransactionsResult.Success(transactions)
-
-            // update all transactions on UiThread if there was a scope info
-            if (searchQuery == null) allTransactions[scopeInfo] = transactions
+            result = TransactionsResult.Success(res
+                .transactions
+                .sortedWith(comparator)
+                .reversed())
         }
+
+        return result
+    }
+
+    suspend fun getTransactionById(id: String): Transaction? {
+        var transaction: Transaction? = null
+        api.request("getTransactionById", Transaction.serializer()) {
+            put("transactionId", id)
+        }.onError {
+            Log.e(TAG, "Error getting transaction $it")
+        }.onSuccess { result ->
+            transaction = result
+        }
+
+        return transaction
     }
 
     /**
@@ -105,19 +139,12 @@ class TransactionManager(
      */
     @UiThread
     suspend fun selectTransaction(transactionId: String): Boolean {
-        var transaction: Transaction? = null
-        api.request("getTransactionById", Transaction.serializer()) {
-            put("transactionId", transactionId)
-        }.onError {
-            Log.e(TAG, "Error getting transaction $it")
-        }.onSuccess { result ->
-            transaction = result
-        }
-        return if (transaction != null) {
-            mSelectedTransaction.value = transaction
-            true
+        val transaction = getTransactionById(transactionId)
+        if (transaction != null) {
+            mSelectedTransaction.emit(transaction)
+            return true
         } else {
-            false
+            return false
         }
     }
 
@@ -125,34 +152,24 @@ class TransactionManager(
     fun updateTransactionIfSelected(id: String) = scope.launch {
         val selectedTransaction = selectedTransaction.value
         if (selectedTransaction?.transactionId != id) return@launch
-        mProgress.value = true
-        api.request("getTransactionById", Transaction.serializer()) {
-            put("transactionId", id)
-        }.onError {
-            mProgress.value = false
-            Log.e(TAG, "Error updating selected transaction $it")
-        }.onSuccess { result ->
-            mProgress.value = false
-            if (result.transactionId != selectedTransaction.transactionId) return@onSuccess
-            Log.d(TAG, "updating selected transaction: ${result.transactionId}")
-            mSelectedTransaction.value = result
-        }
+        getTransactionById(id)?.let { tx ->
+            if (tx.transactionId == selectedTransaction.transactionId) {
+                Log.d(TAG, "updating selected transaction: ${tx.transactionId}")
+                mSelectedTransaction.value = tx
+            }
+        } ?: Log.d(TAG, "Error updating selected transaction $id")
     }
 
-    suspend fun getTransactionById(transactionId: String): Transaction? {
-        var transaction: Transaction? = null
-        api.request("getTransactionById", Transaction.serializer()) {
-            put("transactionId", transactionId)
-        }.onError {
-            Log.e(TAG, "Error getting transaction $it")
-        }.onSuccess { result ->
-            transaction = result
-        }
-        return transaction
+    fun selectTransaction(tx: Transaction) = scope.launch {
+        mSelectedTransaction.value = tx
     }
 
-    fun selectTransaction(transaction: Transaction) {
-        mSelectedTransaction.postValue(transaction)
+    fun selectScope(scopeInfo: ScopeInfo?) = scope.launch {
+        mSelectedScope.value = scopeInfo
+    }
+
+    fun setSearchQuery(searchQuery: String?) = scope.launch {
+        mSearchQuery.value = searchQuery
     }
 
     fun deleteTransaction(transactionId: String, onError: (it: TalerErrorInfo) -> Unit) =
@@ -233,5 +250,4 @@ class TransactionManager(
             }
         }
     }
-
 }

@@ -20,9 +20,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.payment.TransactionPaymentComposable
 
@@ -35,16 +36,18 @@ class TransactionPaymentFragment : TransactionDetailFragment() {
     ): View = ComposeView(requireContext()).apply {
         setContent {
             TalerSurface {
-                val t = transactionManager.selectedTransaction.observeAsState().value
-                if (t is TransactionPayment) TransactionPaymentComposable(t, devMode,
-                    balanceManager.getSpecForCurrency(t.amountRaw.currency),
-                    onFulfill = { url ->
-                        launchInAppBrowser(requireContext(), url)
-                    },
-                    onTransition = {
-                        onTransitionButtonClicked(t, it)
-                    }
-                )
+                val t by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
+                (t as? TransactionPayment)?.let { tx ->
+                    TransactionPaymentComposable(tx, devMode,
+                        balanceManager.getSpecForCurrency(tx.amountRaw.currency),
+                        onFulfill = { url ->
+                            launchInAppBrowser(requireContext(), url)
+                        },
+                        onTransition = {
+                            onTransitionButtonClicked(tx, it)
+                        }
+                    )
+                }
             }
         }
     }

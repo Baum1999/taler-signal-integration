@@ -68,13 +68,9 @@ fun BalancesComposable(
         is BalanceState.Loading -> LoadingScreen()
         is BalanceState.Error -> WithdrawalError(state.error)
         is BalanceState.Success -> if (selectedScope == null) {
-            val balances = remember(state.balances) {
-                state.balances.distinctBy { it.scopeInfo }
-            }
-
             if (state.balances.isNotEmpty()) {
                 LazyColumn(Modifier.fillMaxSize()) {
-                    items(balances, key = { it.scopeInfo.hashCode() }) { balance ->
+                    items(state.balances, key = { it.scopeInfo.hashCode() }) { balance ->
                         BalanceRow(balance) {
                             onBalanceClicked(balance)
                         }
@@ -124,7 +120,7 @@ fun BalanceRow(
                 )
             },
             overlineContent = {
-                ProvideTextStyle(MaterialTheme.typography.labelLarge) {
+                ProvideTextStyle(MaterialTheme.typography.bodySmall) {
                     when (balance.scopeInfo) {
                         is Exchange -> Text(
                             stringResource(

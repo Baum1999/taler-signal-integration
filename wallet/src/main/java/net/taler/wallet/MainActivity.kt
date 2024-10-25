@@ -16,7 +16,6 @@
 
 package net.taler.wallet
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.Intent.ACTION_VIEW
 import android.nfc.NdefMessage
@@ -32,6 +31,9 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.bundleOf
 import androidx.core.view.GravityCompat.START
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
@@ -44,6 +46,7 @@ import com.google.zxing.client.android.Intents.Scan.SCAN_TYPE
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import com.journeyapps.barcodescanner.ScanOptions.QR_CODE
+import kotlinx.coroutines.launch
 import net.taler.common.EventObserver
 import net.taler.lib.android.TalerNfcService
 import net.taler.wallet.databinding.ActivityMainBinding
@@ -85,16 +88,20 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
 
         handleIntents(intent)
 
-        model.transactionManager.selectedTransaction.observe(this) { tx ->
-            TalerNfcService.clearUri(this)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                model.transactionManager.selectedTransaction.collect { tx ->
+                    TalerNfcService.clearUri(this@MainActivity)
 
-            when (tx) {
-                is TransactionPeerPushDebit -> tx.talerUri
-                is TransactionPeerPullCredit -> tx.talerUri
-                else -> return@observe
-            }?.let { uri ->
-                Log.d(TAG, "Transaction ${tx.transactionId} selected with URI $uri")
-                TalerNfcService.setUri(this, uri)
+                    when (tx) {
+                        is TransactionPeerPushDebit -> tx.talerUri
+                        is TransactionPeerPullCredit -> tx.talerUri
+                        else -> return@collect
+                    }?.let { uri ->
+                        Log.d(TAG, "Transaction ${tx.transactionId} selected with URI $uri")
+                        TalerNfcService.setUri(this@MainActivity, uri)
+                    }
+                }
             }
         }
 
@@ -124,7 +131,7 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
         if (ui.drawerLayout.isDrawerOpen(START)) ui.drawerLayout.closeDrawer(START)
         else if (nav.currentDestination?.id == R.id.nav_main) {
             if (model.transactionManager.selectedScope.value != null) {
-                model.transactionManager.selectedScope.value = null
+                model.transactionManager.selectScope(null)
             }
         } else {
             super.onBackPressed()

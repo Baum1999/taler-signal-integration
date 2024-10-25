@@ -21,8 +21,12 @@ import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.launch
 import net.taler.common.showError
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
@@ -44,10 +48,14 @@ abstract class TransactionDetailFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        transactionManager.selectedTransaction.observe(viewLifecycleOwner) {
-            requireActivity().apply {
-                it?.generalTitleRes?.let {
-                    title = getString(it)
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                transactionManager.selectedTransaction.collect {
+                    requireActivity().apply {
+                        it?.generalTitleRes?.let {
+                            title = getString(it)
+                        }
+                    }
                 }
             }
         }

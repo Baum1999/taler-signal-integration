@@ -20,9 +20,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.deposit.TransactionDepositComposable
 
 class TransactionDepositFragment : TransactionDetailFragment() {
@@ -34,13 +36,14 @@ class TransactionDepositFragment : TransactionDetailFragment() {
     ): View = ComposeView(requireContext()).apply {
         setContent {
             TalerSurface {
-                val t = transactionManager.selectedTransaction.observeAsState().value
-                if (t is TransactionDeposit) TransactionDepositComposable(
-                    t = t,
+                val t by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
+                val tx = remember(t) { t }
+                if (tx is TransactionDeposit) TransactionDepositComposable(
+                    t = tx,
                     devMode = devMode,
-                    spec = balanceManager.getSpecForCurrency(t.amountRaw.currency),
+                    spec = balanceManager.getSpecForCurrency(tx.amountRaw.currency),
                 ) {
-                    onTransitionButtonClicked(t, it)
+                    onTransitionButtonClicked(tx, it)
                 }
             }
         }

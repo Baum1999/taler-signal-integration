@@ -29,7 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -45,6 +45,7 @@ import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.transactions.TransactionAction.Abort
 import net.taler.wallet.transactions.TransactionAction.Retry
 import net.taler.wallet.transactions.TransactionAction.Suspend
@@ -59,11 +60,13 @@ class TransactionRefreshFragment : TransactionDetailFragment() {
     ): View = ComposeView(requireContext()).apply {
         setContent {
             TalerSurface {
-                val t = transactionManager.selectedTransaction.observeAsState().value
-                if (t is TransactionRefresh) TransactionRefreshComposable(t, devMode,
-                    balanceManager.getSpecForCurrency(t.amountRaw.currency),
-                ) {
-                    onTransitionButtonClicked(t, it)
+                val t by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
+                (t as? TransactionRefresh)?.let { tx ->
+                    TransactionRefreshComposable(tx, devMode,
+                        balanceManager.getSpecForCurrency(tx.amountRaw.currency),
+                    ) {
+                        onTransitionButtonClicked(tx, it)
+                    }
                 }
             }
         }

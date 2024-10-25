@@ -20,9 +20,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.refund.TransactionRefundComposable
 
 class TransactionRefundFragment : TransactionDetailFragment() {
@@ -34,11 +35,13 @@ class TransactionRefundFragment : TransactionDetailFragment() {
     ): View = ComposeView(requireContext()).apply {
         setContent {
             TalerSurface {
-                val t = transactionManager.selectedTransaction.observeAsState().value
-                if (t is TransactionRefund) TransactionRefundComposable(t, devMode,
-                    balanceManager.getSpecForCurrency(t.amountRaw.currency)
-                ) {
-                    onTransitionButtonClicked(t, it)
+                val t by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
+                (t as? TransactionRefund)?.let { tx ->
+                    TransactionRefundComposable(tx, devMode,
+                        balanceManager.getSpecForCurrency(tx.amountRaw.currency)
+                    ) {
+                        onTransitionButtonClicked(tx, it)
+                    }
                 }
             }
         }

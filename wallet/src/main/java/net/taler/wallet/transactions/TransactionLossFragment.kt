@@ -29,7 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -45,6 +45,7 @@ import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.transactions.LossEventType.DenomExpired
 import net.taler.wallet.transactions.LossEventType.DenomUnoffered
 import net.taler.wallet.transactions.LossEventType.DenomVanished
@@ -62,13 +63,13 @@ class TransactionLossFragment: TransactionDetailFragment() {
         savedInstanceState: Bundle?
     ): View = ComposeView(requireContext()).apply {
         setContent {
-            val t = transactionManager.selectedTransaction.observeAsState().value
+            val t by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
             val spec = scope?.let { balanceManager.getSpecForScopeInfo(it) }
 
             TalerSurface {
-                if (t is TransactionDenomLoss) {
-                    TransitionLossComposable(t, devMode, spec) {
-                        onTransitionButtonClicked(t, it)
+                (t as? TransactionDenomLoss)?.let { tx ->
+                    TransitionLossComposable(tx, devMode, spec) {
+                        onTransitionButtonClicked(tx, it)
                     }
                 }
             }
