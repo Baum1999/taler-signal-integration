@@ -185,7 +185,6 @@ fun EmptyBalancesComposable() {
     ) {
         val context = LocalContext.current
 
-        // TODO: render hyperlink!
         Text(
             stringResource(R.string.balances_empty_state),
             textAlign = TextAlign.Center,

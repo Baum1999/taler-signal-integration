@@ -24,7 +24,6 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -74,23 +73,26 @@ import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.cleanExchange
-import net.taler.wallet.compose.AmountInputField
+import net.taler.wallet.compose.AmountCurrencyField
 import net.taler.wallet.compose.BottomButtonBox
-import net.taler.wallet.compose.DEFAULT_INPUT_DECIMALS
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
-import net.taler.wallet.deposit.CurrencyDropdown
 import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.exchanges.SelectExchangeDialogFragment
-import net.taler.wallet.getAmount
 import net.taler.wallet.showError
 import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.TransactionAmountComposable
 import net.taler.wallet.transactions.TransactionInfoComposable
 import net.taler.wallet.useDebounce
-import net.taler.wallet.withdraw.WithdrawStatus.Status.*
+import net.taler.wallet.withdraw.WithdrawStatus.Status.InfoReceived
+import net.taler.wallet.withdraw.WithdrawStatus.Status.Loading
+import net.taler.wallet.withdraw.WithdrawStatus.Status.ManualTransferRequired
+import net.taler.wallet.withdraw.WithdrawStatus.Status.None
+import net.taler.wallet.withdraw.WithdrawStatus.Status.Success
+import net.taler.wallet.withdraw.WithdrawStatus.Status.TosReviewRequired
+import net.taler.wallet.withdraw.WithdrawStatus.Status.Updating
 
 class PromptWithdrawFragment: Fragment() {
     private val model: MainViewModel by activityViewModels()
@@ -332,7 +334,9 @@ fun WithdrawalShowInfo(
     onTosReview: () -> Unit,
     onConfirm: (age: Int?) -> Unit,
 ) {
-    val defaultAmount = status.amountInfo?.amountRaw ?: status.uriInfo?.amount
+    val defaultAmount = status.amountInfo?.amountRaw
+        ?: status.uriInfo?.amount
+        ?: Amount.zero(defaultCurrency)
     val maxAmount = status.uriInfo?.maxAmount
     val editableAmount = status.uriInfo?.editableAmount ?: editableCurrency
     val wireFee = status.uriInfo?.wireFee ?: Amount.zero(defaultCurrency)
@@ -345,11 +349,14 @@ fun WithdrawalShowInfo(
     var selectedAge by remember { mutableStateOf<Int?>(null) }
     var error by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
+    val insufficientBalance = remember(selectedAmount, maxAmount) {
+        maxAmount == null || selectedAmount > maxAmount
+    }
 
     selectedAmount.useDebounce {
         if (startup) { // do not fire at startup
             startup = false
-        } else it?.let {
+        } else {
             onSelectAmount(it)
         }
     }
@@ -364,33 +371,38 @@ fun WithdrawalShowInfo(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             if (editableAmount) {
-                WithdrawAmountComposable(
-                    defaultAmount = defaultAmount?.withSpec(spec),
-                    editableCurrency = editableCurrency,
+                AmountCurrencyField(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    initialAmount = selectedAmount.withSpec(spec),
+                    initialCurrency = selectedAmount.currency,
                     currencies = currencies,
-                    maxAmount = maxAmount?.withSpec(spec),
-                    spec = spec,
-                    onAmountChanged = { amount, err ->
-                        selectedAmount = amount
-                        error = err
-                    }
+                    editableCurrency = editableCurrency,
+                    onAmountChanged = { selectedAmount = it },
+                    getCurrencySpec = { spec },
+                    label = { Text(stringResource(R.string.amount_withdraw)) },
+                    isError = selectedAmount.isZero() || maxAmount != null && selectedAmount > maxAmount,
+                    supportingText = {
+                        if (insufficientBalance && maxAmount != null) {
+                            Text(stringResource(R.string.amount_excess, maxAmount))
+                        }
+                    },
                 )
             } else {
-                selectedAmount?.let { amount ->
-                    TransactionAmountComposable(
-                        label = if (wireFee.isZero()) {
-                            stringResource(R.string.amount_total)
-                        } else {
-                            stringResource(R.string.amount_chosen)
-                        },
-                        amount = amount,
-                        amountType = if (wireFee.isZero()) {
-                            AmountType.Positive
-                        } else {
-                            AmountType.Neutral
-                        },
-                    )
-                }
+                TransactionAmountComposable(
+                    label = if (wireFee.isZero()) {
+                        stringResource(R.string.amount_total)
+                    } else {
+                        stringResource(R.string.amount_chosen)
+                    },
+                    amount = selectedAmount,
+                    amountType = if (wireFee.isZero()) {
+                        AmountType.Positive
+                    } else {
+                        AmountType.Neutral
+                    },
+                )
             }
 
             if (!wireFee.isZero()) {
@@ -509,65 +521,6 @@ fun WithdrawalError(
             text = error.userFacingMsg,
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.error,
-        )
-    }
-}
-
-@Composable
-fun WithdrawAmountComposable(
-    defaultAmount: Amount?,
-    editableCurrency: Boolean,
-    currencies: List<String>,
-    maxAmount: Amount?,
-    spec: CurrencySpecification?,
-    onAmountChanged: (amount: Amount?, error: Boolean) -> Unit,
-) {
-    var text by remember { mutableStateOf(defaultAmount?.amountStr ?: "0") }
-    val currency = remember(defaultAmount, currencies) { defaultAmount?.currency ?: currencies[0] }
-    val amount = remember(currency, text) { getAmount(currency, text) }
-    val insufficientBalance = remember(amount, maxAmount) {
-        amount?.let { maxAmount == null || it > maxAmount } == true
-    }
-
-    Row(
-        modifier = Modifier
-            .padding(top = 16.dp)
-            .padding(horizontal = 16.dp),
-    ) {
-        AmountInputField(
-            modifier = Modifier
-                .padding(end = 16.dp)
-                .weight(1f),
-            value = text,
-            onValueChange = { value ->
-                text = value
-
-                // Update selected amount
-                getAmount(currency, text)?.let {
-                    onAmountChanged(it, maxAmount != null && it > maxAmount)
-                } ?: onAmountChanged(null, true)
-            },
-            label = { Text(stringResource(R.string.amount_withdraw)) },
-            supportingText = {
-                if (insufficientBalance && maxAmount != null) {
-                    Text(stringResource(R.string.amount_excess, maxAmount))
-                }
-            },
-            isError = insufficientBalance,
-            numberOfDecimals = spec?.numFractionalInputDigits ?: DEFAULT_INPUT_DECIMALS,
-        )
-
-        CurrencyDropdown(
-            modifier = Modifier.weight(1f),
-            currencies = currencies,
-            onCurrencyChanged = { value ->
-                // Update selected amount
-                getAmount(value, text)?.let {
-                    onAmountChanged(it, maxAmount != null && it > maxAmount)
-                } ?: onAmountChanged(null, true)
-            },
-            initialCurrency = currency,
-            readOnly = !editableCurrency,
         )
     }
 }

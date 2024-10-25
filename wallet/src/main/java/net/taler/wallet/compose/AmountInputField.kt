@@ -17,23 +17,32 @@
 package net.taler.wallet.compose
 
 import android.os.Build
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
+import net.taler.common.CurrencySpecification
+import net.taler.wallet.deposit.CurrencyDropdown
+import net.taler.wallet.getAmount
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import kotlin.math.max
@@ -43,7 +52,60 @@ import kotlin.math.roundToLong
 const val DEFAULT_INPUT_DECIMALS = 2
 
 @Composable
-fun AmountInputField(
+fun AmountCurrencyField(
+    modifier: Modifier = Modifier,
+    initialAmount: Amount,
+    initialCurrency: String?,
+    editableCurrency: Boolean = true,
+    currencies: List<String>,
+    onAmountChanged: (amount: Amount) -> Unit,
+    getCurrencySpec: (currency: String) -> CurrencySpecification?,
+    label: @Composable (() -> Unit)? = null,
+    supportingText: @Composable (() -> Unit)? = null,
+    isError: Boolean = false,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    decimalFormatSymbols: DecimalFormatSymbols = DecimalFormat().decimalFormatSymbols,
+    readOnly: Boolean = false,
+) {
+    var text by remember(initialAmount) { mutableStateOf(initialAmount.amountStr) }
+    var selectedCurrency by rememberSaveable { mutableStateOf(initialCurrency ?: currencies[0]) }
+    val selectedSpec: CurrencySpecification? = getCurrencySpec(selectedCurrency)
+    val amount = remember(selectedCurrency, text) { getAmount(selectedCurrency, text) }
+
+    LaunchedEffect(amount) {
+        amount?.let { onAmountChanged(amount) }
+    }
+
+    Row(modifier = modifier) {
+        AmountInputFieldBase(
+            modifier = Modifier
+                .weight(2f, true)
+                .padding(end = 16.dp),
+            value = text,
+            onValueChange = { input -> text = input },
+            label = label,
+            numberOfDecimals = selectedSpec
+                ?.numFractionalInputDigits
+                ?: DEFAULT_INPUT_DECIMALS,
+            isError = isError,
+            supportingText = supportingText,
+            keyboardActions = keyboardActions,
+            decimalFormatSymbols = decimalFormatSymbols,
+            readOnly = readOnly,
+        )
+
+        CurrencyDropdown(
+            modifier = Modifier.weight(1f),
+            currencies = currencies,
+            onCurrencyChanged = { selectedCurrency = it },
+            initialCurrency = initialCurrency,
+            readOnly = !editableCurrency,
+        )
+    }
+}
+
+@Composable
+fun AmountInputFieldBase(
     value: String,
     onValueChange: (value: String) -> Unit,
     modifier: Modifier = Modifier,

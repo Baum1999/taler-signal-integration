@@ -18,7 +18,6 @@ package net.taler.wallet.deposit
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -51,9 +50,7 @@ import net.taler.common.CurrencySpecification
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
-import net.taler.wallet.compose.AmountInputField
-import net.taler.wallet.compose.DEFAULT_INPUT_DECIMALS
-import net.taler.wallet.getAmount
+import net.taler.wallet.compose.AmountCurrencyField
 import net.taler.wallet.peer.OutgoingError
 import net.taler.wallet.peer.PeerErrorComposable
 import net.taler.wallet.transactions.AmountType.Negative
@@ -84,14 +81,11 @@ fun MakeDepositComposable(
     ) {
         // Amount/currency stuff
         // TODO: use scopeInfo instead of currency!
-        var selectedCurrency by rememberSaveable { mutableStateOf(defaultCurrency ?: currencies[0]) }
-        val selectedSpec: CurrencySpecification? = getCurrencySpec(selectedCurrency)
-        var text by rememberSaveable { mutableStateOf("0") }
-        val amount = remember(selectedCurrency, text) { getAmount(selectedCurrency, text) }
         var checkResult by remember { mutableStateOf<CheckDepositResult>(CheckDepositResult.None) }
+        var amount by remember { mutableStateOf(Amount.zero(defaultCurrency ?: currencies[0])) }
 
         // TODO: make getDepositWireTypes asynchronous!
-        val depositWireTypes = remember(selectedCurrency) { getDepositWireTypes(selectedCurrency) }
+        val depositWireTypes = remember(amount.currency) { getDepositWireTypes(amount.currency) }
         val supportedWireTypes = remember(depositWireTypes) { depositWireTypes?.wireTypes ?: emptyList() }
         val talerBankHostnames = remember(depositWireTypes) { depositWireTypes?.wireTypeDetails?.flatMap { it.talerBankHostnames }?.distinct() ?: emptyList() }
         var selectedWireType by remember { mutableStateOf(supportedWireTypes.firstOrNull()) }
@@ -111,7 +105,7 @@ fun MakeDepositComposable(
         }
 
         // reset forms and selected wire type when switching currency
-        DisposableEffect(selectedCurrency) {
+        DisposableEffect(amount.currency) {
             selectedWireType = supportedWireTypes.first()
             formError = true
             ibanName = presetName ?: ""
@@ -124,7 +118,7 @@ fun MakeDepositComposable(
 
         // TODO: make checkDeposit asynchronous!
         amount.useDebounce {
-            if (amount != null && paytoUri != null) {
+            if (paytoUri != null) {
                 // TODO: handle insufficient balance!
                 // TODO: handle KYC limits!
                 checkResult = checkDeposit(amount, paytoUri)
@@ -132,13 +126,13 @@ fun MakeDepositComposable(
         }
 
         paytoUri.useDebounce {
-            if (amount != null && paytoUri != null) {
+            if (paytoUri != null) {
                 checkResult = checkDeposit(amount, paytoUri)
             }
         }
 
         LaunchedEffect(Unit) {
-            if (amount != null && paytoUri != null) {
+            if (paytoUri != null) {
                 checkResult = checkDeposit(amount, paytoUri)
             }
         }
@@ -160,40 +154,28 @@ fun MakeDepositComposable(
             )
         }
 
-        Row(Modifier.padding(
-            start = 16.dp,
-            top = 16.dp,
-            end = 16.dp,
-        )) {
-            AmountInputField(
-                modifier = Modifier
-                    .weight(1f, true)
-                    .padding(end = 16.dp),
-                value = text,
-                onValueChange = { input ->
-                    text = input
-                },
-                label = { Text(stringResource(R.string.amount_deposit)) },
-                numberOfDecimals = selectedSpec?.numFractionalInputDigits ?: DEFAULT_INPUT_DECIMALS,
-                isError = checkResult is CheckDepositResult.InsufficientBalance,
-                supportingText = { (checkResult as? CheckDepositResult.InsufficientBalance)?.let { res ->
-                    if (res.maxAmountRaw != null) {
-                        Text(stringResource(
-                            R.string.payment_balance_insufficient_max,
-                            res.maxAmountRaw.withSpec(selectedSpec),
-                        ))
-                    }
-                } }
-            )
-
-            CurrencyDropdown(
-                modifier = Modifier.weight(1f),
-                currencies = currencies,
-                onCurrencyChanged = { selectedCurrency = it },
-                initialCurrency = defaultCurrency,
-                readOnly = false,
-            )
-        }
+        AmountCurrencyField(
+            modifier = Modifier
+                .padding(
+                    top = 16.dp,
+                    start = 16.dp,
+                    end = 16.dp,
+                ).fillMaxWidth(),
+            initialAmount = amount,
+            initialCurrency = defaultCurrency,
+            onAmountChanged = { amount = it },
+            editableCurrency = false,
+            currencies = currencies,
+            getCurrencySpec = getCurrencySpec,
+            isError = checkResult !is CheckDepositResult.Success,
+            label = { Text(stringResource(R.string.amount_deposit)) },
+            supportingText = {
+                val res = checkResult
+                if (res is CheckDepositResult.InsufficientBalance && res.maxAmountEffective != null) {
+                    Text(stringResource(R.string.payment_balance_insufficient_max, res.maxAmountEffective))
+                }
+            }
+        )
 
         when(selectedWireType) {
             WireType.IBAN -> {
@@ -234,8 +216,7 @@ fun MakeDepositComposable(
             else -> {}
         }
 
-        AnimatedVisibility(visible = amount != null && checkResult is CheckDepositResult.Success) {
-            if (amount == null) return@AnimatedVisibility
+        AnimatedVisibility(visible = checkResult is CheckDepositResult.Success) {
             val res = checkResult as? CheckDepositResult.Success ?: return@AnimatedVisibility
 
             Column(
@@ -277,7 +258,7 @@ fun MakeDepositComposable(
             enabled = checkResult is CheckDepositResult.Success && !formError,
             onClick = {
                 focusManager.clearFocus()
-                if (paytoUri != null && amount != null) {
+                if (paytoUri != null) {
                     onMakeDeposit(amount, paytoUri)
                 }
             },

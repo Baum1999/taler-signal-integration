@@ -17,7 +17,6 @@
 package net.taler.wallet.payment
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -40,12 +39,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
+import net.taler.common.CurrencySpecification
 import net.taler.common.RelativeTime
 import net.taler.wallet.AmountResult
 import net.taler.wallet.R
-import net.taler.wallet.compose.AmountInputField
+import net.taler.wallet.compose.AmountCurrencyField
 import net.taler.wallet.compose.TalerSurface
-import net.taler.wallet.deposit.CurrencyDropdown
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -53,6 +52,7 @@ fun PayTemplateOrderComposable(
     usableCurrencies: List<String>, // non-empty intersection between the stored currencies and the ones supported by the merchant
     templateDetails: WalletTemplateDetails,
     onCreateAmount: (String, String) -> AmountResult,
+    getCurrencySpec: (String) -> CurrencySpecification?,
     onError: (msgRes: Int) -> Unit,
     onSubmit: (params: TemplateParams) -> Unit,
 ) {
@@ -64,8 +64,10 @@ fun PayTemplateOrderComposable(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     var summary by remember { mutableStateOf(defaultSummary ?: "") }
-    var currency by remember { mutableStateOf(defaultCurrency ?: usableCurrencies[0]) }
-    var amount by remember { mutableStateOf(defaultAmount?.amountStr ?: "0") }
+    var amount by remember {
+        val currency = defaultCurrency ?: usableCurrencies[0]
+        mutableStateOf(defaultAmount?.withCurrency(currency) ?: Amount.zero(currency))
+    }
 
     Column(horizontalAlignment = End) {
         OutlinedTextField(
@@ -86,26 +88,25 @@ fun PayTemplateOrderComposable(
             label = { Text(stringResource(R.string.withdraw_manual_ready_subject)) },
         )
 
-        AmountField(
+        AmountCurrencyField(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
-            amount = amount,
-            currency = currency,
+            initialAmount = amount,
+            initialCurrency = amount.currency,
             currencies = usableCurrencies,
-            readOnlyCurrency = !templateDetails.isCurrencyEditable(usableCurrencies),
-            readOnlyAmount = !templateDetails.isAmountEditable(),
-            onAmountChosen = { a, c ->
-                amount = a
-                currency = c
-            },
+            editableCurrency = !templateDetails.isCurrencyEditable(usableCurrencies),
+            readOnly = !templateDetails.isAmountEditable(),
+            onAmountChanged = { amount = it },
+            getCurrencySpec = getCurrencySpec,
+            label = { Text(stringResource(R.string.amount_send)) },
         )
 
         Button(
             modifier = Modifier.padding(16.dp),
             enabled = !templateDetails.isSummaryEditable() || summary.isNotBlank(),
             onClick = {
-                when (val res = onCreateAmount(amount, currency)) {
+                when (val res = onCreateAmount(amount.amountStr, amount.currency)) {
                     is AmountResult.InsufficientBalance -> onError(R.string.payment_balance_insufficient)
                     is AmountResult.InvalidAmount -> onError(R.string.amount_invalid)
                     // NOTE: it is important to nullify non-editable values!
@@ -125,39 +126,6 @@ fun PayTemplateOrderComposable(
             && templateDetails.defaultSummary == null) {
             summaryFocusRequester.requestFocus()
         }
-    }
-}
-
-@Composable
-private fun AmountField(
-    modifier: Modifier = Modifier,
-    currencies: List<String>,
-    amount: String,
-    currency: String,
-    readOnlyAmount: Boolean = true,
-    readOnlyCurrency: Boolean = true,
-    onAmountChosen: (amount: String, currency: String) -> Unit,
-) {
-    Row(
-        modifier = modifier,
-    ) {
-        AmountInputField(
-            modifier = Modifier
-                .padding(end = 16.dp)
-                .weight(1f),
-            value = amount,
-            onValueChange = { onAmountChosen(it, currency) },
-            label = { Text(stringResource(R.string.amount_send)) },
-            readOnly = readOnlyAmount,
-        )
-
-        CurrencyDropdown(
-            modifier = Modifier.weight(1f),
-            initialCurrency = currency,
-            currencies = currencies,
-            onCurrencyChanged = { onAmountChosen(amount, it) },
-            readOnly = readOnlyCurrency,
-        )
     }
 }
 
@@ -184,6 +152,7 @@ fun PayTemplateDefaultPreview() {
             },
             onSubmit = { _ -> },
             onError = { },
+            getCurrencySpec = { null },
         )
     }
 }
@@ -200,6 +169,7 @@ fun PayTemplateFixedAmountPreview() {
             },
             onSubmit = { _ -> },
             onError = { },
+            getCurrencySpec = { null },
         )
     }
 }
@@ -216,6 +186,7 @@ fun PayTemplateBlankSubjectPreview() {
             },
             onSubmit = { _ -> },
             onError = { },
+            getCurrencySpec = { null },
         )
     }
 }

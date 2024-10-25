@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
 import net.taler.common.ContractTerms
+import net.taler.common.CurrencySpecification
 import net.taler.wallet.AmountResult
 import net.taler.wallet.R
 import net.taler.wallet.compose.LoadingScreen
@@ -38,6 +39,7 @@ import net.taler.wallet.compose.TalerSurface
 fun PayTemplateComposable(
     currencies: List<String>,
     payStatus: PayStatus,
+    getCurrencySpec: (String) -> CurrencySpecification?,
     onCreateAmount: (String, String) -> AmountResult,
     onSubmit: (params: TemplateParams) -> Unit,
     onError: (resId: Int) -> Unit,
@@ -60,6 +62,7 @@ fun PayTemplateComposable(
                     onCreateAmount = onCreateAmount,
                     onError = onError,
                     onSubmit = onSubmit,
+                    getCurrencySpec = getCurrencySpec,
                 )
             }
         }
@@ -111,6 +114,7 @@ fun PayTemplateLoadingPreview() {
             },
             onSubmit = { _ -> },
             onError = { _ -> },
+            getCurrencySpec = { null },
         )
     }
 }
@@ -133,6 +137,7 @@ fun PayTemplateInsufficientBalancePreview() {
             },
             onSubmit = { _ -> },
             onError = { _ -> },
+            getCurrencySpec = { null },
         )
     }
 }
@@ -149,6 +154,7 @@ fun PayTemplateAlreadyPaidPreview() {
             },
             onSubmit = { _ -> },
             onError = { _ -> },
+            getCurrencySpec = { null },
         )
     }
 }
@@ -166,6 +172,7 @@ fun PayTemplateNoCurrenciesPreview() {
             },
             onSubmit = { _ -> },
             onError = { _ -> },
+            getCurrencySpec = { null },
         )
     }
 }

@@ -19,7 +19,6 @@ package net.taler.wallet.peer
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -42,8 +41,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -56,12 +53,9 @@ import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.cleanExchange
-import net.taler.wallet.compose.AmountInputField
-import net.taler.wallet.compose.DEFAULT_INPUT_DECIMALS
+import net.taler.wallet.compose.AmountCurrencyField
 import net.taler.wallet.compose.TalerSurface
-import net.taler.wallet.deposit.CurrencyDropdown
 import net.taler.wallet.exchanges.ExchangeTosStatus
-import net.taler.wallet.getAmount
 import net.taler.wallet.transactions.TransactionInfoComposable
 import net.taler.wallet.useDebounce
 import kotlin.random.Random
@@ -123,49 +117,35 @@ fun OutgoingPullIntroComposable(
         horizontalAlignment = CenterHorizontally,
     ) {
         var subject by rememberSaveable { mutableStateOf("") }
-        val focusRequester = remember { FocusRequester() }
-
-        var selectedCurrency by rememberSaveable { mutableStateOf(defaultCurrency ?: currencies[0]) }
-        val selectedSpec: CurrencySpecification? = getCurrencySpec(selectedCurrency)
-        var text by rememberSaveable { mutableStateOf("0") }
-        val amount = remember(selectedCurrency, text) { getAmount(selectedCurrency, text) }
+        var amount by remember { mutableStateOf(Amount.zero(defaultCurrency ?: currencies[0])) }
+        val selectedSpec = remember(amount) { getCurrencySpec(amount.currency) }
         var checkResult by remember { mutableStateOf<CheckPeerPullCreditResult?>(null) }
 
         // TODO: make checkPeerPullCredit asynchronous!
         amount.useDebounce {
-            checkResult = amount?.let { checkPeerPullCredit(it) }
+            checkResult = checkPeerPullCredit(it)
         }
 
         LaunchedEffect(Unit) {
-            checkResult = amount?.let { checkPeerPullCredit(it) }
+            checkResult = checkPeerPullCredit(amount)
         }
 
-        Row(Modifier.padding(bottom = 16.dp)) {
-            AmountInputField(
-                modifier = Modifier
-                    .weight(1f, true)
-                    .padding(end = 16.dp),
-                value = text,
-                onValueChange = { input ->
-                    text = input
-                },
-                label = { Text(stringResource(R.string.amount_receive)) },
-                numberOfDecimals = selectedSpec?.numFractionalInputDigits ?: DEFAULT_INPUT_DECIMALS,
-            )
-
-            CurrencyDropdown(
-                modifier = Modifier.weight(1f),
-                currencies = currencies,
-                onCurrencyChanged = { selectedCurrency = it },
-                initialCurrency = defaultCurrency,
-                readOnly = false,
-            )
-        }
+        AmountCurrencyField(
+            modifier = Modifier
+                .padding(bottom = 16.dp)
+                .fillMaxWidth(),
+            initialAmount = amount,
+            initialCurrency = amount.currency,
+            currencies = currencies,
+            readOnly = false,
+            onAmountChanged = { amount = it },
+            getCurrencySpec = getCurrencySpec,
+            isError = amount.isZero(),
+            label = { Text(stringResource(R.string.amount_receive)) },
+        )
 
         OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .focusRequester(focusRequester),
+            modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             value = subject,
             onValueChange = { input ->
@@ -182,10 +162,6 @@ fun OutgoingPullIntroComposable(
                 )
             }
         )
-
-        LaunchedEffect(Unit) {
-            focusRequester.requestFocus()
-        }
 
         Text(
             modifier = Modifier
@@ -236,7 +212,7 @@ fun OutgoingPullIntroComposable(
             enabled = subject.isNotBlank() && res != null,
             onClick = {
                 val ex = res?.exchangeBaseUrl ?: error("clickable without exchange")
-                if (res.tosStatus == ExchangeTosStatus.Accepted) amount?.let {
+                if (res.tosStatus == ExchangeTosStatus.Accepted) {
                     onCreateInvoice(
                         amount,
                         subject,

@@ -17,7 +17,6 @@
 package net.taler.wallet.peer
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -36,8 +35,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -49,12 +46,9 @@ import net.taler.common.CurrencySpecification
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
-import net.taler.wallet.compose.AmountInputField
-import net.taler.wallet.compose.DEFAULT_INPUT_DECIMALS
+import net.taler.wallet.compose.AmountCurrencyField
 import net.taler.wallet.compose.TalerSurface
-import net.taler.wallet.deposit.CurrencyDropdown
 import net.taler.wallet.exchanges.ExchangeTosStatus
-import net.taler.wallet.getAmount
 import net.taler.wallet.peer.CheckFeeResult.InsufficientBalance
 import net.taler.wallet.peer.CheckFeeResult.None
 import net.taler.wallet.peer.CheckFeeResult.Success
@@ -100,73 +94,57 @@ fun OutgoingPushIntroComposable(
             .verticalScroll(scrollState),
         horizontalAlignment = CenterHorizontally,
     ) {
-        var selectedCurrency by rememberSaveable { mutableStateOf(defaultCurrency ?: currencies[0]) }
-        val selectedSpec: CurrencySpecification? = getCurrencySpec(selectedCurrency)
-        var text by rememberSaveable { mutableStateOf("0") }
-        val amount = remember(selectedCurrency, text) { getAmount(selectedCurrency, text) }
+        var amount by remember { mutableStateOf(Amount.zero(defaultCurrency ?: currencies[0])) }
+        val selectedSpec = remember(amount) { getCurrencySpec(amount.currency) }
         var feeResult by remember { mutableStateOf<CheckFeeResult>(None) }
 
-        // TODO: make getFees asynchronous!
+        // TODO: make checkPeerPullCredit asynchronous!
         amount.useDebounce {
-            feeResult = amount?.let { getFees(amount) } ?: None
+            feeResult = getFees(it) ?: None
         }
 
         LaunchedEffect(Unit) {
-            feeResult = amount?.let { getFees(amount) } ?: None
+            feeResult = getFees(amount) ?: None
         }
 
-        Row(Modifier.padding(bottom = 16.dp)) {
-            AmountInputField(
-                modifier = Modifier
-                    .weight(1f, true)
-                    .padding(end = 16.dp),
-                value = text,
-                onValueChange = { input ->
-                    text = input
-                },
-                label = { Text(stringResource(R.string.amount_send)) },
-                numberOfDecimals = selectedSpec?.numFractionalInputDigits ?: DEFAULT_INPUT_DECIMALS,
-            )
+        AmountCurrencyField(
+            modifier = Modifier.fillMaxWidth(),
+            initialAmount = amount,
+            initialCurrency = amount.currency,
+            currencies = currencies,
+            readOnly = false,
+            onAmountChanged = { amount = it },
+            getCurrencySpec = getCurrencySpec,
+            label = { Text(stringResource(R.string.amount_send)) },
+            isError = amount.isZero() || feeResult is InsufficientBalance,
+            supportingText = {
+                when (val res = feeResult) {
+                    is Success -> if (res.amountEffective > res.amountRaw) {
+                        val fee = res.amountEffective - res.amountRaw
+                        Text(
+                            modifier = Modifier.padding(vertical = 16.dp),
+                            text = stringResource(
+                                id = R.string.payment_fee,
+                                fee.withSpec(selectedSpec)
+                            ),
+                            softWrap = false,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
 
-            CurrencyDropdown(
-                modifier = Modifier.weight(1f),
-                currencies = currencies,
-                onCurrencyChanged = { selectedCurrency = it },
-                initialCurrency = defaultCurrency,
-                readOnly = false,
-            )
-        }
+                    is InsufficientBalance -> if (res.maxAmountEffective != null) {
+                        Text(stringResource(R.string.payment_balance_insufficient_max, res.maxAmountEffective))
+                    }
 
-        when(val res = feeResult) {
-            is Success -> if (res.amountEffective > res.amountRaw) {
-                val fee = res.amountEffective - res.amountRaw
-                Text(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    text = stringResource(id = R.string.payment_fee, fee.withSpec(selectedSpec)),
-                        softWrap = false,
-                        color = MaterialTheme.colorScheme.error,
-                    )
+                    else -> {}
+                }
             }
-
-            is InsufficientBalance -> if (res.maxAmountRaw != null) {
-                Text(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    text = stringResource(
-                        R.string.payment_balance_insufficient_max,
-                        res.maxAmountRaw.withSpec(selectedSpec),
-                    ),
-                )
-            }
-
-            else -> {}
-        }
+        )
 
         var subject by rememberSaveable { mutableStateOf("") }
-        val focusRequester = remember { FocusRequester() }
         OutlinedTextField(
             modifier = Modifier
-                .fillMaxWidth()
-                .focusRequester(focusRequester),
+                .fillMaxWidth(),
             singleLine = true,
             value = subject,
             onValueChange = { input ->
@@ -183,10 +161,6 @@ fun OutgoingPushIntroComposable(
                 )
             }
         )
-
-        LaunchedEffect(Unit) {
-            focusRequester.requestFocus()
-        }
 
         Text(
             modifier = Modifier
@@ -214,7 +188,7 @@ fun OutgoingPushIntroComposable(
 
         Button(
             enabled = feeResult is Success && subject.isNotBlank(),
-            onClick = { amount?.let { onSend(it, subject, hours) } },
+            onClick = { onSend(amount, subject, hours) },
         ) {
             Text(text = stringResource(R.string.send_peer_create_button))
         }

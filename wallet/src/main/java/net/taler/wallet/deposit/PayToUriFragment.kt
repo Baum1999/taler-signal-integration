@@ -25,10 +25,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -40,7 +38,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -48,10 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
@@ -62,10 +56,11 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import net.taler.common.Amount
+import net.taler.common.CurrencySpecification
 import net.taler.wallet.AmountResult
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
-import net.taler.wallet.compose.AmountInputField
+import net.taler.wallet.compose.AmountCurrencyField
 import net.taler.wallet.compose.TalerSurface
 
 class PayToUriFragment : Fragment() {
@@ -103,6 +98,7 @@ class PayToUriFragment : Fragment() {
                             findNavController().navigate(
                                 R.id.action_nav_payto_uri_to_nav_deposit, bundle)
                         },
+                        getCurrencySpec = balanceManager::getSpecForCurrency,
                     ) else Text(
                         text = stringResource(id = R.string.uri_invalid),
                         color = MaterialTheme.colorScheme.error,
@@ -123,6 +119,7 @@ class PayToUriFragment : Fragment() {
 private fun PayToComposable(
     currencies: List<String>,
     getAmount: (String, String) -> AmountResult,
+    getCurrencySpec: (String) -> CurrencySpecification?,
     onAmountChosen: (Amount) -> Unit,
 ) {
     val scrollState = rememberScrollState()
@@ -134,42 +131,36 @@ private fun PayToComposable(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        var amountText by rememberSaveable { mutableStateOf("0") }
+        var amount by remember { mutableStateOf(Amount.zero(currencies[0])) }
         var amountError by rememberSaveable { mutableStateOf("") }
-        var currency by rememberSaveable { mutableStateOf(currencies[0]) }
-        val focusRequester = remember { FocusRequester() }
-        AmountInputField(
-            modifier = Modifier.focusRequester(focusRequester),
-            value = amountText,
-            onValueChange = { input ->
-                amountError = ""
-                amountText = input
-            },
-            label = { Text(stringResource(R.string.amount_send)) },
-            supportingText = {
-                if (amountError.isNotBlank()) Text(amountError)
-            },
-            isError = amountError.isNotBlank(),
-        )
-        CurrencyDropdown(
+
+        AmountCurrencyField(
             modifier = Modifier
-                .fillMaxSize()
-                .wrapContentSize(Center),
+                .padding(horizontal = 16.dp)
+                .fillMaxWidth(),
+            initialAmount = amount,
+            initialCurrency = amount.currency,
             currencies = currencies,
-            onCurrencyChanged = { c -> currency = c },
+            readOnly = false,
+            onAmountChanged = { amount = it },
+            getCurrencySpec = getCurrencySpec,
+            label = { Text(stringResource(R.string.amount_send)) },
+            isError = amountError.isNotBlank(),
+            supportingText = {
+                if (amountError.isNotBlank()) {
+                    Text(amountError)
+                }
+            }
         )
-        LaunchedEffect(Unit) {
-            focusRequester.requestFocus()
-        }
 
         val focusManager = LocalFocusManager.current
         val errorStrInvalidAmount = stringResource(id = R.string.amount_invalid)
         val errorStrInsufficientBalance = stringResource(id = R.string.payment_balance_insufficient)
         Button(
             modifier = Modifier.padding(16.dp),
-            enabled = amountText.isNotBlank(),
+            enabled = !amount.isZero(),
             onClick = {
-                when (val amountResult = getAmount(amountText, currency)) {
+                when (val amountResult = getAmount(amount.amountStr, amount.currency)) {
                     is AmountResult.Success -> {
                         focusManager.clearFocus()
                         onAmountChosen(amountResult.amount)
@@ -244,6 +235,7 @@ fun PreviewPayToComposable() {
             currencies = listOf("KUDOS", "TESTKUDOS", "BTCBITCOIN"),
             getAmount = { _, _ -> AmountResult.InvalidAmount },
             onAmountChosen = {},
+            getCurrencySpec = { null }
         )
     }
 }
