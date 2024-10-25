@@ -22,6 +22,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -53,6 +54,7 @@ import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -73,6 +75,7 @@ import androidx.fragment.compose.rememberFragmentState
 import androidx.navigation.fragment.findNavController
 import net.taler.wallet.balances.BalanceState
 import net.taler.wallet.balances.BalancesComposable
+import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.DemandAttention
 import net.taler.wallet.compose.GridMenu
 import net.taler.wallet.compose.GridMenuItem
@@ -94,7 +97,7 @@ class MainFragment: Fragment() {
     ): View = ComposeView(requireContext()).apply {
         setContent {
             TalerSurface {
-                var selectedTab by rememberSaveable { mutableStateOf(Tab.BALANCES) }
+                var tab by rememberSaveable { mutableStateOf(Tab.BALANCES) }
                 var showSheet by remember { mutableStateOf(false) }
                 val sheetState = rememberModalBottomSheetState()
 
@@ -106,8 +109,8 @@ class MainFragment: Fragment() {
                             NavigationBarItem(
                                 icon = { Icon(Icons.Default.BarChart, contentDescription = null) },
                                 label = { Text(stringResource(R.string.balances_title)) },
-                                selected = selectedTab == Tab.BALANCES,
-                                onClick = { selectedTab = Tab.BALANCES },
+                                selected = tab == Tab.BALANCES,
+                                onClick = { tab = Tab.BALANCES },
                             )
 
                             TooltipBox(
@@ -140,8 +143,8 @@ class MainFragment: Fragment() {
                             NavigationBarItem(
                                 icon = { Icon(Icons.Default.Settings, contentDescription = null) },
                                 label = { Text(stringResource(R.string.menu_settings)) },
-                                selected = selectedTab == Tab.SETTINGS,
-                                onClick = { selectedTab = Tab.SETTINGS },
+                                selected = tab == Tab.SETTINGS,
+                                onClick = { tab = Tab.SETTINGS },
                             )
                         }
                     }
@@ -152,12 +155,16 @@ class MainFragment: Fragment() {
                     val txResult by remember(selectedScope) { model.transactionManager.transactionsFlow(selectedScope) }.collectAsStateLifecycleAware()
                     val selectedSpec = remember(selectedScope) { selectedScope?.let { model.balanceManager.getSpecForScopeInfo(it) } }
 
+                    LaunchedEffect(tab, selectedScope) {
+                        setTitle(tab, selectedScope)
+                    }
+
                     BackHandler(selectedScope != null) {
                         model.transactionManager.selectScope(null)
                     }
 
                     Box(Modifier.padding(innerPadding).fillMaxSize()) {
-                        when (selectedTab) {
+                        when (tab) {
                             Tab.BALANCES -> BalancesComposable(
                                 state = balanceState,
                                 txResult = txResult,
@@ -214,6 +221,20 @@ class MainFragment: Fragment() {
                     // pre-select on startup if it's the only one
                     model.transactionManager.selectScope(res.balances.first().scopeInfo)
                 }
+            }
+        }
+    }
+
+    private fun setTitle(tab: Tab, scope: ScopeInfo?) {
+        (requireActivity() as AppCompatActivity).apply {
+            supportActionBar?.title = when (tab) {
+                Tab.BALANCES -> if (scope != null) {
+                    getString(R.string.transactions_title)
+                } else {
+                    getString(R.string.balances_title)
+                }
+
+                Tab.SETTINGS -> getString(R.string.menu_settings)
             }
         }
     }
