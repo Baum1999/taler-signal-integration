@@ -37,6 +37,7 @@ import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -276,62 +277,66 @@ fun TransactionRow(
 ) {
     val context = LocalContext.current
 
-    ListItem(
-        modifier = Modifier
-            .defaultMinSize(minHeight = 80.dp)
-            .combinedClickable(
-                onClick = onTransactionClick,
-                onLongClick = onTransactionSelect,
-            ),
-        trailingContent = {
-            Box(
-                modifier = Modifier.padding(8.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                TransactionAmountInfo(tx, spec)
-            }
-        },
-        leadingContent = {
-            Box(
-                modifier = Modifier.padding(8.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (!selectionMode) {
-                    Icon(painterResource(tx.icon), contentDescription = null)
-                } else if (isSelected) {
-                    Icon(
-                        Icons.Rounded.CheckCircle,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                } else {
-                    Icon(
-                        Icons.Rounded.RadioButtonUnchecked,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.outline,
-                    )
+    Column {
+        ListItem(
+            modifier = Modifier
+                .defaultMinSize(minHeight = 80.dp)
+                .combinedClickable(
+                    onClick = onTransactionClick,
+                    onLongClick = onTransactionSelect,
+                ),
+            trailingContent = {
+                Box(
+                    modifier = Modifier.padding(8.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    TransactionAmountInfo(tx, spec)
                 }
-            }
-        },
-        headlineContent = {
-            Text(
-                tx.getTitle(context),
-                modifier = Modifier.padding(vertical = 3.dp),
-                style = MaterialTheme.typography.titleMedium,
+            },
+            leadingContent = {
+                Box(
+                    modifier = Modifier.padding(8.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (!selectionMode) {
+                        Icon(painterResource(tx.icon), contentDescription = null)
+                    } else if (isSelected) {
+                        Icon(
+                            Icons.Rounded.CheckCircle,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    } else {
+                        Icon(
+                            Icons.Rounded.RadioButtonUnchecked,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.outline,
+                        )
+                    }
+                }
+            },
+            headlineContent = {
+                Text(
+                    tx.getTitle(context),
+                    modifier = Modifier.padding(vertical = 3.dp),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            },
+            supportingContent = {
+                TransactionExtraInfo(tx)
+            },
+            overlineContent = { Text(tx.timestamp.ms.toRelativeTime(context).toString()) },
+            colors = ListItemDefaults.colors(
+                containerColor = if (isSelected) {
+                    MaterialTheme.colorScheme.secondaryContainer
+                } else {
+                    ListItemDefaults.containerColor
+                }
             )
-        },
-        supportingContent = {
-            TransactionExtraInfo(tx)
-        },
-        overlineContent = { Text(tx.timestamp.ms.toRelativeTime(context).toString()) },
-        colors = ListItemDefaults.colors(
-            containerColor = if (isSelected) {
-                MaterialTheme.colorScheme.secondaryContainer
-            } else {
-                ListItemDefaults.containerColor
-            }
         )
-    )
+
+        HorizontalDivider()
+    }
 }
 
 @Composable
