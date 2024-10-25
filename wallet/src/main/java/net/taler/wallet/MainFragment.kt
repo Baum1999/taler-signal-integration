@@ -20,6 +20,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -59,6 +61,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -76,7 +79,6 @@ import net.taler.wallet.compose.GridMenuItem
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.settings.SettingsFragment
-import net.taler.wallet.transactions.TransactionsResult
 
 class MainFragment: Fragment() {
 
@@ -144,10 +146,16 @@ class MainFragment: Fragment() {
                         }
                     }
                 ) { innerPadding ->
+                    val context = LocalContext.current
                     val balanceState by model.balanceManager.state.observeAsState(BalanceState.None)
                     val selectedScope by model.transactionManager.selectedScope.collectAsStateLifecycleAware()
                     val txResult by remember(selectedScope) { model.transactionManager.transactionsFlow(selectedScope) }.collectAsStateLifecycleAware()
                     val selectedSpec = remember(selectedScope) { selectedScope?.let { model.balanceManager.getSpecForScopeInfo(it) } }
+
+                    BackHandler(selectedScope != null) {
+                        model.transactionManager.selectScope(null)
+                    }
+
                     Box(Modifier.padding(innerPadding).fillMaxSize()) {
                         when (selectedTab) {
                             Tab.BALANCES -> BalancesComposable(
@@ -162,6 +170,11 @@ class MainFragment: Fragment() {
                                     if (tx.detailPageNav != 0) {
                                         model.transactionManager.selectTransaction(tx)
                                         findNavController().navigate(tx.detailPageNav)
+                                    }
+                                },
+                                onTransactionsDelete = { txIds ->
+                                    model.transactionManager.deleteTransactions(txIds) { error ->
+                                        Toast.makeText(context, error.userFacingMsg, Toast.LENGTH_LONG).show()
                                     }
                                 },
                                 onShowBalancesClicked = {

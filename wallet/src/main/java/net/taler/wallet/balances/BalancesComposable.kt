@@ -61,6 +61,7 @@ fun BalancesComposable(
     selectedCurrencySpec: CurrencySpecification?,
     onBalanceClicked: (balance: BalanceItem) -> Unit,
     onTransactionClicked: (tx: Transaction) -> Unit,
+    onTransactionsDelete: (txIds: List<String>) -> Unit,
     onShowBalancesClicked: () -> Unit,
 ) {
     when (state) {
@@ -90,6 +91,7 @@ fun BalancesComposable(
                     currencySpec = selectedCurrencySpec,
                     txResult = txResult,
                     onTransactionClick = onTransactionClicked,
+                    onTransactionsDelete = onTransactionsDelete,
                     onShowBalancesClicked = onShowBalancesClicked,
                 )
             } ?: error("no balance matching scopeInfo")
@@ -216,6 +218,7 @@ fun BalancesComposablePreview() {
             selectedCurrencySpec = null,
             onBalanceClicked = {},
             onTransactionClicked = {},
+            onTransactionsDelete = {},
             onShowBalancesClicked = {},
         )
     }
@@ -232,6 +235,7 @@ fun BalancesComposableEmptyPreview() {
             selectedCurrencySpec = null,
             onBalanceClicked = {},
             onTransactionClicked = {},
+            onTransactionsDelete = {},
             onShowBalancesClicked = {},
         )
     }

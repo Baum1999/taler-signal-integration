@@ -16,27 +16,42 @@
 
 package net.taler.wallet.transactions
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.RadioButtonUnchecked
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -58,6 +73,7 @@ import net.taler.wallet.balances.BalanceItem
 import net.taler.wallet.balances.ScopeInfo.Exchange
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.LoadingScreen
+import net.taler.wallet.compose.SelectionModeTopAppBar
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.transactions.AmountType.Negative
 import net.taler.wallet.transactions.AmountType.Neutral
@@ -84,12 +100,66 @@ fun TransactionsComposable(
     currencySpec: CurrencySpecification?,
     txResult: TransactionsResult,
     onTransactionClick: (tx: Transaction) -> Unit,
+    onTransactionsDelete: (txIds: List<String>) -> Unit,
     onShowBalancesClicked: () -> Unit,
-) {
-    when (txResult) {
-        is None -> LoadingScreen()
-        is Error -> {} // TODO: render error!
-        is Success -> {
+) = when (txResult) {
+    is None -> LoadingScreen()
+    is Error -> {} // TODO: render error!
+    is Success -> {
+        var showDeleteDialog by remember { mutableStateOf(false) }
+        var selectionMode by remember { mutableStateOf(false) }
+        val selectedItems = remember { mutableStateListOf<String>() }
+
+        if (showDeleteDialog) AlertDialog(
+            title = { Text(stringResource(R.string.transactions_delete_dialog_title)) },
+            text = { Text(stringResource(R.string.transactions_delete_dialog_message)) },
+            onDismissRequest = { showDeleteDialog = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    onTransactionsDelete(selectedItems)
+                    selectedItems.clear()
+                    selectionMode = false
+                    showDeleteDialog = false
+                }) {
+                    Text(stringResource(R.string.transactions_delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showDeleteDialog = false
+                }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
+
+        BackHandler(selectionMode) {
+            selectionMode = false
+            selectedItems.clear()
+        }
+
+        LaunchedEffect(selectionMode, selectedItems.size) {
+            if (selectionMode && selectedItems.isEmpty()) {
+                selectionMode = false
+            }
+        }
+
+        Column(Modifier.fillMaxSize()) {
+            if (selectionMode) SelectionModeTopAppBar(
+                selectedItems = selectedItems,
+                resetSelectionMode = {
+                    selectionMode = false
+                    selectedItems.clear()
+                },
+                onSelectAllClicked = {
+                    selectedItems.clear()
+                    selectedItems += txResult.transactions.map { it.transactionId }
+                },
+                onDeleteClicked = {
+                    showDeleteDialog = true
+                },
+            )
+
             LazyColumn(Modifier.fillMaxHeight()) {
                 item {
                     TransactionsHeader(
@@ -100,9 +170,36 @@ fun TransactionsComposable(
                 }
 
                 items(txResult.transactions, key = { it.transactionId }) { tx ->
-                    TransactionRow(tx, currencySpec) {
-                        onTransactionClick(tx)
-                    }
+                    val isSelected = selectedItems.contains(tx.transactionId)
+
+                    TransactionRow(
+                        tx, currencySpec,
+                        isSelected = isSelected,
+                        selectionMode = selectionMode,
+                        onTransactionClick = {
+                            if (selectionMode) {
+                                if (isSelected) {
+                                    selectedItems.remove(tx.transactionId)
+                                } else {
+                                    selectedItems.add(tx.transactionId)
+                                }
+                            } else {
+                                onTransactionClick(tx)
+                            }
+                        },
+                        onTransactionSelect = {
+                            if (selectionMode) {
+                                if (isSelected) {
+                                    selectedItems.remove(tx.transactionId)
+                                } else {
+                                    selectedItems.add(tx.transactionId)
+                                }
+                            } else {
+                                selectionMode = true
+                                selectedItems.add(tx.transactionId)
+                            }
+                        },
+                    )
                 }
             }
         }
@@ -127,14 +224,12 @@ fun TransactionsHeader(
         ) {
             ListItem(
                 modifier = Modifier.animateContentSize(),
-
                 headlineContent = {
                     Text(
                         getHeaderCurrency(balance, spec),
                         style = MaterialTheme.typography.titleMedium,
                     )
                 },
-
                 supportingContent = {
                     if (balance.scopeInfo is Exchange) {
                         Text(
@@ -144,7 +239,6 @@ fun TransactionsHeader(
                         )
                     }
                 },
-
                 trailingContent = {
                     Icon(Icons.Default.ArrowDropDown, contentDescription = null)
                 }
@@ -170,19 +264,25 @@ fun TransactionsHeader(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TransactionRow(
     tx: Transaction,
     spec: CurrencySpecification?,
+    isSelected: Boolean,
+    selectionMode: Boolean,
     onTransactionClick: () -> Unit,
+    onTransactionSelect: () -> Unit,
 ) {
     val context = LocalContext.current
 
     ListItem(
         modifier = Modifier
             .defaultMinSize(minHeight = 80.dp)
-            .clickable { onTransactionClick() },
-
+            .combinedClickable(
+                onClick = onTransactionClick,
+                onLongClick = onTransactionSelect,
+            ),
         trailingContent = {
             Box(
                 modifier = Modifier.padding(8.dp),
@@ -191,16 +291,28 @@ fun TransactionRow(
                 TransactionAmountInfo(tx, spec)
             }
         },
-
         leadingContent = {
             Box(
                 modifier = Modifier.padding(8.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(painterResource(tx.icon), contentDescription = null)
+                if (!selectionMode) {
+                    Icon(painterResource(tx.icon), contentDescription = null)
+                } else if (isSelected) {
+                    Icon(
+                        Icons.Rounded.CheckCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                } else {
+                    Icon(
+                        Icons.Rounded.RadioButtonUnchecked,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.outline,
+                    )
+                }
             }
         },
-
         headlineContent = {
             Text(
                 tx.getTitle(context),
@@ -208,12 +320,17 @@ fun TransactionRow(
                 style = MaterialTheme.typography.titleMedium,
             )
         },
-
         supportingContent = {
             TransactionExtraInfo(tx)
         },
-
         overlineContent = { Text(tx.timestamp.ms.toRelativeTime(context).toString()) },
+        colors = ListItemDefaults.colors(
+            containerColor = if (isSelected) {
+                MaterialTheme.colorScheme.secondaryContainer
+            } else {
+                ListItemDefaults.containerColor
+            }
+        )
     )
 }
 
@@ -326,6 +443,7 @@ fun TransactionsComposableDonePreview() {
             currencySpec = null,
             txResult = Success(transactions),
             onTransactionClick = {},
+            onTransactionsDelete = {},
             onShowBalancesClicked = {},
         )
     }
@@ -354,6 +472,7 @@ fun TransactionsComposablePendingPreview() {
             currencySpec = null,
             txResult = Success(transactions),
             onTransactionClick = {},
+            onTransactionsDelete = {},
             onShowBalancesClicked = {},
         )
     }

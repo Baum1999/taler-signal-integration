@@ -30,7 +30,6 @@ import android.view.View.VISIBLE
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.bundleOf
-import androidx.core.view.GravityCompat.START
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -123,18 +122,6 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
 
         model.devMode.observe(this) {
             invalidateMenu()
-        }
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        if (ui.drawerLayout.isDrawerOpen(START)) ui.drawerLayout.closeDrawer(START)
-        else if (nav.currentDestination?.id == R.id.nav_main) {
-            if (model.transactionManager.selectedScope.value != null) {
-                model.transactionManager.selectScope(null)
-            }
-        } else {
-            super.onBackPressed()
         }
     }
 
