@@ -147,7 +147,7 @@
     <string name="withdraw_manual_ready_subject">Buchungsvermerk</string>
     <string name="withdraw_manual_ready_bank_button">In Banking-App öffnen</string>
     <string name="withdraw_manual_ready_cancel">Abhebevorgang abbrechen</string>
-    <string name="withdraw_manual_ready_warning">Bitte vergewissern Sie sich, dass Sie den Buchungsvermerk richtig angeben, da sonst das e-Geld nicht im Wallet ankommt.</string>
+    <string name="withdraw_manual_ready_warning">Bitte vergewissern Sie sich, dass Sie den Buchungsvermerk richtig angeben, da sonst das e-Geld nicht in diesem Wallet ankommt.</string>
     <string name="reset">Zurücksetzen</string>
     <string name="payment_prompt_title">Zahlung überprüfen</string>
     <string name="send_deposit_iban_error">IBAN ist ungültig</string>
