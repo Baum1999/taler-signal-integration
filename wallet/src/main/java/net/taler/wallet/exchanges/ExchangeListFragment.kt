@@ -23,10 +23,18 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.MarginLayoutParams
 import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
 import androidx.core.os.bundleOf
 import androidx.core.view.MenuProvider
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.marginBottom
+import androidx.core.view.marginLeft
+import androidx.core.view.marginRight
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle.State.RESUMED
@@ -36,6 +44,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager.VERTICAL
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
+import net.taler.common.Amount
 import net.taler.common.EventObserver
 import net.taler.common.fadeIn
 import net.taler.common.fadeOut
@@ -65,6 +74,8 @@ open class ExchangeListFragment : Fragment(), ExchangeClickListener {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        setupInsets()
+
         requireActivity().addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 if (model.devMode.value == true) {
@@ -204,6 +215,31 @@ open class ExchangeListFragment : Fragment(), ExchangeClickListener {
             exchangeManager.getExchangeTos(item.exchangeBaseUrl)?.let { tos ->
                 exchangeManager.forgetCurrentTos(item.exchangeBaseUrl, tos.currentEtag)
             }
+        }
+    }
+
+    private fun setupInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(ui.list) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(
+                bottom = insets.bottom,
+                left = insets.left,
+                right = insets.right,
+            )
+            WindowInsetsCompat.CONSUMED
+        }
+
+        val fabMarginBottom = ui.addExchangeFab.marginBottom
+        val fabMarginLeft = ui.addExchangeFab.marginLeft
+        val fabMarginRight = ui.addExchangeFab.marginRight
+        ViewCompat.setOnApplyWindowInsetsListener(ui.addExchangeFab) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updateLayoutParams<MarginLayoutParams> {
+                bottomMargin = fabMarginBottom + insets.bottom
+                leftMargin = fabMarginLeft + insets.left
+                rightMargin = fabMarginRight + insets.right
+            }
+            WindowInsetsCompat.CONSUMED
         }
     }
 }

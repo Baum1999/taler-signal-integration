@@ -25,6 +25,9 @@ import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
 import androidx.core.content.getSystemService
 import androidx.core.os.bundleOf
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import net.taler.wallet.databinding.FragmentUriInputBinding
@@ -43,6 +46,8 @@ class UriInputFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        setupInsets()
+
         val clipboard = requireContext().getSystemService<ClipboardManager>()
 
         ui.pasteButton.setOnClickListener {
@@ -70,4 +75,11 @@ class UriInputFragment : Fragment() {
         }
     }
 
+    private fun setupInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(ui.root) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(left = insets.left, right = insets.right, bottom = insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
+    }
 }

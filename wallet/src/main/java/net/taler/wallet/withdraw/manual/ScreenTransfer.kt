@@ -55,6 +55,7 @@ import net.taler.wallet.CURRENCY_BTC
 import net.taler.wallet.R
 import net.taler.common.canAppHandleUri
 import net.taler.common.copyToClipBoard
+import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.ShareButton
 import net.taler.wallet.transactions.AmountType
@@ -181,6 +182,8 @@ fun ScreenTransfer(
                         .padding(bottom = 16.dp),
                 )
             }
+
+            BottomInsetsSpacer()
         }
     }
 }

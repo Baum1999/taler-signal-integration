@@ -35,6 +35,7 @@ import net.taler.common.ContractMerchant
 import net.taler.common.CurrencySpecification
 import net.taler.common.Timestamp
 import net.taler.common.toAbsoluteTime
+import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
@@ -116,6 +117,8 @@ fun TransactionPaymentComposable(
         if (devMode && t.error != null) {
             ErrorTransactionButton(error = t.error)
         }
+
+        BottomInsetsSpacer()
     }
 }
 

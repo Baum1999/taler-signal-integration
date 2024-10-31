@@ -52,6 +52,7 @@ import net.taler.wallet.backend.TalerErrorCode.WALLET_PEER_PULL_PAYMENT_INSUFFIC
 import net.taler.wallet.backend.TalerErrorCode.WALLET_PEER_PUSH_PAYMENT_INSUFFICIENT_BALANCE
 import net.taler.wallet.backend.TalerErrorCode.WALLET_WITHDRAWAL_KYC_REQUIRED
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.systemBarsPaddingBottom
 
 data class IncomingData(
     val isCredit: Boolean,
@@ -129,6 +130,7 @@ fun ColumnScope.PeerPullTermsComposable(
             modifier = Modifier
                 .padding(8.dp)
                 .fillMaxWidth()
+                .systemBarsPaddingBottom(),
         ) {
             Row(
                 modifier = Modifier.align(End),
@@ -223,7 +225,7 @@ fun PeerPullCheckingPreview() {
     }
 }
 
-@Preview
+@Preview(showSystemUi = true)
 @Composable
 fun PeerPullTermsPreview() {
     Surface {
@@ -243,7 +245,7 @@ fun PeerPullTermsPreview() {
     }
 }
 
-@Preview
+@Preview(showSystemUi = true)
 @Composable
 fun PeerPullAcceptingPreview() {
     Surface {

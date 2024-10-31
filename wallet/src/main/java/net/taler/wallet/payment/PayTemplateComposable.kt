@@ -34,6 +34,7 @@ import net.taler.wallet.AmountResult
 import net.taler.wallet.R
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.systemBarsPaddingBottom
 
 @Composable
 fun PayTemplateComposable(
@@ -86,7 +87,10 @@ fun PayTemplateComposable(
 @Composable
 fun PayTemplateError(message: String) {
     Box(
-        modifier = Modifier.padding(16.dp).fillMaxSize(),
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxSize()
+            .systemBarsPaddingBottom(),
         contentAlignment = Center,
     ) {
         Text(

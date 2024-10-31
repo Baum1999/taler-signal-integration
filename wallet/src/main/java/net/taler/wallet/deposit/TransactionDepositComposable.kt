@@ -35,6 +35,7 @@ import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.common.Timestamp
 import net.taler.common.toAbsoluteTime
+import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode.EXCHANGE_GENERIC_KYC_REQUIRED
 import net.taler.wallet.backend.TalerErrorInfo
@@ -100,6 +101,8 @@ fun TransactionDepositComposable(
         if (devMode && t.error != null) {
             ErrorTransactionButton(error = t.error)
         }
+
+        BottomInsetsSpacer()
     }
 }
 

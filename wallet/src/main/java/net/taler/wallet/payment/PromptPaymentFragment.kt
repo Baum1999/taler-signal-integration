@@ -23,6 +23,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
 import android.view.ViewGroup
+import android.view.ViewGroup.MarginLayoutParams
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
@@ -63,6 +67,7 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        setupInsets()
         paymentManager.payStatus.observe(viewLifecycleOwner, ::onPaymentStatusChanged)
 
         ui.details.productsList.apply {
@@ -83,6 +88,16 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
                     showError(error)
                 }
             }
+        }
+    }
+
+    private fun setupInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(ui.bottom.bottomLayout) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updateLayoutParams<MarginLayoutParams> {
+                bottomMargin = insets.bottom
+            }
+            WindowInsetsCompat.CONSUMED
         }
     }
 

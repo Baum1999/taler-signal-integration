@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
+import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 
@@ -60,6 +61,7 @@ fun TransactionDummyComposable(t: DummyTransaction) {
             .verticalScroll(scrollState),
         horizontalAlignment = CenterHorizontally,
     ) {
-            ErrorTransactionButton(error = t.error)
+        ErrorTransactionButton(error = t.error)
+        BottomInsetsSpacer()
     }
 }

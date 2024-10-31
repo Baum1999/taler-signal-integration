@@ -21,7 +21,9 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -60,6 +62,7 @@ import net.taler.wallet.withdraw.WithdrawalError
 
 @Composable
 fun BalancesComposable(
+    innerPadding: PaddingValues,
     state: BalanceState,
     txResult: TransactionsResult,
     selectedScope: ScopeInfo?,
@@ -75,7 +78,12 @@ fun BalancesComposable(
         is BalanceState.Error -> WithdrawalError(state.error)
         is BalanceState.Success -> if (state.balances.isNotEmpty()) {
             if (selectedScope == null) {
-                LazyColumn(Modifier.fillMaxSize()) {
+                LazyColumn(
+                    Modifier
+                        .consumeWindowInsets(innerPadding)
+                        .fillMaxSize(),
+                    contentPadding = innerPadding,
+                ) {
                     items(state.balances, key = { it.scopeInfo.hashCode() }) { balance ->
                         BalanceRow(balance) {
                             onBalanceClicked(balance)
@@ -89,6 +97,7 @@ fun BalancesComposable(
 
                 balance?.let {
                     TransactionsComposable(
+                        innerPadding = innerPadding,
                         balance = it,
                         currencySpec = selectedCurrencySpec,
                         txResult = txResult,
@@ -227,6 +236,7 @@ fun BalancesComposablePreview() {
 
     TalerSurface {
         BalancesComposable(
+            innerPadding = PaddingValues(0.dp),
             state = BalanceState.Success(balances),
             txResult = TransactionsResult.Success(listOf()),
             selectedScope = null,
@@ -244,6 +254,7 @@ fun BalancesComposablePreview() {
 fun BalancesComposableEmptyPreview() {
     TalerSurface {
         BalancesComposable(
+            innerPadding = PaddingValues(0.dp),
             state = BalanceState.Success(listOf()),
             txResult = TransactionsResult.Success(listOf()),
             selectedScope = null,

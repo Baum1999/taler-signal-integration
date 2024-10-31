@@ -42,6 +42,7 @@ import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.common.RelativeTime
 import net.taler.wallet.AmountResult
+import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.compose.AmountCurrencyField
 import net.taler.wallet.compose.TalerSurface
@@ -119,6 +120,8 @@ fun PayTemplateOrderComposable(
         ) {
             Text(stringResource(R.string.payment_create_order))
         }
+
+        BottomInsetsSpacer()
     }
 
     LaunchedEffect(Unit) {

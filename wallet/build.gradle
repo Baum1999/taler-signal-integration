@@ -43,7 +43,7 @@ android {
     defaultConfig {
         applicationId "net.taler.wallet"
         minSdkVersion 24
-        targetSdkVersion 34
+        targetSdkVersion 35
         versionCode 48
         versionName "0.13.3"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

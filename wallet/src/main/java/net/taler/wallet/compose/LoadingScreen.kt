@@ -22,11 +22,14 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import net.taler.wallet.systemBarsPaddingBottom
 
 @Composable
 fun LoadingScreen() {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .systemBarsPaddingBottom(),
         contentAlignment = Alignment.Center,
     ) {
         CircularProgressIndicator()

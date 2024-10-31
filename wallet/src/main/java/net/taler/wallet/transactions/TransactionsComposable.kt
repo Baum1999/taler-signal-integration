@@ -24,8 +24,10 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -104,6 +106,7 @@ import net.taler.wallet.withdraw.WithdrawalError
 
 @Composable
 fun TransactionsComposable(
+    innerPadding: PaddingValues,
     balance: BalanceItem,
     currencySpec: CurrencySpecification?,
     txResult: TransactionsResult,
@@ -154,63 +157,68 @@ fun TransactionsComposable(
             }
         }
 
-        Column(Modifier.fillMaxSize()) {
-            if (selectionMode) SelectionModeTopAppBar(
-                selectedItems = selectedItems,
-                resetSelectionMode = {
-                    selectionMode = false
-                    selectedItems.clear()
-                },
-                onSelectAllClicked = {
-                    selectedItems.clear()
-                    selectedItems += txResult.transactions.map { it.transactionId }
-                },
-                onDeleteClicked = {
-                    showDeleteDialog = true
-                },
-            )
+        LazyColumn(
+            Modifier
+                .consumeWindowInsets(innerPadding)
+                .fillMaxHeight(),
+            contentPadding = innerPadding,
+        ) {
+            item {
+                if (selectionMode) SelectionModeTopAppBar(
+                    selectedItems = selectedItems,
+                    resetSelectionMode = {
+                        selectionMode = false
+                        selectedItems.clear()
+                    },
+                    onSelectAllClicked = {
+                        selectedItems.clear()
+                        selectedItems += txResult.transactions.map { it.transactionId }
+                    },
+                    onDeleteClicked = {
+                        showDeleteDialog = true
+                    },
+                )
+            }
 
-            LazyColumn(Modifier.fillMaxHeight()) {
-                item {
-                    TransactionsHeader(
-                        balance = balance,
-                        spec = currencySpec,
-                        onShowBalancesClicked = onShowBalancesClicked,
-                    )
-                }
+            item {
+                TransactionsHeader(
+                    balance = balance,
+                    spec = currencySpec,
+                    onShowBalancesClicked = onShowBalancesClicked,
+                )
+            }
 
-                items(txResult.transactions, key = { it.transactionId }) { tx ->
-                    val isSelected = selectedItems.contains(tx.transactionId)
+            items(txResult.transactions, key = { it.transactionId }) { tx ->
+                val isSelected = selectedItems.contains(tx.transactionId)
 
-                    TransactionRow(
-                        tx, currencySpec,
-                        isSelected = isSelected,
-                        selectionMode = selectionMode,
-                        onTransactionClick = {
-                            if (selectionMode) {
-                                if (isSelected) {
-                                    selectedItems.remove(tx.transactionId)
-                                } else {
-                                    selectedItems.add(tx.transactionId)
-                                }
+                TransactionRow(
+                    tx, currencySpec,
+                    isSelected = isSelected,
+                    selectionMode = selectionMode,
+                    onTransactionClick = {
+                        if (selectionMode) {
+                            if (isSelected) {
+                                selectedItems.remove(tx.transactionId)
                             } else {
-                                onTransactionClick(tx)
-                            }
-                        },
-                        onTransactionSelect = {
-                            if (selectionMode) {
-                                if (isSelected) {
-                                    selectedItems.remove(tx.transactionId)
-                                } else {
-                                    selectedItems.add(tx.transactionId)
-                                }
-                            } else {
-                                selectionMode = true
                                 selectedItems.add(tx.transactionId)
                             }
-                        },
-                    )
-                }
+                        } else {
+                            onTransactionClick(tx)
+                        }
+                    },
+                    onTransactionSelect = {
+                        if (selectionMode) {
+                            if (isSelected) {
+                                selectedItems.remove(tx.transactionId)
+                            } else {
+                                selectedItems.add(tx.transactionId)
+                            }
+                        } else {
+                            selectionMode = true
+                            selectedItems.add(tx.transactionId)
+                        }
+                    },
+                )
             }
         }
     }
@@ -467,6 +475,7 @@ fun TransactionsComposableDonePreview() {
 
     TalerSurface {
         TransactionsComposable(
+            innerPadding = PaddingValues(0.dp),
             balance = previewBalance,
             currencySpec = null,
             txResult = Success(transactions),
@@ -496,6 +505,7 @@ fun TransactionsComposablePendingPreview() {
 
     TalerSurface {
         TransactionsComposable(
+            innerPadding = PaddingValues(0.dp),
             balance = previewBalance,
             currencySpec = null,
             txResult = Success(transactions),
@@ -511,6 +521,7 @@ fun TransactionsComposablePendingPreview() {
 fun TransactionsComposableEmptyPreview() {
     TalerSurface {
         TransactionsComposable(
+            innerPadding = PaddingValues(0.dp),
             balance = previewBalance,
             currencySpec = null,
             txResult = Success(listOf()),

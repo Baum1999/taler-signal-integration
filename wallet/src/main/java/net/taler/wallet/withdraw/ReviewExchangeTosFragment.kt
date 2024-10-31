@@ -22,6 +22,14 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import android.view.ViewGroup.MarginLayoutParams
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.marginBottom
+import androidx.core.view.marginLeft
+import androidx.core.view.marginRight
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -59,6 +67,7 @@ class ReviewExchangeTosFragment : Fragment() {
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupInsets()
 
         val exchangeBaseUrl = arguments?.getString("exchangeBaseUrl")
             ?: error("no exchangeBaseUrl passed")
@@ -99,6 +108,31 @@ class ReviewExchangeTosFragment : Fragment() {
                     ui.progressBar.fadeOut()
                 }
             }
+        }
+    }
+
+    private fun setupInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(ui.tosList) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updatePadding(
+                left = insets.left,
+                right = insets.right,
+                bottom = insets.bottom,
+            )
+            WindowInsetsCompat.CONSUMED
+        }
+
+        val checkboxMarginLeft = ui.acceptTosCheckBox.marginLeft
+        val checkboxMarginRight = ui.acceptTosCheckBox.marginRight
+        val checkboxMarginBottom = ui.acceptTosCheckBox.marginBottom
+        ViewCompat.setOnApplyWindowInsetsListener(ui.acceptTosCheckBox) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updateLayoutParams<MarginLayoutParams> {
+                leftMargin = checkboxMarginLeft + insets.left
+                rightMargin = checkboxMarginRight + insets.right
+                bottomMargin = checkboxMarginBottom + insets.bottom
+            }
+            WindowInsetsCompat.CONSUMED
         }
     }
 

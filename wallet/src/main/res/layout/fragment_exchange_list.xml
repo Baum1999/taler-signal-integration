@@ -26,6 +26,7 @@
         android:layout_height="match_parent"
         android:scrollbars="vertical"
         android:visibility="invisible"
+        android:clipToPadding="false"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/list_item_exchange"
         tools:visibility="visible" />

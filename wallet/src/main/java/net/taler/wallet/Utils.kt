@@ -31,11 +31,19 @@ import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
 import androidx.annotation.RequiresApi
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Modifier
 import androidx.core.content.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -174,3 +182,22 @@ fun <T> T.useDebounce(
 
     return state
 }
+
+@Composable
+fun BottomInsetsSpacer() = Spacer(
+    Modifier.windowInsetsBottomHeight(
+        WindowInsets.systemBars,
+    ),
+)
+
+@Composable
+fun Modifier.systemBarsPaddingBottom() =
+    windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Bottom))
+
+@Composable
+fun Modifier.systemBarsPaddingHorizontal() =
+    windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
+
+@Composable
+fun Modifier.systemBarsPaddingAllExceptTop() =
+    windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))

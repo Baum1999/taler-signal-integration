@@ -24,6 +24,7 @@
     tools:showIn="@layout/fragment_prompt_payment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/bottomLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 

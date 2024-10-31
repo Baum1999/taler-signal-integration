@@ -26,11 +26,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
@@ -153,7 +154,10 @@ class MainFragment: Fragment() {
                                 onClick = { tab = Tab.SETTINGS },
                             )
                         }
-                    }
+                    },
+                    contentWindowInsets = WindowInsets.systemBars.only(
+                        WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
+                    )
                 ) { innerPadding ->
                     LaunchedEffect(tab, selectedScope) {
                         setTitle(tab, selectedScope)
@@ -163,37 +167,36 @@ class MainFragment: Fragment() {
                         model.transactionManager.selectScope(null)
                     }
 
-                    Box(Modifier.padding(innerPadding).fillMaxSize()) {
-                        when (tab) {
-                            Tab.BALANCES -> BalancesComposable(
-                                state = balanceState,
-                                txResult = txResult,
-                                selectedScope = selectedScope,
-                                selectedCurrencySpec = selectedSpec,
-                                onBalanceClicked = {
-                                    model.showTransactions(it.scopeInfo)
-                                },
-                                onTransactionClicked = { tx ->
-                                    if (tx.detailPageNav != 0) {
-                                        model.transactionManager.selectTransaction(tx)
-                                        findNavController().navigate(tx.detailPageNav)
-                                    }
-                                },
-                                onTransactionsDelete = { txIds ->
-                                    model.transactionManager.deleteTransactions(txIds) { error ->
-                                        Toast.makeText(context, error.userFacingMsg, Toast.LENGTH_LONG).show()
-                                    }
-                                },
-                                onShowBalancesClicked = {
-                                    if (model.transactionManager.selectedScope.value != null) {
-                                        model.transactionManager.selectScope(null)
-                                    }
-                                },
-                            )
-                            Tab.SETTINGS -> SettingsView(
-                                settingsFragmentState = settingsFragmentState,
-                            )
-                        }
+                    when (tab) {
+                        Tab.BALANCES -> BalancesComposable(
+                            innerPadding = innerPadding,
+                            state = balanceState,
+                            txResult = txResult,
+                            selectedScope = selectedScope,
+                            selectedCurrencySpec = selectedSpec,
+                            onBalanceClicked = {
+                                model.showTransactions(it.scopeInfo)
+                            },
+                            onTransactionClicked = { tx ->
+                                if (tx.detailPageNav != 0) {
+                                    model.transactionManager.selectTransaction(tx)
+                                    findNavController().navigate(tx.detailPageNav)
+                                }
+                            },
+                            onTransactionsDelete = { txIds ->
+                                model.transactionManager.deleteTransactions(txIds) { error ->
+                                    Toast.makeText(context, error.userFacingMsg, Toast.LENGTH_LONG).show()
+                                }
+                            },
+                            onShowBalancesClicked = {
+                                if (model.transactionManager.selectedScope.value != null) {
+                                    model.transactionManager.selectScope(null)
+                                }
+                            },
+                        )
+                        Tab.SETTINGS -> SettingsView(
+                            settingsFragmentState = settingsFragmentState,
+                        )
                     }
                 }
 
@@ -276,7 +279,9 @@ fun SettingsView(
 ) {
     AndroidFragment(
         SettingsFragment::class.java,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .systemBarsPaddingAllExceptTop(),
         fragmentState = settingsFragmentState,
     )
 }

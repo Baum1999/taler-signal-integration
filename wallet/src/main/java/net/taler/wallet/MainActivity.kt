@@ -27,9 +27,15 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View.GONE
 import android.view.View.VISIBLE
+import android.view.ViewGroup.MarginLayoutParams
+import android.view.WindowInsets
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.bundleOf
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -69,16 +75,18 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         ui = ActivityMainBinding.inflate(layoutInflater)
         setContentView(ui.root)
+        setupInsets()
 
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         nav = navHostFragment.navController
 
-        setSupportActionBar(ui.content.toolbar)
-        ui.content.toolbar.setupWithNavController(nav)
+        setSupportActionBar(ui.toolbar)
+        ui.toolbar.setupWithNavController(nav)
 
         // TODO: refactor and unify progress bar handling
         // model.showProgressBar.observe(this) { show ->
@@ -116,12 +124,33 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
         })
 
         model.networkManager.networkStatus.observe(this) { online ->
-            ui.content.offlineBanner.visibility = if (online) GONE else VISIBLE
+            // ui.offlineBanner.visibility = if (online) GONE else VISIBLE
             model.hintNetworkAvailability(online)
         }
 
         model.devMode.observe(this) {
             invalidateMenu()
+        }
+    }
+
+    private fun setupInsets() {
+        // We really don't want to deal with cutouts!
+        ViewCompat.setOnApplyWindowInsetsListener(ui.root) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            v.updateLayoutParams<MarginLayoutParams> {
+                leftMargin = insets.left
+                rightMargin = insets.right
+            }
+            windowInsets
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(ui.toolbar) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.updateLayoutParams<MarginLayoutParams> {
+                leftMargin = insets.left
+                rightMargin = insets.right
+            }
+            windowInsets
         }
     }
 

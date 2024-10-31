@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.common.toAbsoluteTime
+import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
@@ -129,6 +130,8 @@ fun TransactionPeerComposable(
         if (devMode && t.error != null) {
             ErrorTransactionButton(error = t.error!!)
         }
+
+        BottomInsetsSpacer()
     }
 }
 

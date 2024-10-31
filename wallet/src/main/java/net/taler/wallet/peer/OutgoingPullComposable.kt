@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.JsonPrimitive
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
+import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
@@ -227,6 +228,8 @@ fun OutgoingPullIntroComposable(
                 Text(text = stringResource(R.string.receive_peer_create_button))
             }
         }
+
+        BottomInsetsSpacer()
     }
 }
 
@@ -255,6 +258,8 @@ fun PeerErrorComposable(state: OutgoingError, onClose: () -> Unit) {
         ) {
             Text(text = stringResource(R.string.close))
         }
+
+        BottomInsetsSpacer()
     }
 }
 

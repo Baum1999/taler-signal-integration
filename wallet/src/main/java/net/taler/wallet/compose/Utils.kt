@@ -21,7 +21,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.flowWithLifecycle
@@ -57,7 +60,7 @@ fun <T> StateFlow<T>.collectAsStateLifecycleAware(
 @Composable
 fun TalerSurface(content: @Composable () -> Unit) {
     Mdc3Theme {
-        Surface {
+        Surface(Modifier.nestedScroll(rememberNestedScrollInteropConnection())) {
             content()
         }
     }

@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
+import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
@@ -265,6 +266,8 @@ fun MakeDepositComposable(
         ) {
             Text(stringResource(R.string.send_deposit_create_button))
         }
+
+        BottomInsetsSpacer()
     }
 }
 
