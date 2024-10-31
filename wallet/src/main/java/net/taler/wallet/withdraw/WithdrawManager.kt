@@ -240,7 +240,16 @@ class WithdrawManager(
         _withdrawTestStatus.value = TestWithdrawStatus.None
     }
 
-    fun getWithdrawalDetails(uri: String) = scope.launch {
+    fun setWithdrawalExchange(exchangeBaseUrl: String) {
+        _withdrawStatus.update { value ->
+            value.copy(exchangeBaseUrl = exchangeBaseUrl)
+        }
+    }
+
+    fun getWithdrawalDetails(
+        uri: String,
+        loading: Boolean = true,
+    ) = scope.launch {
         _withdrawStatus.update {
             WithdrawStatus(
                 talerWithdrawUri = uri,
@@ -248,6 +257,7 @@ class WithdrawManager(
             )
         }
 
+        // first get URI details
         api.request("getWithdrawalDetailsForUri", WithdrawalDetailsForUri.serializer()) {
             put("talerWithdrawUri", uri)
         }.onError { error ->
@@ -262,6 +272,13 @@ class WithdrawManager(
                     exchangeBaseUrl = details.defaultExchangeBaseUrl,
                 )
             }
+
+            // then extend with amount details
+            getWithdrawalDetails(
+                amount = details.amount,
+                exchangeBaseUrl = details.defaultExchangeBaseUrl,
+                loading = loading,
+            )
         }
     }
 
@@ -275,28 +292,34 @@ class WithdrawManager(
             value.copy(status = if (loading) Loading else Updating)
         }
 
-        val exchangeBaseUrl2 = exchangeBaseUrl
-            ?: status.exchangeBaseUrl
-            ?: error("no exchangeBaseUrl")
+        val a = amount
+            // reset amount to zero when exchangeBaseUrl changes but amount is not set
+            ?: exchangeBaseUrl?.let { url -> exchangeManager.findExchangeByUrl(url)?.currency?.let { Amount.zero(it) } }
+            ?: status.uriInfo?.amount
+            ?: status.amountInfo?.amountRaw
+            ?: error("no amount for withdrawal")
 
-        val amount2 = amount?.toJSONString()
-            ?: status.uriInfo?.amount?.toJSONString()
-            ?: status.amountInfo?.amountRaw?.toJSONString()
-            ?: error("no amount")
+        val exchange = if (exchangeBaseUrl == null && amount?.currency != status.currency) {
+            // find exchange from currency in absence of exchangeBaseUrl
+            amount?.currency?.let { exchangeManager.findExchange(it) }
+        } else {
+            exchangeBaseUrl?.let { exchangeManager.findExchangeByUrl(it) }
+                ?: status.exchangeBaseUrl?.let { exchangeManager.findExchangeByUrl(it) }
+                ?: amount?.currency?.let { exchangeManager.findExchange(it) }
+        } ?: error("no exchange for withdrawal")
 
         api.request("getWithdrawalDetailsForAmount", WithdrawalDetailsForAmount.serializer()) {
-            put("exchangeBaseUrl", exchangeBaseUrl2)
-            put("amount", amount2)
+            put("exchangeBaseUrl", exchange.exchangeBaseUrl)
+            put("amount", a.toJSONString())
         }.onError { error ->
             handleError("getWithdrawalDetailsForAmount", error)
         }.onSuccess { details ->
             scope.launch {
-                val exchange = exchangeManager.findExchangeByUrl(exchangeBaseUrl2)
-                if (exchange?.tosStatus == ExchangeTosStatus.Accepted) {
+                if (exchange.tosStatus == ExchangeTosStatus.Accepted) {
                     _withdrawStatus.update { value ->
                         value.copy(
                             status = InfoReceived,
-                            exchangeBaseUrl = exchangeBaseUrl2,
+                            exchangeBaseUrl = exchange.exchangeBaseUrl,
                             uriInfo = uriInfo ?: value.uriInfo,
                             amountInfo = details,
                             currency = details.amountRaw.currency,
@@ -308,7 +331,7 @@ class WithdrawManager(
                             status = TosReviewRequired,
                             amountInfo = details,
                             currency = details.amountRaw.currency,
-                            exchangeBaseUrl = exchangeBaseUrl,
+                            exchangeBaseUrl = exchange.exchangeBaseUrl,
                         )
                     }
                 }

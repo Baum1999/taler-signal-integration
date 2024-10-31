@@ -130,6 +130,10 @@ class ExchangeManager(
         emit(findExchange(currency))
     }
 
+    fun findExchangeForBaseUrl(url: String): Flow<ExchangeItem?> = flow {
+        emit(findExchangeByUrl(url))
+    }
+
     @WorkerThread
     suspend fun findExchange(currency: String): ExchangeItem? {
         var exchange: ExchangeItem? = null

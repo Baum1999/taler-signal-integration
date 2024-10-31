@@ -68,7 +68,7 @@ fun AmountCurrencyField(
     readOnly: Boolean = false,
 ) {
     var text by remember(initialAmount) { mutableStateOf(initialAmount.amountStr) }
-    var selectedCurrency by rememberSaveable { mutableStateOf(initialCurrency ?: currencies[0]) }
+    var selectedCurrency by rememberSaveable(initialCurrency) { mutableStateOf(initialCurrency ?: currencies[0]) }
     val selectedSpec: CurrencySpecification? = getCurrencySpec(selectedCurrency)
     val amount = remember(selectedCurrency, text) { getAmount(selectedCurrency, text) }
 

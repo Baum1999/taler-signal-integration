@@ -152,8 +152,13 @@ open class ExchangeListFragment : Fragment(), ExchangeClickListener {
     }
 
     override fun onManualWithdraw(item: ExchangeItem) {
-        exchangeManager.withdrawalExchange = item
-        findNavController().navigate(R.id.action_nav_settings_exchanges_to_nav_exchange_manual_withdrawal)
+        model.withdrawManager.resetWithdrawal()
+        val args = bundleOf(
+            "editableCurrency" to false,
+            "exchangeBaseUrl" to item.exchangeBaseUrl,
+            "amount" to item.currency?.let { Amount.zero(it).toJSONString() },
+        )
+        findNavController().navigate(R.id.promptWithdraw, args)
     }
 
     override fun onPeerReceive(item: ExchangeItem) {

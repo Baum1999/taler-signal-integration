@@ -119,8 +119,11 @@ class HandleUriFragment: Fragment() {
                 action.startsWith("withdraw/", ignoreCase = true) -> {
                     Log.v(TAG, "navigating!")
                     // there's more than one entry point, so use global action
-                    model.withdrawManager.getWithdrawalDetails(u2)
-                    val args = bundleOf("editableCurrency" to false)
+                    val args = bundleOf(
+                        "withdrawUri" to u2,
+                        "editableCurrency" to false,
+                    )
+                    model.withdrawManager.resetWithdrawal()
                     findNavController().navigate(R.id.action_handleUri_to_promptWithdraw, args)
                 }
 
@@ -240,14 +243,11 @@ class HandleUriFragment: Fragment() {
                     model.exchangeManager.withdrawalExchange = exchange
                     withContext(Dispatchers.Main) {
                         model.showProgressBar.value = false
-                        val args = Bundle().apply {
-                            putBoolean("hideScanQr", true)
-                            if (response.amount != null) {
-                                putString("amount", response.amount.toJSONString())
-                            }
-                        }
-
-                        findNavController().navigate(R.id.action_handleUri_to_manualWithdrawal, args)
+                        val args = bundleOf(
+                            "exchangeBaseUrl" to response.exchangeBaseUrl,
+                            "amount" to response.amount?.toJSONString(),
+                        )
+                        findNavController().navigate(R.id.promptWithdraw, args)
                     }
                 }
             }

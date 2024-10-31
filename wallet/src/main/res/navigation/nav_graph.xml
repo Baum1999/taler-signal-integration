@@ -43,11 +43,6 @@
             app:nullable="false" />
 
         <action
-            android:id="@+id/action_handleUri_to_manualWithdrawal"
-            app:destination="@id/nav_exchange_manual_withdrawal"
-            app:popUpTo="@id/nav_main" />
-
-        <action
             android:id="@+id/action_handleUri_to_promptPayment"
             app:destination="@id/promptPayment"
             app:popUpTo="@id/nav_main" />
@@ -103,28 +98,7 @@
     <fragment
         android:id="@+id/nav_settings_exchanges"
         android:name="net.taler.wallet.exchanges.ExchangeListFragment"
-        android:label="@string/exchange_list_title">
-        <action
-            android:id="@+id/action_nav_settings_exchanges_to_nav_exchange_manual_withdrawal"
-            app:destination="@id/nav_exchange_manual_withdrawal" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/nav_exchange_manual_withdrawal"
-        android:name="net.taler.wallet.withdraw.manual.ManualWithdrawFragment"
-        android:label="@string/withdraw_title">
-        <action
-            android:id="@+id/action_nav_exchange_manual_withdrawal_to_promptWithdraw"
-            app:destination="@id/promptWithdraw" />
-        <argument
-            android:name="amount"
-            app:argType="string"
-            app:nullable="false" />
-        <argument
-            android:name="hideScanQr"
-            app:argType="boolean"
-            app:nullable="false" />
-    </fragment>
+        android:label="@string/exchange_list_title" />
 
     <fragment
         android:id="@+id/nav_exchange_manual_withdrawal_success"
@@ -280,9 +254,21 @@
         android:name="net.taler.wallet.withdraw.PromptWithdrawFragment"
         android:label="@string/nav_prompt_withdraw">
         <argument
+            android:name="withdrawUri"
+            app:nullable="true"
+            app:argType="string" />
+        <argument
             android:name="editableCurrency"
             android:defaultValue="true"
             app:argType="boolean" />
+        <argument
+            android:name="exchangeBaseUrl"
+            app:nullable="true"
+            app:argType="string" />
+        <argument
+            android:name="amount"
+            app:nullable="true"
+            app:argType="string" />
         <action
             android:id="@+id/action_promptWithdraw_to_nav_main"
             app:destination="@id/nav_main"
