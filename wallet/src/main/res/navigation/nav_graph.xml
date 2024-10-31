@@ -23,8 +23,7 @@
     <fragment
         android:id="@+id/nav_main"
         android:name="net.taler.wallet.MainFragment"
-        android:label="@string/balances_title"
-        tools:layout="@layout/fragment_balances">
+        android:label="@string/balances_title">
         <action
             android:id="@+id/action_nav_main_to_nav_uri_input"
             app:destination="@id/nav_uri_input" />
