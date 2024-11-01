@@ -84,6 +84,7 @@ fun MakeDepositComposable(
         // TODO: use scopeInfo instead of currency!
         var checkResult by remember { mutableStateOf<CheckDepositResult>(CheckDepositResult.None) }
         var amount by remember { mutableStateOf(Amount.zero(defaultCurrency ?: currencies[0])) }
+        val currencySpec = remember (amount) { getCurrencySpec(amount.currency) }
 
         var depositWireTypes by remember { mutableStateOf<GetDepositWireTypesForCurrencyResponse?>(null) }
         val supportedWireTypes = remember(depositWireTypes) { depositWireTypes?.wireTypes ?: emptyList() }
@@ -162,12 +163,10 @@ fun MakeDepositComposable(
                     start = 16.dp,
                     end = 16.dp,
                 ).fillMaxWidth(),
-            initialAmount = amount,
-            initialCurrency = defaultCurrency,
+            amount = amount.withSpec(currencySpec),
             onAmountChanged = { amount = it },
             editableCurrency = true,
             currencies = currencies,
-            getCurrencySpec = getCurrencySpec,
             isError = checkResult !is CheckDepositResult.Success,
             label = { Text(stringResource(R.string.amount_deposit)) },
             supportingText = {

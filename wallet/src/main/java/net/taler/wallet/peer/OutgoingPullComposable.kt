@@ -119,7 +119,7 @@ fun OutgoingPullIntroComposable(
     ) {
         var subject by rememberSaveable { mutableStateOf("") }
         var amount by remember { mutableStateOf(Amount.zero(defaultCurrency ?: currencies[0])) }
-        val selectedSpec = remember(amount) { getCurrencySpec(amount.currency) }
+        val selectedSpec = remember(amount.currency) { getCurrencySpec(amount.currency) }
         var checkResult by remember { mutableStateOf<CheckPeerPullCreditResult?>(null) }
 
         amount.useDebounce {
@@ -134,12 +134,10 @@ fun OutgoingPullIntroComposable(
             modifier = Modifier
                 .padding(bottom = 16.dp)
                 .fillMaxWidth(),
-            initialAmount = amount,
-            initialCurrency = amount.currency,
+            amount = amount.withSpec(selectedSpec),
             currencies = currencies,
             readOnly = false,
             onAmountChanged = { amount = it },
-            getCurrencySpec = getCurrencySpec,
             isError = amount.isZero(),
             label = { Text(stringResource(R.string.amount_receive)) },
         )

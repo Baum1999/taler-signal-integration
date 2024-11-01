@@ -104,6 +104,14 @@ class PromptWithdrawFragment: Fragment() {
                 ?: currencies.firstOrNull()
                 ?: error("no default currency specified")
 
+            val currencySpec = remember(exchange?.scopeInfo) {
+                exchange?.scopeInfo?.let { scopeInfo ->
+                    balanceManager.getSpecForScopeInfo(scopeInfo)
+                } ?: status.currency?.let {
+                    balanceManager.getSpecForCurrency(it)
+                }
+            }
+
             TalerSurface {
                 status.let { s ->
                     if (s.error != null) {
@@ -115,21 +123,13 @@ class PromptWithdrawFragment: Fragment() {
                         Loading -> LoadingScreen()
 
                         None, InfoReceived, TosReviewRequired, Updating -> {
-                            val spec = remember(s) {
-                                exchange?.scopeInfo?.let { scopeInfo ->
-                                    balanceManager.getSpecForScopeInfo(scopeInfo)
-                                } ?: s.currency?.let {
-                                    balanceManager.getSpecForCurrency(it)
-                                }
-                            }
-
                             // TODO: use scopeInfo instead of currency!
                             WithdrawalShowInfo(
                                 status = s,
                                 defaultCurrency = defaultCurrency,
                                 editableCurrency = editableCurrency,
                                 currencies = currencies,
-                                spec = spec,
+                                spec = currencySpec,
                                 onSelectExchange = {
                                     selectExchange()
                                 },

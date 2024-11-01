@@ -113,12 +113,10 @@ fun WithdrawalShowInfo(
                     modifier = Modifier
                         .padding(16.dp)
                         .fillMaxWidth(),
-                    initialAmount = selectedAmount.withSpec(spec),
-                    initialCurrency = defaultCurrency,
+                    amount = selectedAmount.withSpec(spec),
                     currencies = currencies,
                     editableCurrency = editableCurrency,
                     onAmountChanged = { selectedAmount = it },
-                    getCurrencySpec = { spec },
                     label = { Text(stringResource(R.string.amount_withdraw)) },
                     isError = selectedAmount.isZero() || maxAmount != null && selectedAmount > maxAmount,
                     supportingText = {

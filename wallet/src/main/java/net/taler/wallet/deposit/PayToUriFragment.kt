@@ -133,18 +133,17 @@ private fun PayToComposable(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         var amount by remember { mutableStateOf(Amount.zero(currencies[0])) }
+        val currencySpec = remember(amount.currency) { getCurrencySpec(amount.currency) }
         var amountError by rememberSaveable { mutableStateOf("") }
 
         AmountCurrencyField(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth(),
-            initialAmount = amount,
-            initialCurrency = amount.currency,
+            amount = amount.withSpec(currencySpec),
             currencies = currencies,
             readOnly = false,
             onAmountChanged = { amount = it },
-            getCurrencySpec = getCurrencySpec,
             label = { Text(stringResource(R.string.amount_send)) },
             isError = amountError.isNotBlank(),
             supportingText = {

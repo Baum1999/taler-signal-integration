@@ -96,7 +96,7 @@ fun OutgoingPushIntroComposable(
         horizontalAlignment = CenterHorizontally,
     ) {
         var amount by remember { mutableStateOf(Amount.zero(defaultCurrency ?: currencies[0])) }
-        val selectedSpec = remember(amount) { getCurrencySpec(amount.currency) }
+        val selectedSpec = remember(amount.currency) { getCurrencySpec(amount.currency) }
         var feeResult by remember { mutableStateOf<CheckFeeResult>(None) }
 
         amount.useDebounce {
@@ -109,12 +109,10 @@ fun OutgoingPushIntroComposable(
 
         AmountCurrencyField(
             modifier = Modifier.fillMaxWidth(),
-            initialAmount = amount,
-            initialCurrency = amount.currency,
+            amount = amount.withSpec(selectedSpec),
             currencies = currencies,
             readOnly = false,
             onAmountChanged = { amount = it },
-            getCurrencySpec = getCurrencySpec,
             label = { Text(stringResource(R.string.amount_send)) },
             isError = amount.isZero() || feeResult is InsufficientBalance,
             supportingText = {

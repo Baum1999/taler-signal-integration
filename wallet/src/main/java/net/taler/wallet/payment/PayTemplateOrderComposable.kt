@@ -29,7 +29,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.End
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -47,7 +46,6 @@ import net.taler.wallet.R
 import net.taler.wallet.compose.AmountCurrencyField
 import net.taler.wallet.compose.TalerSurface
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun PayTemplateOrderComposable(
     usableCurrencies: List<String>, // non-empty intersection between the stored currencies and the ones supported by the merchant
@@ -68,6 +66,9 @@ fun PayTemplateOrderComposable(
     var amount by remember {
         val currency = defaultCurrency ?: usableCurrencies[0]
         mutableStateOf(defaultAmount?.withCurrency(currency) ?: Amount.zero(currency))
+    }
+    val currencySpec = remember(amount.currency) {
+        getCurrencySpec(amount.currency)
     }
 
     Column(horizontalAlignment = End) {
@@ -93,13 +94,11 @@ fun PayTemplateOrderComposable(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
-            initialAmount = amount,
-            initialCurrency = amount.currency,
+            amount = amount.withSpec(currencySpec),
             currencies = usableCurrencies,
             editableCurrency = !templateDetails.isCurrencyEditable(usableCurrencies),
             readOnly = !templateDetails.isAmountEditable(),
             onAmountChanged = { amount = it },
-            getCurrencySpec = getCurrencySpec,
             label = { Text(stringResource(R.string.amount_send)) },
         )
 

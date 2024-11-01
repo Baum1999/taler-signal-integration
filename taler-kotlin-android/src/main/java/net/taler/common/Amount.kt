@@ -23,6 +23,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.text.NumberFormat
@@ -68,6 +69,7 @@ data class Amount(
 
     companion object {
 
+        const val DEFAULT_INPUT_DECIMALS = 2
         private const val FRACTIONAL_BASE: Int = 100000000 // 1e8
 
         private val REGEX_CURRENCY = Regex("""^[-_*A-Za-z0-9]{1,12}$""")
@@ -213,6 +215,30 @@ data class Amount(
         negative = false,
     )
 
+    fun addInputDigit(c: Char): Amount? = c.digitToIntOrNull()?.let { digit ->
+        try {
+            val value = amountStr.toBigDecimal()
+            val decimals = spec?.numFractionalInputDigits ?: DEFAULT_INPUT_DECIMALS
+            fromString(
+                currency,
+                // some real math!
+                ((value * 10.0.toBigDecimal().setScale(decimals))
+                        + (digit.toBigDecimal().setScale(decimals)
+                        / 10.0.toBigDecimal().pow(decimals))).toString()
+            )
+        } catch (e: AmountParserException) { null }
+    }
+
+    fun removeInputDigit(): Amount? = try {
+        val decimals = spec?.numFractionalInputDigits ?: DEFAULT_INPUT_DECIMALS
+        val value = amountStr.toBigDecimal().setScale(decimals + 1, RoundingMode.FLOOR)
+        fromString(
+            currency,
+            // more math!
+            (value / "10.0".toBigDecimal()).setScale(decimals, RoundingMode.FLOOR).toString()
+        )
+    } catch (e: AmountParserException) { null }
+
     fun toString(
         showSymbol: Boolean = true,
         negative: Boolean = false,
@@ -266,7 +292,6 @@ data class Amount(
             else -> return 1
         }
     }
-
 }
 
 @OptIn(ExperimentalSerializationApi::class)
