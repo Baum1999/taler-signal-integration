@@ -23,6 +23,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -31,6 +32,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
@@ -58,6 +60,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -67,6 +70,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -83,6 +87,7 @@ import net.taler.wallet.compose.GridMenuItem
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.settings.SettingsFragment
+import kotlin.math.roundToInt
 
 class MainFragment: Fragment() {
 
@@ -90,7 +95,7 @@ class MainFragment: Fragment() {
 
     private val model: MainViewModel by activityViewModels()
 
-    @OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -125,24 +130,39 @@ class MainFragment: Fragment() {
                                 tooltip = { PlainTooltip { Text(stringResource(R.string.actions)) } },
                                 state = rememberTooltipState(),
                             ) {
+                                var offsetY by remember { mutableFloatStateOf(0f) }
+
                                 DemandAttention {
                                     LargeFloatingActionButton(
                                         modifier = Modifier
                                             .requiredSize(86.dp)
                                             .padding(8.dp)
+                                            .offset { IntOffset(0, offsetY.roundToInt() / 6) }
                                             .draggable(
                                                 orientation = Orientation.Vertical,
-                                                state = rememberDraggableState { },
-                                                onDragStopped = { onScanQr() },
+                                                state = rememberDraggableState { delta ->
+                                                    if (delta < 0) { offsetY += delta }
+                                                },
+                                                onDragStopped = {
+                                                    offsetY = 0.0f
+                                                    onScanQr()
+                                                },
                                             ),
                                         shape = CircleShape,
                                         onClick = { showSheet = true },
                                     ) {
-                                        Icon(
-                                            painterResource(R.drawable.ic_actions),
-                                            modifier = Modifier.size(38.dp),
-                                            contentDescription = stringResource(R.string.actions),
-                                        )
+                                        if (offsetY == 0.0f) {
+                                            Icon(
+                                                painterResource(R.drawable.ic_actions),
+                                                modifier = Modifier.size(38.dp),
+                                                contentDescription = stringResource(R.string.actions),
+                                            )
+                                        } else {
+                                            Icon(
+                                                painterResource(R.drawable.ic_scan_qr),
+                                                contentDescription = stringResource(R.string.actions),
+                                            )
+                                        }
                                     }
                                 }
                             }

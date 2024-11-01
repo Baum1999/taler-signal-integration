@@ -16,6 +16,7 @@
 
 package net.taler.wallet.compose
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
@@ -30,6 +31,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import net.taler.wallet.R
 
 @Composable
@@ -81,5 +83,7 @@ fun SelectionModeTopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
         ),
+
+        windowInsets = WindowInsets(0.dp),
     )
 }

@@ -81,13 +81,15 @@ fun AmountCurrencyField(
             readOnly = readOnly,
         )
 
-        CurrencyDropdown(
-            modifier = Modifier.weight(1f),
-            currencies = currencies,
-            onCurrencyChanged = { onAmountChanged(amount.copy(currency = it)) },
-            initialCurrency = amount.currency,
-            readOnly = !editableCurrency,
-        )
+        if (editableCurrency) {
+            CurrencyDropdown(
+                modifier = Modifier.weight(1f),
+                currencies = currencies,
+                onCurrencyChanged = { onAmountChanged(amount.copy(currency = it)) },
+                initialCurrency = amount.currency,
+                readOnly = false,
+            )
+        }
     }
 }
 
