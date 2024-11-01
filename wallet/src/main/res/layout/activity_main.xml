@@ -45,7 +45,7 @@
             android:layout_height="4dp"
             android:elevation="4dp"
             android:indeterminate="true"
-            android:visibility="invisible"
+            android:visibility="gone"
             app:mpb_progressStyle="horizontal"
             app:mpb_useIntrinsicPadding="false"
             tools:visibility="visible" />

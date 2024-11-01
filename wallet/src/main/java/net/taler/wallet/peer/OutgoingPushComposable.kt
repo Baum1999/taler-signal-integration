@@ -122,7 +122,6 @@ fun OutgoingPushIntroComposable(
                     is Success -> if (res.amountEffective > res.amountRaw) {
                         val fee = res.amountEffective - res.amountRaw
                         Text(
-                            modifier = Modifier.padding(vertical = 16.dp),
                             text = stringResource(
                                 id = R.string.payment_fee,
                                 fee.withSpec(selectedSpec)

@@ -47,8 +47,11 @@ fun MakeDepositTaler(
 ) {
     OutlinedTextField(
         modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth(),
+            .padding(
+                bottom = 16.dp,
+                start = 16.dp,
+                end = 16.dp,
+            ).fillMaxWidth(),
         value = name,
         onValueChange = { input ->
             onFormEdited(input, host, account)
