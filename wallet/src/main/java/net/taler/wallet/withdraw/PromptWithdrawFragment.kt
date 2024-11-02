@@ -151,25 +151,16 @@ class PromptWithdrawFragment: Fragment() {
                 }
             }
 
-            LaunchedEffect(exchange) {
-                exchangeBaseUrl?.let {
-                    withdrawManager.getWithdrawalDetails(exchangeBaseUrl = it)
-                }
-            }
-
-            LaunchedEffect(Unit) {
+            LaunchedEffect(exchange?.exchangeBaseUrl) {
                 if (withdrawUri != null) {
                     // get withdrawal details for taler:// URI
                     withdrawManager.getWithdrawalDetails(withdrawUri, loading = true)
-                } else if (exchangeBaseUrl != null) {
-                    // get withdrawal details for exchange URL
-                    withdrawManager.setWithdrawalExchange(exchangeBaseUrl)
-                } else if (amount != null) {
-                    // get withdrawal details for amount/currency
-                    withdrawManager.getWithdrawalDetails(amount = amount, loading = true)
                 } else {
-                    // get withdrawal details for default currency
-                    withdrawManager.getWithdrawalDetails(amount = Amount.zero(defaultCurrency), loading = true)
+                    withdrawManager.getWithdrawalDetails(
+                        amount = amount ?: Amount.zero(defaultCurrency),
+                        exchangeBaseUrl = exchange?.exchangeBaseUrl ?: exchangeBaseUrl,
+                        loading = true,
+                    )
                 }
             }
         }
