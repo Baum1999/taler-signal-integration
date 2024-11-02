@@ -19,6 +19,8 @@ package net.taler.wallet.balances
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.taler.common.Amount
+import net.taler.wallet.PrefsScopeInfo
+import net.taler.wallet.ScopeInfoType
 
 @Serializable
 data class BalanceItem(
@@ -53,4 +55,42 @@ sealed class ScopeInfo {
         override val currency: String,
         val url: String,
     ): ScopeInfo()
+
+    fun toPrefs(): PrefsScopeInfo {
+        val type = when (this) {
+            is Global -> ScopeInfoType.GLOBAL
+            is Exchange -> ScopeInfoType.EXCHANGE
+            is Auditor -> ScopeInfoType.AUDITOR
+        }
+
+        val url = when (this) {
+            is Exchange -> url
+            is Auditor -> url
+            else -> null
+        }
+
+        return PrefsScopeInfo.newBuilder()
+            .setType(type)
+            .setUrl(url)
+            .setCurrency(currency)
+            .build()
+    }
+
+    companion object {
+        fun fromPrefs(scope: PrefsScopeInfo) = when (scope.type) {
+            ScopeInfoType.GLOBAL -> Global(currency = scope.currency)
+
+            ScopeInfoType.EXCHANGE -> Exchange(
+                currency = scope.currency,
+                url = scope.url,
+            )
+
+            ScopeInfoType.AUDITOR -> Auditor(
+                currency =  scope.currency,
+                url = scope.url,
+            )
+
+            else -> null
+        }
+    }
 }

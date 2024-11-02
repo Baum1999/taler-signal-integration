@@ -17,6 +17,7 @@
 package net.taler.wallet
 
 import android.app.Application
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.annotation.UiThread
@@ -28,6 +29,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import net.taler.common.Amount
@@ -53,6 +55,7 @@ import net.taler.wallet.payment.PaymentManager
 import net.taler.wallet.peer.PeerManager
 import net.taler.wallet.refund.RefundManager
 import net.taler.wallet.settings.SettingsManager
+import net.taler.wallet.settings.userPreferencesDataStore
 import net.taler.wallet.transactions.TransactionManager
 import net.taler.wallet.withdraw.WithdrawManager
 import org.json.JSONObject
@@ -278,6 +281,27 @@ class MainViewModel(
         }
     }
 
+    fun getSelectedScope(c: Context) = c.userPreferencesDataStore.data.map { scope ->
+        if (scope.hasSelectedScope()) {
+            ScopeInfo.fromPrefs(scope.selectedScope)
+        } else {
+            null
+        }
+    }
+
+    fun saveSelectedScope(c: Context, scopeInfo: ScopeInfo?) = viewModelScope.launch {
+        c.userPreferencesDataStore.updateData { current ->
+            if (scopeInfo != null) {
+                current.toBuilder()
+                    .setSelectedScope(scopeInfo.toPrefs())
+                    .build()
+            } else {
+                current.toBuilder()
+                    .clearSelectedScope()
+                    .build()
+            }
+        }
+    }
 }
 
 enum class ScanQrContext {

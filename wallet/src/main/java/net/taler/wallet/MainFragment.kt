@@ -78,6 +78,7 @@ import androidx.fragment.compose.AndroidFragment
 import androidx.fragment.compose.FragmentState
 import androidx.fragment.compose.rememberFragmentState
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.flow.first
 import net.taler.wallet.balances.BalanceState
 import net.taler.wallet.balances.BalancesComposable
 import net.taler.wallet.balances.ScopeInfo
@@ -179,6 +180,16 @@ class MainFragment: Fragment() {
                         WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
                     )
                 ) { innerPadding ->
+                    LaunchedEffect(Unit) {
+                        model.transactionManager.selectScope(
+                            model.getSelectedScope(context).first(),
+                        )
+                    }
+
+                    LaunchedEffect(selectedScope) {
+                        model.saveSelectedScope(context, selectedScope)
+                    }
+
                     LaunchedEffect(tab, selectedScope) {
                         setTitle(tab, selectedScope)
                     }

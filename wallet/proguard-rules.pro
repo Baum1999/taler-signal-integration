@@ -24,6 +24,8 @@
 
 -dontobfuscate
 -keep class net.taler.wallet.** {*;}
+-keep class androidx.datastore.*.** {*;}
+-keep class com.google.protobuf.*.** {*;}
 
 -dontwarn java.lang.management.ManagementFactory
 -dontwarn java.lang.management.RuntimeMXBean

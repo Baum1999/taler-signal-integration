@@ -7,6 +7,7 @@ buildscript {
         lifecycle_version = '2.8.4'
         constraintlayout_version = '2.1.4'
         junit_version = "4.13.2"
+        datastore_version = "1.1.1"
         // should debug build types be minified with D8 as well? good for catching issues early
         minify_debug = true
     }

@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option java_package = "net.taler.wallet";
+option java_multiple_files = true;
+
+enum ScopeInfoType {
+  GLOBAL = 0;
+  EXCHANGE = 1;
+  AUDITOR = 2;
+}
+
+message PrefsScopeInfo {
+  ScopeInfoType type = 1;
+  string currency = 2;
+  optional string url = 3;
+}
+
+message UserPreferences {
+  optional PrefsScopeInfo selectedScope = 1;
+}

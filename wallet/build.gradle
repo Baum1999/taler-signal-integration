@@ -20,6 +20,7 @@ plugins {
     id "com.android.application"
     id "kotlin-android"
     id "kotlinx-serialization"
+    id "com.google.protobuf" version "0.9.4"
 }
 
 def qtart_version = "0.13.6"
@@ -175,6 +176,10 @@ dependencies {
     // Java Native Access (must always match JNA in qtart)
     implementation "net.java.dev.jna:jna:5.13.0@aar"
 
+    // Shared preferences
+    implementation "androidx.datastore:datastore:$datastore_version"
+    implementation  "com.google.protobuf:protobuf-javalite:3.18.0"
+
     testImplementation "junit:junit:$junit_version"
     testImplementation 'org.json:json:20220320'
 }
@@ -199,5 +204,21 @@ android.applicationVariants.configureEach { variant ->
             output.versionCodeOverride = 10 * variant.versionCode + baseAbiVersionCode
         }
         // leaves version code alone of there's no baseAbiVersionCode
+    }
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:4.28.3"
+    }
+
+    generateProtoTasks {
+        all().each { task ->
+            task.builtins {
+                java {
+                    option 'lite'
+                }
+            }
+        }
     }
 }
