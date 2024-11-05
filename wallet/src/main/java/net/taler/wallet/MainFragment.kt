@@ -347,23 +347,9 @@ fun TalerActionsModal(
                 ),
             ) {
                 GridMenuItem(
-                    icon = R.drawable.transaction_p2p_outgoing,
-                    title = R.string.transactions_send_funds,
-                    onClick = { onSend(); onDismiss() },
-                    enabled = !disableActions,
-                )
-
-                GridMenuItem(
-                    icon = R.drawable.transaction_p2p_incoming,
-                    title = R.string.transactions_receive_funds,
-                    onClick = { onReceive(); onDismiss() },
-                    enabled = !disableActions,
-                )
-
-                GridMenuItem(
-                    icon = R.drawable.ic_scan_qr,
-                    title = R.string.button_scan_qr_code_label,
-                    onClick = { onScanQr(); onDismiss() },
+                    icon = R.drawable.ic_link,
+                    title = R.string.enter_uri_label,
+                    onClick = { onEnterUri(); onDismiss() },
                 )
 
                 GridMenuItem(
@@ -374,6 +360,19 @@ fun TalerActionsModal(
                 )
 
                 GridMenuItem(
+                    icon = R.drawable.ic_scan_qr,
+                    title = R.string.button_scan_qr_code_label,
+                    onClick = { onScanQr(); onDismiss() },
+                )
+
+                GridMenuItem(
+                    icon = R.drawable.transaction_p2p_incoming,
+                    title = R.string.transactions_receive_funds,
+                    onClick = { onReceive(); onDismiss() },
+                    enabled = !disableActions,
+                )
+
+                GridMenuItem(
                     icon = R.drawable.transaction_withdrawal,
                     title = R.string.withdraw_button_label,
                     onClick = { onWithdraw(); onDismiss() },
@@ -381,9 +380,10 @@ fun TalerActionsModal(
                 )
 
                 GridMenuItem(
-                    icon = R.drawable.ic_link,
-                    title = R.string.enter_uri_label,
-                    onClick = { onEnterUri(); onDismiss() },
+                    icon = R.drawable.transaction_p2p_outgoing,
+                    title = R.string.transactions_send_funds,
+                    onClick = { onSend(); onDismiss() },
+                    enabled = !disableActions,
                 )
             }
         }
