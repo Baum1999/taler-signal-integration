@@ -61,7 +61,13 @@ class OutgoingPullFragment : Fragment() {
                         defaultCurrency = selectedScope?.currency,
                         currencies = balanceManager.getCurrencies(),
                         getCurrencySpec = balanceManager::getSpecForCurrency,
-                        checkPeerPullCredit = peerManager::checkPeerPullCredit,
+                        checkPeerPullCredit = {
+                            // TODO: this should work with scopeInfo/exchangeBaseUrl
+                            exchangeManager.findExchange(it.currency)?.let { ex ->
+                                peerManager.checkPeerPullCredit(it,
+                                    exchangeBaseUrl = ex.exchangeBaseUrl)
+                            }
+                        },
                         onClose = {
                             findNavController().navigate(R.id.action_nav_peer_pull_to_nav_main)
                         }

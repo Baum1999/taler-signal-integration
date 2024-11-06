@@ -31,9 +31,11 @@ import kotlinx.serialization.json.jsonPrimitive
 import net.taler.common.Amount
 import net.taler.common.Timestamp
 import net.taler.wallet.TAG
+import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorCode.WALLET_PEER_PUSH_PAYMENT_INSUFFICIENT_BALANCE
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
+import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.exchanges.ExchangeManager
@@ -76,12 +78,17 @@ class PeerManager(
     private val _incomingPushState = MutableStateFlow<IncomingState>(IncomingChecking)
     val incomingPushState: StateFlow<IncomingState> = _incomingPushState
 
-    suspend fun checkPeerPullCredit(amount: Amount, exchangeBaseUrl: String? = null): CheckPeerPullCreditResult? {
+    suspend fun checkPeerPullCredit(
+        amount: Amount,
+        exchangeBaseUrl: String? = null,
+        scopeInfo: ScopeInfo? = null,
+    ): CheckPeerPullCreditResult? {
         var response: CheckPeerPullCreditResult? = null
         val exchangeItem = exchangeManager.findExchange(amount.currency) ?: return null
 
         api.request("checkPeerPullCredit", CheckPeerPullCreditResponse.serializer()) {
             exchangeBaseUrl?.let { put("exchangeBaseUrl", it) }
+            scopeInfo?.let { put("restrictScope", JSONObject(BackendManager.json.encodeToString(scopeInfo))) }
             put("amount", amount.toJSONString())
         }.onSuccess {
             response = CheckPeerPullCreditResult(
