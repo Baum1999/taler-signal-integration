@@ -335,4 +335,12 @@
     <string name="send_deposit_host">Host</string>
     <string name="send_deposit_no_methods_error">Keine unterstützten Überweisungsmethoden</string>
     <string name="send_deposit_taler">x-taler-bank</string>
+    <string name="actions">Aktionen</string>
+    <string name="withdraw_button_label">Abheben</string>
+    <string name="enter_uri_label">URI eingeben</string>
+    <string name="amount_deposit">Zu überweisender Betrag</string>
+    <string name="balances_empty_demo_url">https://bank.demo.taler.net</string>
+    <string name="balances_empty_get_money">Test-Geld beziehen</string>
+    <string name="transactions_currency">%1$s (%2$s)</string>
+    <string name="send_deposit_button_label">Überweisung auf Bankkonto (Umsatz einlösen)</string>
 </resources>
