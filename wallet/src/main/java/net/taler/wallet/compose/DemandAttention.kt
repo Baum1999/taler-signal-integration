@@ -31,29 +31,43 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 
 @Composable
-fun DemandAttention(content: @Composable () -> Unit) {
+fun DemandAttention(
+    initialDelayMillis: Long = 400,
+    wiggleWidth: Float = 5f,
+    wiggleCount: Int = 2,
+    demandAttention: Boolean = true,
+    content: @Composable () -> Unit,
+) {
     val offsetX = remember { Animatable(0f) }
-    LaunchedEffect(Unit) {
-        delay(400)
 
+    suspend fun wiggle() {
         offsetX.animateTo(
-            targetValue = -5f,
-            animationSpec = tween(90, easing = LinearEasing),
+            targetValue = -wiggleWidth,
+            animationSpec = tween(80, easing = LinearEasing),
         )
 
         offsetX.animateTo(
-            targetValue = 5f,
+            targetValue = wiggleWidth,
             animationSpec = repeatable(
                 iterations = 5,
-                animation = tween(80, easing = LinearEasing),
+                animation = tween(90, easing = LinearEasing),
                 repeatMode = RepeatMode.Reverse,
             )
         )
 
         offsetX.animateTo(
             targetValue = 0f,
-            animationSpec = tween(90, easing = LinearEasing),
+            animationSpec = tween(80, easing = LinearEasing),
         )
+    }
+
+    LaunchedEffect(demandAttention) {
+        if (demandAttention) {
+            delay(initialDelayMillis)
+            repeat(wiggleCount) {
+                wiggle()
+            }
+        }
     }
 
     Box(Modifier.offset(offsetX.value.dp, 0.dp)) {

@@ -281,9 +281,9 @@ class MainViewModel(
         }
     }
 
-    fun getSelectedScope(c: Context) = c.userPreferencesDataStore.data.map { scope ->
-        if (scope.hasSelectedScope()) {
-            ScopeInfo.fromPrefs(scope.selectedScope)
+    fun getSelectedScope(c: Context) = c.userPreferencesDataStore.data.map { prefs ->
+        if (prefs.hasSelectedScope()) {
+            ScopeInfo.fromPrefs(prefs.selectedScope)
         } else {
             null
         }
@@ -300,6 +300,22 @@ class MainViewModel(
                     .clearSelectedScope()
                     .build()
             }
+        }
+    }
+
+    fun getActionButtonUsed(c: Context) = c.userPreferencesDataStore.data.map { prefs ->
+        if (prefs.hasActionButtonUsed()) {
+            prefs.actionButtonUsed
+        } else {
+            false
+        }
+    }
+
+    fun saveActionButtonUsed(c: Context) = viewModelScope.launch {
+        c.userPreferencesDataStore.updateData { current ->
+            current.toBuilder()
+                .setActionButtonUsed(true)
+                .build()
         }
     }
 }

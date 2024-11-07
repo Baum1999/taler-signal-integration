@@ -23,7 +23,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -60,7 +60,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -79,6 +78,7 @@ import androidx.fragment.compose.FragmentState
 import androidx.fragment.compose.rememberFragmentState
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import net.taler.wallet.balances.BalanceState
 import net.taler.wallet.balances.BalancesComposable
 import net.taler.wallet.balances.ScopeInfo
@@ -96,7 +96,7 @@ class MainFragment: Fragment() {
 
     private val model: MainViewModel by activityViewModels()
 
-    @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -115,6 +115,7 @@ class MainFragment: Fragment() {
                 val selectedScope by model.transactionManager.selectedScope.collectAsStateLifecycleAware()
                 val txResult by remember(selectedScope) { model.transactionManager.transactionsFlow(selectedScope) }.collectAsStateLifecycleAware()
                 val selectedSpec = remember(selectedScope) { selectedScope?.let { model.balanceManager.getSpecForScopeInfo(it) } }
+                val actionButtonUsed by remember { model.getActionButtonUsed(context) }.collectAsStateLifecycleAware(true)
 
                 Scaffold(
                     bottomBar = {
@@ -126,47 +127,17 @@ class MainFragment: Fragment() {
                                 onClick = { tab = Tab.BALANCES },
                             )
 
-                            TooltipBox(
-                                positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                                tooltip = { PlainTooltip { Text(stringResource(R.string.actions)) } },
-                                state = rememberTooltipState(),
-                            ) {
-                                var offsetY by remember { mutableFloatStateOf(0f) }
-
-                                DemandAttention {
-                                    LargeFloatingActionButton(
-                                        modifier = Modifier
-                                            .requiredSize(86.dp)
-                                            .padding(8.dp)
-                                            .offset { IntOffset(0, offsetY.roundToInt() / 6) }
-                                            .draggable(
-                                                orientation = Orientation.Vertical,
-                                                state = rememberDraggableState { delta ->
-                                                    if (delta < 0) { offsetY += delta }
-                                                },
-                                                onDragStopped = {
-                                                    offsetY = 0.0f
-                                                    onScanQr()
-                                                },
-                                            ),
-                                        shape = CircleShape,
-                                        onClick = { showSheet = true },
-                                    ) {
-                                        if (offsetY == 0.0f) {
-                                            Icon(
-                                                painterResource(R.drawable.ic_actions),
-                                                modifier = Modifier.size(38.dp),
-                                                contentDescription = stringResource(R.string.actions),
-                                            )
-                                        } else {
-                                            Icon(
-                                                painterResource(R.drawable.ic_scan_qr),
-                                                contentDescription = stringResource(R.string.actions),
-                                            )
-                                        }
-                                    }
-                                }
-                            }
+                            TalerActionButton(
+                                demandAttention = !actionButtonUsed,
+                                onShowSheet = {
+                                    showSheet = true
+                                    model.saveActionButtonUsed(context)
+                                },
+                                onScanQr = {
+                                    onScanQr()
+                                    model.saveActionButtonUsed(context)
+                                },
+                            )
 
                             NavigationBarItem(
                                 icon = { Icon(Icons.Default.Settings, contentDescription = null) },
@@ -251,6 +222,8 @@ class MainFragment: Fragment() {
         }
     }
 
+
+
     override fun onStart() {
         super.onStart()
         model.balanceManager.loadBalances()
@@ -315,6 +288,70 @@ fun SettingsView(
             .systemBarsPaddingAllExceptTop(),
         fragmentState = settingsFragmentState,
     )
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun TalerActionButton(
+    demandAttention: Boolean,
+    onShowSheet: () -> Unit,
+    onScanQr: () -> Unit,
+) {
+    val tooltipState = rememberTooltipState()
+    TooltipBox(
+        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        tooltip = { PlainTooltip { Text(stringResource(R.string.actions)) } },
+        state = tooltipState,
+    ) {
+        val offsetY = remember { Animatable(0f) }
+        var cancelled by remember { mutableStateOf(false) }
+
+        DemandAttention(demandAttention = demandAttention) {
+            LargeFloatingActionButton(
+                modifier = Modifier
+                    .requiredSize(86.dp)
+                    .padding(8.dp)
+                    .offset { IntOffset(0, offsetY.value.roundToInt() / 6) }
+                    .draggable(
+                        orientation = Orientation.Vertical,
+                        state = rememberDraggableState { delta ->
+                            runBlocking { offsetY.snapTo(offsetY.value + delta) }
+                            if (delta > 0) {
+                                cancelled = true
+                            }
+                        },
+                        onDragStopped = {
+                            offsetY.animateTo(0.0f)
+                            if (!cancelled) {
+                                onScanQr()
+                            }
+                            cancelled = false
+                        },
+                    ),
+                shape = CircleShape,
+                onClick = { onShowSheet() },
+            ) {
+                if (offsetY.value == 0.0f) {
+                    Icon(
+                        painterResource(R.drawable.ic_actions),
+                        modifier = Modifier.size(38.dp),
+                        contentDescription = stringResource(R.string.actions),
+                    )
+                } else {
+                    Icon(
+                        painterResource(R.drawable.ic_scan_qr),
+                        contentDescription = stringResource(R.string.actions),
+                    )
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(demandAttention) {
+        if (demandAttention) {
+            tooltipState.show()
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
