@@ -116,7 +116,14 @@ fun WithdrawalShowInfo(
                     amount = selectedAmount.withSpec(spec),
                     currencies = currencies,
                     editableCurrency = editableCurrency,
-                    onAmountChanged = { selectedAmount = it },
+                    onAmountChanged = { amount ->
+                        selectedAmount = if (amount.currency != status.currency) {
+                            // if amount changes, reset to zero!
+                            Amount.zero(amount.currency)
+                        } else {
+                            amount
+                        }
+                    },
                     label = { Text(stringResource(R.string.amount_withdraw)) },
                     isError = selectedAmount.isZero() || maxAmount != null && selectedAmount > maxAmount,
                     supportingText = {

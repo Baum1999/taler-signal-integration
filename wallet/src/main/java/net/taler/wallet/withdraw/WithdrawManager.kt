@@ -240,12 +240,6 @@ class WithdrawManager(
         _withdrawTestStatus.value = TestWithdrawStatus.None
     }
 
-    fun setWithdrawalExchange(exchangeBaseUrl: String) {
-        _withdrawStatus.update { value ->
-            value.copy(exchangeBaseUrl = exchangeBaseUrl)
-        }
-    }
-
     fun getWithdrawalDetails(
         uri: String,
         loading: Boolean = true,
@@ -253,7 +247,7 @@ class WithdrawManager(
         _withdrawStatus.update {
             WithdrawStatus(
                 talerWithdrawUri = uri,
-                status = Loading,
+                status = if (loading) Loading else Updating,
             )
         }
 
@@ -285,72 +279,88 @@ class WithdrawManager(
     fun getWithdrawalDetails(
         amount: Amount? = null,
         exchangeBaseUrl: String? = null,
-        uriInfo: WithdrawalDetailsForUri? = null,
         loading: Boolean = true,
     ) = scope.launch {
         val status = _withdrawStatus.getAndUpdate { value ->
             value.copy(status = if (loading) Loading else Updating)
         }
 
-        val a = amount
-            // reset amount to zero when exchangeBaseUrl changes but amount is not set
-            ?: exchangeBaseUrl?.let { url -> exchangeManager.findExchangeByUrl(url)?.currency?.let { Amount.zero(it) } }
-            ?: status.uriInfo?.amount
-            ?: status.amountInfo?.amountRaw
-            ?: error("no amount for withdrawal")
+        val ex: ExchangeItem
+        val am: Amount?
 
-        val exchange = if (exchangeBaseUrl == null && amount?.currency != status.currency) {
-            // find exchange from currency in absence of exchangeBaseUrl
-            amount?.currency?.let { exchangeManager.findExchange(it) }
+        // use cases:
+        if (amount != null && exchangeBaseUrl != null) {
+            // 1. user sets both to null state
+            //    => they are processed as-is
+            ex = exchangeManager.findExchangeByUrl(exchangeBaseUrl)
+                ?: error("could not resolve exchange")
+            am = amount
+        } else if (amount != null) {
+            // 2a user updates amount
+            //    => amount is updated
+            //    => exchange URL is recycled (unless currency changes)
+            // 2b. user sets amount to null state
+            //    => exchange URL is calculated from amount
+            ex = if (status.exchangeBaseUrl != null
+                && status.currency == amount.currency) {
+                exchangeManager.findExchangeByUrl(status.exchangeBaseUrl)
+                    ?: error("could not resolve exchange")
+            } else {
+                exchangeManager.findExchange(amount.currency)
+                    ?: error("could not resolve exchange")
+            }
+            am = amount
+        } else if (exchangeBaseUrl != null) {
+            // 3a. user updates exchange URL
+            //    => amount is reset to zero (always)
+            //    => exchangeURL is updated
+            // 3b. user sets exchange URL to null state
+            //    => amount is calculated from exchange URL
+            ex = exchangeManager.findExchangeByUrl(exchangeBaseUrl)
+                ?: error("could not resolve exchange")
+            am = ex.currency
+                ?.let { Amount.zero(it) }
+                ?: error("could not resolve currency")
         } else {
-            exchangeBaseUrl?.let { exchangeManager.findExchangeByUrl(it) }
-                ?: status.exchangeBaseUrl?.let { exchangeManager.findExchangeByUrl(it) }
-                ?: amount?.currency?.let { exchangeManager.findExchange(it) }
-        } ?: error("no exchange for withdrawal")
+            error("no parameters specified")
+        }
 
         api.request("getWithdrawalDetailsForAmount", WithdrawalDetailsForAmount.serializer()) {
-            put("exchangeBaseUrl", exchange.exchangeBaseUrl)
-            put("amount", a.toJSONString())
+            put("exchangeBaseUrl", ex.exchangeBaseUrl)
+            put("amount", am.toJSONString())
         }.onError { error ->
             handleError("getWithdrawalDetailsForAmount", error)
         }.onSuccess { details ->
             scope.launch {
-                if (exchange.tosStatus == ExchangeTosStatus.Accepted) {
-                    _withdrawStatus.update { value ->
-                        value.copy(
-                            status = InfoReceived,
-                            exchangeBaseUrl = exchange.exchangeBaseUrl,
-                            uriInfo = uriInfo ?: value.uriInfo,
-                            amountInfo = details,
-                            currency = details.amountRaw.currency,
-                        )
-                    }
-                } else {
-                    _withdrawStatus.update { value ->
-                        value.copy(
-                            status = TosReviewRequired,
-                            amountInfo = details,
-                            currency = details.amountRaw.currency,
-                            exchangeBaseUrl = exchange.exchangeBaseUrl,
-                        )
-                    }
+                _withdrawStatus.update { value ->
+                    value.copy(
+                        status = if (ex.tosStatus != ExchangeTosStatus.Accepted) {
+                            TosReviewRequired
+                        } else {
+                            InfoReceived
+                        },
+                        exchangeBaseUrl = ex.exchangeBaseUrl,
+                        amountInfo = details,
+                        currency = details.amountRaw.currency,
+                    )
                 }
             }
         }
     }
 
-    @WorkerThread
-    suspend fun prepareManualWithdrawal(uri: String): WithdrawExchangeResponse? {
+    @UiThread
+    fun prepareManualWithdrawal(uri: String) = scope.launch {
         _withdrawStatus.value = WithdrawStatus(status = Loading)
-        var response: WithdrawExchangeResponse? = null
         api.request("prepareWithdrawExchange", WithdrawExchangeResponse.serializer()) {
             put("talerUri", uri)
         }.onError {
             handleError("prepareWithdrawExchange", it)
         }.onSuccess {
-            response = it
+            getWithdrawalDetails(
+                amount = it.amount,
+                exchangeBaseUrl = it.exchangeBaseUrl,
+            )
         }
-        return response
     }
 
     @UiThread

@@ -35,7 +35,6 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import net.taler.common.isOnline
 import net.taler.common.showError
 import net.taler.wallet.compose.LoadingScreen
@@ -128,7 +127,10 @@ class HandleUriFragment: Fragment() {
                 }
 
                 action.startsWith("withdraw-exchange/", ignoreCase = true) -> {
-                    prepareManualWithdrawal(u2)
+                    Log.v(TAG, "navigating!")
+                    val args = bundleOf("withdrawExchangeUri" to u2)
+                    model.withdrawManager.resetWithdrawal()
+                    findNavController().navigate(R.id.action_handleUri_to_promptWithdraw, args)
                 }
 
                 action.startsWith("refund/", ignoreCase = true) -> {
@@ -223,35 +225,6 @@ class HandleUriFragment: Fragment() {
         }
 
         return actionFound
-    }
-
-    private fun prepareManualWithdrawal(uri: String) {
-        model.showProgressBar.value = true
-        lifecycleScope.launch(Dispatchers.IO) {
-            val response = model.withdrawManager.prepareManualWithdrawal(uri)
-            if (response == null) withContext(Dispatchers.Main) {
-                model.showProgressBar.value = false
-                findNavController().navigate(R.id.errorFragment)
-            } else {
-                val exchange =
-                    model.exchangeManager.findExchangeByUrl(response.exchangeBaseUrl)
-                if (exchange == null) withContext(Dispatchers.Main) {
-                    model.showProgressBar.value = false
-                    showError(R.string.exchange_add_error)
-                    findNavController().navigateUp()
-                } else {
-                    model.exchangeManager.withdrawalExchange = exchange
-                    withContext(Dispatchers.Main) {
-                        model.showProgressBar.value = false
-                        val args = bundleOf(
-                            "exchangeBaseUrl" to response.exchangeBaseUrl,
-                            "amount" to response.amount?.toJSONString(),
-                        )
-                        findNavController().navigate(R.id.promptWithdraw, args)
-                    }
-                }
-            }
-        }
     }
 
     private fun onRefundResponse(status: RefundStatus) {

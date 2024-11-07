@@ -258,6 +258,10 @@
             app:nullable="true"
             app:argType="string" />
         <argument
+            android:name="withdrawExchangeUri"
+            app:nullable="true"
+            app:argType="string" />
+        <argument
             android:name="editableCurrency"
             android:defaultValue="true"
             app:argType="boolean" />

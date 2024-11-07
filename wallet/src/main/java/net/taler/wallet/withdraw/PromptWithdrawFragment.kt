@@ -84,6 +84,7 @@ class PromptWithdrawFragment: Fragment() {
         savedInstanceState: Bundle?
     ) = ComposeView(requireContext()).apply {
         val withdrawUri = arguments?.getString("withdrawUri")
+        val withdrawExchangeUri = arguments?.getString("withdrawExchangeUri")
         val exchangeBaseUrl = arguments?.getString("exchangeBaseUrl")
         val amount = arguments?.getString("amount")?.let { Amount.fromJSONString(it) }
         editableCurrency = arguments?.getBoolean("editableCurrency") ?: true
@@ -134,7 +135,11 @@ class PromptWithdrawFragment: Fragment() {
                                     selectExchange()
                                 },
                                 onSelectAmount = { amount ->
-                                    withdrawManager.getWithdrawalDetails(amount = amount, loading = false)
+                                    withdrawManager.getWithdrawalDetails(
+                                        amount = amount,
+                                        // only show loading screen when switching currencies
+                                        loading = amount.currency != status.currency,
+                                    )
                                 },
                                 onTosReview = {
                                     // TODO: rewrite ToS review screen in compose
@@ -151,16 +156,22 @@ class PromptWithdrawFragment: Fragment() {
                 }
             }
 
-            LaunchedEffect(exchange?.exchangeBaseUrl) {
-                if (withdrawUri != null) {
-                    // get withdrawal details for taler:// URI
-                    withdrawManager.getWithdrawalDetails(withdrawUri, loading = true)
-                } else {
-                    withdrawManager.getWithdrawalDetails(
-                        amount = amount ?: Amount.zero(defaultCurrency),
-                        exchangeBaseUrl = exchange?.exchangeBaseUrl ?: exchangeBaseUrl,
-                        loading = true,
-                    )
+            LaunchedEffect(status.status) {
+                if (status.status == None) {
+                    if (withdrawUri != null) {
+                        // get withdrawal details for taler://withdraw URI
+                        withdrawManager.getWithdrawalDetails(withdrawUri, loading = true)
+                    } else if (withdrawExchangeUri != null) {
+                        // get withdrawal details for taler://withdraw-exchange URI
+                        withdrawManager.prepareManualWithdrawal(withdrawExchangeUri)
+                    } else {
+                        // get withdrawal details for available data
+                        withdrawManager.getWithdrawalDetails(
+                            amount = amount ?: Amount.zero(defaultCurrency),
+                            exchangeBaseUrl = exchangeBaseUrl,
+                            loading = true,
+                        )
+                    }
                 }
             }
         }
