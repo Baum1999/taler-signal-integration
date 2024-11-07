@@ -19,7 +19,6 @@ package net.taler.wallet.withdraw
 import android.net.Uri
 import android.util.Log
 import androidx.annotation.UiThread
-import androidx.annotation.WorkerThread
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow

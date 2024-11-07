@@ -103,7 +103,25 @@ class PromptWithdrawFragment: Fragment() {
                 ?: status.currency
                 ?: transactionManager.selectedScope.value?.currency
                 ?: currencies.firstOrNull()
-                ?: error("no default currency specified")
+
+            LaunchedEffect(status.status) {
+                if (status.status == None) {
+                    if (withdrawUri != null) {
+                        // get withdrawal details for taler://withdraw URI
+                        withdrawManager.getWithdrawalDetails(withdrawUri, loading = true)
+                    } else if (withdrawExchangeUri != null) {
+                        // get withdrawal details for taler://withdraw-exchange URI
+                        withdrawManager.prepareManualWithdrawal(withdrawExchangeUri)
+                    } else if (defaultCurrency != null) {
+                        // get withdrawal details for available data
+                        withdrawManager.getWithdrawalDetails(
+                            amount = amount ?: Amount.zero(defaultCurrency),
+                            exchangeBaseUrl = exchangeBaseUrl,
+                            loading = true,
+                        )
+                    }
+                }
+            }
 
             val currencySpec = remember(exchange?.scopeInfo) {
                 exchange?.scopeInfo?.let { scopeInfo ->
@@ -117,6 +135,11 @@ class PromptWithdrawFragment: Fragment() {
                 status.let { s ->
                     if (s.error != null) {
                         WithdrawalError(error = s.error)
+                        return@let
+                    }
+
+                    if (defaultCurrency == null) {
+                        LoadingScreen()
                         return@let
                     }
 
@@ -152,25 +175,6 @@ class PromptWithdrawFragment: Fragment() {
                             )
                         }
                         else -> {}
-                    }
-                }
-            }
-
-            LaunchedEffect(status.status) {
-                if (status.status == None) {
-                    if (withdrawUri != null) {
-                        // get withdrawal details for taler://withdraw URI
-                        withdrawManager.getWithdrawalDetails(withdrawUri, loading = true)
-                    } else if (withdrawExchangeUri != null) {
-                        // get withdrawal details for taler://withdraw-exchange URI
-                        withdrawManager.prepareManualWithdrawal(withdrawExchangeUri)
-                    } else {
-                        // get withdrawal details for available data
-                        withdrawManager.getWithdrawalDetails(
-                            amount = amount ?: Amount.zero(defaultCurrency),
-                            exchangeBaseUrl = exchangeBaseUrl,
-                            loading = true,
-                        )
                     }
                 }
             }
