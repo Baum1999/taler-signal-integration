@@ -287,6 +287,7 @@ class WithdrawManager(
         val ex: ExchangeItem
         val am: Amount?
 
+        // TODO: use scopeInfo instead of currency
         // use cases:
         if (amount != null && exchangeBaseUrl != null) {
             // 1. user sets both to null state
@@ -311,15 +312,20 @@ class WithdrawManager(
             am = amount
         } else if (exchangeBaseUrl != null) {
             // 3a. user updates exchange URL
-            //    => amount is reset to zero (always)
+            //    => amount is recycled (unless currency changes)
             //    => exchangeURL is updated
             // 3b. user sets exchange URL to null state
             //    => amount is calculated from exchange URL
             ex = exchangeManager.findExchangeByUrl(exchangeBaseUrl)
                 ?: error("could not resolve exchange")
-            am = ex.currency
-                ?.let { Amount.zero(it) }
-                ?: error("could not resolve currency")
+            am = if (status.amountInfo?.amountRaw != null
+                && status.currency == ex.currency) {
+                status.amountInfo.amountRaw
+            } else {
+                ex.currency
+                    ?.let { Amount.zero(it) }
+                    ?: error("could not resolve currency")
+            }
         } else {
             error("no parameters specified")
         }
