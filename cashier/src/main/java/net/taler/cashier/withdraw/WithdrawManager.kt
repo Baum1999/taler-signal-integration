@@ -203,6 +203,10 @@ class WithdrawManager(
         if (result is WithdrawResult.Success && status == null) {
             cancelWithdrawStatusCheck()
             abort(result.id)
+        } else {
+            mWithdrawResult.value = null
+            mWithdrawStatus.value = null
+            mWithdrawAmount.value = null
         }
     }
 
@@ -211,6 +215,9 @@ class WithdrawManager(
             "${config.bankUrl}/accounts/${config.username}/withdrawals/${withdrawalId}/abort"
         Log.d(TAG, "Aborting withdrawal at $url")
         makeJsonPostRequest(url, JSONObject(), config)
+        mWithdrawResult.value = null
+        mWithdrawStatus.value = null
+        mWithdrawAmount.value = null
     }
 
     @UiThread
