@@ -31,7 +31,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -197,6 +196,7 @@ class MainFragment: Fragment() {
                             },
                         )
                         Tab.SETTINGS -> SettingsView(
+                            innerPadding = innerPadding,
                             settingsFragmentState = settingsFragmentState,
                         )
                     }
@@ -279,13 +279,12 @@ class MainFragment: Fragment() {
 
 @Composable
 fun SettingsView(
+    innerPadding: PaddingValues,
     settingsFragmentState: FragmentState,
 ) {
     AndroidFragment(
         SettingsFragment::class.java,
-        modifier = Modifier
-            .fillMaxSize()
-            .systemBarsPaddingAllExceptTop(),
+        modifier = Modifier.padding(innerPadding),
         fragmentState = settingsFragmentState,
     )
 }
