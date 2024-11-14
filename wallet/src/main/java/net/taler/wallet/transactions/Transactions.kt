@@ -45,6 +45,7 @@ import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.common.CurrencySpecification
 import net.taler.common.RelativeTime
 import net.taler.wallet.refund.RefundPaymentInfo
+import net.taler.wallet.transactions.TransactionMajorState.Done
 import net.taler.wallet.transactions.TransactionMajorState.None
 import net.taler.wallet.transactions.TransactionMajorState.Pending
 import net.taler.wallet.transactions.WithdrawalDetails.ManualTransfer
@@ -440,7 +441,11 @@ class TransactionPeerPullDebit(
     @Transient
     override val amountType = AmountType.Negative
     override fun getTitle(context: Context): String {
-        return context.getString(R.string.transaction_peer_pull_debit)
+        return if (txState.major == Done) {
+            context.getString(R.string.transaction_peer_pull_debit)
+        } else {
+            context.getString(R.string.transaction_peer_pull_debit_pending)
+        }
     }
 
     override val generalTitleRes = R.string.transaction_peer_pull_debit
@@ -500,7 +505,11 @@ class TransactionPeerPushDebit(
     @Transient
     override val amountType = AmountType.Negative
     override fun getTitle(context: Context): String {
-        return context.getString(R.string.transaction_peer_push_debit)
+        return if (txState.major == Done) {
+            context.getString(R.string.transaction_peer_push_debit)
+        } else {
+            context.getString(R.string.transaction_peer_push_debit_pending)
+        }
     }
 
     override val generalTitleRes = R.string.payment_title
@@ -529,7 +538,11 @@ class TransactionPeerPushCredit(
     @Transient
     override val amountType = AmountType.Positive
     override fun getTitle(context: Context): String {
-        return context.getString(R.string.transaction_peer_push_credit)
+        return if (txState.major == Done) {
+            context.getString(R.string.transaction_peer_push_credit)
+        } else {
+            context.getString(R.string.transaction_peer_push_credit_pending)
+        }
     }
 
     override val generalTitleRes = R.string.transaction_peer_push_credit

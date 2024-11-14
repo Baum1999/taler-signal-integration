@@ -208,7 +208,7 @@
     <fragment
         android:id="@+id/nav_transactions_detail_withdrawal"
         android:name="net.taler.wallet.transactions.TransactionWithdrawalFragment"
-        android:label="@string/transactions_detail_title">
+        android:label="@string/withdraw_title">
         <action
             android:id="@+id/action_nav_transactions_detail_withdrawal_to_nav_exchange_manual_withdrawal_success"
             app:destination="@id/nav_exchange_manual_withdrawal_success" />
@@ -217,22 +217,22 @@
     <fragment
         android:id="@+id/nav_transactions_detail_payment"
         android:name="net.taler.wallet.transactions.TransactionPaymentFragment"
-        android:label="@string/transactions_detail_title" />
+        android:label="@string/payment_title" />
 
     <fragment
         android:id="@+id/nav_transactions_detail_refund"
         android:name="net.taler.wallet.transactions.TransactionRefundFragment"
-        android:label="@string/transactions_detail_title" />
+        android:label="@string/refund_title" />
 
     <fragment
         android:id="@+id/nav_transactions_detail_refresh"
         android:name="net.taler.wallet.transactions.TransactionRefreshFragment"
-        android:label="@string/transactions_detail_title" />
+        android:label="@string/transaction_refresh" />
 
     <fragment
         android:id="@+id/nav_transactions_detail_deposit"
         android:name="net.taler.wallet.transactions.TransactionDepositFragment"
-        android:label="@string/transactions_detail_title" />
+        android:label="@string/transaction_deposit" />
 
     <fragment
         android:id="@+id/nav_transactions_detail_peer"
@@ -242,12 +242,12 @@
     <fragment
         android:id="@+id/nav_transactions_detail_loss"
         android:name="net.taler.wallet.transactions.TransactionLossFragment"
-        android:label="@string/transactions_detail_title" />
+        android:label="@string/transaction_denom_loss" />
 
     <fragment
         android:id="@+id/nav_transactions_detail_dummy"
         android:name="net.taler.wallet.transactions.TransactionDummyFragment"
-        android:label="@string/transactions_detail_title" />
+        android:label="@string/transaction_dummy_title" />
 
     <fragment
         android:id="@+id/promptWithdraw"

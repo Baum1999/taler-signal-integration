@@ -54,6 +54,7 @@ fun ColumnScope.TransactionPeerPullCreditComposable(
 
     if (t.error == null) PeerQrCode(
         state = t.txState,
+        amount = t.amountRaw.withSpec(spec),
         talerUri = t.talerUri,
     )
     

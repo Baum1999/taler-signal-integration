@@ -41,14 +41,14 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
 
     <string name="nav_error">Error</string>
     <string name="nav_exchange_fees">Provider fees</string>
-    <string name="nav_exchange_tos">PSP\'s Terms of Service</string>
-    <string name="nav_prompt_withdraw">Withdraw Digital Cash</string>
+    <string name="nav_exchange_tos">PSP\'s terms of service</string>
+    <string name="nav_prompt_withdraw">Withdraw from bank</string>
 
     <!-- General -->
 
     <string name="actions">Actions</string>
     <string name="button_back">Go Back</string>
-    <string name="button_scan_qr_code">Scan Taler QR Code</string>
+    <string name="button_scan_qr_code">Scan Taler QR code</string>
     <string name="button_scan_qr_code_label">Scan QR code</string>
     <string name="cancel">Cancel</string>
     <!-- The count should be mirrored in RTL languages -->
@@ -91,7 +91,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="amount_effective">Effective amount</string>
     <string name="amount_fee">Fee</string>
     <string name="amount_invalid">Amount invalid</string>
-    <string name="amount_invoiced">Amount invoiced</string>
+    <string name="amount_invoiced">Amount requested</string>
     <string name="amount_lost">Amount lost</string>
     <string name="amount_negative">-%s</string>
     <string name="amount_max">Maximum amount</string>
@@ -124,15 +124,18 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="transaction_denom_loss">Loss of funds</string>
     <string name="transaction_deposit">Deposit</string>
     <string name="transaction_deposit_to">Deposit to %1$s</string>
-    <string name="transaction_dummy_title">Unknown Transaction</string>
+    <string name="transaction_dummy_title">Unknown transaction</string>
     <string name="transaction_order">Purchase</string>
     <string name="transaction_order_id">Order #%1$s</string>
     <string name="transaction_order_total">Total</string>
     <string name="transaction_paid">Paid</string>
-    <string name="transaction_peer_pull_credit">Invoice</string>
-    <string name="transaction_peer_pull_debit">Invoice paid</string>
-    <string name="transaction_peer_push_credit">Push payment</string>
-    <string name="transaction_peer_push_debit">Push payment</string>
+    <string name="transaction_peer_pull_credit">Request</string>
+    <string name="transaction_peer_pull_debit">Request paid</string>
+    <string name="transaction_peer_pull_debit_pending">Paying request</string>
+    <string name="transaction_peer_push_credit">Received</string>
+    <string name="transaction_peer_push_credit_pending">Receiving</string>
+    <string name="transaction_peer_push_debit">Sent</string>
+    <string name="transaction_peer_push_debit_pending">Sending</string>
     <string name="transaction_pending">PENDING</string>
     <string name="transaction_preparing_kyc">KYC required, preparing challenge</string>
     <string name="transaction_refresh">Coin expiry change fee</string>
@@ -149,7 +152,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="transaction_state_suspended">This transaction is suspended</string>
     <string name="transactions_abort">Abort</string>
     <string name="transactions_abort_dialog_message">Are you sure you want to abort this transaction? Funds still in transit might get lost.</string>
-    <string name="transactions_abort_dialog_title">Abort Transaction</string>
+    <string name="transactions_abort_dialog_title">Abort transaction</string>
     <string name="transactions_balance">Balance</string>
     <!-- Currency name (symbol) -->
     <string name="transactions_currency">%1$s (%2$s)</string>
@@ -180,7 +183,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="payment_already_paid">You\'ve already paid for this purchase.</string>
     <string name="payment_balance_insufficient">Balance insufficient!</string>
     <string name="payment_balance_insufficient_max">Balance insufficient! Maximum is %1$s</string>
-    <string name="payment_button_confirm">Confirm Payment</string>
+    <string name="payment_button_confirm">Confirm payment</string>
     <string name="payment_confirmation_code">Confirmation code</string>
     <string name="payment_create_order">Create order</string>
     <string name="payment_error">Error: %s</string>
@@ -190,7 +193,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="payment_label_order_summary">Purchase</string>
     <string name="payment_pay_template_title">Customize your order</string>
     <string name="payment_pending">Payment not completed, it will be retried</string>
-    <string name="payment_prompt_title">Review Payment</string>
+    <string name="payment_prompt_title">Review payment</string>
     <!-- including <amount> <tax name> -->
     <string name="payment_tax">incl. %1$s %2$s</string>
     <string name="payment_template_error">Error creating order</string>
@@ -198,30 +201,30 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
 
     <!-- P2P receive -->
 
-    <string name="receive_peer">Invoice another wallet</string>
-    <string name="receive_peer_create_button">Create invoice</string>
+    <string name="receive_peer">Request money from another wallet</string>
+    <string name="receive_peer_create_button">Create request</string>
     <string name="receive_peer_invoice_uri">Alternatively, copy and send this URI:</string>
     <string name="receive_peer_payment_intro">Do you want to receive this payment?</string>
     <string name="receive_peer_payment_title">Receive payment</string>
-    <string name="receive_peer_title">Request payment</string>
+    <string name="receive_peer_title">Request money</string>
 
     <!-- P2P send -->
 
-    <string name="pay_peer_intro">Do you want to pay this invoice?</string>
-    <string name="pay_peer_title">Pay invoice</string>
+    <string name="pay_peer_intro">Do you want to pay this request?</string>
+    <string name="pay_peer_title">Pay request</string>
     <string name="send_deposit_account">Account</string>
     <string name="send_deposit_bitcoin_address">Bitcoin address</string>
     <string name="send_deposit_bitcoin_create_button">Transfer Bitcoin</string>
     <string name="send_deposit_button_label">Deposit</string>
     <string name="send_deposit_check_fees_button">Check fees</string>
     <string name="send_deposit_create_button">Make deposit</string>
-    <string name="send_deposit_host">Host</string>
+    <string name="send_deposit_host">Local currency bank</string>
     <string name="send_deposit_iban">IBAN</string>
     <string name="send_deposit_iban_error">IBAN is invalid</string>
     <string name="send_deposit_name">Account holder</string>
     <string name="send_deposit_no_methods_error">No supported wire methods</string>
     <string name="send_deposit_taler">x-taler-bank</string>
-    <string name="send_deposit_title">Deposit to a bank account</string>
+    <string name="send_deposit_title">Deposit to bank account</string>
     <string name="send_peer_create_button">Send funds now</string>
     <string name="send_peer_expiration_1d">1 day</string>
     <string name="send_peer_expiration_30d">30 days</string>
@@ -230,7 +233,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="send_peer_expiration_days">Days</string>
     <string name="send_peer_expiration_hours">Hours</string>
     <string name="send_peer_expiration_period">Expires in</string>
-    <string name="send_peer_payment_instruction">Let the payee scan this QR code to receive:</string>
+    <string name="send_peer_payment_instruction">To send %1$s, let the payee scan this QR code:</string>
     <string name="send_peer_purpose">Purpose</string>
     <string name="send_peer_title">Send money to another wallet</string>
 
@@ -239,13 +242,13 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="withdraw_account">Account #%1$d</string>
     <string name="withdraw_account_currency">Account #%1$d (%2$s)</string>
     <string name="withdraw_amount_error">Enter valid amount</string>
-    <string name="withdraw_button_confirm">Confirm Withdraw</string>
+    <string name="withdraw_button_confirm">Confirm withdraw</string>
     <string name="withdraw_button_confirm_bank">Authorize in bank</string>
     <string name="withdraw_button_label">Withdraw</string>
-    <string name="withdraw_button_tos">Review Terms</string>
+    <string name="withdraw_button_tos">Review terms</string>
     <string name="withdraw_error_message">Withdrawing is currently not possible. Please try again later!</string>
     <string name="withdraw_error_test">Error withdrawing TESTKUDOS</string>
-    <string name="withdraw_error_title">Withdrawal Error</string>
+    <string name="withdraw_error_title">Withdrawal error</string>
     <string name="withdraw_exchange">Provider</string>
     <string name="withdraw_fee">+%1$s withdrawal fees</string>
     <string name="withdraw_initiated">Withdrawal initiated</string>
@@ -260,7 +263,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="withdraw_manual_ready_receiver">Receiver name</string>
     <string name="withdraw_manual_ready_subject">Subject</string>
     <string name="withdraw_manual_ready_warning">Make sure to use the correct subject, otherwise the money will not arrive in this wallet.</string>
-    <string name="withdraw_restrict_age">Restrict Usage to Age</string>
+    <string name="withdraw_restrict_age">Restrict usage to age</string>
     <string name="withdraw_restrict_age_unrestricted">Unrestricted</string>
     <string name="withdraw_select_amount">Select amount</string>
     <string name="withdraw_subtitle">Select target bank account</string>
@@ -277,18 +280,18 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
         <item quantity="one">Coin: %s (used %d time)</item>
         <item quantity="other">Coin: %s (used %d times)</item>
     </plurals>
-    <string name="exchange_fee_coin_expiration_label">Earliest Coin Expiry:</string>
-    <string name="exchange_fee_coin_fees_label">Coin Fees</string>
-    <string name="exchange_fee_deposit_fee">Deposit Fee: %1$s</string>
-    <string name="exchange_fee_overhead_label">Rounding Loss:</string>
-    <string name="exchange_fee_refresh_fee">Change Fee: %1$s</string>
-    <string name="exchange_fee_refund_fee">Refund Fee: %1$s</string>
-    <string name="exchange_fee_wire_fee_closing_fee">Closing Fee: %1$s</string>
+    <string name="exchange_fee_coin_expiration_label">Earliest coin expiry:</string>
+    <string name="exchange_fee_coin_fees_label">Coin fees</string>
+    <string name="exchange_fee_deposit_fee">Deposit fee: %1$s</string>
+    <string name="exchange_fee_overhead_label">Rounding loss:</string>
+    <string name="exchange_fee_refresh_fee">Change fee: %1$s</string>
+    <string name="exchange_fee_refund_fee">Refund fee: %1$s</string>
+    <string name="exchange_fee_wire_fee_closing_fee">Closing fee: %1$s</string>
     <string name="exchange_fee_wire_fee_timespan">Timespan: %1$s - %2$s</string>
-    <string name="exchange_fee_wire_fee_wire_fee">Wire Fee: %1$s</string>
-    <string name="exchange_fee_wire_fees_label">Wire Fees</string>
-    <string name="exchange_fee_withdraw_fee">Withdraw Fee: %1$s</string>
-    <string name="exchange_fee_withdrawal_fee_label">Withdrawal Fee:</string>
+    <string name="exchange_fee_wire_fee_wire_fee">Wire fee: %1$s</string>
+    <string name="exchange_fee_wire_fees_label">Wire fees</string>
+    <string name="exchange_fee_withdraw_fee">Withdraw fee: %1$s</string>
+    <string name="exchange_fee_withdrawal_fee_label">Withdrawal fee:</string>
     <string name="exchange_list_add">Add provider</string>
     <string name="exchange_list_add_dev">Add development providers</string>
     <string name="exchange_list_currency">Currency: %1$s</string>
@@ -301,10 +304,10 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="exchange_reload">Reload information</string>
     <string name="exchange_settings_summary">Manage list of providers known to this wallet</string>
     <string name="exchange_settings_title">Providers</string>
-    <string name="exchange_tos_accept">Accept Terms of Service</string>
-    <string name="exchange_tos_forget">Reject Terms of Service</string>
-    <string name="exchange_tos_view">View Terms of Service</string>
-    <string name="exchange_tos_error">Error showing Terms of Service: %1$s</string>
+    <string name="exchange_tos_accept">Accept terms of service</string>
+    <string name="exchange_tos_forget">Reject terms of service</string>
+    <string name="exchange_tos_view">View terms of service</string>
+    <string name="exchange_tos_error">Error showing terms of service: %1$s</string>
 
     <!-- Losses -->
 
@@ -335,7 +338,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="settings_db_import_error">Error importing database</string>
     <string name="settings_db_import_success">Database imported from file</string>
     <string name="settings_db_import_summary">Restore database from file</string>
-    <string name="settings_dev_mode">Developer Mode</string>
+    <string name="settings_dev_mode">Developer mode</string>
     <string name="settings_dev_mode_summary">Shows more information intended for debugging</string>
     <string name="settings_dialog_import_message">This operation will overwrite your existing database. Do you want to continue?</string>
     <string name="settings_dialog_reset_message">Do you really want to reset the wallet and lose all coins and purchases?</string>
@@ -349,10 +352,10 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="settings_test_running">The integration test is now running</string>
     <string name="settings_test_summary">Performs test transactions with demo setup</string>
     <string name="settings_test_withdrawal">Now withdrawing TESTKUDOS</string>
-    <string name="settings_version_app">App Version</string>
-    <string name="settings_version_core">Wallet Core Version</string>
-    <string name="settings_version_protocol_exchange">Supported Exchange Versions</string>
-    <string name="settings_version_protocol_merchant">Supported Merchant Versions</string>
+    <string name="settings_version_app">App version</string>
+    <string name="settings_version_core">Wallet Core version</string>
+    <string name="settings_version_protocol_exchange">Supported Exchange versions</string>
+    <string name="settings_version_protocol_merchant">Supported Merchant versions</string>
     <string name="settings_version_unknown">Unknown</string>
     <string name="settings_withdraw_testkudos">Withdraw TESTKUDOS</string>
     <string name="settings_withdraw_testkudos_summary">Get money for testing</string>

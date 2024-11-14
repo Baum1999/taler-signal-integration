@@ -20,6 +20,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,6 +40,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.launch
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.common.toAbsoluteTime
@@ -70,6 +75,20 @@ class TransactionPeerFragment : TransactionDetailFragment(), ActionListener {
                     ) {
                         onTransitionButtonClicked(tx, it)
                     }
+                }
+            }
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                transactionManager.selectedTransaction.collect { tx ->
+                    val actionBar = (requireActivity() as? AppCompatActivity)
+                        ?.supportActionBar
+                        ?: return@collect
+                    actionBar.title = tx?.getTitle(requireContext())
                 }
             }
         }

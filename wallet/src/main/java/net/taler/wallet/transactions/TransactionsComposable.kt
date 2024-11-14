@@ -56,6 +56,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -99,7 +100,6 @@ import net.taler.wallet.transactions.TransactionMinorState.KycRequired
 import net.taler.wallet.transactions.TransactionsResult.Error
 import net.taler.wallet.transactions.TransactionsResult.None
 import net.taler.wallet.transactions.TransactionsResult.Success
-import net.taler.wallet.withdraw.WithdrawalError
 
 @Composable
 fun TransactionsComposable(
@@ -112,7 +112,7 @@ fun TransactionsComposable(
     onShowBalancesClicked: () -> Unit,
 ) = when (txResult) {
     is None -> LoadingScreen()
-    is Error -> WithdrawalError(txResult.error)
+    is Error -> ErrorTransactionsComposable(txResult.error)
     is Success -> if (txResult.transactions.isEmpty()) {
         EmptyTransactionsComposable()
     } else {
@@ -121,8 +121,8 @@ fun TransactionsComposable(
         val selectedItems = remember { mutableStateListOf<String>() }
 
         if (showDeleteDialog) AlertDialog(
-            title = { Text(stringResource(R.string.transactions_delete_dialog_title)) },
-            text = { Text(stringResource(R.string.transactions_delete_dialog_message)) },
+            title = { Text(stringResource(R.string.transactions_delete_selected_dialog_title)) },
+            text = { Text(stringResource(R.string.transactions_delete_selected_dialog_message)) },
             onDismissRequest = { showDeleteDialog = false },
             confirmButton = {
                 TextButton(onClick = {
@@ -225,12 +225,28 @@ fun TransactionsComposable(
 fun EmptyTransactionsComposable() {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Center,
     ) {
         Text(
             stringResource(R.string.transactions_empty),
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodyMedium,
+        )
+    }
+}
+
+@Composable
+fun ErrorTransactionsComposable(error: TalerErrorInfo) {
+    Box(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxSize(),
+        contentAlignment = Center,
+    ) {
+        Text(
+            text = stringResource(R.string.transactions_error, error.userFacingMsg),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.error,
         )
     }
 }
@@ -320,7 +336,7 @@ fun TransactionRow(
             trailingContent = {
                 Box(
                     modifier = Modifier.padding(8.dp),
-                    contentAlignment = Alignment.Center,
+                    contentAlignment = Center,
                 ) {
                     TransactionAmountInfo(tx, spec)
                 }
@@ -328,7 +344,7 @@ fun TransactionRow(
             leadingContent = {
                 Box(
                     modifier = Modifier.padding(8.dp),
-                    contentAlignment = Alignment.Center,
+                    contentAlignment = Center,
                 ) {
                     if (!selectionMode) {
                         Icon(painterResource(tx.icon), contentDescription = null)

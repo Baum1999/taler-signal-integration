@@ -58,6 +58,7 @@ import net.taler.wallet.transactions.TransactionState
 fun ColumnScope.TransactionPeerPushDebitComposable(t: TransactionPeerPushDebit, spec: CurrencySpecification?) {
     if (t.error == null) PeerQrCode(
         state = t.txState,
+        amount = t.amountRaw.withSpec(spec),
         talerUri = t.talerUri,
     )
 
@@ -89,12 +90,18 @@ fun ColumnScope.TransactionPeerPushDebitComposable(t: TransactionPeerPushDebit, 
 }
 
 @Composable
-fun ColumnScope.PeerQrCode(state: TransactionState, talerUri: String?) {
+fun ColumnScope.PeerQrCode(
+    state: TransactionState,
+    amount: Amount,
+    talerUri: String?,
+) {
     if (state == TransactionState(Pending)) {
         Text(
             modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
             style = MaterialTheme.typography.titleLarge,
-            text = stringResource(id = R.string.send_peer_payment_instruction),
+            text = stringResource(id = R.string.send_peer_payment_instruction,
+                amount.spec?.name
+                    ?: amount.currency),
             textAlign = TextAlign.Center,
         )
 
