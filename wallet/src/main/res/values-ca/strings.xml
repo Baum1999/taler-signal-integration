@@ -29,7 +29,6 @@
     <string name="button_scan_qr_code">Escaneja el codi QR de Taler</string>
     <string name="enter_uri">Entra l\'URI de Taler</string>
     <string name="copy" tools:override="true">Copia</string>
-    <string name="copy_uri">Copia l\'URI de Taler</string>
     <string name="paste">Enganxa</string>
     <string name="paste_invalid">El portaretalls conté un tipus invàlid de dada</string>
     <string name="uri_invalid">No és una URI de Taler vàlida</string>
@@ -68,13 +67,11 @@
 \n
 \n%s</string>
     <string name="transactions_detail_title">Transacció</string>
-    <string name="transactions_detail_title_currency">%s Transaccions</string>
     <string name="transactions_delete">Esborrar</string>
     <string name="transactions_select_all">Seleccionar-ho tot</string>
     <string name="transactions_delete_dialog_title">Esborrar la transacció</string>
     <string name="transactions_delete_dialog_message">Estàs segur que vols eliminar aquesta transacció de la teva cartera\?</string>
     <string name="transactions_delete_selected_dialog_message">Estàs segur que vols eliminar les transaccions seleccionades de la teva cartera\?</string>
-    <string name="transactions_cancel_dialog_message">Estàs segur que vols cancel·lar aquesta retirada\? Podries perdre els diners que encara estiguin en trànsit.</string>
     <!-- Transactions -->
     <string name="transaction_paid">Pagat</string>
     <string name="transaction_order_total">Total</string>
@@ -90,11 +87,11 @@
     <string name="transaction_peer_pull_credit">Factura</string>
     <string name="transaction_peer_pull_debit">Factura pagada</string>
     <string name="transaction_peer_push_credit">Pagament anticipat</string>
-    <string name="transaction_action_kyc">Completa KYC (política \'Know Your Customer\')</string>
+    <string name="transaction_action_kyc_bank">Completa KYC (política \'Know Your Customer\')</string>
     <string name="payment_title">Pagament</string>
     <string name="payment_fee">+%s comissió de pagament</string>
     <string name="payment_button_confirm">Confirma el pagament</string>
-    <string name="payment_label_amount_total">Quantitat total:</string>
+    <string name="amount_total">Quantitat total:</string>
     <string name="payment_label_order_summary">Compra</string>
     <string name="payment_error">Error: %s</string>
     <string name="payment_balance_insufficient">Saldo insuficient!</string>
@@ -103,36 +100,26 @@
     <string name="payment_initiated">Pagament començat</string>
     <string name="payment_already_paid_title">Ja pagat</string>
     <string name="payment_already_paid">Ja has pagat aquesta compra.</string>
-    <string name="receive_amount">Quantitat a rebre</string>
-    <string name="receive_amount_invalid">Quantitat invàlida</string>
-    <string name="receive_intro">Tria d\'on rebre els diners:</string>
-    <string name="receive_withdraw">Retirar diners d\'un compte bancari</string>
+    <string name="amount_receive">Quantitat a rebre</string>
+    <string name="amount_invalid">Quantitat invàlida</string>
     <string name="receive_peer">Factura una altra cartera</string>
     <string name="receive_peer_title">Sol·licitud de pagament</string>
     <string name="receive_peer_create_button">Crea factura</string>
-    <string name="receive_peer_invoice_instruction">Fes que el client escanegi aquest codi QR per pagar:</string>
     <string name="receive_peer_invoice_uri">Alternativament, copia i envia aquesta URI:</string>
-    <string name="send_amount">Quantitat a enviar</string>
-    <string name="send_intro">Tria on vols enviar els diners:</string>
-    <string name="send_deposit">A un compte bancari</string>
-    <string name="send_deposit_bitcoin">A una cartera de Bitcoin</string>
+    <string name="amount_send">Quantitat a enviar</string>
     <string name="send_deposit_title">Deposita a un compte bancari</string>
     <string name="send_deposit_iban">IBAN</string>
-    <string name="send_deposit_bic">BIC/SWIFT</string>
     <string name="send_deposit_name">Titular del compte</string>
     <string name="send_deposit_bitcoin_address">Adreça de Bitcoin</string>
     <string name="send_deposit_check_fees_button">Despeses de comprovació</string>
-    <string name="send_deposit_amount_effective">Quantitat efectiva</string>
+    <string name="amount_effective">Quantitat efectiva</string>
     <string name="send_deposit_create_button">Fes un dipòsit</string>
     <string name="send_deposit_bitcoin_create_button">Transferir Bitcoin</string>
-    <string name="send_peer">A una altra cartera</string>
-    <string name="send_peer_bitcoin">A una altra cartera de Taler</string>
     <string name="send_peer_title">Envia diners a una altra cartera</string>
     <string name="send_peer_create_button">Envia diners ara</string>
-    <string name="send_peer_warning">Avís: Els diners sortiran de la cartera immediatament.</string>
     <string name="send_peer_payment_instruction">Fes que el beneficiari escanegi aquest codi QR per rebre:</string>
-    <string name="send_peer_payment_amount_received">Quantitat rebuda</string>
-    <string name="send_peer_payment_amount_sent">Quantitat enviada</string>
+    <string name="amount_received">Quantitat rebuda</string>
+    <string name="amount_sent">Quantitat enviada</string>
     <string name="send_peer_expiration_period">Expira en</string>
     <string name="send_peer_expiration_1d">1 dia</string>
     <string name="send_peer_expiration_7d">7 dies</string>
@@ -163,15 +150,12 @@
 \n
 \n%2$s</string>
     <string name="withdraw_manual_check_fees">Comprova la comissió</string>
-    <string name="withdraw_manual_ready_title">L\'intercanvi està llest perquè retiris els diners!</string>
     <string name="withdraw_manual_ready_intro">Per completar el procés necessites transferir %s al teu compte bancari</string>
     <string name="withdraw_manual_ready_details_intro">Detalls de transferència bancària</string>
-    <string name="withdraw_manual_bitcoin_title">L\'intercanvi de Bitcoin està llest perquè retiris els dieners</string>
     <string name="withdraw_manual_bitcoin_intro">Ara fes una transacció dividida amb aquestes tres sortides.</string>
     <string name="withdraw_manual_ready_iban">IBAN</string>
     <string name="withdraw_manual_ready_subject">Concepte</string>
     <string name="withdraw_manual_ready_bank_button">Obre en una app bancària</string>
-    <string name="withdraw_manual_ready_cancel">Cancel·la la retidada de diners</string>
     <string name="withdraw_manual_ready_warning">Assegura\'t d\'emprar el concepte correcte, del contrari els diners no arribaran a la cartera.</string>
     <string name="withdraw_error_title">Error retirant els diners</string>
     <string name="withdraw_error_message">Retirar diners no és possible ara mateix. Si us plau, intenta-ho més tard!</string>
@@ -233,18 +217,10 @@
     <string name="refund_error"/>
     <string name="refund_success"/>
     <string name="tip_title"/>
-    <string name="tip_already_accepted"/>
-    <string name="tip_total"/>
-    <string name="tip_fees"/>
-    <string name="tip_exchange"/>
-    <string name="tip_merchant_url"/>
-    <string name="tip_button_confirm"/>
-    <string name="tip_received"/>
     <string name="wifi_disabled_error"/>
     <string name="wifi_connect_error"/>
     <string name="transaction_dummy_title">Transacció desconeguda</string>
     <string name="send_deposit_iban_error">L\'IBAN és invàlid</string>
-    <string name="send_deposit_bic_error">El BIC és invàlid</string>
     <string name="button_scan_qr_code_label">Escaneja el codi QR</string>
     <string name="payment_prompt_title">Revisar pagament</string>
     <string name="payment_pay_template_title">Personalitza la teva comanda</string>

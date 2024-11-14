@@ -137,7 +137,7 @@
     <string name="receive_peer_create_button">Luo lasku</string>
     <string name="receive_peer_invoice_instruction">Anna maksajan skannata tämä QR koodi maksaakseen:</string>
     <string name="receive_peer_invoice_uri">Vaihtoehtoisesti kopioi ja lähetä tämä URI:</string>
-    <string name="receive_peer_amount_invoiced">Summa laskutettu</string>
+    <string name="amount_invoiced">Summa laskutettu</string>
     <string name="send_amount">Lähetettävä summa</string>
     <string name="send_intro">Valitse mihin lähetät rahaa:</string>
     <string name="send_deposit">Pankkitilille</string>
@@ -208,7 +208,7 @@
     <string name="withdraw_account">Tili #%1$d</string>
     <string name="withdraw_account_currency">Tili #%1$d (%2$s)</string>
     <string name="withdraw_transfer">Vaihda</string>
-    <string name="withdraw_conversion">Muuntaminen</string>
+    <string name="amount_conversion">Muuntaminen</string>
     <string name="withdraw_conversion_support">Tämä vaihto tukee valuutan muuntamista</string>
     <string name="exchange_settings_title">Vaihdot</string>
     <string name="exchange_settings_summary">Hallinnoi tämän lompakon tuntemien vaihtojen luetteloa</string>

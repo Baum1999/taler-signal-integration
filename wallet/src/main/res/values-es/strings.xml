@@ -188,8 +188,6 @@
     <string name="send_peer">A otra cartera</string>
     <string name="send_peer_title">Enviar dinero a otra cartera</string>
     <string name="transaction_peer_push_debit">Pago push</string>
-    <string name="send_peer_payment_amount_received">Monto recibido</string>
-    <string name="send_peer_payment_amount_sent">Monto enviado</string>
     <string name="pay_peer_intro">¿Quieres pagar este cobro\?</string>
     <string name="receive_peer_payment_intro">¿Quieres recibir este pago\?</string>
     <string name="withdraw_manual_bitcoin_intro">Ahora haz una transacción dividida con las siguientes tres salidas.</string>
@@ -254,7 +252,7 @@
     <string name="withdraw_account">Cuenta #%1$d</string>
     <string name="withdraw_account_currency">Cuenta #%1$d (%2$s)</string>
     <string name="withdraw_transfer">Transferencia</string>
-    <string name="withdraw_conversion">Conversión</string>
+    <string name="amount_conversion">Conversión</string>
     <string name="withdraw_conversion_support">Este exchange soporta conversión de moneda</string>
     <string name="exchange_list_add_dev">Agregar proveedores de desarrollo</string>
     <string name="settings_db_import">Importar base de datos</string>
@@ -276,7 +274,6 @@
     <string name="transactions_send_funds_title">Enviar %1$s</string>
     <string name="show_logs">Mostrar bitácora</string>
     <string name="settings_db_clear_error">Error limpiando base de datos</string>
-    <string name="amount_conversion">Conversión</string>
     <string name="balances_inbound_amount">+%1$s entrante</string>
     <string name="transactions_receive_funds_title">Recibir %1$s</string>
     <string name="observability_title">Bitácora interna de eventos</string>
