@@ -84,7 +84,7 @@ fun MakeDepositComposable(
     ) {
         // Amount/currency stuff
         // TODO: use scopeInfo instead of currency!
-        var checkResult by remember { mutableStateOf<CheckDepositResult>(CheckDepositResult.None) }
+        var checkResult by remember { mutableStateOf<CheckDepositResult>(CheckDepositResult.None()) }
         var amount by remember { mutableStateOf(Amount.zero(defaultCurrency ?: currencies[0])) }
         val currencySpec = remember (amount) { getCurrencySpec(amount.currency) }
 
@@ -124,19 +124,13 @@ fun MakeDepositComposable(
         }
 
         amount.useDebounce {
-            if (paytoUri != null) {
+            if (paytoUri != null && !formError) {
                 checkResult = checkDeposit(amount, paytoUri)
             }
         }
 
         paytoUri.useDebounce {
-            if (paytoUri != null) {
-                checkResult = checkDeposit(amount, paytoUri)
-            }
-        }
-
-        LaunchedEffect(Unit) {
-            if (paytoUri != null) {
+            if (paytoUri != null && !formError) {
                 checkResult = checkDeposit(amount, paytoUri)
             }
         }
@@ -197,6 +191,22 @@ fun MakeDepositComposable(
             else -> {}
         }
 
+        AnimatedVisibility(checkResult.maxDepositAmountEffective != null) {
+            checkResult.maxDepositAmountEffective?.let {
+                Text(
+                    modifier = Modifier.padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        bottom = 16.dp,
+                    ),
+                    text = stringResource(
+                        R.string.send_deposit_max_amount,
+                        it.withSpec(currencySpec),
+                    ),
+                )
+            }
+        }
+
         AmountCurrencyField(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
@@ -211,7 +221,10 @@ fun MakeDepositComposable(
             supportingText = {
                 val res = checkResult
                 if (res is CheckDepositResult.InsufficientBalance && res.maxAmountEffective != null) {
-                    Text(stringResource(R.string.payment_balance_insufficient_max, res.maxAmountEffective))
+                    Text(stringResource(
+                        R.string.payment_balance_insufficient_max,
+                        res.maxAmountEffective.withSpec(currencySpec),
+                    ))
                 }
             }
         )
@@ -335,6 +348,7 @@ fun PreviewMakeDepositComposable() {
             checkDeposit = { _, _ -> CheckDepositResult.Success(
                 totalDepositCost = Amount.fromJSONString("KUDOS:10"),
                 effectiveDepositAmount = Amount.fromJSONString("KUDOS:12"),
+                maxDepositAmountEffective = Amount.fromJSONString("KUDOS:12")
             ) },
             validateIban = { true },
             onMakeDeposit = { _, _ -> },

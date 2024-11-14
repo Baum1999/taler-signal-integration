@@ -55,8 +55,10 @@ class DepositManager(
     }
 
     suspend fun checkDepositFees(paytoUri: String, amount: Amount): CheckDepositResult {
-        var response: CheckDepositResult = CheckDepositResult.None
-
+        val max = getMaxDepositAmount(amount.currency, paytoUri)
+        var response: CheckDepositResult = CheckDepositResult.None(
+            maxDepositAmountEffective = max?.effectiveAmount,
+        )
         api.request("checkDeposit", CheckDepositResponse.serializer()) {
             put("depositPaytoUri", paytoUri)
             put("amount", amount.toJSONString())
@@ -67,6 +69,7 @@ class DepositManager(
                 kycSoftLimit = it.kycSoftLimit,
                 kycHardLimit = it.kycHardLimit,
                 kycExchanges = it.kycExchanges,
+                maxDepositAmountEffective = max?.effectiveAmount,
             )
         }.onError { error ->
             Log.e(TAG, "Error prepareDeposit $error")
@@ -83,9 +86,27 @@ class DepositManager(
                     response = CheckDepositResult.InsufficientBalance(
                         maxAmountEffective = maxAmountEffective,
                         maxAmountRaw = maxAmountRaw,
+                        maxDepositAmountEffective = max?.effectiveAmount,
                     )
                 }
             }
+        }
+
+        return response
+    }
+
+    private suspend fun getMaxDepositAmount(
+        currency: String,
+        depositPaytoUri: String?,
+    ): GetMaxDepositAmountResponse? {
+        var response: GetMaxDepositAmountResponse? = null
+        api.request("getMaxDepositAmount", GetMaxDepositAmountResponse.serializer()) {
+            depositPaytoUri?.let { put("depositPaytoUri", it) }
+            put("currency", currency)
+        }.onError { error ->
+            Log.e(TAG, "Error getMaxDepositAmount $error")
+        }.onSuccess {
+            response = it
         }
 
         return response
@@ -174,11 +195,16 @@ data class CheckDepositResponse(
 
 @Serializable
 sealed class CheckDepositResult {
-    data object None: CheckDepositResult()
+    abstract val maxDepositAmountEffective: Amount?
+
+    data class None(
+        override val maxDepositAmountEffective: Amount? = null
+    ): CheckDepositResult()
 
     data class InsufficientBalance(
         val maxAmountEffective: Amount?,
         val maxAmountRaw: Amount?,
+        override val maxDepositAmountEffective: Amount?
     ): CheckDepositResult()
 
     data class Success(
@@ -187,8 +213,15 @@ sealed class CheckDepositResult {
         val kycSoftLimit: Amount? = null,
         val kycHardLimit: Amount? = null,
         val kycExchanges: List<String>? = null,
+        override val maxDepositAmountEffective: Amount?
     ): CheckDepositResult()
 }
+
+@Serializable
+data class GetMaxDepositAmountResponse(
+    val effectiveAmount: Amount,
+    val rawAmount: Amount,
+)
 
 @Serializable
 data class CreateDepositGroupResponse(

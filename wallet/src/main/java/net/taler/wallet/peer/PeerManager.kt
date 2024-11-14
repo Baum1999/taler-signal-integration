@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
@@ -47,18 +48,31 @@ const val MAX_LENGTH_SUBJECT = 100
 val DEFAULT_EXPIRY = ExpirationOption.DAYS_1
 
 sealed class CheckFeeResult {
-    data object None: CheckFeeResult()
+    abstract val maxDepositAmountEffective: Amount?
+
+    data class None(
+        override val maxDepositAmountEffective: Amount? = null,
+    ): CheckFeeResult()
 
     data class InsufficientBalance(
         val maxAmountEffective: Amount?,
         val maxAmountRaw: Amount?,
+        override val maxDepositAmountEffective: Amount? = null,
     ): CheckFeeResult()
 
     data class Success(
         val amountRaw: Amount,
         val amountEffective: Amount,
+        override val maxDepositAmountEffective: Amount? = null,
     ): CheckFeeResult()
 }
+
+@Serializable
+data class GetMaxPeerPushDebitAmountResponse(
+    val effectiveAmount: Amount,
+    val rawAmount: Amount,
+    val exchangeBaseUrl: String? = null,
+)
 
 class PeerManager(
     private val api: WalletBackendApi,
@@ -129,8 +143,8 @@ class PeerManager(
     }
 
     suspend fun checkPeerPushFees(amount: Amount, exchangeBaseUrl: String? = null): CheckFeeResult {
-        var response: CheckFeeResult = CheckFeeResult.None
-
+        val max = getMaxPeerPushDebitAmount(amount.currency, exchangeBaseUrl)
+        var response: CheckFeeResult = CheckFeeResult.None(maxDepositAmountEffective = max?.effectiveAmount)
         api.request("checkPeerPushDebit", CheckPeerPushDebitResponse.serializer()) {
             exchangeBaseUrl?.let { put("exchangeBaseUrl", it) }
             put("amount", amount.toJSONString())
@@ -138,6 +152,7 @@ class PeerManager(
             response = CheckFeeResult.Success(
                 amountRaw = it.amountRaw,
                 amountEffective = it.amountEffective,
+                maxDepositAmountEffective = max?.effectiveAmount,
             )
         }.onError { error ->
             Log.e(TAG, "got checkPeerPushDebit error result $error")
@@ -154,9 +169,29 @@ class PeerManager(
                     response = CheckFeeResult.InsufficientBalance(
                         maxAmountEffective = maxAmountEffective,
                         maxAmountRaw = maxAmountRaw,
+                        maxDepositAmountEffective = max?.effectiveAmount,
                     )
                 }
             }
+        }
+
+        return response
+    }
+
+    private suspend fun getMaxPeerPushDebitAmount(
+        currency: String,
+        exchangeBaseUrl: String? = null,
+        restrictScope: ScopeInfo? = null,
+    ): GetMaxPeerPushDebitAmountResponse? {
+        var response: GetMaxPeerPushDebitAmountResponse? = null
+        api.request("getMaxPeerPushDebitAmount", GetMaxPeerPushDebitAmountResponse.serializer()) {
+            exchangeBaseUrl?.let { put("exchangeBaseUrl", it) }
+            restrictScope?.let { put("restrictScope", it) }
+            put("currency", currency)
+        }.onError { error ->
+            Log.e(TAG, "got getMaxPeerPushDebitAmount error result $error")
+        }.onSuccess {
+            response = it
         }
 
         return response

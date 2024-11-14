@@ -16,6 +16,7 @@
 
 package net.taler.wallet.peer
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -97,14 +98,30 @@ fun OutgoingPushIntroComposable(
     ) {
         var amount by remember { mutableStateOf(Amount.zero(defaultCurrency ?: currencies[0])) }
         val selectedSpec = remember(amount.currency) { getCurrencySpec(amount.currency) }
-        var feeResult by remember { mutableStateOf<CheckFeeResult>(None) }
+        var feeResult by remember { mutableStateOf<CheckFeeResult>(None()) }
 
         amount.useDebounce {
-            feeResult = getFees(it) ?: None
+            feeResult = getFees(it) ?: None()
         }
 
         LaunchedEffect(Unit) {
-            feeResult = getFees(amount) ?: None
+            feeResult = getFees(amount) ?: None()
+        }
+
+        AnimatedVisibility(feeResult.maxDepositAmountEffective != null) {
+            feeResult.maxDepositAmountEffective?.let {
+                Text(
+                    modifier = Modifier.padding(
+                        start = 16.dp,
+                        end = 16.dp,
+                        bottom = 16.dp,
+                    ),
+                    text = stringResource(
+                        R.string.send_peer_max_amount,
+                        it.withSpec(selectedSpec),
+                    ),
+                )
+            }
         }
 
         AmountCurrencyField(
@@ -226,6 +243,7 @@ fun PeerPushComposableCheckingPreview() {
             getFees = { Success(
                 amountEffective = Amount.fromJSONString("KUDOS:10"),
                 amountRaw = Amount.fromJSONString("KUDOS:12"),
+                maxDepositAmountEffective = Amount.fromJSONString("KUDOS:12"),
             ) },
             onSend = { _, _, _ -> },
             onClose = {},
@@ -248,6 +266,7 @@ fun PeerPushComposableCheckedPreview() {
             getFees = { Success(
                 amountEffective = Amount.fromJSONString("KUDOS:10"),
                 amountRaw = Amount.fromJSONString("KUDOS:12"),
+                maxDepositAmountEffective = Amount.fromJSONString("KUDOS:12"),
             ) },
             onSend = { _, _, _ -> },
             onClose = {},
@@ -269,6 +288,7 @@ fun PeerPushComposableErrorPreview() {
             getFees = { Success(
                 amountEffective = Amount.fromJSONString("KUDOS:10"),
                 amountRaw = Amount.fromJSONString("KUDOS:12"),
+                maxDepositAmountEffective = Amount.fromJSONString("KUDOS:12"),
             ) },
             onSend = { _, _, _ -> },
             onClose = {},

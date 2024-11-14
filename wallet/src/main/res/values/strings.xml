@@ -213,6 +213,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="pay_peer_intro">Do you want to pay this request?</string>
     <string name="pay_peer_title">Pay request</string>
     <string name="send_deposit_account">Account</string>
+    <string name="send_deposit_max_amount">Available to deposit: %1$s</string>
     <string name="send_deposit_bitcoin_address">Bitcoin address</string>
     <string name="send_deposit_bitcoin_create_button">Transfer Bitcoin</string>
     <string name="send_deposit_button_label">Deposit</string>
@@ -233,6 +234,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="send_peer_expiration_days">Days</string>
     <string name="send_peer_expiration_hours">Hours</string>
     <string name="send_peer_expiration_period">Expires in</string>
+    <string name="send_peer_max_amount">Available to send: %1$s</string>
     <string name="send_peer_payment_instruction">To send %1$s, let the payee scan this QR code:</string>
     <string name="send_peer_purpose">Purpose</string>
     <string name="send_peer_title">Send money to another wallet</string>
