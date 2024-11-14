@@ -128,7 +128,10 @@ class HandleUriFragment: Fragment() {
 
                 action.startsWith("withdraw-exchange/", ignoreCase = true) -> {
                     Log.v(TAG, "navigating!")
-                    val args = bundleOf("withdrawExchangeUri" to u2)
+                    val args = bundleOf(
+                        "withdrawExchangeUri" to u2,
+                        "editableCurrency" to false,
+                    )
                     model.withdrawManager.resetWithdrawal()
                     findNavController().navigate(R.id.action_handleUri_to_promptWithdraw, args)
                 }
