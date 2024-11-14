@@ -45,29 +45,6 @@ fun MakeDepositTaler(
     account: String,
     onFormEdited: (name: String, host: String, account: String) -> Unit
 ) {
-    OutlinedTextField(
-        modifier = Modifier
-            .padding(
-                bottom = 16.dp,
-                start = 16.dp,
-                end = 16.dp,
-            ).fillMaxWidth(),
-        value = name,
-        onValueChange = { input ->
-            onFormEdited(input, host, account)
-        },
-        singleLine = true,
-        isError = name.isBlank(),
-        label = {
-            Text(
-                stringResource(R.string.send_deposit_name),
-                color = if (name.isBlank()) {
-                    MaterialTheme.colorScheme.error
-                } else Color.Unspecified,
-            )
-        }
-    )
-
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -75,7 +52,11 @@ fun MakeDepositTaler(
     ) {
         OutlinedTextField(
             modifier = Modifier
-                .padding(horizontal = 16.dp)
+                .padding(
+                    bottom = 16.dp,
+                    start = 16.dp,
+                    end = 16.dp,
+                )
                 .fillMaxWidth()
                 .menuAnchor(),
             readOnly = true,
@@ -107,6 +88,26 @@ fun MakeDepositTaler(
             }
         }
     }
+
+    OutlinedTextField(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxWidth(),
+        value = name,
+        onValueChange = { input ->
+            onFormEdited(input, host, account)
+        },
+        singleLine = true,
+        isError = name.isBlank(),
+        label = {
+            Text(
+                stringResource(R.string.send_deposit_name),
+                color = if (name.isBlank()) {
+                    MaterialTheme.colorScheme.error
+                } else Color.Unspecified,
+            )
+        }
+    )
 
     OutlinedTextField(
         modifier = Modifier

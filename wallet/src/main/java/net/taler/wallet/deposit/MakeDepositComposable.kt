@@ -19,6 +19,7 @@ package net.taler.wallet.deposit
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -77,7 +78,8 @@ fun MakeDepositComposable(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .verticalScroll(scrollState),
+            .verticalScroll(scrollState)
+            .imePadding(),
         horizontalAlignment = CenterHorizontally,
     ) {
         // Amount/currency stuff
@@ -156,27 +158,6 @@ fun MakeDepositComposable(
             )
         }
 
-        AmountCurrencyField(
-            modifier = Modifier
-                .padding(
-                    top = 16.dp,
-                    start = 16.dp,
-                    end = 16.dp,
-                ).fillMaxWidth(),
-            amount = amount.withSpec(currencySpec),
-            onAmountChanged = { amount = it },
-            editableCurrency = true,
-            currencies = currencies,
-            isError = checkResult !is CheckDepositResult.Success,
-            label = { Text(stringResource(R.string.amount_deposit)) },
-            supportingText = {
-                val res = checkResult
-                if (res is CheckDepositResult.InsufficientBalance && res.maxAmountEffective != null) {
-                    Text(stringResource(R.string.payment_balance_insufficient_max, res.maxAmountEffective))
-                }
-            }
-        )
-
         when(selectedWireType) {
             WireType.IBAN -> {
                 var ibanError by rememberSaveable { mutableStateOf(false) }
@@ -215,6 +196,25 @@ fun MakeDepositComposable(
 
             else -> {}
         }
+
+        AmountCurrencyField(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .fillMaxWidth(),
+            amount = amount.withSpec(currencySpec),
+            onAmountChanged = { amount = it },
+            editableCurrency = true,
+            currencies = currencies,
+            isError = checkResult !is CheckDepositResult.Success,
+            label = { Text(stringResource(R.string.amount_deposit)) },
+            enabled = !formError,
+            supportingText = {
+                val res = checkResult
+                if (res is CheckDepositResult.InsufficientBalance && res.maxAmountEffective != null) {
+                    Text(stringResource(R.string.payment_balance_insufficient_max, res.maxAmountEffective))
+                }
+            }
+        )
 
         AnimatedVisibility(visible = checkResult is CheckDepositResult.Success) {
             val res = checkResult as? CheckDepositResult.Success ?: return@AnimatedVisibility

@@ -67,6 +67,7 @@ fun AmountCurrencyField(
     supportingText: @Composable (() -> Unit)? = null,
     isError: Boolean = false,
     readOnly: Boolean = false,
+    enabled: Boolean = true,
 ) {
     Row(modifier = modifier) {
         AmountInputFieldBase(
@@ -79,6 +80,7 @@ fun AmountCurrencyField(
             isError = isError,
             supportingText = supportingText,
             readOnly = readOnly,
+            enabled = enabled,
         )
 
         if (editableCurrency) {
@@ -87,7 +89,7 @@ fun AmountCurrencyField(
                 currencies = currencies,
                 onCurrencyChanged = { onAmountChanged(amount.copy(currency = it)) },
                 initialCurrency = amount.currency,
-                readOnly = false,
+                readOnly = readOnly || !enabled,
             )
         }
     }
@@ -102,6 +104,7 @@ private fun AmountInputFieldBase(
     supportingText: @Composable (() -> Unit)? = null,
     isError: Boolean = false,
     readOnly: Boolean = false,
+    enabled: Boolean = true,
 ) {
     val inputService = LocalTextInputService.current
     val interactionSource = remember { MutableInteractionSource() }
@@ -124,7 +127,7 @@ private fun AmountInputFieldBase(
     }
 
     LaunchedEffect(isFocused, isClicked) {
-        if (readOnly) return@LaunchedEffect
+        if (readOnly && !enabled) return@LaunchedEffect
         if (isFocused || isClicked) {
             session = startSession(inputService) { commands ->
                 commands.forEach { cmd ->
@@ -161,6 +164,7 @@ private fun AmountInputFieldBase(
         singleLine = true,
         maxLines = 1,
         interactionSource = interactionSource,
+        enabled = enabled,
     )
 }
 
