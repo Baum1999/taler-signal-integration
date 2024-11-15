@@ -84,6 +84,13 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
 
         setSupportActionBar(ui.toolbar)
         ui.toolbar.setupWithNavController(nav)
+        ui.toolbar.setNavigationOnClickListener {
+            if (onBackPressedDispatcher.hasEnabledCallbacks()) {
+                onBackPressedDispatcher.onBackPressed()
+            } else {
+                nav.navigateUp()
+            }
+        }
 
         // TODO: refactor and unify progress bar handling
         // model.showProgressBar.observe(this) { show ->

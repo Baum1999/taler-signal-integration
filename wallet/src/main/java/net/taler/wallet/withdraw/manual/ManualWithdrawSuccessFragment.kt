@@ -20,54 +20,48 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.compose.BackHandler
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.launch
 import net.taler.common.openUri
 import net.taler.common.shareText
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.compose.collectAsStateLifecycleAware
+import net.taler.wallet.transactions.Transaction
+import net.taler.wallet.transactions.TransactionMajorState.Done
 import net.taler.wallet.withdraw.TransferData
-import net.taler.wallet.withdraw.WithdrawStatus
 
 class ManualWithdrawSuccessFragment : Fragment() {
     private val model: MainViewModel by activityViewModels()
     private val withdrawManager by lazy { model.withdrawManager }
+    private val transactionManager by lazy { model.transactionManager }
     private val balanceManager by lazy { model.balanceManager }
-
-    private lateinit var status: WithdrawStatus
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View = ComposeView(requireContext()).apply {
-        status = withdrawManager.withdrawStatus.value
-
-        // Set action bar subtitle and unset on exit
-        if (status.withdrawalTransfers.size > 1) {
-            val activity = requireActivity() as AppCompatActivity
-
-            activity.apply {
-                supportActionBar?.subtitle = getString(R.string.withdraw_subtitle)
-            }
-
-            findNavController().addOnDestinationChangedListener { _, destination, _ ->
-                if (destination.id != R.id.nav_exchange_manual_withdrawal_success) {
-                    activity.apply {
-                        supportActionBar?.subtitle = null
-                    }
-                }
-            }
-        }
-
         setContent {
             TalerSurface {
+                val status by withdrawManager.withdrawStatus.collectAsStateLifecycleAware()
+                val selectedTx by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
                 val qrCodes by withdrawManager.qrCodes.observeAsState()
+
+                BackHandler {
+                    selectedTx?.let { navigateToDetails(it) }
+                }
 
                 ScreenTransfer(
                     status = status,
@@ -81,6 +75,48 @@ class ManualWithdrawSuccessFragment : Fragment() {
         }
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                model.withdrawManager.withdrawStatus.collect { status ->
+                    // Set action bar subtitle and unset on exit
+                    if (status.withdrawalTransfers.size > 1) {
+                        (requireActivity() as? AppCompatActivity)?.apply {
+                            supportActionBar?.subtitle = getString(R.string.withdraw_subtitle)
+                        }
+                    }
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                model.transactionManager.selectedTransaction.collect { tx ->
+                    if (tx?.txState?.major == Done) {
+                        navigateToDetails(tx)
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        (requireActivity() as? AppCompatActivity)?.apply {
+            supportActionBar?.subtitle = null
+        }
+    }
+
+    private fun navigateToDetails(tx: Transaction) {
+        val options = NavOptions.Builder()
+            .setPopUpTo(R.id.nav_main, false)
+            .build()
+        findNavController()
+            .navigate(tx.detailPageNav, null, options)
+    }
+
     private fun onBankAppClick(transfer: TransferData) {
         requireContext().openUri(
             uri = transfer.withdrawalAccount.paytoUri,
@@ -92,10 +128,5 @@ class ManualWithdrawSuccessFragment : Fragment() {
         requireContext().shareText(
             text = transfer.withdrawalAccount.paytoUri,
         )
-    }
-
-    override fun onStart() {
-        super.onStart()
-        activity?.setTitle(R.string.withdraw_title)
     }
 }

@@ -197,17 +197,7 @@ class PromptWithdrawFragment: Fragment() {
                     }
 
                     when (status.status) {
-                        ManualTransferRequired -> {
-                            if (!navigating) {
-                                navigating = true
-                            } else return@collect
-
-                            findNavController().navigate(
-                                R.id.action_promptWithdraw_to_nav_exchange_manual_withdrawal_success,
-                            )
-                        }
-
-                        Success -> lifecycleScope.launch {
+                        Success, ManualTransferRequired -> lifecycleScope.launch {
                             Snackbar.make(requireView(), R.string.withdraw_initiated, LENGTH_LONG).show()
                             status.transactionId?.let {
                                 if (!navigating) {
@@ -215,7 +205,11 @@ class PromptWithdrawFragment: Fragment() {
                                 } else return@let
 
                                 if (transactionManager.selectTransaction(it)) {
-                                    findNavController().navigate(R.id.action_promptWithdraw_to_nav_transactions_detail_withdrawal)
+                                    if (status.status == Success) {
+                                        findNavController().navigate(R.id.action_promptWithdraw_to_nav_transactions_detail_withdrawal)
+                                    } else {
+                                        findNavController().navigate(R.id.action_promptWithdraw_to_nav_exchange_manual_withdrawal_success)
+                                    }
                                 } else {
                                     findNavController().navigate(R.id.action_promptWithdraw_to_nav_main)
                                 }

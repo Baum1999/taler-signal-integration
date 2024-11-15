@@ -501,6 +501,7 @@ class WithdrawManager(
     ) = status.copy(
         status = ManualTransferRequired,
         manualTransferResponse = response,
+        transactionId = response.transactionId,
         withdrawalTransfers = response.withdrawalAccountsList.mapNotNull {
             val details = status.amountInfo ?: error("no amountInfo")
             val uri = Uri.parse(it.paytoUri.replace("receiver-name=", "receiver_name="))
