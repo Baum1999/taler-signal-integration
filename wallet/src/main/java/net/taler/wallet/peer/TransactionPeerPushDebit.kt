@@ -60,6 +60,7 @@ fun ColumnScope.TransactionPeerPushDebitComposable(t: TransactionPeerPushDebit, 
         state = t.txState,
         amount = t.amountRaw.withSpec(spec),
         talerUri = t.talerUri,
+        instructionResId = R.string.send_peer_payment_instruction,
     )
 
     TransactionAmountComposable(
@@ -94,14 +95,13 @@ fun ColumnScope.PeerQrCode(
     state: TransactionState,
     amount: Amount,
     talerUri: String?,
+    instructionResId: Int,
 ) {
     if (state == TransactionState(Pending)) {
         Text(
             modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
             style = MaterialTheme.typography.titleLarge,
-            text = stringResource(id = R.string.send_peer_payment_instruction,
-                amount.spec?.name
-                    ?: amount.currency),
+            text = stringResource(id = instructionResId, amount.toString()),
             textAlign = TextAlign.Center,
         )
 

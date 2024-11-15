@@ -204,6 +204,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="receive_peer">Request money from another wallet</string>
     <string name="receive_peer_create_button">Create request</string>
     <string name="receive_peer_invoice_uri">Alternatively, copy and send this URI:</string>
+    <string name="receive_peer_payment_instruction">Receiving %1$s, let the payer scan this QR code to send it</string>
     <string name="receive_peer_payment_intro">Do you want to receive this payment?</string>
     <string name="receive_peer_payment_title">Receive payment</string>
     <string name="receive_peer_title">Request money</string>
@@ -235,7 +236,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="send_peer_expiration_hours">Hours</string>
     <string name="send_peer_expiration_period">Expires in</string>
     <string name="send_peer_max_amount">Available to send: %1$s</string>
-    <string name="send_peer_payment_instruction">To send %1$s, let the payee scan this QR code:</string>
+    <string name="send_peer_payment_instruction">Sending %1$s, let the payee scan this QR code to receive it</string>
     <string name="send_peer_purpose">Purpose</string>
     <string name="send_peer_title">Send money to another wallet</string>
 

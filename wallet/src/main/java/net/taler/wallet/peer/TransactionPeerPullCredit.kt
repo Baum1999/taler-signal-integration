@@ -56,6 +56,7 @@ fun ColumnScope.TransactionPeerPullCreditComposable(
         state = t.txState,
         amount = t.amountRaw.withSpec(spec),
         talerUri = t.talerUri,
+        instructionResId = R.string.receive_peer_payment_instruction,
     )
     
     TransactionAmountComposable(
