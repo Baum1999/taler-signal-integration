@@ -170,6 +170,7 @@ class PromptWithdrawFragment: Fragment() {
                                     findNavController().navigate(R.id.action_global_reviewExchangeTos, args)
                                 },
                                 onConfirm = { age ->
+                                    exchange?.scopeInfo?.let { model.transactionManager.selectScope(it) }
                                     withdrawManager.acceptWithdrawal(age)
                                 },
                             )
@@ -205,6 +206,7 @@ class PromptWithdrawFragment: Fragment() {
                                 } else return@let
 
                                 if (transactionManager.selectTransaction(it)) {
+                                    status.amountInfo?.scopeInfo?.let { s -> transactionManager.selectScope(s) }
                                     if (status.status == Success) {
                                         findNavController().navigate(R.id.action_promptWithdraw_to_nav_transactions_detail_withdrawal)
                                     } else {

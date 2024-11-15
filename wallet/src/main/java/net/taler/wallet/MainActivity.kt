@@ -116,6 +116,14 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
             }
         }
 
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                model.transactionManager.selectedScope.collect { tx ->
+                    model.saveSelectedScope(this@MainActivity, tx)
+                }
+            }
+        }
+
         model.scanCodeEvent.observe(this, EventObserver {
             val scanOptions = ScanOptions().apply {
                 setPrompt("")

@@ -151,13 +151,11 @@ class MainFragment: Fragment() {
                     )
                 ) { innerPadding ->
                     LaunchedEffect(Unit) {
-                        model.transactionManager.selectScope(
-                            model.getSelectedScope(context).first(),
-                        )
-                    }
-
-                    LaunchedEffect(selectedScope) {
-                        model.saveSelectedScope(context, selectedScope)
+                        if (selectedScope == null) {
+                            model.transactionManager.selectScope(
+                                model.getSelectedScope(context).first()
+                            )
+                        }
                     }
 
                     LaunchedEffect(tab, selectedScope) {
