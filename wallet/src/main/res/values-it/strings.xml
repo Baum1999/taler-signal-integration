@@ -165,7 +165,7 @@
     <string name="withdraw_manual_ready_details_intro">Dettagli del trasferimento bancario</string>
     <string name="withdraw_manual_ready_subject">Soggetto</string>
     <string name="transaction_action_kyc">Completa KYC</string>
-    <string name="pay_peer_intro">Vuoi pagare questa fattura\?</string>
+    <string name="pay_peer_intro">Vuoi pagare questa fattura?</string>
     <string name="transactions_delete_dialog_title">Rimuovi Transazione</string>
     <string name="transactions_delete_dialog_message">Sei sicuro di voler rimuovere questa transazione dal tuo portafogli?</string>
     <string name="transaction_deposit">Deposita</string>
