@@ -332,4 +332,16 @@
     <string name="transactions_currency">%1$s (%2$s)</string>
     <string name="send_deposit_button_label">Einzahlung</string>
     <string name="send_deposit_account_warning">Sie müssen aufgrund regulatorischer Bestimmungen ein Konto angeben, über das Sie persönlich verfügen können.</string>
+    <string name="transaction_peer_push_credit_pending"></string>
+    <string name="transaction_peer_push_debit_pending"></string>
+    <string name="transactions_delete_selected_dialog_title"></string>
+    <string name="transaction_peer_pull_debit_pending"></string>
+    <string name="amount_available_transfer"></string>
+    <string name="receive_peer_payment_instruction"></string>
+    <string name="exchange_global_add"></string>
+    <string name="exchange_global_add_success"></string>
+    <string name="exchange_global_delete"></string>
+    <string name="exchange_global_delete_success"></string>
+    <string name="settings_db_export_message"></string>
+    <string name="settings_db_import_message"></string>
 </resources>
