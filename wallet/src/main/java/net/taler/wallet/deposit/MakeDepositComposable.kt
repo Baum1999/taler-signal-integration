@@ -53,6 +53,7 @@ import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.compose.AmountCurrencyField
+import net.taler.wallet.compose.WarningLabel
 import net.taler.wallet.peer.OutgoingError
 import net.taler.wallet.peer.PeerErrorComposable
 import net.taler.wallet.transactions.AmountType.Negative
@@ -151,6 +152,11 @@ fun MakeDepositComposable(
                 }
             )
         }
+
+        WarningLabel(
+            modifier = Modifier.padding(16.dp),
+            label = stringResource(R.string.send_deposit_account_warning),
+        )
 
         when(selectedWireType) {
             WireType.IBAN -> {
@@ -344,7 +350,22 @@ fun PreviewMakeDepositComposable() {
             defaultCurrency = "KUDOS",
             currencies = listOf("KUDOS", "TESTKUDOS", "NETZBON"),
             getCurrencySpec = { null },
-            getDepositWireTypes = { GetDepositWireTypesForCurrencyResponse(listOf(), listOf())},
+            getDepositWireTypes = { GetDepositWireTypesForCurrencyResponse(
+                wireTypes = listOf(
+                    WireType.IBAN,
+                    WireType.TalerBank,
+                ),
+                wireTypeDetails = listOf(
+                    WireTypeDetails(
+                        paymentTargetType = WireType.IBAN,
+                        talerBankHostnames = listOf("bank.test.taler.net")
+                    ),
+                    WireTypeDetails(
+                        paymentTargetType = WireType.TalerBank,
+                        talerBankHostnames = listOf("bank.test.taler.net")
+                    ),
+                ),
+            )},
             checkDeposit = { _, _ -> CheckDepositResult.Success(
                 totalDepositCost = Amount.fromJSONString("KUDOS:10"),
                 effectiveDepositAmount = Amount.fromJSONString("KUDOS:12"),

@@ -38,7 +38,6 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.JsonPrimitive
@@ -48,12 +47,14 @@ import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.AmountCurrencyField
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.peer.CheckFeeResult.InsufficientBalance
 import net.taler.wallet.peer.CheckFeeResult.None
 import net.taler.wallet.peer.CheckFeeResult.Success
+import net.taler.wallet.transactions.TransactionInfoComposable
 import net.taler.wallet.useDebounce
 import kotlin.random.Random
 
@@ -173,20 +174,14 @@ fun OutgoingPushIntroComposable(
                         MaterialTheme.colorScheme.error
                     } else Color.Unspecified,
                 )
-            }
+            },
+            supportingText = {
+                Text(stringResource(R.string.char_count, subject.length, MAX_LENGTH_SUBJECT))
+            },
         )
 
         Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 5.dp),
-            color = if (subject.isBlank()) MaterialTheme.colorScheme.error else Color.Unspecified,
-            text = stringResource(R.string.char_count, subject.length, MAX_LENGTH_SUBJECT),
-            textAlign = TextAlign.End,
-        )
-
-        Text(
-            modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+            modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
             text = stringResource(R.string.send_peer_expiration_period),
             style = MaterialTheme.typography.bodyMedium,
         )
@@ -194,11 +189,25 @@ fun OutgoingPushIntroComposable(
         var option by rememberSaveable { mutableStateOf(DEFAULT_EXPIRY) }
         var hours by rememberSaveable { mutableLongStateOf(DEFAULT_EXPIRY.hours) }
         ExpirationComposable(
-            modifier = Modifier.padding(top = 8.dp, bottom = 16.dp),
+            modifier = Modifier.padding(vertical = 8.dp),
             option = option,
             hours = hours,
             onOptionChange = { option = it }
         ) { hours = it }
+
+        AnimatedVisibility(feeResult is Success) {
+            (feeResult as? Success)?.let {
+                Column(
+                    modifier = Modifier.padding(bottom = 8.dp),
+                    horizontalAlignment = CenterHorizontally,
+                ) {
+                    TransactionInfoComposable(
+                        label = stringResource(id = R.string.withdraw_exchange),
+                        info = cleanExchange(it.exchangeBaseUrl),
+                    )
+                }
+            }
+        }
 
         Button(
             enabled = feeResult is Success && subject.isNotBlank(),
@@ -223,6 +232,7 @@ fun PeerPushComposableCreatingPreview() {
             getFees = { Success(
                 amountEffective = Amount.fromJSONString("KUDOS:10"),
                 amountRaw = Amount.fromJSONString("KUDOS:12"),
+                exchangeBaseUrl = "https://exchange.demo.taler.net"
             ) },
             onSend = { _, _, _ -> },
             onClose = {},
@@ -244,6 +254,7 @@ fun PeerPushComposableCheckingPreview() {
                 amountEffective = Amount.fromJSONString("KUDOS:10"),
                 amountRaw = Amount.fromJSONString("KUDOS:12"),
                 maxDepositAmountEffective = Amount.fromJSONString("KUDOS:12"),
+                exchangeBaseUrl = "https://exchange.demo.taler.net"
             ) },
             onSend = { _, _, _ -> },
             onClose = {},
@@ -267,6 +278,7 @@ fun PeerPushComposableCheckedPreview() {
                 amountEffective = Amount.fromJSONString("KUDOS:10"),
                 amountRaw = Amount.fromJSONString("KUDOS:12"),
                 maxDepositAmountEffective = Amount.fromJSONString("KUDOS:12"),
+                exchangeBaseUrl = "https://exchange.demo.taler.net"
             ) },
             onSend = { _, _, _ -> },
             onClose = {},
@@ -289,6 +301,7 @@ fun PeerPushComposableErrorPreview() {
                 amountEffective = Amount.fromJSONString("KUDOS:10"),
                 amountRaw = Amount.fromJSONString("KUDOS:12"),
                 maxDepositAmountEffective = Amount.fromJSONString("KUDOS:12"),
+                exchangeBaseUrl = "https://exchange.demo.taler.net"
             ) },
             onSend = { _, _, _ -> },
             onClose = {},

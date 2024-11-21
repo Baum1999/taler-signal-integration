@@ -63,6 +63,7 @@ sealed class CheckFeeResult {
     data class Success(
         val amountRaw: Amount,
         val amountEffective: Amount,
+        val exchangeBaseUrl: String,
         override val maxDepositAmountEffective: Amount? = null,
     ): CheckFeeResult()
 }
@@ -153,6 +154,7 @@ class PeerManager(
                 amountRaw = it.amountRaw,
                 amountEffective = it.amountEffective,
                 maxDepositAmountEffective = max?.effectiveAmount,
+                exchangeBaseUrl = it.exchangeBaseUrl,
             )
         }.onError { error ->
             Log.e(TAG, "got checkPeerPushDebit error result $error")
