@@ -129,7 +129,7 @@
     <string name="send_peer_expiration_hours">Hores</string>
     <string name="send_peer_purpose">Propòsit</string>
     <string name="pay_peer_title">Factura de pagament</string>
-    <string name="pay_peer_intro">Vols pagar aquesta factura\?</string>
+    <string name="pay_peer_intro">Vols pagar aquesta factura?</string>
     <string name="receive_peer_payment_title">Rebre un pagament</string>
     <string name="receive_peer_payment_intro">Vols rebre aquest pagament\?</string>
     <string name="withdraw_initiated">Retirada iniciada</string>
