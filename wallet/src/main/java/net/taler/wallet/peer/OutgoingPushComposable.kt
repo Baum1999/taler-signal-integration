@@ -117,7 +117,7 @@ fun OutgoingPushIntroComposable(
                         bottom = 16.dp,
                     ),
                     text = stringResource(
-                        R.string.send_peer_max_amount,
+                        R.string.amount_available_transfer,
                         it.withSpec(selectedSpec),
                     ),
                 )

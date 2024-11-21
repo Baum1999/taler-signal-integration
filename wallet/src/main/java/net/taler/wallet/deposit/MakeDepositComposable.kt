@@ -200,7 +200,7 @@ fun MakeDepositComposable(
                         bottom = 16.dp,
                     ),
                     text = stringResource(
-                        R.string.send_deposit_max_amount,
+                        R.string.amount_available_transfer,
                         it.withSpec(currencySpec),
                     ),
                 )
