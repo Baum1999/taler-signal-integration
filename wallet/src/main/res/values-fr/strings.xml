@@ -180,7 +180,7 @@
     <string name="send_deposit_amount_effective">Montant effectif</string>
     <string name="send_deposit_create_button">Effectuer un dépôt</string>
     <string name="send_peer">Vers un autre portefeuille</string>
-    <string name="pay_peer_intro">Voulez-vous payer cette facture \?</string>
+    <string name="pay_peer_intro">Voulez-vous payer cette facture ?</string>
     <string name="receive_peer_payment_title">Recevoir le paiement</string>
     <string name="receive_peer_payment_intro">Voulez-vous recevoir ce paiement \?</string>
     <string name="send_peer_purpose">Objectif</string>
