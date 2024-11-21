@@ -193,7 +193,8 @@ fun CurrencyDropdown(
     ) {
         OutlinedTextField(
             modifier = Modifier
-                .clickable(onClick = { if (!readOnly) expanded = true }),
+                .clickable(onClick = { if (!readOnly) expanded = true })
+                .fillMaxWidth(),
             value = currencies.getOrNull(selectedIndex)
                 ?: initialCurrency // wallet is empty or currency is new
                 ?: error("no currency available"),

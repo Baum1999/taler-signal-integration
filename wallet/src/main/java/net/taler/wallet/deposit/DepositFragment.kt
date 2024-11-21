@@ -20,17 +20,19 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import kotlinx.coroutines.runBlocking
 import net.taler.common.Amount
 import net.taler.common.showError
-import net.taler.wallet.CURRENCY_BTC
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
+import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.showError
@@ -48,7 +50,6 @@ class DepositFragment : Fragment() {
     ): View {
         val presetAmount = arguments?.getString("amount")?.let { Amount.fromJSONString(it) }
         val scopeInfo = transactionManager.selectedScope.value
-        val spec = scopeInfo?.let { balanceManager.getSpecForScopeInfo(it) }
         val receiverName = arguments?.getString("receiverName")
         val iban = arguments?.getString("IBAN")
 
@@ -60,30 +61,65 @@ class DepositFragment : Fragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 TalerSurface {
-                    val state = depositManager.depositState.collectAsStateLifecycleAware()
+                    val state by depositManager.depositState.collectAsStateLifecycleAware()
 
-                    // TODO: refactor Bitcoin as wire method
-                    if (presetAmount?.currency == CURRENCY_BTC) MakeBitcoinDepositComposable(
-                        state = state.value,
-                        amount = presetAmount.withSpec(spec),
-                        bitcoinAddress = null,
-                        onMakeDeposit = { amount, bitcoinAddress ->
-                            val paytoUri = getBitcoinPayto(bitcoinAddress)
-                            depositManager.makeDeposit(amount, paytoUri)
-                        },
-                    ) else MakeDepositComposable(
-                        state = state.value,
-                        defaultCurrency = scopeInfo?.currency,
-                        currencies = balanceManager.getCurrencies(),
-                        getCurrencySpec = { runBlocking { balanceManager.getSpecForCurrency(it) } },
-                        checkDeposit = { a, p -> depositManager.checkDepositFees(p, a) },
-                        getDepositWireTypes = depositManager::getDepositWireTypesForCurrency,
-                        presetName = receiverName,
-                        presetIban = iban,
-                        validateIban = depositManager::validateIban,
-                        onMakeDeposit = depositManager::makeDeposit,
-                        onClose = { findNavController().popBackStack() },
-                    )
+                    BackHandler(state is DepositState.AccountSelected) {
+                        depositManager.resetDepositState()
+                    }
+
+                    when (val s = state) {
+                        is DepositState.MakingDeposit, is DepositState.Success -> {
+                            LoadingScreen()
+                        }
+
+                        is DepositState.Error -> {
+                            MakeDepositErrorComposable(s.error.userFacingMsg) {
+                                findNavController().popBackStack()
+                            }
+                        }
+
+                        is DepositState.Start -> {
+                            // TODO: refactor Bitcoin as wire method
+//                            if (presetAmount?.currency == CURRENCY_BTC) MakeBitcoinDepositComposable(
+//                                state = state,
+//                                amount = presetAmount.withSpec(spec),
+//                                bitcoinAddress = null,
+//                                onMakeDeposit = { amount, bitcoinAddress ->
+//                                    val paytoUri = getBitcoinPayto(bitcoinAddress)
+//                                    depositManager.makeDeposit(amount, paytoUri)
+//                                },
+                            MakeDepositComposable(
+                                defaultCurrency = scopeInfo?.currency,
+                                currencies = balanceManager.getCurrencies(),
+                                getDepositWireTypes = depositManager::getDepositWireTypesForCurrency,
+                                presetName = receiverName,
+                                presetIban = iban,
+                                validateIban = depositManager::validateIban,
+                                onPaytoSelected = { paytoUri, currency ->
+                                    depositManager.selectAccount(paytoUri, currency)
+                                },
+                                onClose = {
+                                    findNavController().popBackStack()
+                                },
+                            )
+                        }
+
+                        is DepositState.AccountSelected -> {
+                            DepositAmountComposable(
+                                state = s,
+                                currency = s.currency,
+                                currencySpec = remember(s.currency) {
+                                    balanceManager.getSpecForCurrency(s.currency)
+                                },
+                                checkDeposit = { a ->
+                                    depositManager.checkDepositFees(s.paytoUri, a)
+                                },
+                                onMakeDeposit = { amount ->
+                                    depositManager.makeDeposit(amount, s.paytoUri)
+                                },
+                            )
+                        }
+                    }
                 }
             }
         }

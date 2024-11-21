@@ -16,6 +16,7 @@
 
 package net.taler.wallet.compose
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -106,6 +107,7 @@ private fun AmountInputFieldBase(
     readOnly: Boolean = false,
     enabled: Boolean = true,
 ) {
+    // TODO: use non-deprecated PlatformTextInputModifierNode instead
     val inputService = LocalTextInputService.current
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused: Boolean by interactionSource.collectIsFocusedAsState()
@@ -168,6 +170,7 @@ private fun AmountInputFieldBase(
     )
 }
 
+@SuppressLint("RestrictedApi")
 @OptIn(InternalTextApi::class)
 fun startSession(
     textInputService: TextInputService?,

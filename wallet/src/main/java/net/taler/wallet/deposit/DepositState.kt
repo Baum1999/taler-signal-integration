@@ -16,22 +16,16 @@
 
 package net.taler.wallet.deposit
 
-import net.taler.common.Amount
 import net.taler.wallet.backend.TalerErrorInfo
 
 sealed class DepositState {
-    open val showFees: Boolean = false
-    open val totalDepositCost: Amount? = null
-    open val effectiveDepositAmount: Amount? = null
-
     data object Start : DepositState()
 
-    data class FeesChecked(
-        override val totalDepositCost: Amount,
-        override val effectiveDepositAmount: Amount,
-    ) : DepositState() {
-        override val showFees = true
-    }
+    data class AccountSelected(
+        val paytoUri: String,
+        val currency: String,
+    ) : DepositState()
+
     data object MakingDeposit : DepositState()
 
     data object Success : DepositState()

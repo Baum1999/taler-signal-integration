@@ -54,6 +54,11 @@ class DepositManager(
         return u.pathSegments.size >= 1
     }
 
+    @UiThread
+    fun selectAccount(paytoUri: String, currency: String) {
+        mDepositState.value = DepositState.AccountSelected(paytoUri, currency)
+    }
+
     suspend fun checkDepositFees(paytoUri: String, amount: Amount): CheckDepositResult {
         val max = getMaxDepositAmount(amount.currency, paytoUri)
         var response: CheckDepositResult = CheckDepositResult.None(
@@ -72,7 +77,7 @@ class DepositManager(
                 maxDepositAmountEffective = max?.effectiveAmount,
             )
         }.onError { error ->
-            Log.e(TAG, "Error prepareDeposit $error")
+            Log.e(TAG, "Error checkDeposit $error")
             if (error.code == WALLET_DEPOSIT_GROUP_INSUFFICIENT_BALANCE) {
                 error.extra["insufficientBalanceDetails"]?.let { details ->
                     val maxAmountRaw = details.jsonObject["balanceAvailable"]?.let { amount ->
@@ -244,6 +249,9 @@ enum class WireType {
 
     @SerialName("x-taler-bank")
     TalerBank,
+
+    @SerialName("bitcoin")
+    Bitcoin,
 }
 
 @Serializable
