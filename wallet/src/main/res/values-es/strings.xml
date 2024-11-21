@@ -188,7 +188,7 @@
     <string name="send_peer">A otra cartera</string>
     <string name="send_peer_title">Enviar dinero a otra cartera</string>
     <string name="transaction_peer_push_debit">Pago push</string>
-    <string name="pay_peer_intro">¿Quieres pagar este cobro\?</string>
+    <string name="pay_peer_intro">¿Quieres pagar este cobro?</string>
     <string name="receive_peer_payment_intro">¿Quieres recibir este pago\?</string>
     <string name="withdraw_manual_bitcoin_intro">Ahora haz una transacción dividida con las siguientes tres salidas.</string>
     <string name="withdraw_manual_ready_subject">Sujeto</string>
