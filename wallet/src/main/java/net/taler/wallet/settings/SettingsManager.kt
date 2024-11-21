@@ -31,12 +31,14 @@ import net.taler.wallet.R
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.backend.WalletResponse.Error
 import net.taler.wallet.backend.WalletResponse.Success
+import net.taler.wallet.balances.BalanceManager
 import org.json.JSONObject
 
 class SettingsManager(
     private val context: Context,
     private val api: WalletBackendApi,
     private val scope: CoroutineScope,
+    private val balanceManager: BalanceManager,
 ) {
     fun exportLogcat(uri: Uri?) {
         if (uri == null) {
@@ -123,6 +125,7 @@ class SettingsManager(
                         is Success -> {
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(context, R.string.settings_db_import_success, LENGTH_LONG).show()
+                                balanceManager.loadBalances()
                             }
                         }
                         is Error -> {
@@ -147,7 +150,10 @@ class SettingsManager(
     fun clearDb(onSuccess: () -> Unit) {
         scope.launch {
             when (val response = api.rawRequest("clearDb")) {
-                is Success -> onSuccess()
+                is Success -> {
+                    onSuccess()
+                    balanceManager.resetBalances()
+                }
                 is Error -> {
                     Log.e(SettingsManager::class.simpleName, "Error cleaning db: ${response.error}")
                     onDbClearError()
