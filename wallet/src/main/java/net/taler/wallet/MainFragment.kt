@@ -76,6 +76,8 @@ import androidx.fragment.compose.AndroidFragment
 import androidx.fragment.compose.FragmentState
 import androidx.fragment.compose.rememberFragmentState
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import net.taler.wallet.balances.BalanceState
@@ -173,6 +175,10 @@ class MainFragment: Fragment() {
                             txResult = txResult,
                             selectedScope = selectedScope,
                             selectedCurrencySpec = selectedSpec,
+                            onGetDemoMoneyClicked = {
+                                model.withdrawManager.withdrawTestkudos()
+                                Snackbar.make(requireView(), getString(R.string.settings_test_withdrawal), LENGTH_LONG).show()
+                            },
                             onBalanceClicked = {
                                 model.showTransactions(it.scopeInfo)
                             },

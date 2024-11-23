@@ -39,7 +39,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -54,7 +53,6 @@ import net.taler.wallet.balances.ScopeInfo.Global
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
-import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.transactions.Transaction
 import net.taler.wallet.transactions.TransactionsComposable
 import net.taler.wallet.transactions.TransactionsResult
@@ -67,6 +65,7 @@ fun BalancesComposable(
     txResult: TransactionsResult,
     selectedScope: ScopeInfo?,
     selectedCurrencySpec: CurrencySpecification?,
+    onGetDemoMoneyClicked: () -> Unit,
     onBalanceClicked: (balance: BalanceItem) -> Unit,
     onTransactionClicked: (tx: Transaction) -> Unit,
     onTransactionsDelete: (txIds: List<String>) -> Unit,
@@ -108,7 +107,10 @@ fun BalancesComposable(
                 } ?: error("no balance matching scopeInfo")
             }
         } else {
-            EmptyBalancesComposable()
+            EmptyBalancesComposable(
+                innerPadding = innerPadding,
+                onGetDemoMoneyClicked,
+            )
         }
     }
 }
@@ -186,14 +188,17 @@ fun BalanceRow(
 }
 
 @Composable
-fun EmptyBalancesComposable() {
+fun EmptyBalancesComposable(
+    innerPadding: PaddingValues,
+    onGetDemoMoneyClicked: () -> Unit,
+) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .padding(innerPadding)
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        val context = LocalContext.current
-
         Text(
             stringResource(R.string.balances_empty_state),
             textAlign = TextAlign.Center,
@@ -202,9 +207,7 @@ fun EmptyBalancesComposable() {
 
         Spacer(Modifier.height(32.dp))
 
-        Button(onClick = {
-            launchInAppBrowser(context, context.getString(R.string.balances_empty_demo_url))
-        }) {
+        Button(onGetDemoMoneyClicked) {
             Text(stringResource(R.string.balances_empty_get_money))
         }
     }
@@ -241,6 +244,7 @@ fun BalancesComposablePreview() {
             txResult = TransactionsResult.Success(listOf()),
             selectedScope = null,
             selectedCurrencySpec = null,
+            onGetDemoMoneyClicked = {},
             onBalanceClicked = {},
             onTransactionClicked = {},
             onTransactionsDelete = {},
@@ -259,6 +263,7 @@ fun BalancesComposableEmptyPreview() {
             txResult = TransactionsResult.Success(listOf()),
             selectedScope = null,
             selectedCurrencySpec = null,
+            onGetDemoMoneyClicked = {},
             onBalanceClicked = {},
             onTransactionClicked = {},
             onTransactionsDelete = {},
