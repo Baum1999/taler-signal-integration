@@ -43,6 +43,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager.VERTICAL
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import net.taler.common.Amount
 import net.taler.common.EventObserver
@@ -58,7 +59,8 @@ open class ExchangeListFragment : Fragment(), ExchangeClickListener {
 
     protected val model: MainViewModel by activityViewModels()
     private val exchangeManager by lazy { model.exchangeManager }
-    private val transactionManager get() = model.transactionManager
+    private val transactionManager by lazy { model.transactionManager }
+    private val balanceManager by lazy { model.balanceManager }
 
     protected lateinit var ui: FragmentExchangeListBinding
     protected open val isSelectOnly = false
@@ -215,6 +217,44 @@ open class ExchangeListFragment : Fragment(), ExchangeClickListener {
             exchangeManager.getExchangeTos(item.exchangeBaseUrl)?.let { tos ->
                 exchangeManager.forgetCurrentTos(item.exchangeBaseUrl, tos.currentEtag)
             }
+        }
+    }
+
+    override fun onExchangeGlobalCurrencyAdd(item: ExchangeItem) {
+        item.currency?.let {
+            balanceManager.addGlobalCurrencyExchange(
+                currency = item.currency,
+                exchange = item,
+                onSuccess = {
+                    Snackbar.make(
+                        requireView(),
+                        getString(R.string.exchange_global_add_success),
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                },
+                onError = { error ->
+                    showError(error)
+                },
+            )
+        }
+    }
+
+    override fun onExchangeGlobalCurrencyDelete(item: ExchangeItem) {
+        item.currency?.let {
+            balanceManager.removeGlobalCurrencyExchange(
+                currency = item.currency,
+                exchange = item,
+                onSuccess = {
+                    Snackbar.make(
+                        requireView(),
+                        getString(R.string.exchange_global_delete_success),
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                },
+                onError = { error ->
+                    showError(error)
+                },
+            )
         }
     }
 

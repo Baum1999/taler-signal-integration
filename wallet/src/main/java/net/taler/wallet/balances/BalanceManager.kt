@@ -31,6 +31,7 @@ import net.taler.common.CurrencySpecification
 import net.taler.wallet.TAG
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
+import net.taler.wallet.exchanges.ExchangeItem
 import org.json.JSONObject
 
 @Serializable
@@ -148,6 +149,42 @@ class BalanceManager(
             }
         }
         return false
+    }
+
+    fun addGlobalCurrencyExchange(
+        currency: String,
+        exchange: ExchangeItem,
+        onSuccess: () -> Unit,
+        onError: (error: TalerErrorInfo) -> Unit,
+    ) = scope.launch {
+        api.request<Unit>("addGlobalCurrencyExchange") {
+            put("currency", currency)
+            put("exchangeBaseUrl", exchange.exchangeBaseUrl)
+            put("exchangeMasterPub", exchange.masterPub)
+        }.onError { error ->
+            Log.e(TAG, "got addGlobalCurrencyExchange error: $error")
+            onError(error)
+        }.onSuccess {
+            onSuccess()
+        }
+    }
+
+    fun removeGlobalCurrencyExchange(
+        currency: String,
+        exchange: ExchangeItem,
+        onSuccess: () -> Unit,
+        onError: (error: TalerErrorInfo) -> Unit,
+    ) = scope.launch {
+        api.request<Unit>("removeGlobalCurrencyExchange") {
+            put("currency", currency)
+            put("exchangeBaseUrl", exchange.exchangeBaseUrl)
+            put("exchangeMasterPub", exchange.masterPub)
+        }.onError { error ->
+            Log.e(TAG, "got removeGlobalCurrencyExchange error: $error")
+            onError(error)
+        }.onSuccess {
+            onSuccess()
+        }
     }
 
     fun resetBalances() {

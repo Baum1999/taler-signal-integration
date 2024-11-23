@@ -296,6 +296,10 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="exchange_fee_wire_fees_label">Wire fees</string>
     <string name="exchange_fee_withdraw_fee">Withdraw fee: %1$s</string>
     <string name="exchange_fee_withdrawal_fee_label">Withdrawal fee:</string>
+    <string name="exchange_global_add">Treat as global</string>
+    <string name="exchange_global_add_success">Provider now being treated as global</string>
+    <string name="exchange_global_delete">Stop treating as global</string>
+    <string name="exchange_global_delete_success">Provider no longer being treated as global</string>
     <string name="exchange_list_add">Add provider</string>
     <string name="exchange_list_add_dev">Add development providers</string>
     <string name="exchange_list_currency">Currency: %1$s</string>

@@ -28,6 +28,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import net.taler.wallet.R
+import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.exchanges.ExchangeAdapter.ExchangeItemViewHolder
 
 interface ExchangeClickListener {
@@ -39,6 +40,8 @@ interface ExchangeClickListener {
     fun onExchangeTosAccept(item: ExchangeItem)
     fun onExchangeTosForget(item: ExchangeItem)
     fun onExchangeTosView(item: ExchangeItem)
+    fun onExchangeGlobalCurrencyAdd(item: ExchangeItem)
+    fun onExchangeGlobalCurrencyDelete(item: ExchangeItem)
 }
 
 internal class ExchangeAdapter(
@@ -108,6 +111,15 @@ internal class ExchangeAdapter(
                 menu.findItem(R.id.action_accept_tos).isVisible = true
                 menu.findItem(R.id.action_forget_tos).isVisible = false
             }
+
+            if (item.scopeInfo is ScopeInfo.Exchange) {
+                menu.findItem(R.id.action_global_add).isVisible = devMode
+                menu.findItem(R.id.action_global_delete).isVisible = false
+            } else if (item.scopeInfo is ScopeInfo.Global) {
+                menu.findItem(R.id.action_global_add).isVisible = false
+                menu.findItem(R.id.action_global_delete).isVisible = devMode
+            }
+
             setOnMenuItemClickListener { menuItem ->
                 when (menuItem.itemId) {
                     R.id.action_manual_withdrawal -> {
@@ -132,6 +144,14 @@ internal class ExchangeAdapter(
                     }
                     R.id.action_forget_tos -> {
                         listener.onExchangeTosForget(item)
+                        true
+                    }
+                    R.id.action_global_add -> {
+                        listener.onExchangeGlobalCurrencyAdd(item)
+                        true
+                    }
+                    R.id.action_global_delete -> {
+                        listener.onExchangeGlobalCurrencyDelete(item)
                         true
                     }
                     R.id.action_delete -> {

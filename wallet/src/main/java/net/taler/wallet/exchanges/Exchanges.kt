@@ -30,6 +30,7 @@ data class BuiltinExchange(
 @Serializable
 data class ExchangeItem(
     val exchangeBaseUrl: String,
+    val masterPub: String? = null,
     // can be null before exchange info in wallet-core was fully loaded
     val currency: String? = null,
     val paytoUris: List<String>,

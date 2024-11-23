@@ -69,11 +69,15 @@ sealed class ScopeInfo {
             else -> null
         }
 
-        return PrefsScopeInfo.newBuilder()
-            .setType(type)
-            .setUrl(url)
-            .setCurrency(currency)
-            .build()
+        return PrefsScopeInfo.newBuilder().apply {
+            setType(type)
+            setCurrency(currency)
+            if (url != null) {
+                setUrl(url)
+            } else {
+                clearUrl()
+            }
+        }.build()
     }
 
     companion object {
