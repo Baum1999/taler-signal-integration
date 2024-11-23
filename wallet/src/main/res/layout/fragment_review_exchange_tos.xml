@@ -21,6 +21,18 @@
     android:layout_height="match_parent"
     tools:context=".withdraw.ReviewExchangeTosFragment">
 
+    <Spinner
+        android:id="@+id/langSpinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        app:layout_constraintHorizontal_bias="1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:visibility="gone"
+        tools:visibility="visible"/>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/tosList"
         android:layout_width="0dp"
@@ -29,7 +41,7 @@
         app:layout_constraintBottom_toTopOf="@+id/buttonCard"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/langSpinner"
         android:clipToPadding="false"
         tools:listitem="@layout/list_item_tos" />
 

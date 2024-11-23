@@ -23,6 +23,8 @@ import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.marginBottom
@@ -44,8 +46,9 @@ import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.databinding.FragmentReviewExchangeTosBinding
 import java.text.ParseException
+import java.util.Locale
 
-class ReviewExchangeTosFragment : Fragment() {
+class ReviewExchangeTosFragment : Fragment(), AdapterView.OnItemSelectedListener {
 
     private val model: MainViewModel by activityViewModels()
     private val exchangeManager by lazy { model.exchangeManager }
@@ -55,6 +58,10 @@ class ReviewExchangeTosFragment : Fragment() {
     private val adapter by lazy { TosAdapter(markwon) }
 
     private var tos: TosResponse? = null
+    private var exchangeBaseUrl: String? = null
+    private var langAdapter: ArrayAdapter<String>? = null
+    private var selectedLang: String? = null
+    private var manualSelect: Boolean = true
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -69,9 +76,14 @@ class ReviewExchangeTosFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupInsets()
 
-        val exchangeBaseUrl = arguments?.getString("exchangeBaseUrl")
+        exchangeBaseUrl = arguments?.getString("exchangeBaseUrl")
             ?: error("no exchangeBaseUrl passed")
         val readOnly = arguments?.getBoolean("readOnly") ?: false
+
+        langAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item)
+        langAdapter?.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        ui.langSpinner.adapter = langAdapter
+        ui.langSpinner.onItemSelectedListener = this
 
         ui.buttonCard.visibility = if (readOnly) GONE else VISIBLE
         ui.acceptTosCheckBox.isChecked = false
@@ -79,7 +91,7 @@ class ReviewExchangeTosFragment : Fragment() {
             tos?.let {
                 viewLifecycleOwner.lifecycleScope.launch {
                     if (exchangeManager.acceptCurrentTos(
-                        exchangeBaseUrl = exchangeBaseUrl,
+                        exchangeBaseUrl = exchangeBaseUrl!!,
                         currentEtag = it.currentEtag,
                     )) {
                         findNavController().navigateUp()
@@ -90,24 +102,54 @@ class ReviewExchangeTosFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                tos = exchangeManager.getExchangeTos(exchangeBaseUrl)
-                // FIXME: better null handling!
-                tos?.let {
-                    val sections = try {
-                        parseTos(markwon, it.content)
-                    } catch (e: ParseException) {
-                        onTosError(e.message ?: "Unknown Error")
-                        return@repeatOnLifecycle
-                    }
-
-                    adapter.setSections(sections)
-                    ui.tosList.adapter = adapter
-                    ui.tosList.fadeIn()
-
-                    ui.acceptTosCheckBox.fadeIn()
-                    ui.progressBar.fadeOut()
-                }
+                renderTos(exchangeBaseUrl!!, selectedLang)
             }
+        }
+    }
+
+    private suspend fun renderTos(
+        exchangeBaseUrl: String,
+        language: String? = null,
+    ) {
+        val lc = Locale.getDefault().language
+        selectedLang = language ?: lc
+        tos = exchangeManager.getExchangeTos(exchangeBaseUrl, selectedLang)
+
+        // Setup language adapter
+        val languages = tos?.tosAvailableLanguages ?: emptyList()
+        langAdapter?.clear()
+        langAdapter?.addAll(languages.map { lang ->
+            Locale(lang).displayLanguage
+        })
+        langAdapter?.notifyDataSetChanged()
+
+        // Setup language spinner
+        if (languages.size > 1) {
+            ui.langSpinner.visibility = VISIBLE
+            val i = languages.indexOf(selectedLang)
+            if (i >= 0) {
+                manualSelect = false
+                ui.langSpinner.setSelection(i)
+            }
+        } else {
+            ui.langSpinner.visibility = GONE
+        }
+
+        // FIXME: better null handling!
+        tos?.let {
+            val sections = try {
+                parseTos(markwon, it.content)
+            } catch (e: ParseException) {
+                onTosError(e.message ?: "Unknown Error")
+                return
+            }
+
+            adapter.setSections(sections)
+            ui.tosList.adapter = adapter
+            ui.tosList.fadeIn()
+
+            ui.acceptTosCheckBox.fadeIn()
+            ui.progressBar.fadeOut()
         }
     }
 
@@ -144,5 +186,19 @@ class ReviewExchangeTosFragment : Fragment() {
         ui.errorView.text = getString(R.string.exchange_tos_error, "\n\n$msg")
         ui.errorView.fadeIn()
     }
+
+    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+        if (manualSelect) {
+            tos?.tosAvailableLanguages?.get(position)?.let { lang ->
+                viewLifecycleOwner.lifecycleScope.launch {
+                    renderTos(exchangeBaseUrl!!, lang)
+                }
+            }
+        } else {
+            manualSelect = true
+        }
+    }
+
+    override fun onNothingSelected(parent: AdapterView<*>?) {}
 
 }

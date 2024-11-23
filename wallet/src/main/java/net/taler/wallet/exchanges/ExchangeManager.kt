@@ -163,9 +163,13 @@ class ExchangeManager(
     /**
      * Fetch exchange terms of service.
      */
-    suspend fun getExchangeTos(exchangeBaseUrl: String): TosResponse? {
+    suspend fun getExchangeTos(
+        exchangeBaseUrl: String,
+        language: String? = null,
+    ): TosResponse? {
         var result: TosResponse? = null
         api.request("getExchangeTos", TosResponse.serializer()) {
+            language?.let { put("acceptLanguage", it) }
             put("exchangeBaseUrl", exchangeBaseUrl)
         }.onError { error ->
             Log.d(TAG, "Error getExchangeTos: $error")

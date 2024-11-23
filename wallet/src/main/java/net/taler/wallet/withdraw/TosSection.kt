@@ -79,5 +79,7 @@ private fun getNodeText(rootNode: Node): String {
 @Serializable
 data class TosResponse(
     val content: String,
-    val currentEtag: String
+    val currentEtag: String,
+    val contentLanguage: String? = null,
+    val tosAvailableLanguages: List<String> = emptyList(),
 )

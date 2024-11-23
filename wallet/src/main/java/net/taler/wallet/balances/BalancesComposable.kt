@@ -104,7 +104,9 @@ fun BalancesComposable(
                         onTransactionsDelete = onTransactionsDelete,
                         onShowBalancesClicked = onShowBalancesClicked,
                     )
-                } ?: error("no balance matching scopeInfo")
+                } ?: run {
+                    onShowBalancesClicked()
+                }
             }
         } else {
             EmptyBalancesComposable(
