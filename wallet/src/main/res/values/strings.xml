@@ -111,9 +111,9 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
 
     <string name="balance_scope_auditor">Auditor: %1$s</string>
     <string name="balance_scope_exchange">From %1$s</string>
-    <string name="balances_empty_state">There is no digital cash in your wallet.\n\nYou can get test money from the demo bank:\n\nhttps://bank.demo.taler.net</string>
+    <string name="balances_empty_state">There is no digital cash in your wallet.\n\nYou can get demo money from the demo bank:\n\nhttps://bank.demo.taler.net</string>
     <string name="balances_empty_demo_url">https://bank.demo.taler.net</string>
-    <string name="balances_empty_get_money">Get test money</string>
+    <string name="balances_empty_get_money">Get demo money</string>
     <string name="balances_inbound_amount">+%1$s inbound</string>
     <string name="balances_outbound_amount">-%1$s outbound</string>
     <string name="balances_title">Balances</string>
@@ -340,10 +340,12 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="settings_db_clear_error">Error cleaning database</string>
     <string name="settings_db_export">Export database</string>
     <string name="settings_db_export_error">Error exporting database</string>
+    <string name="settings_db_export_message">Exporting database, please wait until confirmation</string>
     <string name="settings_db_export_success">Database exported to file</string>
     <string name="settings_db_export_summary">Save internal database</string>
     <string name="settings_db_import">Import database</string>
     <string name="settings_db_import_error">Error importing database</string>
+    <string name="settings_db_import_message">Importing database, please wait until confirmation</string>
     <string name="settings_db_import_success">Database imported from file</string>
     <string name="settings_db_import_summary">Restore database from file</string>
     <string name="settings_dev_mode">Developer mode</string>

@@ -80,10 +80,13 @@ class SettingsFragment : PreferenceFragmentCompat() {
     }
     private val dbExportLauncher =
         registerForActivityResult(CreateDocument("application/json")) { uri ->
+            Snackbar.make(requireView(), getString(R.string.settings_db_export_message), LENGTH_LONG).show()
             settingsManager.exportDb(uri)
         }
     private val dbImportLauncher =
         registerForActivityResult(OpenDocument()) { uri ->
+            Snackbar.make(requireView(), getString(R.string.settings_db_import_message), LENGTH_LONG).show()
+            findNavController().navigate(R.id.nav_main)
             settingsManager.importDb(uri)
         }
 
