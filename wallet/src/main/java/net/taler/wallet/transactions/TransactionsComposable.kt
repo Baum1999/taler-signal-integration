@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -110,15 +109,26 @@ fun TransactionsComposable(
     onTransactionClick: (tx: Transaction) -> Unit,
     onTransactionsDelete: (txIds: List<String>) -> Unit,
     onShowBalancesClicked: () -> Unit,
-) = when (txResult) {
-    is None -> LoadingScreen()
-    is Error -> ErrorTransactionsComposable(txResult.error)
-    is Success -> if (txResult.transactions.isEmpty()) {
-        EmptyTransactionsComposable()
-    } else {
+) {
+    Column(Modifier.fillMaxSize()) {
         var showDeleteDialog by remember { mutableStateOf(false) }
         var selectionMode by remember { mutableStateOf(false) }
         val selectedItems = remember { mutableStateListOf<String>() }
+
+        if (selectionMode && txResult is Success) SelectionModeTopAppBar(
+            selectedItems = selectedItems,
+            resetSelectionMode = {
+                selectionMode = false
+                selectedItems.clear()
+            },
+            onSelectAllClicked = {
+                selectedItems.clear()
+                selectedItems += txResult.transactions.map { it.transactionId }
+            },
+            onDeleteClicked = {
+                showDeleteDialog = true
+            },
+        )
 
         if (showDeleteDialog) AlertDialog(
             title = { Text(stringResource(R.string.transactions_delete_selected_dialog_title)) },
@@ -154,67 +164,70 @@ fun TransactionsComposable(
             }
         }
 
-        Column(Modifier.fillMaxSize()) {
-            if (selectionMode) SelectionModeTopAppBar(
-                selectedItems = selectedItems,
-                resetSelectionMode = {
-                    selectionMode = false
-                    selectedItems.clear()
-                },
-                onSelectAllClicked = {
-                    selectedItems.clear()
-                    selectedItems += txResult.transactions.map { it.transactionId }
-                },
-                onDeleteClicked = {
-                    showDeleteDialog = true
-                },
-            )
+        LazyColumn(
+            Modifier
+                .weight(1f)
+                .consumeWindowInsets(innerPadding),
+            contentPadding = innerPadding,
+        ) {
+            item {
+                TransactionsHeader(
+                    balance = balance,
+                    spec = currencySpec,
+                    onShowBalancesClicked = onShowBalancesClicked,
+                )
+            }
 
-            LazyColumn(
-                Modifier
-                    .consumeWindowInsets(innerPadding)
-                    .fillMaxHeight(),
-                contentPadding = innerPadding,
-            ) {
-                item {
-                    TransactionsHeader(
-                        balance = balance,
-                        spec = currencySpec,
-                        onShowBalancesClicked = onShowBalancesClicked,
-                    )
+            val placeholderPadding = PaddingValues(vertical = 50.dp)
+            when (txResult) {
+                is Success -> if (txResult.transactions.isEmpty()) item {
+                    Box(Modifier.padding(placeholderPadding)) {
+                        EmptyTransactionsComposable()
+                    }
+                } else {
+                    items(txResult.transactions, key = { it.transactionId }) { tx ->
+                        val isSelected = selectedItems.contains(tx.transactionId)
+
+                        TransactionRow(
+                            tx, currencySpec,
+                            isSelected = isSelected,
+                            selectionMode = selectionMode,
+                            onTransactionClick = {
+                                if (selectionMode) {
+                                    if (isSelected) {
+                                        selectedItems.remove(tx.transactionId)
+                                    } else {
+                                        selectedItems.add(tx.transactionId)
+                                    }
+                                } else {
+                                    onTransactionClick(tx)
+                                }
+                            },
+                            onTransactionSelect = {
+                                if (selectionMode) {
+                                    if (isSelected) {
+                                        selectedItems.remove(tx.transactionId)
+                                    } else {
+                                        selectedItems.add(tx.transactionId)
+                                    }
+                                } else {
+                                    selectionMode = true
+                                    selectedItems.add(tx.transactionId)
+                                }
+                            },
+                        )
+                    }
                 }
 
-                items(txResult.transactions, key = { it.transactionId }) { tx ->
-                    val isSelected = selectedItems.contains(tx.transactionId)
-
-                    TransactionRow(
-                        tx, currencySpec,
-                        isSelected = isSelected,
-                        selectionMode = selectionMode,
-                        onTransactionClick = {
-                            if (selectionMode) {
-                                if (isSelected) {
-                                    selectedItems.remove(tx.transactionId)
-                                } else {
-                                    selectedItems.add(tx.transactionId)
-                                }
-                            } else {
-                                onTransactionClick(tx)
-                            }
-                        },
-                        onTransactionSelect = {
-                            if (selectionMode) {
-                                if (isSelected) {
-                                    selectedItems.remove(tx.transactionId)
-                                } else {
-                                    selectedItems.add(tx.transactionId)
-                                }
-                            } else {
-                                selectionMode = true
-                                selectedItems.add(tx.transactionId)
-                            }
-                        },
-                    )
+                is None -> item {
+                    Box(Modifier.padding(placeholderPadding)) {
+                        LoadingScreen()
+                    }
+                }
+                is Error -> item {
+                    Box(Modifier.padding(placeholderPadding)) {
+                        ErrorTransactionsComposable(txResult.error)
+                    }
                 }
             }
         }
@@ -237,18 +250,11 @@ fun EmptyTransactionsComposable() {
 
 @Composable
 fun ErrorTransactionsComposable(error: TalerErrorInfo) {
-    Box(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxSize(),
-        contentAlignment = Center,
-    ) {
-        Text(
-            text = stringResource(R.string.transactions_error, error.userFacingMsg),
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.error,
-        )
-    }
+    Text(
+        text = stringResource(R.string.transactions_error, error.userFacingMsg),
+        style = MaterialTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.error,
+    )
 }
 
 @Composable
@@ -549,3 +555,18 @@ fun TransactionsComposableEmptyPreview() {
     }
 }
 
+@Preview
+@Composable
+fun TransactionsComposableLoadingPreview() {
+    TalerSurface {
+        TransactionsComposable(
+            innerPadding = PaddingValues(0.dp),
+            balance = previewBalance,
+            currencySpec = null,
+            txResult = None,
+            onTransactionClick = {},
+            onTransactionsDelete = {},
+            onShowBalancesClicked = {},
+        )
+    }
+}
