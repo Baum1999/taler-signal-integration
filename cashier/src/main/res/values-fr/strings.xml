@@ -40,4 +40,7 @@
     <string name="about_supported_bank_api">Version Bank API : %s</string>
     <string name="about_title">GNU Taler Cashier</string>
     <string name="withdraw_error_currency_mismatch">Erreur : La banque a déclaré une devise différente</string>
+    <string name="balance_debit_threshold">Débit maximal : %1$s</string>
+    <string name="withdraw_error_under_min_cashout">Montant inférieur à la somme minimale encaissable de %1$s</string>
+    <string name="host_apdu_service_desc">Paiement NFC Taler Cashier</string>
 </resources>
