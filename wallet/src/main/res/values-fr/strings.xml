@@ -322,9 +322,9 @@
     <string name="exchange_tos_view">Voir les conditions d\'utilisation</string>
     <string name="settings_db_export_summary">Sauver la base de donnée interne</string>
     <string name="settings_db_import_summary">Restauration de la base de données à partir d\'un fichier</string>
-    <string name="settings_dialog_reset_message">Voulez-vous vraiment réinitialiser le porte-monnaie et perdre toutes les pièces et tous les achats ?</string>
+    <string name="settings_dialog_reset_message">Voulez-vous vraiment réinitialiser le portefeuille et perdre toutes les pièces et tous les achats ?</string>
     <string name="transaction_preparing_kyc">KYC requis, préparation du test</string>
-    <string name="settings_alert_reset_done">Le porte-monnaie a été réinitialisé</string>
+    <string name="settings_alert_reset_done">Le portefeuille a été réinitialisé</string>
     <string name="transaction_action_kyc_bank">Veuillez effectuer les formalités de connaissance du client (KYC en anglais) nécessaires aux retraits</string>
     <string name="payment_tax">y compris %1$s %2$s</string>
     <string name="settings_test_withdrawal">Retrait de TESTKUDOS</string>
@@ -345,4 +345,6 @@
     <string name="send_deposit_no_methods_error">Aucune méthode de virement n\'est prise en charge</string>
     <string name="send_deposit_taler">x-taler-bank</string>
     <string name="send_peer_expiration_custom">Personnalisé</string>
+    <string name="amount_available_transfer">Disponible pour transferer : %1$s</string>
+    <string name="send_deposit_account_warning">Vous devez saisir un compte que vous contrôlez, sinon vous ne pourrez pas satisfaire aux exigences réglementaires.</string>
 </resources>
