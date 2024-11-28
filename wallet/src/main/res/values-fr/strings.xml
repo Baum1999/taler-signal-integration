@@ -138,9 +138,9 @@
     <string name="transactions_cancel_dialog_message">Êtes-vous sûr de vouloir annuler ce retrait \? Les fonds encore en transit peuvent être perdus.</string>
     <string name="transaction_deposit">Dépôt</string>
     <string name="receive_withdraw">Retrait du compte bancaire</string>
-    <string name="receive_peer">Demander un transfer depuis un autre portefeuille</string>
+    <string name="receive_peer">Créer une facture</string>
     <string name="receive_peer_title">Demande de paiement</string>
-    <string name="receive_peer_create_button">Créer une demande</string>
+    <string name="receive_peer_create_button">Créer une facture</string>
     <string name="transactions_delete_dialog_title">Supprimer la transaction</string>
     <string name="transactions_delete_dialog_message">Êtes-vous sûr de vouloir supprimer cette transaction de votre portefeuille \?</string>
     <string name="receive_amount_invalid">Montant invalide</string>
@@ -158,7 +158,7 @@
     <string name="send_intro">Choisir où envoyer l\'argent :</string>
     <string name="transactions_detail_title_currency">%s Transactions</string>
     <string name="currency">Devise</string>
-    <string name="transactions_receive_funds">Réception</string>
+    <string name="transactions_receive_funds">Recevoir</string>
     <string name="transactions_send_funds">Envoyer</string>
     <string name="char_count">%1$d/%2$d</string>
     <string name="transactions_delete_selected_dialog_message">Êtes-vous sûr de vouloir supprimer les transactions sélectionnées de votre portefeuille \?</string>
