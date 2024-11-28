@@ -126,7 +126,7 @@
     <string name="nav_error">Fehler</string>
     <string name="balances_empty_state">In Ihrem Wallet befindet sich kein digitales Geld.
 \n
-\nSie können Testgeld von der Demo-Bank erhalten:
+\nSie können Demo-Geld von der Demo-Bank erhalten:
 \n
 \nhttps://bank.demo.taler.net</string>
     <string name="transactions_error">Transaktionen konnten nicht geladen werden
