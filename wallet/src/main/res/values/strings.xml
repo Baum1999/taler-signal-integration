@@ -86,6 +86,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <!-- Amounts -->
 
     <string name="amount_available_transfer">Available for transfer: %1$s</string>
+    <string name="amount_available_transfer_fees">Available for transfer after fees: %1$s</string>
     <string name="amount_chosen">Chosen amount</string>
     <string name="amount_conversion">Conversion</string>
     <string name="amount_deposit">Amount to deposit</string>
@@ -215,6 +216,13 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="pay_peer_intro">Do you want to pay this request?</string>
     <string name="pay_peer_title">Pay request</string>
     <string name="send_deposit_account">Account</string>
+    <string name="send_deposit_account_add">Add account</string>
+    <string name="send_deposit_account_edit">Edit account</string>
+    <string name="send_deposit_account_error">It is not possible to deposit to this account, please select another one</string>
+    <string name="send_deposit_account_forget_dialog_message">Do you really wish to forget this account in the wallet?</string>
+    <string name="send_deposit_account_forget_dialog_title">Forget account</string>
+    <string name="send_deposit_account_note">Note</string>
+    <string name="send_deposit_account_manage">Manage bank accounts</string>
     <string name="send_deposit_account_warning">You must enter an account that you control, otherwise you will not be able to fulfill the regulatory requirements.</string>
     <string name="send_deposit_bitcoin">Bitcoin</string>
     <string name="send_deposit_bitcoin_address">Bitcoin address</string>
@@ -225,10 +233,16 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="send_deposit_host">Local currency bank</string>
     <string name="send_deposit_iban">IBAN</string>
     <string name="send_deposit_iban_error">IBAN is invalid</string>
+    <string name="send_deposit_known_bank_accounts">Known bank accounts</string>
+    <string name="send_deposit_known_bank_account_delete">Delete</string>
+    <string name="send_deposit_known_bank_accounts_empty">No bank accounts saved in the wallet</string>
     <string name="send_deposit_name">Account holder</string>
     <string name="send_deposit_no_methods_error">No supported wire methods</string>
+    <string name="send_deposit_select_account_title">Select bank account</string>
+    <string name="send_deposit_select_amount_title">Select amount to deposit</string>
     <string name="send_deposit_taler">x-taler-bank</string>
     <string name="send_deposit_title">Deposit to bank account</string>
+    <string name="send_deposit_no_alias">No alias</string>
     <string name="send_peer_create_button">Send funds now</string>
     <string name="send_peer_expiration_1d">1 day</string>
     <string name="send_peer_expiration_30d">30 days</string>

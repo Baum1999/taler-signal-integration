@@ -49,15 +49,18 @@ val DEFAULT_EXPIRY = ExpirationOption.DAYS_1
 
 sealed class CheckFeeResult {
     abstract val maxDepositAmountEffective: Amount?
+    abstract val maxDepositAmountRaw: Amount?
 
     data class None(
         override val maxDepositAmountEffective: Amount? = null,
+        override val maxDepositAmountRaw: Amount? = null,
     ): CheckFeeResult()
 
     data class InsufficientBalance(
         val maxAmountEffective: Amount?,
         val maxAmountRaw: Amount?,
         override val maxDepositAmountEffective: Amount? = null,
+        override val maxDepositAmountRaw: Amount? = null,
     ): CheckFeeResult()
 
     data class Success(
@@ -65,6 +68,7 @@ sealed class CheckFeeResult {
         val amountEffective: Amount,
         val exchangeBaseUrl: String,
         override val maxDepositAmountEffective: Amount? = null,
+        override val maxDepositAmountRaw: Amount? = null,
     ): CheckFeeResult()
 }
 
@@ -145,7 +149,10 @@ class PeerManager(
 
     suspend fun checkPeerPushFees(amount: Amount, exchangeBaseUrl: String? = null): CheckFeeResult {
         val max = getMaxPeerPushDebitAmount(amount.currency, exchangeBaseUrl)
-        var response: CheckFeeResult = CheckFeeResult.None(maxDepositAmountEffective = max?.effectiveAmount)
+        var response: CheckFeeResult = CheckFeeResult.None(
+            maxDepositAmountEffective = max?.effectiveAmount,
+            maxDepositAmountRaw = max?.rawAmount,
+        )
         api.request("checkPeerPushDebit", CheckPeerPushDebitResponse.serializer()) {
             exchangeBaseUrl?.let { put("exchangeBaseUrl", it) }
             put("amount", amount.toJSONString())
@@ -154,6 +161,7 @@ class PeerManager(
                 amountRaw = it.amountRaw,
                 amountEffective = it.amountEffective,
                 maxDepositAmountEffective = max?.effectiveAmount,
+                maxDepositAmountRaw = max?.rawAmount,
                 exchangeBaseUrl = it.exchangeBaseUrl,
             )
         }.onError { error ->
@@ -172,6 +180,7 @@ class PeerManager(
                         maxAmountEffective = maxAmountEffective,
                         maxAmountRaw = maxAmountRaw,
                         maxDepositAmountEffective = max?.effectiveAmount,
+                        maxDepositAmountRaw = max?.rawAmount,
                     )
                 }
             }

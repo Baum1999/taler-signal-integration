@@ -21,13 +21,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.launch
 import net.taler.common.Amount
 import net.taler.common.showError
 import net.taler.wallet.MainViewModel
@@ -36,12 +39,13 @@ import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.showError
+import net.taler.wallet.accounts.ListBankAccountsResult.Success
 
 class DepositFragment : Fragment() {
     private val model: MainViewModel by activityViewModels()
     private val depositManager get() = model.depositManager
+    private val accountManager get() = model.accountManager
     private val balanceManager get() = model.balanceManager
-    private val transactionManager get() = model.transactionManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,7 +53,6 @@ class DepositFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View {
         val presetAmount = arguments?.getString("amount")?.let { Amount.fromJSONString(it) }
-        val scopeInfo = transactionManager.selectedScope.value
         val receiverName = arguments?.getString("receiverName")
         val iban = arguments?.getString("IBAN")
 
@@ -62,6 +65,7 @@ class DepositFragment : Fragment() {
             setContent {
                 TalerSurface {
                     val state by depositManager.depositState.collectAsStateLifecycleAware()
+                    val knownBankAccounts by accountManager.bankAccounts.collectAsStateLifecycleAware()
 
                     BackHandler(state is DepositState.AccountSelected) {
                         depositManager.resetDepositState()
@@ -79,44 +83,32 @@ class DepositFragment : Fragment() {
                         }
 
                         is DepositState.Start -> {
-                            // TODO: refactor Bitcoin as wire method
-//                            if (presetAmount?.currency == CURRENCY_BTC) MakeBitcoinDepositComposable(
-//                                state = state,
-//                                amount = presetAmount.withSpec(spec),
-//                                bitcoinAddress = null,
-//                                onMakeDeposit = { amount, bitcoinAddress ->
-//                                    val paytoUri = getBitcoinPayto(bitcoinAddress)
-//                                    depositManager.makeDeposit(amount, paytoUri)
-//                                },
                             MakeDepositComposable(
-                                defaultCurrency = scopeInfo?.currency,
-                                currencies = balanceManager.getCurrencies(),
-                                getDepositWireTypes = depositManager::getDepositWireTypesForCurrency,
-                                presetName = receiverName,
-                                presetIban = iban,
-                                validateIban = depositManager::validateIban,
-                                onPaytoSelected = { paytoUri, currency ->
-                                    depositManager.selectAccount(paytoUri, currency)
+                                knownBankAccounts = (knownBankAccounts as? Success)
+                                    ?.accounts
+                                    ?: emptyList(),
+                                onAccountSelected = { account ->
+                                    depositManager.selectAccount(account)
                                 },
-                                onClose = {
-                                    findNavController().popBackStack()
-                                },
+                                onManageBankAccounts = {
+                                    findNavController().navigate(R.id.action_nav_deposit_to_known_bank_accounts)
+                                }
                             )
                         }
 
                         is DepositState.AccountSelected -> {
                             DepositAmountComposable(
                                 state = s,
-                                currency = s.currency,
-                                currencySpec = remember(s.currency) {
-                                    balanceManager.getSpecForCurrency(s.currency)
-                                },
+                                getCurrencySpec = balanceManager::getSpecForCurrency,
                                 checkDeposit = { a ->
-                                    depositManager.checkDepositFees(s.paytoUri, a)
+                                    depositManager.checkDepositFees(s.account.paytoUri, a)
                                 },
                                 onMakeDeposit = { amount ->
-                                    depositManager.makeDeposit(amount, s.paytoUri)
+                                    depositManager.makeDeposit(amount, s.account.paytoUri)
                                 },
+                                onClose = {
+                                    depositManager.resetDepositState()
+                                }
                             )
                         }
                     }
@@ -125,19 +117,42 @@ class DepositFragment : Fragment() {
         }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        lifecycleScope.launchWhenStarted {
-            depositManager.depositState.collect { state ->
-                if (state is DepositState.Error) {
-                    if (model.devMode.value == false) {
-                        showError(state.error.userFacingMsg)
-                    } else {
-                        showError(state.error)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val supportActionBar = (requireActivity() as? AppCompatActivity)?.supportActionBar
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                depositManager.depositState.collect { state ->
+                    when (state) {
+                        is DepositState.Start -> {
+                            supportActionBar?.setTitle(R.string.send_deposit_select_account_title)
+                        }
+
+                        is DepositState.AccountSelected -> {
+                            supportActionBar?.setTitle(R.string.send_deposit_select_amount_title)
+                        }
+
+                        is DepositState.Error -> {
+                            if (model.devMode.value == false) {
+                                showError(state.error.userFacingMsg)
+                            } else {
+                                showError(state.error)
+                            }
+                        }
+
+                        is DepositState.Success -> {
+                            findNavController().navigate(R.id.action_nav_deposit_to_nav_main)
+                        }
+
+                        else -> {}
                     }
-                } else if (state is DepositState.Success) {
-                    findNavController().navigate(R.id.action_nav_deposit_to_nav_main)
                 }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                accountManager.listBankAccounts()
             }
         }
     }

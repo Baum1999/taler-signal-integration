@@ -16,39 +16,92 @@
 
 package net.taler.wallet.accounts
 
+import android.util.Log
+import androidx.annotation.UiThread
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import net.taler.wallet.TAG
+import net.taler.wallet.accounts.ListBankAccountsResult.Error
+import net.taler.wallet.accounts.ListBankAccountsResult.None
+import net.taler.wallet.accounts.ListBankAccountsResult.Success
+import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
+import org.json.JSONArray
 
 class AccountManager(
     private val api: WalletBackendApi,
     private val scope: CoroutineScope,
 ) {
+    private val mBankAccounts = MutableStateFlow<ListBankAccountsResult>(None)
+    internal val bankAccounts = mBankAccounts.asStateFlow()
 
-    fun listKnownBankAccounts() {
-        scope.launch {
-            val response = api.request("listKnownBankAccounts", KnownBankAccounts.serializer())
-            response.onError {
-                throw AssertionError("Wallet core failed to return known bank accounts!")
-            }.onSuccess { knownBankAccounts ->
-
-            }
+    @UiThread
+    fun listBankAccounts(currency: String? = null) = scope.launch {
+        mBankAccounts.value = None
+        api.request("listBankAccounts", ListBankAccountsResponse.serializer()) {
+            if (currency != null) put("currency", currency)
+            this
+        }.onError { error ->
+            Log.e(TAG, "Error listKnownBankAccounts $error")
+            mBankAccounts.value = Error(error)
+        }.onSuccess { response ->
+            mBankAccounts.value = Success(
+                accounts = response.accounts,
+                currency = currency,
+            )
         }
     }
 
-    fun addKnownBankAccount(paytoUri: String, alias: String, currency: String) {
-        scope.launch {
-            val response = api.request<Unit>("addKnownBankAccounts") {
-                put("payto", paytoUri)
-                put("alias", alias)
-                put("currency", currency)
-            }
-            response.onError {
-                throw AssertionError("Wallet core failed to add known bank account!")
-            }.onSuccess {
-
-            }
+    suspend fun addBankAccount(
+        paytoUri: String,
+        label: String,
+        currencies: List<String>? = null,
+        replaceBankAccountId: String? = null,
+        onError: (error: TalerErrorInfo) -> Unit,
+    ) {
+        api.request<Unit>("addBankAccount") {
+            currencies?.let { put("currencies", JSONArray(it)) }
+            replaceBankAccountId?.let { put("replaceBankAccountId", it) }
+            put("paytoUri", paytoUri)
+            put("label", label)
+        }.onError { error ->
+            Log.e(TAG, "Error addKnownBankAccount $error")
+            onError(error)
+        }.onSuccess {
+            listBankAccounts()
         }
     }
 
+    fun forgetBankAccount(
+        id: String,
+        onError: (error: TalerErrorInfo) -> Unit,
+    ) = scope.launch {
+        api.request<Unit>("forgetBankAccount") {
+            put("bankAccountId", id)
+        }.onError { error ->
+            Log.e(TAG, "Error addKnownBankAccount $error")
+            onError(error)
+        }.onSuccess {
+            listBankAccounts()
+        }
+    }
+
+    suspend fun getBankAccountById(
+        id: String,
+        onError: (error: TalerErrorInfo) -> Unit,
+    ): KnownBankAccountInfo? {
+        var response: KnownBankAccountInfo? = null
+        api.request("getBankAccountById", KnownBankAccountInfo.serializer()) {
+            put("bankAccountId", id)
+        }.onError { error ->
+            Log.e(TAG, "Error getBankAccountById $error")
+            onError(error)
+        }.onSuccess {
+            response = it
+        }
+
+        return response
+    }
 }

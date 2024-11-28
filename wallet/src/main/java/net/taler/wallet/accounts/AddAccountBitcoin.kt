@@ -18,26 +18,27 @@ package net.taler.wallet.deposit
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import net.taler.wallet.R
 
 @Composable
-fun MakeDepositBitcoin(
+fun AddAccountBitcoin(
     bitcoinAddress: String,
     onFormEdited: (bitcoinAddress: String) -> Unit,
 ) {
-    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
     OutlinedTextField(
         modifier = Modifier
             .fillMaxWidth()
@@ -45,7 +46,7 @@ fun MakeDepositBitcoin(
                 bottom = 16.dp,
                 start = 16.dp,
                 end = 16.dp,
-            ).focusRequester(focusRequester),
+            ),
         value = bitcoinAddress,
         singleLine = true,
         onValueChange = { input ->
@@ -59,11 +60,8 @@ fun MakeDepositBitcoin(
                     MaterialTheme.colorScheme.error
                 } else Color.Unspecified,
             )
-        }
+        },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Next) }),
     )
-
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
-
 }

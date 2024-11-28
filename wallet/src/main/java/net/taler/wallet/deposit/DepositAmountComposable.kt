@@ -24,7 +24,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,11 +38,12 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
+import net.taler.wallet.accounts.BankAccountRow
+import net.taler.wallet.accounts.KnownBankAccountInfo
 import net.taler.wallet.compose.AmountCurrencyField
 import net.taler.wallet.transactions.AmountType.Negative
 import net.taler.wallet.transactions.AmountType.Positive
@@ -51,12 +52,24 @@ import net.taler.wallet.useDebounce
 
 @Composable
 fun DepositAmountComposable(
-    state: DepositState,
-    currency: String,
-    currencySpec: CurrencySpecification?,
+    state: DepositState.AccountSelected,
+    getCurrencySpec: (currency: String) -> CurrencySpecification?,
     checkDeposit: suspend (amount: Amount) -> CheckDepositResult,
     onMakeDeposit: (amount: Amount) -> Unit,
+    onClose: () -> Unit,
 ) {
+    val availableScopes = remember(state.maxDepositable) {
+        state.maxDepositable.filterValues { it?.rawAmount?.isZero() == false }
+    }
+
+    if (availableScopes.isEmpty()) {
+        MakeDepositErrorComposable(
+            message = "It is not possible to deposit to this account, please select another one",
+            onClose = onClose,
+        )
+        return
+    }
+
     val scrollState = rememberScrollState()
     Column(
         modifier = Modifier
@@ -66,7 +79,11 @@ fun DepositAmountComposable(
         horizontalAlignment = CenterHorizontally,
     ) {
         var checkResult by remember { mutableStateOf<CheckDepositResult>(CheckDepositResult.None()) }
-        var amount by remember { mutableStateOf(Amount.zero(currency)) }
+        // TODO: use scopeInfo instead of currency
+        // TODO: handle unavailable scopes in UI (i.e. explain restrictions)
+        val currencies = remember(availableScopes) { availableScopes.keys.toList() }
+        var amount by remember(state.maxDepositable) { mutableStateOf(Amount.zero(currencies.first())) }
+        val spec = remember(amount) { getCurrencySpec(amount.currency) }
 
         amount.useDebounce {
             if (!amount.isZero()) {
@@ -74,18 +91,34 @@ fun DepositAmountComposable(
             }
         }
 
-        AnimatedVisibility(checkResult.maxDepositAmountEffective != null) {
-            checkResult.maxDepositAmountEffective?.let {
+        BankAccountRow(
+            account = state.account,
+            showMenu = false,
+        )
+
+        HorizontalDivider(
+            modifier = Modifier.padding(bottom = 16.dp),
+        )
+
+        AnimatedVisibility(checkResult.maxDepositAmountRaw != null) {
+            checkResult.maxDepositAmountRaw?.let {
                 Text(
                     modifier = Modifier.padding(
                         start = 16.dp,
                         end = 16.dp,
                         bottom = 16.dp,
                     ),
-                    text = stringResource(
-                        R.string.amount_available_transfer,
-                        it.withSpec(currencySpec),
-                    ),
+                    text = if (checkResult.maxDepositAmountEffective == it) {
+                        stringResource(
+                            R.string.amount_available_transfer,
+                            it.withSpec(spec),
+                        )
+                    } else {
+                        stringResource(
+                            R.string.amount_available_transfer_fees,
+                            it.withSpec(spec),
+                        )
+                    },
                 )
             }
         }
@@ -94,10 +127,10 @@ fun DepositAmountComposable(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth(),
-            amount = amount.withSpec(currencySpec),
+            amount = amount.withSpec(spec),
             onAmountChanged = { amount = it },
-            editableCurrency = false,
-            currencies = listOf(),
+            editableCurrency = true,
+            currencies = currencies,
             isError = checkResult !is CheckDepositResult.Success,
             label = { Text(stringResource(R.string.amount_deposit)) },
             supportingText = {
@@ -106,7 +139,7 @@ fun DepositAmountComposable(
                     Text(
                         stringResource(
                             R.string.payment_balance_insufficient_max,
-                            res.maxAmountEffective.withSpec(currencySpec),
+                            res.maxAmountEffective.withSpec(spec),
                         )
                     )
                 }
@@ -140,15 +173,6 @@ fun DepositAmountComposable(
             }
         }
 
-        AnimatedVisibility(visible = state is DepositState.Error) {
-            Text(
-                modifier = Modifier.padding(16.dp),
-                fontSize = 18.sp,
-                color = MaterialTheme.colorScheme.error,
-                text = (state as? DepositState.Error)?.error?.userFacingMsg ?: "",
-            )
-        }
-
         val focusManager = LocalFocusManager.current
         Button(
             modifier = Modifier.padding(16.dp),
@@ -169,17 +193,71 @@ fun DepositAmountComposable(
 @Composable
 fun DepositAmountComposablePreview() {
     Surface {
-        val state = DepositState.AccountSelected("payto://", "KUDOS")
+        val state = DepositState.AccountSelected(
+            KnownBankAccountInfo(
+                bankAccountId = "acct:1234",
+                paytoUri = "payto://",
+                kycCompleted = false,
+                currencies = listOf("KUDOS", "TESTKUDOS"),
+                label = "Test accoul "
+            ),
+            maxDepositable = mapOf(
+                "CHF" to GetMaxDepositAmountResponse(
+                    effectiveAmount = Amount.fromJSONString("CHF:100"),
+                    rawAmount = Amount.fromJSONString("CHF:100"),
+                ),
+                "EUR" to GetMaxDepositAmountResponse(
+                    effectiveAmount = Amount.fromJSONString("EUR:0"),
+                    rawAmount = Amount.fromJSONString("EUR:0"),
+                ),
+                "MXN" to GetMaxDepositAmountResponse(
+                    effectiveAmount = Amount.fromJSONString("MXN:1000"),
+                    rawAmount = Amount.fromJSONString("MXN:1000"),
+                ),
+                "USD" to GetMaxDepositAmountResponse(
+                    effectiveAmount = Amount.fromJSONString("USD:0"),
+                    rawAmount = Amount.fromJSONString("USD:0"),
+                ),
+            ),
+        )
         DepositAmountComposable(
             state = state,
-            currency = "KUDOS",
-            currencySpec = null,
             checkDeposit = { CheckDepositResult.Success(
                 totalDepositCost = Amount.fromJSONString("KUDOS:10"),
                 effectiveDepositAmount = Amount.fromJSONString("KUDOS:12"),
                 maxDepositAmountEffective = Amount.fromJSONString("KUDOS:12")
             ) },
             onMakeDeposit = {},
+            getCurrencySpec = { null },
+            onClose = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+fun DepositAmountComposableErrorPreview() {
+    Surface {
+        val state = DepositState.AccountSelected(
+            KnownBankAccountInfo(
+                bankAccountId = "acct:1234",
+                paytoUri = "payto://",
+                kycCompleted = false,
+                currencies = listOf("KUDOS", "TESTKUDOS"),
+                label = "Test accoul "
+            ),
+            maxDepositable = mapOf(),
+        )
+        DepositAmountComposable(
+            state = state,
+            checkDeposit = { CheckDepositResult.Success(
+                totalDepositCost = Amount.fromJSONString("KUDOS:10"),
+                effectiveDepositAmount = Amount.fromJSONString("KUDOS:12"),
+                maxDepositAmountEffective = Amount.fromJSONString("KUDOS:12")
+            ) },
+            onMakeDeposit = {},
+            getCurrencySpec = { null },
+            onClose = {}
         )
     }
 }

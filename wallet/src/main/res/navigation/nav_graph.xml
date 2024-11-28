@@ -132,6 +132,9 @@
             android:id="@+id/action_nav_deposit_to_nav_main"
             app:destination="@id/nav_main"
             app:popUpTo="@id/nav_main" />
+        <action
+            android:id="@+id/action_nav_deposit_to_known_bank_accounts"
+            app:destination="@id/bankAccountsFragment" />
     </fragment>
 
     <fragment
@@ -313,6 +316,25 @@
         android:name="net.taler.wallet.withdraw.ErrorFragment"
         android:label="@string/nav_error"
         tools:layout="@layout/fragment_error" />
+
+    <fragment
+        android:id="@+id/bankAccountsFragment"
+        android:name="net.taler.wallet.accounts.BankAccountsFragment"
+        android:label="@string/send_deposit_known_bank_accounts">
+        <action
+            android:id="@+id/action_nav_bank_accounts_to_add_bank_account"
+            app:destination="@+id/addBankAccountFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/addBankAccountFragment"
+        android:name="net.taler.wallet.accounts.AddAccountFragment"
+        android:label="@string/send_deposit_account_add">
+        <argument
+            android:name="bankAccountId"
+            app:nullable="true"
+            app:argType="string" />
+    </fragment>
 
     <action
         android:id="@+id/action_global_handle_uri"

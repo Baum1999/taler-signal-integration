@@ -109,18 +109,25 @@ fun OutgoingPushIntroComposable(
             feeResult = getFees(amount) ?: None()
         }
 
-        AnimatedVisibility(feeResult.maxDepositAmountEffective != null) {
-            feeResult.maxDepositAmountEffective?.let {
+        AnimatedVisibility(feeResult.maxDepositAmountRaw != null) {
+            feeResult.maxDepositAmountRaw?.let {
                 Text(
                     modifier = Modifier.padding(
                         start = 16.dp,
                         end = 16.dp,
                         bottom = 16.dp,
                     ),
-                    text = stringResource(
-                        R.string.amount_available_transfer,
-                        it.withSpec(selectedSpec),
-                    ),
+                    text = if (feeResult.maxDepositAmountEffective == it) {
+                        stringResource(
+                            R.string.amount_available_transfer,
+                            it.withSpec(selectedSpec),
+                        )
+                    } else {
+                        stringResource(
+                            R.string.amount_available_transfer_fees,
+                            it.withSpec(selectedSpec),
+                        )
+                    },
                 )
             }
         }

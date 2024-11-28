@@ -122,7 +122,7 @@ class MainViewModel(
     val peerManager: PeerManager = PeerManager(api, exchangeManager, viewModelScope)
     val settingsManager: SettingsManager = SettingsManager(app.applicationContext, api, viewModelScope, balanceManager)
     val accountManager: AccountManager = AccountManager(api, viewModelScope)
-    val depositManager: DepositManager = DepositManager(api, viewModelScope)
+    val depositManager: DepositManager = DepositManager(api, viewModelScope, balanceManager)
 
     private val mTransactionsEvent = MutableLiveData<Event<ScopeInfo>>()
     val transactionsEvent: LiveData<Event<ScopeInfo>> = mTransactionsEvent

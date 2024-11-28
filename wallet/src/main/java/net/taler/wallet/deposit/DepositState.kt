@@ -16,14 +16,15 @@
 
 package net.taler.wallet.deposit
 
+import net.taler.wallet.accounts.KnownBankAccountInfo
 import net.taler.wallet.backend.TalerErrorInfo
 
 sealed class DepositState {
     data object Start : DepositState()
 
     data class AccountSelected(
-        val paytoUri: String,
-        val currency: String,
+        val account: KnownBankAccountInfo,
+        val maxDepositable: Map<String, GetMaxDepositAmountResponse?>,
     ) : DepositState()
 
     data object MakingDeposit : DepositState()
