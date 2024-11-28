@@ -3,7 +3,7 @@
     <string name="menu_retry_pending_operations">Réessayer les opérations en attente</string>
     <string name="balances_empty_state">Il n\'y a pas d\'argent numérique dans votre portefeuille.
 \n
-\nVous pouvez obtenir de l\'argent de test auprès de la banque de démonstration :
+\nVous pouvez obtenir de l\'argent de démonstration auprès de la banque de démonstration :
 \n
 \nhttps://bank.demo.taler.net</string>
     <string name="withdraw_error_message">Le retrait n\'est actuellement pas possible. Veuillez réessayer plus tard !</string>
