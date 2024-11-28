@@ -186,7 +186,7 @@
     <string name="send_peer_bitcoin">Vers un autre portefeuille Taler</string>
     <string name="send_peer_create_button">Envoyer des fonds maintenant</string>
     <string name="send_deposit">Vers un compte bancaire</string>
-    <string name="send_deposit_title">Dépôt sur un compte bancaire</string>
+    <string name="send_deposit_title">Déposer sur un compte bancaire</string>
     <string name="send_deposit_iban">IBAN</string>
     <string name="withdraw_restrict_age_unrestricted">Sans restriction</string>
     <string name="withdraw_manual_ready_subject">Sujet</string>
