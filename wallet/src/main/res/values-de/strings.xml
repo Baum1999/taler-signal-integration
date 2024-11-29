@@ -38,7 +38,7 @@
     <string name="payment_initiated">Zahlung eingeleitet</string>
     <string name="payment_already_paid_title">Bereits bezahlt</string>
     <string name="payment_already_paid">Sie haben diesen Kauf bereits bezahlt.</string>
-    <string name="withdraw_initiated">Auszahlung eingeleitet</string>
+    <string name="withdraw_initiated">Abhebung eingeleitet</string>
     <string name="withdraw_title">Abhebung</string>
     <string name="withdraw_total">Abheben</string>
     <string name="withdraw_fees">Gebühr</string>
@@ -54,7 +54,7 @@
 \n
 \n%2$s</string>
     <string name="withdraw_manual_check_fees">Überprüfen Sie die Gebühren</string>
-    <string name="withdraw_error_title">Auszahlungsfehler</string>
+    <string name="withdraw_error_title">Fehler beim Abheben</string>
     <string name="withdraw_error_message">Ein Abheben ist derzeit nicht möglich. Bitte zu einem späteren Zeitpunkt erneut versuchen!</string>
     <string name="withdraw_error_test">Fehler beim Abheben von TESTKUDOS aufgetreten</string>
     <string name="exchange_settings_summary">Verwaltung der Zahlungsdienstleister, die diesem Wallet bekannt sind</string>
@@ -163,7 +163,7 @@
     <string name="transactions_abort">Abbruch ausführen</string>
     <string name="payment_pay_template_title">Passen Sie Ihre Bestellung an</string>
     <string name="send_intro">Wählen Sie aus, wohin Sie Geld senden möchten:</string>
-    <string name="send_deposit_title">Auszahlung auf ein Bankkonto</string>
+    <string name="send_deposit_title">Auszahlung an Bankkonto</string>
     <string name="withdraw_manual_ready_account">Konto</string>
     <string name="withdraw_manual_ready_receiver">Name des Empfängers</string>
     <string name="exchange_delete_force">Löschung erzwingen (bereinigen)</string>
@@ -237,7 +237,7 @@
     <string name="amount_received">Empfangener Betrag</string>
     <string name="payment_pending">Zahlung nicht abgeschlossen - sie wird erneut versucht</string>
     <string name="send_peer_payment_instruction">Lassen Sie den Geldempfänger diesen QR-Code scannen, um den Betrag zu erhalten:</string>
-    <string name="transaction_deposit">Überweisung (Einreichung auf Bankkonto)</string>
+    <string name="transaction_deposit">Auszahlung</string>
     <string name="exchange_list_error">Zahlungsdienstleister konnten nicht aufgelistet werden</string>
     <string name="exchange_list_add_dev">Zahlungsdienstleister im Entwicklermodus hinzufügen</string>
     <string name="send_peer_expiration_30d">30 Tage</string>
@@ -330,5 +330,5 @@
     <string name="balances_empty_demo_url">https://bank.demo.taler.net</string>
     <string name="balances_empty_get_money">Test-Geld beziehen</string>
     <string name="transactions_currency">%1$s (%2$s)</string>
-    <string name="send_deposit_button_label">Überweisung auf Bankkonto (Umsatz einlösen)</string>
+    <string name="send_deposit_button_label">Auszahlung</string>
 </resources>
