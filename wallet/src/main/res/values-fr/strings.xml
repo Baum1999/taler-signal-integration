@@ -176,7 +176,7 @@
     <string name="send_peer_payment_instruction">Envoi de %1$s, le bénéficiaire doit scanner ce code QR pour le recevoir</string>
     <string name="send_deposit_check_fees_button">Vérifier les frais</string>
     <string name="send_deposit_amount_effective">Montant effectif</string>
-    <string name="send_deposit_create_button">Effectuer un dépôt</string>
+    <string name="send_deposit_create_button">Déposer sur le compte bancaire</string>
     <string name="send_peer">Vers un autre portefeuille</string>
     <string name="pay_peer_intro">Voulez-vous payer cette demande ?</string>
     <string name="receive_peer_payment_title">Recevoir le paiement</string>
@@ -244,7 +244,7 @@
     <string name="transaction_state_expired">Cette transaction a expiré</string>
     <string name="transaction_state_failed">Cette transaction a échoué ou a été abandonnée</string>
     <string name="transaction_state_pending">Cette transaction est en attente</string>
-    <string name="send_peer_expiration_1d">1 jour</string>
+    <string name="send_peer_expiration_1d">1 jour</string>
     <string name="loading">Chargement</string>
     <string name="open">Ouvrir</string>
     <string name="edit">Modifier</string>
