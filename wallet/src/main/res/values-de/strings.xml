@@ -236,7 +236,7 @@
     <string name="amount_sent">Abzubuchender Betrag</string>
     <string name="amount_received">Empfangener Betrag</string>
     <string name="payment_pending">Zahlung nicht abgeschlossen - sie wird erneut versucht</string>
-    <string name="send_peer_payment_instruction">Lassen Sie den Geldempfänger diesen QR-Code scannen, um den Betrag zu erhalten:</string>
+    <string name="send_peer_payment_instruction">Um %1$s zu senden, lassen Sie den Begünstigten diesen QR-Code scannen</string>
     <string name="transaction_deposit">Einzahlung</string>
     <string name="exchange_list_error">Zahlungsdienstleister konnten nicht aufgelistet werden</string>
     <string name="exchange_list_add_dev">Zahlungsdienstleister im Entwicklermodus hinzufügen</string>
