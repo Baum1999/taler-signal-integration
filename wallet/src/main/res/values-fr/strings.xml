@@ -261,7 +261,7 @@
     <string name="balances_empty_demo_url">https://bank.demo.taler.net</string>
     <string name="transactions_fail_dialog_title">Abandonner la transaction</string>
     <string name="payment_balance_insufficient_max">Solde insuffisant ! Le maximum est de %1$s</string>
-    <string name="send_deposit_button_label">Dépôt</string>
+    <string name="send_deposit_button_label">Déposer</string>
     <string name="withdraw_button_label">Retrait</string>
     <string name="settings_test_summary">Effectue des transactions de test avec la configuration de démonstration</string>
     <string name="withdraw_fee">+%1$s de frais de retrait</string>
