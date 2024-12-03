@@ -181,7 +181,7 @@
     <string name="pay_peer_intro">Voulez-vous payer cette demande ?</string>
     <string name="receive_peer_payment_title">Recevoir le paiement</string>
     <string name="receive_peer_payment_intro">Voulez-vous recevoir ce paiement \?</string>
-    <string name="send_peer_purpose">Objectif</string>
+    <string name="send_peer_purpose">Référence</string>
     <string name="send_deposit_bitcoin">Vers un portefeuille Bitcoin</string>
     <string name="send_peer_bitcoin">Vers un autre portefeuille Taler</string>
     <string name="send_peer_create_button">Envoyer des fonds maintenant</string>
@@ -189,7 +189,7 @@
     <string name="send_deposit_title">Déposer sur un compte bancaire</string>
     <string name="send_deposit_iban">IBAN</string>
     <string name="withdraw_restrict_age_unrestricted">Sans restriction</string>
-    <string name="withdraw_manual_ready_subject">Sujet</string>
+    <string name="withdraw_manual_ready_subject">Référence</string>
     <string name="withdraw_manual_ready_cancel">Annuler le retrait</string>
     <string name="withdraw_manual_bitcoin_title">Le change de Bitcoin prêt pour les retraits</string>
     <string name="withdraw_manual_bitcoin_intro">Effectuez maintenant une transaction fractionnée avec les trois sorties suivantes.</string>
@@ -198,7 +198,7 @@
     <string name="withdraw_manual_ready_intro">Pour compléter le processus, vous devez virer %s sur le compte bancaire du prestataire</string>
     <string name="withdraw_manual_ready_details_intro">Détails du virement bancaire</string>
     <string name="withdraw_manual_ready_iban">IBAN</string>
-    <string name="withdraw_manual_ready_warning">Assurez-vous d\'utiliser le bon sujet, sinon l\'argent n\'arrivera pas dans ce portefeuille.</string>
+    <string name="withdraw_manual_ready_warning">Assurez-vous d\'utiliser la bonne référence, sinon l\'argent n\'arrivera pas dans ce portefeuille.</string>
     <string name="transaction_state_aborted_manual">Cette transaction a été annulée. Si vous avez déjà envoyé de l\'argent à cet exchange, il vous sera reversé dans %1$s</string>
     <string name="send_deposit_account">Compte</string>
     <string name="send_peer_expiration_7d">1 semaine</string>
