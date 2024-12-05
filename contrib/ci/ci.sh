@@ -20,6 +20,7 @@ fi
 
 mkdir -p "${PWD}/inputs"
 mkdir -p "${PWD}/artifacts"
+mkdir -p "${PWD}/cache/.gradle"
 
 "${OCI_RUNTIME}" run \
     --rm \
@@ -27,6 +28,7 @@ mkdir -p "${PWD}/artifacts"
     --arch "${JOB_ARCH}" \
     --env CI_COMMIT_REF="$(git rev-parse HEAD)" \
     --volume "${PWD}":/workdir \
+    --volume "${PWD}/cache/.gradle":/root/.gradle \
     --volume "${PWD}/inputs:/inputs:ro" \
     --volume "${PWD}/artifacts:/artifacts" \
     --workdir /workdir \

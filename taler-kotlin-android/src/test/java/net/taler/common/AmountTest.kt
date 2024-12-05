@@ -214,7 +214,7 @@ class AmountTest {
         // FIXME: this test is locale-dependent
          if (spec.symbol != null) {
             assertEquals("${symbol}$specAmount", withSpec.toString(symbols = symbols))
-            assertEquals("-${symbol} $specAmount", withSpec.toString(symbols = symbols, negative = true))
+            assertEquals("-${symbol}$specAmount", withSpec.toString(symbols = symbols, negative = true))
          } else {
              assertEquals("$specAmount $currency", withSpec.toString(symbols = symbols))
              assertEquals("-$specAmount $currency", withSpec.toString(symbols = symbols, negative = true))
