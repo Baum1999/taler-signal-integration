@@ -61,6 +61,7 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
 
         // group products by categories
         productsByCategory.clear()
+        val unknownCategory = Category(-1, context.getString(R.string.product_category_uncategorized))
         posConfig.products.forEach { product ->
             val productCurrency = product.price.currency
             if (productCurrency != currency) {
@@ -70,13 +71,11 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
                 )
             }
             product.categories.forEach { categoryId ->
-                val category = posConfig.categories.find { it.id == categoryId }
-                if (category == null) {
+                val category = posConfig.categories.find { it.id == categoryId } ?: let {
                     Log.e(TAG, "Product $product has unknown category $categoryId")
-                    return context.getString(
-                        R.string.config_error_product_category_id, product.description, categoryId
-                    )
+                    unknownCategory
                 }
+
                 if (productsByCategory.containsKey(category)) {
                     productsByCategory[category]?.add(product)
                 } else {
@@ -86,7 +85,12 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
         }
         return if (productsByCategory.size > 0) {
             this.currency = currency
-            mCategories.postValue(posConfig.categories)
+            mCategories.postValue(posConfig.categories +
+                    if(productsByCategory.containsKey(unknownCategory)) {
+                        listOf(unknownCategory)
+                    } else {
+                        emptyList()
+                    })
             mProducts.postValue(productsByCategory[posConfig.categories[0]])
             orders.clear()
             orderCounter = 0
