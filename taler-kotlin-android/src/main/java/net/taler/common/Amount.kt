@@ -252,7 +252,7 @@ data class Amount(
         if (spec == null) {
             val format = NumberFormat.getInstance()
             format.maximumFractionDigits = MAX_FRACTION_LENGTH
-            format.minimumFractionDigits = 0
+            format.minimumFractionDigits = 2
             if (Build.VERSION.SDK_INT >= 34) {
                 s.groupingSeparator = s.monetaryGroupingSeparator
             }
