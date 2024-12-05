@@ -273,7 +273,7 @@ data class Amount(
         val fmt = format.format(amount)
         return if (showSymbol) {
             // If no symbol, then we use the currency string
-            if (spec.symbol != null) fmt else "$fmt $currency"
+            (if (spec.symbol != null) fmt else "$fmt $currency").trim()
         } else {
             // We should do better than manually removing the symbol here
             fmt.replace(s.currencySymbol, "").trim()

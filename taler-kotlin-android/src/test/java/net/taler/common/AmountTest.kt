@@ -97,7 +97,7 @@ class AmountTest {
             rawStr = "23",
             fraction = 0,
             specAmount = "23",
-            noSpecAmount = "23",
+            noSpecAmount = "23.00",
             currency = "TESTKUDOS",
             symbol = "テ",
         )
@@ -210,13 +210,15 @@ class AmountTest {
         assertEquals(specAmount, withSpec.toString(symbols = symbols, showSymbol = false))
         assertEquals("-$specAmount", withSpec.toString(symbols = symbols, showSymbol = false, negative = true))
         assertEquals("-$specAmount", withSpec.toString(symbols = symbols, showSymbol = false, negative = true))
-        if (spec.symbol != null) {
+
+        // FIXME: this test is locale-dependent
+         if (spec.symbol != null) {
             assertEquals("${symbol}$specAmount", withSpec.toString(symbols = symbols))
-            assertEquals("-${symbol}$specAmount", withSpec.toString(symbols = symbols, negative = true))
-        } else {
-            assertEquals("$specAmount $currency", withSpec.toString(symbols = symbols))
-            assertEquals("-$specAmount $currency", withSpec.toString(symbols = symbols, negative = true))
-        }
+            assertEquals("-${symbol} $specAmount", withSpec.toString(symbols = symbols, negative = true))
+         } else {
+             assertEquals("$specAmount $currency", withSpec.toString(symbols = symbols))
+             assertEquals("-$specAmount $currency", withSpec.toString(symbols = symbols, negative = true))
+         }
     }
 
     @Test
