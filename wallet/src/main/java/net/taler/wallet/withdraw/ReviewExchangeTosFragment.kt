@@ -61,7 +61,6 @@ class ReviewExchangeTosFragment : Fragment(), AdapterView.OnItemSelectedListener
     private var exchangeBaseUrl: String? = null
     private var langAdapter: ArrayAdapter<String>? = null
     private var selectedLang: String? = null
-    private var manualSelect: Boolean = true
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -128,7 +127,6 @@ class ReviewExchangeTosFragment : Fragment(), AdapterView.OnItemSelectedListener
             ui.langSpinner.visibility = VISIBLE
             val i = languages.indexOf(selectedLang)
             if (i >= 0) {
-                manualSelect = false
                 ui.langSpinner.setSelection(i)
             }
         } else {
@@ -188,14 +186,10 @@ class ReviewExchangeTosFragment : Fragment(), AdapterView.OnItemSelectedListener
     }
 
     override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        if (manualSelect) {
-            tos?.tosAvailableLanguages?.get(position)?.let { lang ->
-                viewLifecycleOwner.lifecycleScope.launch {
-                    renderTos(exchangeBaseUrl!!, lang)
-                }
+        tos?.tosAvailableLanguages?.get(position)?.let { lang ->
+            viewLifecycleOwner.lifecycleScope.launch {
+                renderTos(exchangeBaseUrl!!, lang)
             }
-        } else {
-            manualSelect = true
         }
     }
 
