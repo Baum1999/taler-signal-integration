@@ -20,7 +20,9 @@
     <string name="balances_inbound_label">entrant</string>
     <string name="transactions_title">Transactions</string>
     <string name="transactions_empty">Vous n\'avez aucune transaction</string>
-    <string name="transactions_error">Impossible de charger les transactions\n\n%s</string>
+    <string name="transactions_error">Impossible de charger les transactions
+\n
+\n%s</string>
     <string name="transactions_detail_title">Transaction</string>
     <string name="transactions_detail_title_balance">Solde : %s</string>
     <string name="transactions_delete">Supprimer</string>
@@ -347,4 +349,10 @@
     <string name="send_peer_expiration_custom">Personnalisé</string>
     <string name="amount_available_transfer">Disponible pour transferer : %1$s</string>
     <string name="send_deposit_account_warning">Vous devez saisir un compte que vous contrôlez, sinon vous ne pourrez pas satisfaire aux exigences réglementaires.</string>
+    <string name="exchange_global_add"></string>
+    <string name="exchange_global_add_success"></string>
+    <string name="exchange_global_delete"></string>
+    <string name="exchange_global_delete_success"></string>
+    <string name="settings_db_export_message"></string>
+    <string name="settings_db_import_message"></string>
 </resources>
