@@ -83,7 +83,7 @@
 \nDemo bankasından test parası alabilirsiniz:
 \n
 \nhttps://bank.demo.taler.net</string>
-    <string name="transaction_refresh"></string>
+    <string name="transaction_refresh"/>
     <string name="payment_initiated">Ödeme başlatıldı</string>
     <string name="withdraw_button_confirm">Para çekimini onayla</string>
     <string name="withdraw_amount_error">Geçerli tutarı girin</string>
@@ -111,8 +111,8 @@
     <string name="exchange_menu_manual_withdraw">Para çek</string>
     <string name="exchange_fee_withdrawal_fee_label">Para çekme ücreti:</string>
     <string name="exchange_fee_overhead_label">Yuvarlama kaybı:</string>
-    <string name="exchange_fee_coin_expiration_label"></string>
-    <string name="exchange_fee_coin_fees_label"></string>
+    <string name="exchange_fee_coin_expiration_label"/>
+    <string name="exchange_fee_coin_fees_label"/>
     <string name="exchange_fee_refresh_fee">Değişim ücreti: %1$s</string>
     <string name="pending_operations_no_action">(Hiçbir eylem)</string>
     <string name="exchange_fee_wire_fees_label">Havale ücretleri</string>
@@ -315,30 +315,30 @@
     <string name="send_deposit_host">Sunucu</string>
     <string name="send_deposit_taler">x-taler-bank</string>
     <string name="send_deposit_account">Hesap</string>
-    <string name="actions"></string>
-    <string name="enter_uri_label"></string>
-    <string name="send_deposit_button_label"></string>
-    <string name="withdraw_button_label"></string>
-    <string name="amount_deposit"></string>
-    <string name="amount_available_transfer"></string>
-    <string name="transaction_peer_push_credit_pending"></string>
-    <string name="transaction_peer_push_debit_pending"></string>
-    <string name="send_deposit_account_warning"></string>
-    <string name="withdraw_manual_bitcoin_intro"></string>
-    <string name="settings_db_export_message"></string>
-    <string name="settings_db_import_message"></string>
-    <string name="balances_empty_demo_url"></string>
-    <string name="balances_empty_get_money"></string>
-    <string name="transactions_currency"></string>
-    <string name="receive_peer_payment_instruction"></string>
-    <string name="transaction_action_kyc_bank"></string>
-    <string name="transaction_peer_pull_debit_pending"></string>
-    <string name="transactions_delete_selected_dialog_title"></string>
-    <string name="exchange_tos_forget"></string>
-    <string name="exchange_tos_view"></string>
-    <string name="exchange_global_add"></string>
-    <string name="exchange_global_add_success"></string>
-    <string name="exchange_global_delete"></string>
-    <string name="exchange_global_delete_success"></string>
-    <string name="transaction_action_kyc_balance"></string>
+    <string name="actions"/>
+    <string name="enter_uri_label"/>
+    <string name="send_deposit_button_label"/>
+    <string name="withdraw_button_label"/>
+    <string name="amount_deposit"/>
+    <string name="amount_available_transfer"/>
+    <string name="transaction_peer_push_credit_pending"/>
+    <string name="transaction_peer_push_debit_pending"/>
+    <string name="send_deposit_account_warning"/>
+    <string name="withdraw_manual_bitcoin_intro"/>
+    <string name="settings_db_export_message"/>
+    <string name="settings_db_import_message"/>
+    <string name="balances_empty_demo_url"/>
+    <string name="balances_empty_get_money"/>
+    <string name="transactions_currency"/>
+    <string name="receive_peer_payment_instruction"/>
+    <string name="transaction_action_kyc_bank"/>
+    <string name="transaction_peer_pull_debit_pending"/>
+    <string name="transactions_delete_selected_dialog_title"/>
+    <string name="exchange_tos_forget"/>
+    <string name="exchange_tos_view"/>
+    <string name="exchange_global_add"/>
+    <string name="exchange_global_add_success"/>
+    <string name="exchange_global_delete"/>
+    <string name="exchange_global_delete_success"/>
+    <string name="transaction_action_kyc_balance"/>
 </resources>
