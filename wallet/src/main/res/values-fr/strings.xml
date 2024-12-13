@@ -349,10 +349,10 @@
     <string name="send_peer_expiration_custom">Personnalisé</string>
     <string name="amount_available_transfer">Disponible pour transferer : %1$s</string>
     <string name="send_deposit_account_warning">Vous devez saisir un compte que vous contrôlez, sinon vous ne pourrez pas satisfaire aux exigences réglementaires.</string>
-    <string name="exchange_global_add"></string>
-    <string name="exchange_global_add_success"></string>
-    <string name="exchange_global_delete"></string>
-    <string name="exchange_global_delete_success"></string>
-    <string name="settings_db_export_message"></string>
-    <string name="settings_db_import_message"></string>
+    <string name="exchange_global_add"/>
+    <string name="exchange_global_add_success"/>
+    <string name="exchange_global_delete"/>
+    <string name="exchange_global_delete_success"/>
+    <string name="settings_db_export_message"/>
+    <string name="settings_db_import_message"/>
 </resources>
