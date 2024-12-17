@@ -1,2 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="app_name">Caixeiro Taler</string>
+    <string name="config_bank_url">Enderezo da API do banco</string>
+    <string name="config_username">Identificador</string>
+    <string name="config_password">Contrasinal</string>
+    <string name="config_button_save">Gardar</string>
+    <string name="config_bank_url_error">O enderezo non é válido.</string>
+    <string name="config_username_error">Escriba o seu identificador!</string>
+    <string name="config_error">Non se obtivo a configuración</string>
+    <string name="config_error_auth">Credenciais non válidas!</string>
+    <string name="config_demo_hint">Para probar pode &lt;a href=%s&gt;crear unha conta ficticia no banco imaxinario&lt;/a&gt;.</string>
+    <string name="balance_error">ERRO: %s</string>
+    <string name="balance_offline">Sen conexión. Conéctese a internet.</string>\
+    <string name="balance_debit_threshold">Pago máximo: %1$s</string>
+    <string name="ok">OK</string>
+    <string name="balance_current_label">Saldo actual</string>
+    <string name="action_reconfigure">Reconfigurar</string>
+    <string name="action_lock">Bloquear</string>
+    <string name="action_about">Sobre</string>
+    <string name="withdraw_input_amount">Cantidade</string>
+    <string name="withdraw_into">Canto efectivo electrónico quere retirar?</string>
+    <string name="withdraw_error_zero">Escriba unha cantidade positiva!</string>
+    <string name="withdraw_error_under_min_cashout">Cantidade inferior á retirada mínima de %1$s</string>
+    <string name="withdraw_error_currency_mismatch">Erro: o Banco informa dunha divisa diferente</string>
+    <string name="withdraw_error_fetch">Erro na comunicación co banco: %s</string>
+    <string name="withdraw_error_timeout">Ningunha carteira intentou retirar. Inténteo outra vez.</string>
+    <string name="withdraw_button_confirm">Retirar</string>
+    <string name="withdraw_error_insufficient_balance">Saldo insuficiente</string>
+    <string name="transaction_intro">Escanee o código coa app de carteira Taler para retirar:</string>
+    <string name="transaction_intro_nfc">Escanee o código ou use NFC coa app de carteira Taler para retirar:</string>
+    <string name="transaction_intro_scanned">Por favor confirme a transacción!</string>
+    <string name="transaction_confirm">Confirmar</string>
+    <string name="transaction_abort">Abortar</string>
+    <string name="transaction_aborted">Frustrouse a transacción</string>
+    <string name="transaction_button_back">Volver</string>
+    <string name="transaction_last_success">Última transacción: retirada de %s</string>
+    <string name="transaction_last_aborted">Última transacción: Abortada</string>
+    <string name="transaction_last_error">Última transacción: Fallou</string>
+    <string name="about_title">Caixeiro GNU Taler</string>
+    <string name="about_version">Versión: %s</string>
+    <string name="about_license">Licenza: %s</string>
+    <string name="about_copyright">Copyright: %s</string>
+    <string name="about_supported_bank_api">Versión da API do Banco: %s</string>
+    <string name="host_apdu_service_desc">Pagamentos Caixeiro Taler NFC</string>
+</resources>
