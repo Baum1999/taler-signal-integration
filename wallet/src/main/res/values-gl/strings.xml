@@ -217,7 +217,7 @@
     <string name="send_deposit_known_bank_account_delete">Eliminar</string>
     <string name="send_deposit_known_bank_accounts_empty">Non hai contas de banco gardadas na carteira</string>
     <string name="send_deposit_name">Titular da conta</string>
-    <string name="send_deposit_no_methods_error"/>
+    <string name="send_deposit_no_methods_error">Non hai formas de transferencia dispoñibles</string>
     <string name="send_deposit_select_account_title">Seleccionar conta do banco</string>
     <string name="send_deposit_select_amount_title">Seleccionar total a depositar</string>
     <string name="send_deposit_taler">x-taler-bank</string>
@@ -313,61 +313,61 @@
     <!-- Losses -->
 
     <string name="loss_reason">Razón</string>
-    <string name="loss_reason_expired"/>
-    <string name="loss_reason_unoffered"/>
-    <string name="loss_reason_vanished"/>
+    <string name="loss_reason_expired">Non se renovaron os fondos, porque a carteira non se abreu desde hai moito tempo</string>
+    <string name="loss_reason_unoffered">O provedor de pago deixou de ofrecer a denominación que apoiaba os fondos</string>
+    <string name="loss_reason_vanished">O provedor de pago perdeu o rexistro dos fondos</string>
     <!-- Observability -->
 
-    <string name="observability_hide_json"/>
-    <string name="observability_show_json"/>
-    <string name="observability_title"/>
-    <string name="show_logs"/>
+    <string name="observability_hide_json">Agochar JSON</string>
+    <string name="observability_show_json">Mostrar JSON</string>
+    <string name="observability_title">Rexistro interno de eventos</string>
+    <string name="show_logs">Mostrar rexistros</string>
     <!-- Settings -->
 
-    <string name="menu_settings"/>
-    <string name="settings_alert_import_canceled"/>
-    <string name="settings_alert_reset_canceled"/>
-    <string name="settings_alert_reset_done"/>
-    <string name="settings_db_clear_error"/>
-    <string name="settings_db_export"/>
-    <string name="settings_db_export_error"/>
-    <string name="settings_db_export_message"/>
-    <string name="settings_db_export_success"/>
-    <string name="settings_db_export_summary"/>
-    <string name="settings_db_import"/>
-    <string name="settings_db_import_error"/>
-    <string name="settings_db_import_message"/>
-    <string name="settings_db_import_success"/>
-    <string name="settings_db_import_summary"/>
-    <string name="settings_dev_mode"/>
-    <string name="settings_dev_mode_summary"/>
-    <string name="settings_dialog_import_message"/>
-    <string name="settings_dialog_reset_message"/>
-    <string name="settings_logcat"/>
-    <string name="settings_logcat_error"/>
-    <string name="settings_logcat_success"/>
-    <string name="settings_logcat_summary"/>
-    <string name="settings_reset"/>
-    <string name="settings_reset_summary"/>
-    <string name="settings_test"/>
-    <string name="settings_test_running"/>
-    <string name="settings_test_summary"/>
-    <string name="settings_test_withdrawal"/>
-    <string name="settings_version_app"/>
-    <string name="settings_version_core"/>
-    <string name="settings_version_protocol_exchange"/>
-    <string name="settings_version_protocol_merchant"/>
-    <string name="settings_version_unknown"/>
-    <string name="settings_withdraw_testkudos"/>
-    <string name="settings_withdraw_testkudos_summary"/>
+    <string name="menu_settings">Axustes</string>
+    <string name="settings_alert_import_canceled">Desbotouse a importación</string>
+    <string name="settings_alert_reset_canceled">Desbotouse o restablecemento</string>
+    <string name="settings_alert_reset_done">Restableceuse a carteira</string>
+    <string name="settings_db_clear_error">Erro ao liimpar a base de datos</string>
+    <string name="settings_db_export">Exportar base de datos</string>
+    <string name="settings_db_export_error">Erro ao exportar a base de datos</string>
+    <string name="settings_db_export_message">Exportando a base de datos, agarde ate obter confirmación</string>
+    <string name="settings_db_export_success">Base de datos exportada ao ficheiro</string>
+    <string name="settings_db_export_summary">Gardar base de datos interna</string>
+    <string name="settings_db_import">Importar base de datos</string>
+    <string name="settings_db_import_error">Erro ao importar a base de datos</string>
+    <string name="settings_db_import_message">Importando a base de datos, agarde ate obter confirmación</string>
+    <string name="settings_db_import_success">Base de datos importada desde o ficheiro</string>
+    <string name="settings_db_import_summary">Restablecer base de datos desde ficheiro</string>
+    <string name="settings_dev_mode">Modo desenvolvemento</string>
+    <string name="settings_dev_mode_summary">Mostra máis información relacionada coa depuración</string>
+    <string name="settings_dialog_import_message">Esta operación vai sobreescribir a base de datos existente. Quere proceder?</string>
+    <string name="settings_dialog_reset_message">Ten certeza de querer restablecer a carteira e perder todas as moedas e mercas?</string>
+    <string name="settings_logcat">Rexistro de depuración</string>
+    <string name="settings_logcat_error">Erro ao exportar o rexistro</string>
+    <string name="settings_logcat_success">Rexistro exportado ao ficheiro</string>
+    <string name="settings_logcat_summary">Gardar rexistro interno</string>
+    <string name="settings_reset">Restablecer Carteira (perigo!)</string>
+    <string name="settings_reset_summary">Desbota todos os teus cartos</string>
+    <string name="settings_test">Realizar proba de integración</string>
+    <string name="settings_test_running">Estase a realizar a proba de integración</string>
+    <string name="settings_test_summary">Realiza transaccións de proba cos axustes de mostra</string>
+    <string name="settings_test_withdrawal">Retirando TESTKUDOS</string>
+    <string name="settings_version_app">Versión da app</string>
+    <string name="settings_version_core">Versión de Wallet Core</string>
+    <string name="settings_version_protocol_exchange">Versións dos Intercambios Compatibles</string>
+    <string name="settings_version_protocol_merchant">Versións das Tendas compatibles</string>
+    <string name="settings_version_unknown">Descoñecido</string>
+    <string name="settings_withdraw_testkudos">Retirar TESTKUDOS</string>
+    <string name="settings_withdraw_testkudos_summary">Obter cartos para probar</string>
     <!-- Refunds -->
 
-    <string name="refund_error"/>
-    <string name="refund_success"/>
-    <string name="refund_title"/>
+    <string name="refund_error">Erro ao procesar o reembolso</string>
+    <string name="refund_success">Reembolso recibido!</string>
+    <string name="refund_title">Reembolso</string>
     <!-- Miscellaneous -->
 
-    <string name="host_apdu_service_desc"/>
-    <string name="wifi_connect_error"/>
-    <string name="wifi_disabled_error"/>
+    <string name="host_apdu_service_desc">Pagamentos Taler NFC</string>
+    <string name="wifi_connect_error">Non se puido conectar a Wi-Fi gratuíta: %1$s</string>
+    <string name="wifi_disabled_error">Acender Wi-Fi para ter Wi-Fi gratis</string>
 </resources>
