@@ -193,7 +193,7 @@
     <string name="send_peer_expiration_custom">Benutzerdefiniert</string>
     <string name="exchange_delete">Zahlungsdienstleister löschen</string>
     <string name="settings_db_export_success">Datenbank in Datei exportiert</string>
-    <string name="receive_peer_create_button">Rechnung erstellen</string>
+    <string name="receive_peer_create_button">Betrag anfordern</string>
     <string name="receive_peer_invoice_uri">Alternativ kopieren und senden Sie diesen URI:</string>
     <string name="receive_peer_invoice_instruction">Lassen Sie die Käufer diesen QR-Code scannen, um den Betrag zu bezahlen:</string>
     <string name="button_scan_qr_code_label">QR-Code scannen</string>
@@ -237,14 +237,14 @@
     <string name="amount_received">Empfangener Betrag</string>
     <string name="payment_pending">Zahlung nicht abgeschlossen - sie wird erneut versucht</string>
     <string name="send_peer_payment_instruction">Um %1$s zu senden, lassen Sie den Begünstigten diesen QR-Code scannen</string>
-    <string name="transaction_deposit">Einzahlung</string>
+    <string name="transaction_deposit">Einzahlen</string>
     <string name="exchange_list_error">Zahlungsdienstleister konnten nicht aufgelistet werden</string>
     <string name="exchange_list_add_dev">Zahlungsdienstleister im Entwicklermodus hinzufügen</string>
     <string name="send_peer_expiration_30d">30 Tage</string>
     <string name="send_peer_expiration_7d">1 Woche</string>
     <string name="balance_scope_exchange">Von: %1$s</string>
     <string name="balance_scope_auditor">Auditor %1$s</string>
-    <string name="receive_peer">Rechnung erstellen</string>
+    <string name="receive_peer">Geld von einem anderen Wallet erhalten</string>
     <string name="char_count">%1$d/%2$d</string>
     <string name="withdraw_manual_bitcoin_title">Bitcoin-Exchange zur Auszahlung bereit</string>
     <string name="transactions_retry">Wiederholen</string>
@@ -276,7 +276,7 @@
     <string name="balances_inbound_amount">+%1$s eingehend</string>
     <string name="balances_outbound_amount">-%1$s abgehend</string>
     <string name="transaction_deposit_to">Einzahlung an %1$s</string>
-    <string name="transaction_peer_push_credit">Push-Zahlung</string>
+    <string name="transaction_peer_push_credit">Erhalten</string>
     <string name="transaction_state_aborted">Die Transaktion wurde abgebrochen</string>
     <string name="transaction_state_aborting">Diese Transaktion wird gerade abgebrochen</string>
     <string name="transaction_state_expired">Diese Transaktion hat ihre zeitliche Gültigkeit überschritten</string>
@@ -330,7 +330,7 @@
     <string name="balances_empty_demo_url">https://bank.demo.taler.net</string>
     <string name="balances_empty_get_money">Test-Geld beziehen</string>
     <string name="transactions_currency">%1$s (%2$s)</string>
-    <string name="send_deposit_button_label">Einzahlung</string>
+    <string name="send_deposit_button_label">Einzahlen</string>
     <string name="send_deposit_account_warning">Sie müssen aufgrund regulatorischer Bestimmungen ein Konto angeben, über das Sie persönlich verfügen können.</string>
     <string name="transaction_peer_push_credit_pending"/>
     <string name="transaction_peer_push_debit_pending"/>
