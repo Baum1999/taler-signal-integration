@@ -19,12 +19,12 @@
 
     <string name="google_play_title" tools:keep="@string/google_play_title">Carteira Taler (experimental)</string>
     <string name="google_play_short_desc" tools:keep="@string/google_play_short_desc">GNU Taler fai que as transaccións en liña sexan fáciles, rápidas e privadas.</string>
-    <string name="google_play_full_desc" tools:keep="@string/google_play_full_desc">Esta app é unha carteira para GNU Taler. Aínda está en fase experimental, non está lista para usar en entornos reais. GNU Taler é un sistema de pagamentos respetuoso da privacidade. A persoa que merca permanece anónima, pero a que vende non pode ocultar a súa gañancia ao recibir pagamentos con GNU Taler. Isto axuda a evitar a evasión de taxas e lavado de capitais. O uso principal de GNU Taler son os pagamentos; non é un xeito de almacenar valor. Os pagamentos apóianse nunha divisa existente. O pagamento faise despois de intercambiar moeda existente por moeda electrónica coa axuda do servizo de Intercambio, que é un provedor de servizos de pagamento para Taler. Ao facer un pagamento, quen merca só precisa unha carteira con saldo positivo. A persoa que vende pode aceptar o pagamento sen ter que os clientes crear unha conta súa páxina web. GNU Taler é inmune contra moitos tipos de fraude, como o «phishing» sobre a tarxeta de crédito ou cargos fraudulentos, só se podería perder a cantidade que estivese na carteira.</string>
+    <string name="google_play_full_desc" tools:keep="@string/google_play_full_desc">Esta app é unha carteira para GNU Taler. Aínda está en fase experimental, non está lista para usar en entornos reais. GNU Taler é un sistema de pagamentos respetuoso da privacidade. A persoa que merca permanece anónima, pero a que vende non pode ocultar a súa gañancia ao recibir pagamentos con GNU Taler. Isto axuda a evitar a evasión de taxas e lavado de capitais. O uso principal de GNU Taler son os pagamentos; non é un xeito de almacenar valor. Os pagamentos apóianse nunha divisa existente. O pagamento faise despois de intercambiar moeda existente por moeda electrónica coa axuda do servizo Exchange, que é un provedor de servizos de pagamento para Taler. Ao facer un pagamento, quen merca só precisa unha carteira con saldo positivo. A persoa que vende pode aceptar o pagamento sen ter que os clientes crear unha conta súa páxina web. GNU Taler é inmune contra moitos tipos de fraude, como o «phishing» sobre a tarxeta de crédito ou cargos fraudulentos, só se podería perder a cantidade que estivese na carteira.</string>
     <!-- Navigation  -->
 
     <string name="nav_error">Erro</string>
     <string name="nav_exchange_fees">Comisións do provedor</string>
-    <string name="nav_exchange_tos">Termos do Servido de intercambio</string>
+    <string name="nav_exchange_tos">Termos do servizo PSP</string>
     <string name="nav_prompt_withdraw">Retirar do banco</string>
     <!-- General -->
 
@@ -355,8 +355,8 @@
     <string name="settings_test_withdrawal">Retirando TESTKUDOS</string>
     <string name="settings_version_app">Versión da app</string>
     <string name="settings_version_core">Versión de Wallet Core</string>
-    <string name="settings_version_protocol_exchange">Versións dos Intercambios Compatibles</string>
-    <string name="settings_version_protocol_merchant">Versións das Tendas compatibles</string>
+    <string name="settings_version_protocol_exchange">Versións compatibles con Exchange</string>
+    <string name="settings_version_protocol_merchant">Versións compatibles con Merchant</string>
     <string name="settings_version_unknown">Descoñecido</string>
     <string name="settings_withdraw_testkudos">Retirar TESTKUDOS</string>
     <string name="settings_withdraw_testkudos_summary">Obter cartos para probar</string>
