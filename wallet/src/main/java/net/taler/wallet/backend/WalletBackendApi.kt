@@ -42,10 +42,17 @@ class WalletBackendApi(
 
     private val backendManager = BackendManager(notificationReceiver)
 
-    init {
+    fun startWallet() {
+        backendManager.run()
         GlobalScope.launch(Dispatchers.IO) {
-            backendManager.run()
             sendInitMessage()
+        }
+    }
+
+    fun stopWallet() {
+        GlobalScope.launch(Dispatchers.IO) {
+            sendRequest("shutdown")
+            backendManager.destroy()
         }
     }
 

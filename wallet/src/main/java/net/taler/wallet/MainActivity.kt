@@ -92,6 +92,8 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
             }
         }
 
+        model.startWallet()
+
         // TODO: refactor and unify progress bar handling
         // model.showProgressBar.observe(this) { show ->
         //     ui.content.progressBar.visibility = if (show) VISIBLE else INVISIBLE
@@ -262,5 +264,6 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
     override fun onDestroy() {
         super.onDestroy()
         TalerNfcService.clearUri(this)
+        model.stopWallet()
     }
 }

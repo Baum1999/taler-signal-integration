@@ -136,6 +136,14 @@ class MainViewModel(
     @set:Synchronized
     private var scanQrContext = ScanQrContext.Unknown
 
+    fun startWallet() {
+        api.startWallet()
+    }
+
+    fun stopWallet() {
+        api.stopWallet()
+    }
+
     override fun onVersionReceived(versionInfo: WalletCoreVersion) {
         walletVersion = versionInfo.implementationSemver
         walletVersionHash = versionInfo.implementationGitHash
