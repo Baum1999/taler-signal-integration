@@ -179,7 +179,7 @@
     <string name="payment_pending">Non se completou o pago, vaise volver intentar</string>
     <string name="payment_prompt_title">Revisar pago</string>
     <!-- including <amount> <tax name> -->
-    <string name="payment_tax">incl. %1$s %2$s</string>
+    <string name="payment_tax">incl. %1$s por %2$s</string>
     <string name="payment_template_error">Erro ao crear a orde</string>
     <string name="payment_title">Pagamento</string>
     <!-- P2P receive -->
