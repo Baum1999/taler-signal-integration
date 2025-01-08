@@ -93,6 +93,11 @@ private fun ConfirmBankButton(
     tx: Transaction,
     listener: ActionListener,
 ) {
+    // TODO: should check go here?
+    if (tx is TransactionWithdrawal
+        && tx.withdrawalDetails is WithdrawalDetails.TalerBankIntegrationApi
+        && tx.withdrawalDetails.bankConfirmationUrl == null) return
+
     Button(
         onClick = { listener.onActionButtonClicked(tx, ActionListener.Type.CONFIRM_WITH_BANK) },
         modifier = modifier,
