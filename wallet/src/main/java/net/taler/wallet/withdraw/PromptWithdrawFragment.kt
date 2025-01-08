@@ -112,7 +112,7 @@ class PromptWithdrawFragment: Fragment() {
                     } else if (withdrawExchangeUri != null) {
                         // get withdrawal details for taler://withdraw-exchange URI
                         withdrawManager.prepareManualWithdrawal(withdrawExchangeUri)
-                    } else if (defaultCurrency != null) {
+                    } else if (defaultCurrency != null && !status.isCashAcceptor) {
                         // get withdrawal details for available data
                         withdrawManager.getWithdrawalDetails(
                             amount = amount ?: Amount.zero(defaultCurrency),

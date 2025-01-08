@@ -49,6 +49,7 @@ import net.taler.wallet.R
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.AmountCurrencyField
 import net.taler.wallet.compose.BottomButtonBox
+import net.taler.wallet.compose.WarningLabel
 import net.taler.wallet.systemBarsPaddingBottom
 import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.TransactionAmountComposable
@@ -108,7 +109,14 @@ fun WithdrawalShowInfo(
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            if (editableAmount) {
+            if (status.isCashAcceptor) {
+                WarningLabel(
+                    label = stringResource(R.string.withdraw_cash_acceptor),
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                )
+            } else if (editableAmount) {
                 AmountCurrencyField(
                     modifier = Modifier
                         .padding(16.dp)
@@ -231,7 +239,7 @@ fun WithdrawalShowInfo(
                     .systemBarsPaddingBottom(),
                 enabled = !error
                         && status.status != Updating
-                        && !selectedAmount.isZero(),
+                        && (status.isCashAcceptor || !selectedAmount.isZero()),
                 onClick = {
                     if (status.status == TosReviewRequired) {
                         onTosReview()

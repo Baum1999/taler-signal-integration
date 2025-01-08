@@ -78,6 +78,10 @@ data class WithdrawStatus(
         Success,
         Error,
     }
+
+    val isCashAcceptor get() = uriInfo != null
+            && uriInfo.amount == null
+            && !uriInfo.editableAmount
 }
 
 sealed class TransferData {
@@ -118,7 +122,7 @@ sealed class TransferData {
 
 @Serializable
 data class WithdrawalDetailsForUri(
-    val amount: Amount?,
+    val amount: Amount? = null,
     val currency: String,
     val editableAmount: Boolean = false,
     val maxAmount: Amount? = null,
@@ -257,7 +261,7 @@ class WithdrawManager(
             handleError("getWithdrawalDetailsForUri", error)
         }.onSuccess { details ->
             Log.d(TAG, "Withdraw details: $details")
-            _withdrawStatus.update { value ->
+            val status = _withdrawStatus.updateAndGet { value ->
                 value.copy(
                     status = InfoReceived,
                     uriInfo = details,
@@ -266,12 +270,14 @@ class WithdrawManager(
                 )
             }
 
-            // then extend with amount details
-            getWithdrawalDetails(
-                amount = details.amount,
-                exchangeBaseUrl = details.defaultExchangeBaseUrl,
-                loading = loading,
-            )
+            // then extend with amount details (not for cash acceptor)
+            if (!status.isCashAcceptor) {
+                getWithdrawalDetails(
+                    amount = details.amount,
+                    exchangeBaseUrl = details.defaultExchangeBaseUrl,
+                    loading = loading,
+                )
+            }
         }
     }
 
@@ -404,13 +410,13 @@ class WithdrawManager(
     ) {
         val exchangeBaseUrl = status.exchangeBaseUrl ?: error("no exchangeBaseUrl")
         val talerWithdrawUri = status.talerWithdrawUri ?: error("no talerWithdrawUri")
-        val amountInfo = status.amountInfo ?: error("no amountInfo")
+        val amountInfo = status.amountInfo
 
         api.request("acceptBankIntegratedWithdrawal", AcceptWithdrawalResponse.serializer()) {
             restrictAge?.let { put("restrictAge", it) }
+            amountInfo?.let { put("amount", it.amountRaw.toJSONString()) }
             put("exchangeBaseUrl", exchangeBaseUrl)
             put("talerWithdrawUri", talerWithdrawUri)
-            put("amount", amountInfo.amountRaw.toJSONString())
         }.onError { error ->
             handleError("acceptBankIntegratedWithdrawal", error)
         }.onSuccess { response ->
