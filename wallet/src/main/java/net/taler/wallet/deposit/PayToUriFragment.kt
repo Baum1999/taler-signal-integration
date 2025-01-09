@@ -76,7 +76,7 @@ class PayToUriFragment : Fragment() {
     ): View {
         val uri = arguments?.getString("uri") ?: error("no amount passed")
         val u = Uri.parse(uri)
-        val receiverName = u.getQueryParameter("receiver_name")
+        val receiverName = u.getQueryParameter("receiver-name")
             ?.replace('+', ' ') ?: ""
         val iban = u.pathSegments.last() ?: ""
 
