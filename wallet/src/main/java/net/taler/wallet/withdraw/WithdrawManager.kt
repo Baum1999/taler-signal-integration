@@ -510,7 +510,7 @@ class WithdrawManager(
         transactionId = response.transactionId,
         withdrawalTransfers = response.withdrawalAccountsList.mapNotNull {
             val details = status.amountInfo ?: error("no amountInfo")
-            val uri = Uri.parse(it.paytoUri.replace("receiver-name=", "receiver_name="))
+            val uri = Uri.parse(it.paytoUri)
             if ("bitcoin".equals(uri.authority, true)) {
                 val msg = uri.getQueryParameter("message").orEmpty()
                 val reg = "\\b([A-Z0-9]{52})\\b".toRegex().find(msg)
@@ -528,7 +528,7 @@ class WithdrawManager(
             } else if (uri.authority.equals("x-taler-bank", true)) {
                 TransferData.Taler(
                     account = uri.lastPathSegment!!,
-                    receiverName = uri.getQueryParameter("receiver_name"),
+                    receiverName = uri.getQueryParameter("receiver-name"),
                     subject = uri.getQueryParameter("message") ?: "Error: No message in URI",
                     amountRaw = details.amountRaw,
                     amountEffective = details.amountEffective,
@@ -537,7 +537,7 @@ class WithdrawManager(
             } else if (uri.authority.equals("iban", true)) {
                 TransferData.IBAN(
                     iban = uri.lastPathSegment!!,
-                    receiverName = uri.getQueryParameter("receiver_name"),
+                    receiverName = uri.getQueryParameter("receiver-name"),
                     subject = uri.getQueryParameter("message") ?: "Error: No message in URI",
                     amountRaw = details.amountRaw,
                     amountEffective = details.amountEffective,
