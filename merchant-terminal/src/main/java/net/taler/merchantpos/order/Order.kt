@@ -125,7 +125,8 @@ data class Order(val id: Int, val currency: String, val availableCategories: Map
             fulfillmentUrl = fulfillmentUri,
             products = products.map { it.toContractProduct() },
             refundDeadline = deadline,
-            wireTransferDeadline = deadline
+            wireTransferDeadline = deadline,
+            payDeadline = deadline,
         )
     }
 

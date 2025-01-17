@@ -40,7 +40,9 @@ data class ContractTerms(
     @SerialName("wire_transfer_deadline")
     val wireTransferDeadline: Timestamp? = null,
     @SerialName("refund_deadline")
-    val refundDeadline: Timestamp? = null
+    val refundDeadline: Timestamp? = null,
+    @SerialName("pay_deadline")
+    val payDeadline: Timestamp? = null
 )
 
 abstract class Product {
