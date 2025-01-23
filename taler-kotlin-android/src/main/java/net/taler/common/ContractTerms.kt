@@ -36,6 +36,8 @@ data class ContractTerms(
     val fulfillmentUrl: String? = null,
     @SerialName("fulfillment_message")
     val fulfillmentMessage: String? = null,
+    @SerialName("fulfillment_message_i18n")
+    val fulfillmentMessageI18n: Map <String, String>? = null,
     val products: List<ContractProduct>,
     @SerialName("wire_transfer_deadline")
     val wireTransferDeadline: Timestamp? = null,

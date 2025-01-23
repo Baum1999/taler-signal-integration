@@ -22,10 +22,7 @@ import net.taler.common.Timestamp
 import net.taler.common.now
 import net.taler.merchantpos.config.Category
 import net.taler.merchantpos.config.ConfigProduct
-import java.net.URLEncoder
 import java.util.concurrent.TimeUnit.HOURS
-
-private const val FULFILLMENT_PREFIX = "taler://fulfillment-success/"
 
 data class Order(val id: Int, val currency: String, val availableCategories: Map<Int, Category>) {
     val products = ArrayList<ConfigProduct>()
@@ -110,19 +107,12 @@ data class Order(val id: Int, val currency: String, val availableCategories: Map
             }.toMap()
         }
 
-    private val fulfillmentUri: String
-        get() {
-            val fulfillmentId = "${now()}-${hashCode()}"
-            return "$FULFILLMENT_PREFIX${URLEncoder.encode(summary, "UTF-8")}#$fulfillmentId"
-        }
-
     fun toContractTerms(): ContractTerms {
         val deadline = Timestamp.fromMillis(now() + HOURS.toMillis(1))
         return ContractTerms(
             summary = summary,
             summaryI18n = summaryI18n,
             amount = total,
-            fulfillmentUrl = fulfillmentUri,
             products = products.map { it.toContractProduct() },
             refundDeadline = deadline,
             wireTransferDeadline = deadline,
