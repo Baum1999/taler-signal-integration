@@ -16,6 +16,7 @@
 
 package net.taler.wallet.withdraw
 
+import android.transition.ChangeBounds
 import android.transition.TransitionManager.beginDelayedTransition
 import android.view.LayoutInflater
 import android.view.View
@@ -68,7 +69,9 @@ class TosAdapter(
             sectionTitle.text = item.title
             showSection(item, item.expanded)
             val onClickListener = View.OnClickListener {
-                if (!item.expanded) beginDelayedTransition(v as ViewGroup)
+                val transition = ChangeBounds()
+                transition.setDuration(200L)
+                if (!item.expanded) beginDelayedTransition(v as ViewGroup, transition)
                 item.expanded = !item.expanded
                 showSection(item, item.expanded)
             }
