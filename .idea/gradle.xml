@@ -12,6 +12,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/cashier" />
+            <option value="$PROJECT_DIR$/donau-verificator" />
             <option value="$PROJECT_DIR$/merchant-lib" />
             <option value="$PROJECT_DIR$/merchant-terminal" />
             <option value="$PROJECT_DIR$/taler-kotlin-android" />

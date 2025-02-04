@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Donau Verify</string>
+    <string name="NGI_TALER_logo" >NGI Taler Logo</string>
+    <string name="with_adapter">List</string>
+    <string name="invalid_number_of_arguments">Invalid number of arguments!</string>
+    <string name="malformed_argument">Malformed argument!</string>
+    <string name="invalid_signature">Donation statement signature is invalid!</string>
+    <string name="valid_signature">Donation statement signature is valid!</string>
+    <string name="invalid_scheme">Invalid scheme!</string>
+</resources>
