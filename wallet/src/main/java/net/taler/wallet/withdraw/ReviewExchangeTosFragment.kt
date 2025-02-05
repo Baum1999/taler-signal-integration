@@ -159,7 +159,7 @@ class ReviewExchangeTosFragment : Fragment(), AdapterView.OnItemSelectedListener
                 right = insets.right,
                 bottom = insets.bottom,
             )
-            WindowInsetsCompat.CONSUMED
+            windowInsets
         }
 
         val checkboxMarginLeft = ui.acceptTosCheckBox.marginLeft
@@ -172,7 +172,7 @@ class ReviewExchangeTosFragment : Fragment(), AdapterView.OnItemSelectedListener
                 rightMargin = checkboxMarginRight + insets.right
                 bottomMargin = checkboxMarginBottom + insets.bottom
             }
-            WindowInsetsCompat.CONSUMED
+            windowInsets
         }
     }
 

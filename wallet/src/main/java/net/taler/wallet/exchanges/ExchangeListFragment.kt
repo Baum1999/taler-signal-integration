@@ -266,7 +266,7 @@ open class ExchangeListFragment : Fragment(), ExchangeClickListener {
                 left = insets.left,
                 right = insets.right,
             )
-            WindowInsetsCompat.CONSUMED
+            windowInsets
         }
 
         val fabMarginBottom = ui.addExchangeFab.marginBottom
@@ -279,7 +279,7 @@ open class ExchangeListFragment : Fragment(), ExchangeClickListener {
                 leftMargin = fabMarginLeft + insets.left
                 rightMargin = fabMarginRight + insets.right
             }
-            WindowInsetsCompat.CONSUMED
+            windowInsets
         }
     }
 }
