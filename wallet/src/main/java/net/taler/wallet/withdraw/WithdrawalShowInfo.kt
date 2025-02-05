@@ -239,7 +239,9 @@ fun WithdrawalShowInfo(
                     .systemBarsPaddingBottom(),
                 enabled = !error
                         && status.status != Updating
-                        && (status.isCashAcceptor || !selectedAmount.isZero()),
+                        && (status.isCashAcceptor
+                        || status.status == TosReviewRequired
+                        || !selectedAmount.isZero()),
                 onClick = {
                     if (status.status == TosReviewRequired) {
                         onTosReview()
