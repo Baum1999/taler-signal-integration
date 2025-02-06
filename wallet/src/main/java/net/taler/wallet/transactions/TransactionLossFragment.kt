@@ -30,6 +30,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -45,6 +46,7 @@ import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.transactions.LossEventType.DenomExpired
@@ -65,10 +67,12 @@ class TransactionLossFragment: TransactionDetailFragment() {
     ): View = ComposeView(requireContext()).apply {
         setContent {
             val t by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
-            val spec = scope?.let { balanceManager.getSpecForScopeInfo(it) }
 
             TalerSurface {
                 (t as? TransactionDenomLoss)?.let { tx ->
+                    val spec = remember(tx.amountRaw.currency, tx.scopes) {
+                        balanceManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes)
+                    }
                     TransitionLossComposable(tx, devMode, spec) {
                         onTransitionButtonClicked(tx, it)
                     }
@@ -139,6 +143,10 @@ fun previewLossTransaction(lossEventType: LossEventType) =
         amountEffective = Amount.fromString("TESTKUDOS", "0.3"),
         error = TalerErrorInfo(code = TalerErrorCode.WALLET_WITHDRAWAL_KYC_REQUIRED),
         lossEventType = lossEventType,
+        scopes = listOf(ScopeInfo.Exchange(
+            currency = "TESTKUDOS",
+            url = "exchange.test.taler.net",
+        ))
     )
 
 @Composable

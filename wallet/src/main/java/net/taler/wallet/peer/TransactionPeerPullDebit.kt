@@ -26,6 +26,7 @@ import net.taler.common.Timestamp
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode.EXCHANGE_GENERIC_KYC_REQUIRED
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.transactions.ActionListener
 import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.PeerInfoShort
@@ -85,6 +86,10 @@ fun TransactionPeerPullDebitPreview() {
             summary = "test invoice",
         ),
         error = TalerErrorInfo(code = EXCHANGE_GENERIC_KYC_REQUIRED),
+        scopes = listOf(ScopeInfo.Exchange(
+            currency = "TESTKUDOS",
+            url = "exchange.test.taler.net",
+        ))
     )
     Surface {
         TransactionPeerComposable(t, true, null, object: ActionListener {

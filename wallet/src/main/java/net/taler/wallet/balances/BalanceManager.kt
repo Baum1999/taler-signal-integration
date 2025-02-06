@@ -129,6 +129,11 @@ class BalanceManager(
         return state.balances.find { it.currency == currency }?.available?.spec
     }
 
+    fun getSpecForCurrency(currency: String, scopes: List<ScopeInfo>) =
+        scopes.find { it.currency == currency }?.let { scope ->
+            getSpecForScopeInfo(scope)
+        }
+
     fun getSpecForScopeInfo(scopeInfo: ScopeInfo): CurrencySpecification? {
         val state = mState.value
         if (state !is BalanceState.Success) return null

@@ -37,6 +37,7 @@ import net.taler.common.RelativeTime
 import net.taler.common.Timestamp
 import net.taler.common.toAbsoluteTime
 import net.taler.wallet.R
+import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.transactions.TransactionMajorState.Aborted
 import net.taler.wallet.transactions.TransactionMajorState.Aborting
@@ -141,6 +142,10 @@ fun TransactionStateComposablePreview() {
                 ),
                 amountRaw = Amount.zero("KUDOS"),
                 amountEffective = Amount.zero("KUDOS"),
+                scopes = listOf(ScopeInfo.Exchange(
+                    currency = "KUDOS",
+                    url = "exchange.demo.taler.net",
+                ))
             ))
         }
     }

@@ -67,7 +67,13 @@ class ManualWithdrawSuccessFragment : Fragment() {
                     status = status,
                     qrCodes = qrCodes ?: emptyList(),
                     getQrCodes = { withdrawManager.getQrCodesForPayto(it.paytoUri) },
-                    spec = status.amountInfo?.amountRaw?.currency?.let { balanceManager.getSpecForCurrency(it) },
+                    spec = status.amountInfo?.amountRaw?.currency?.let {
+                        selectedTx?.scopes?.let { selectedScopes ->
+                            balanceManager.getSpecForCurrency(it, selectedScopes)
+                        } ?: run {
+                            balanceManager.getSpecForCurrency(it)
+                        }
+                    },
                     bankAppClick = { onBankAppClick(it) },
                     shareClick = { onShareClick(it) },
                 )

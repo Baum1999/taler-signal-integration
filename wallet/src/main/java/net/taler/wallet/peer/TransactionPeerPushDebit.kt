@@ -35,6 +35,7 @@ import net.taler.common.Timestamp
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode.EXCHANGE_GENERIC_KYC_REQUIRED
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.QrCodeUriComposable
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.getQrCodeSize
@@ -147,6 +148,10 @@ fun TransactionPeerPushDebitPreview(loading: Boolean = false) {
         ),
         talerUri = "https://exchange.example.org/peer/pull/credit",
         error = TalerErrorInfo(code = EXCHANGE_GENERIC_KYC_REQUIRED),
+        scopes = listOf(ScopeInfo.Exchange(
+            currency = "TESTKUDOS",
+            url = "exchange.test.taler.net",
+        ))
     )
 
     TalerSurface {

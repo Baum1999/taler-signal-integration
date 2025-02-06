@@ -44,6 +44,7 @@ import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.common.CurrencySpecification
 import net.taler.common.RelativeTime
+import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.refund.RefundPaymentInfo
 import net.taler.wallet.transactions.TransactionMajorState.Done
 import net.taler.wallet.transactions.TransactionMajorState.None
@@ -108,6 +109,7 @@ sealed class Transaction {
     abstract val error: TalerErrorInfo?
     abstract val amountRaw: Amount
     abstract val amountEffective: Amount
+    abstract val scopes: List<ScopeInfo>
 
     @get:DrawableRes
     abstract val icon: Int
@@ -164,6 +166,7 @@ class TransactionWithdrawal(
     override val error: TalerErrorInfo? = null,
     override val amountRaw: Amount,
     override val amountEffective: Amount,
+    override val scopes: List<ScopeInfo>,
 ) : Transaction() {
     override val icon = R.drawable.transaction_withdrawal
 
@@ -309,6 +312,7 @@ class TransactionPayment(
     override val error: TalerErrorInfo? = null,
     override val amountRaw: Amount,
     override val amountEffective: Amount,
+    override val scopes: List<ScopeInfo>,
     val posConfirmation: String? = null,
 ) : Transaction() {
     override val icon = R.drawable.transaction_payment
@@ -351,6 +355,7 @@ class TransactionRefund(
     override val error: TalerErrorInfo? = null,
     override val amountRaw: Amount,
     override val amountEffective: Amount,
+    override val scopes: List<ScopeInfo>,
 ) : Transaction() {
     override val icon = R.drawable.transaction_refund
     override val detailPageNav = R.id.action_nav_transactions_detail_refund
@@ -372,6 +377,7 @@ class TransactionRefresh(
     override val error: TalerErrorInfo? = null,
     override val amountRaw: Amount,
     override val amountEffective: Amount,
+    override val scopes: List<ScopeInfo>,
 ) : Transaction() {
     override val icon = R.drawable.transaction_refresh
     override val detailPageNav = R.id.action_nav_transactions_detail_refresh
@@ -395,6 +401,7 @@ class TransactionDeposit(
     override val error: TalerErrorInfo? = null,
     override val amountRaw: Amount,
     override val amountEffective: Amount,
+    override val scopes: List<ScopeInfo>,
     val targetPaytoUri: String,
     val depositGroupId: String,
 ) : Transaction() {
@@ -433,6 +440,7 @@ class TransactionPeerPullDebit(
     override val error: TalerErrorInfo? = null,
     override val amountRaw: Amount,
     override val amountEffective: Amount,
+    override val scopes: List<ScopeInfo>,
     val info: PeerInfoShort,
 ) : Transaction() {
     override val icon = R.drawable.transaction_p2p_outgoing
@@ -466,6 +474,7 @@ class TransactionPeerPullCredit(
     override val error: TalerErrorInfo? = null,
     override val amountRaw: Amount,
     override val amountEffective: Amount,
+    override val scopes: List<ScopeInfo>,
     val info: PeerInfoShort,
     val talerUri: String,
     // val completed: Boolean, maybe
@@ -495,6 +504,7 @@ class TransactionPeerPushDebit(
     override val error: TalerErrorInfo? = null,
     override val amountRaw: Amount,
     override val amountEffective: Amount,
+    override val scopes: List<ScopeInfo>,
     val info: PeerInfoShort,
     val talerUri: String? = null,
     // val completed: Boolean, definitely
@@ -530,6 +540,7 @@ class TransactionPeerPushCredit(
     override val error: TalerErrorInfo? = null,
     override val amountRaw: Amount,
     override val amountEffective: Amount,
+    override val scopes: List<ScopeInfo>,
     val info: PeerInfoShort,
 ) : Transaction() {
     override val icon = R.drawable.transaction_p2p_incoming
@@ -562,6 +573,7 @@ class TransactionDenomLoss(
     override val error: TalerErrorInfo? = null,
     override val amountRaw: Amount,
     override val amountEffective: Amount,
+    override val scopes: List<ScopeInfo>,
     val lossEventType: LossEventType,
 ): Transaction() {
     override val icon: Int = R.drawable.transaction_loss
@@ -605,6 +617,10 @@ class DummyTransaction(
     override val detailPageNav: Int = R.id.nav_transactions_detail_dummy
     override val amountType: AmountType = AmountType.Neutral
     override val generalTitleRes: Int = R.string.transaction_dummy_title
+    override val scopes: List<ScopeInfo> = listOf(ScopeInfo.Exchange(
+        currency = "TESTKUDOS",
+        url = "exchange.test.taler.net",
+    ))
     override fun getTitle(context: Context): String {
         return context.getString(R.string.transaction_dummy_title)
     }
