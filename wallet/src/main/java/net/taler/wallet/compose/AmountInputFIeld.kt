@@ -82,6 +82,8 @@ fun AmountCurrencyField(
             supportingText = supportingText,
             readOnly = readOnly,
             enabled = enabled,
+            showSymbol = !editableCurrency
+                    || amount.currency != amount.spec?.symbol
         )
 
         if (editableCurrency) {
@@ -106,6 +108,7 @@ private fun AmountInputFieldBase(
     isError: Boolean = false,
     readOnly: Boolean = false,
     enabled: Boolean = true,
+    showSymbol: Boolean = true,
 ) {
     // TODO: use non-deprecated PlatformTextInputModifierNode instead
     val inputService = LocalTextInputService.current
@@ -147,7 +150,7 @@ private fun AmountInputFieldBase(
     }
 
     OutlinedTextField(
-        value = amount.toString(),
+        value = amount.toString(showSymbol = showSymbol),
         onValueChange = {},
         modifier = modifier.onKeyEvent {
             if (it.type == KeyEventType.KeyDown) return@onKeyEvent false
@@ -158,11 +161,15 @@ private fun AmountInputFieldBase(
             }
         },
         readOnly = true,
-        textStyle = LocalTextStyle.current.copy(fontFamily = FontFamily.Monospace),
+        textStyle = LocalTextStyle.current.copy(
+            fontFamily = FontFamily.Monospace,
+        ),
         label = label,
         supportingText = supportingText,
         isError = isError,
-        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.NumberPassword),
+        keyboardOptions = KeyboardOptions.Default.copy(
+            keyboardType = KeyboardType.NumberPassword,
+        ),
         singleLine = true,
         maxLines = 1,
         interactionSource = interactionSource,
