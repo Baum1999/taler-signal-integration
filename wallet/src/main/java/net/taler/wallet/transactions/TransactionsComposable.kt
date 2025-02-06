@@ -76,7 +76,6 @@ import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.BalanceItem
-import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.balances.ScopeInfo.Exchange
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.LoadingScreen
