@@ -35,12 +35,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
@@ -80,6 +84,8 @@ fun WithdrawalShowInfo(
     val possibleExchanges = status.uriInfo?.possibleExchanges ?: emptyList()
     val ageRestrictionOptions = status.amountInfo?.ageRestrictionOptions ?: emptyList()
 
+    val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
     var startup by remember { mutableStateOf(true) }
     var selectedAmount by remember { mutableStateOf(defaultAmount) }
     var selectedAge by remember { mutableStateOf<Int?>(null) }
@@ -120,7 +126,8 @@ fun WithdrawalShowInfo(
                 AmountCurrencyField(
                     modifier = Modifier
                         .padding(16.dp)
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester),
                     amount = selectedAmount.withSpec(spec),
                     currencies = currencies,
                     editableCurrency = editableCurrency,
@@ -243,6 +250,7 @@ fun WithdrawalShowInfo(
                         || status.status == TosReviewRequired
                         || !selectedAmount.isZero()),
                 onClick = {
+                    keyboardController?.hide()
                     if (status.status == TosReviewRequired) {
                         onTosReview()
                     } else onConfirm(selectedAge)
@@ -254,6 +262,12 @@ fun WithdrawalShowInfo(
                     else -> Text(stringResource(R.string.withdraw_button_confirm))
                 }
             }
+        }
+    }
+
+    LaunchedEffect(editableAmount) {
+        if (editableAmount) {
+            focusRequester.requestFocus()
         }
     }
 }
