@@ -344,4 +344,5 @@
     <string name="exchange_global_delete_success"/>
     <string name="settings_db_export_message"/>
     <string name="settings_db_import_message"/>
+    <string name="withdraw_cash_acceptor">Der abzuhebende Betrag wird vom Geldannahmegerät festgelegt</string>
 </resources>
