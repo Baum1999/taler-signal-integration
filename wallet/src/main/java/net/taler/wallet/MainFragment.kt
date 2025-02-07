@@ -176,7 +176,7 @@ class MainFragment: Fragment() {
                             selectedScope = selectedScope,
                             selectedCurrencySpec = selectedSpec,
                             onGetDemoMoneyClicked = {
-                                model.withdrawManager.withdrawTestkudos()
+                                model.withdrawManager.withdrawTestBalance()
                                 Snackbar.make(requireView(), getString(R.string.settings_test_withdrawal), LENGTH_LONG).show()
                             },
                             onBalanceClicked = {

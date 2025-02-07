@@ -224,9 +224,14 @@ class WithdrawManager(
     var exchangeFees: ExchangeFees? = null
         private set
 
-    fun withdrawTestkudos() = scope.launch {
+    fun withdrawTestBalance() = scope.launch {
         _withdrawTestStatus.value = TestWithdrawStatus.Withdrawing
-        api.request<Unit>("withdrawTestkudos").onError {
+        api.request<Unit>("withdrawTestBalance") {
+            put("amount", "KUDOS:10")
+            put("corebankApiBaseUrl", "https://bank.demo.taler.net/")
+            put("exchangeBaseUrl", "https://exchange.demo.taler.net/")
+            put("useForeignAccount", true)
+        }.onError {
             _withdrawTestStatus.value = TestWithdrawStatus.Error(it.userFacingMsg)
         }.onSuccess {
             _withdrawTestStatus.value = TestWithdrawStatus.Success

@@ -140,7 +140,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
 
         prefWithdrawTest.setOnPreferenceClickListener {
-            withdrawManager.withdrawTestkudos()
+            withdrawManager.withdrawTestBalance()
             Snackbar.make(requireView(), getString(R.string.settings_test_withdrawal), LENGTH_LONG).show()
             findNavController().navigate(R.id.nav_main)
             true
