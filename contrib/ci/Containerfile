@@ -18,8 +18,8 @@ ENV NIGHTLY_KEYSTORE_PASS  android
 
 # Deployment to taler.net/files
 ENV SCP_SSH_KEY  /inputs/wallet.taler.net
-ENV SCP_SSH_HOST avalos@gv.taler.net
-ENV SCP_SSH_PATH /var/www/files
+ENV SCP_SSH_HOST files@gnunet.org
+ENV SCP_SSH_PATH ~
 
 RUN ln -s $ANDROID_HOME/build-tools/32.0.0/apksigner /usr/bin/
 
