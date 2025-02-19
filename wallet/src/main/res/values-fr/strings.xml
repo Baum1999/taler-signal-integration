@@ -70,7 +70,7 @@
     <string name="pending_operations_refuse">Refuser la proposition</string>
     <string name="pending_operations_no_action">(aucune action)</string>
     <string name="settings_dev_mode_summary">Affiche plus d\'informations pour le débogage</string>
-    <string name="settings_withdraw_testkudos">Retrait TESTKUDOS</string>
+    <string name="settings_withdraw_testkudos">Retrait de KUDOS de démonstration</string>
     <string name="settings_withdraw_testkudos_summary">Obtenez de l\'argent pour les tests</string>
     <string name="settings_reset_summary">Détruit votre argent</string>
     <string name="refund_error">Erreur lors du traitement du remboursement</string>
@@ -175,7 +175,7 @@
     <string name="withdraw_restrict_age">Limiter l\'utilisation selon l\'âge</string>
     <string name="pay_peer_title">Payer la demande</string>
     <string name="send_peer_warning">Avertissement : Les fonds quittent immédiatement le portefeuille.</string>
-    <string name="send_peer_payment_instruction">Envoi de %1$s, le bénéficiaire doit scanner ce code QR pour le recevoir</string>
+    <string name="send_peer_payment_instruction">Scannez ce code QR pour recevoir %1$s</string>
     <string name="send_deposit_check_fees_button">Vérifier les frais</string>
     <string name="send_deposit_amount_effective">Montant effectif</string>
     <string name="send_deposit_create_button">Déposer sur le compte bancaire</string>
@@ -184,7 +184,7 @@
     <string name="receive_peer_payment_title">Recevoir le paiement</string>
     <string name="receive_peer_payment_intro">Voulez-vous recevoir ce paiement ?</string>
     <string name="send_peer_purpose">Référence</string>
-    <string name="send_deposit_bitcoin">Vers un portefeuille Bitcoin</string>
+    <string name="send_deposit_bitcoin">Bitcoin</string>
     <string name="send_peer_bitcoin">Vers un autre portefeuille Taler</string>
     <string name="send_peer_create_button">Envoyer des fonds maintenant</string>
     <string name="send_deposit">Vers un compte bancaire</string>
@@ -259,7 +259,7 @@
     <string name="amount_conversion">Conversion</string>
     <string name="amount_deposit">Montant du dépôt</string>
     <string name="amount_effective">Montant effectif</string>
-    <string name="balances_empty_get_money">Obtenir de l\'argent pour les tests</string>
+    <string name="balances_empty_get_money">Obtenir de l\'argent de démonstration</string>
     <string name="balances_empty_demo_url">https://bank.demo.taler.net</string>
     <string name="transactions_fail_dialog_title">Abandonner la transaction</string>
     <string name="payment_balance_insufficient_max">Solde insuffisant ! Le maximum est de %1$s</string>
@@ -299,7 +299,7 @@
     <string name="transactions_delete_selected_dialog_title">Effacer les transactions</string>
     <string name="transactions_fail_dialog_message">Êtes-vous sûr d\'abandonner cette transaction ? Les fonds encore en transit SERONT PERDUS.</string>
     <string name="payment_pending">Le paiement n\'a pas abouti, il sera relancé</string>
-    <string name="receive_peer_payment_instruction">Réception de %1$s, le payeur doit scanner ce code QR pour l\'envoyer</string>
+    <string name="receive_peer_payment_instruction">Scannez ce code QR pour payer %1$s</string>
     <string name="exchange_reload">Recharger les informations</string>
     <string name="loss_reason_expired">Les fonds n\'ont pas été renouvelés, car le portefeuille n\'a pas été ouvert pendant une longue période</string>
     <string name="loss_reason_unoffered">Le prestataire de services de paiement a cessé d\'offrir la dénomination garantissant les fonds</string>
@@ -349,10 +349,25 @@
     <string name="send_peer_expiration_custom">Personnalisé</string>
     <string name="amount_available_transfer">Disponible pour transferer : %1$s</string>
     <string name="send_deposit_account_warning">Vous devez saisir un compte que vous contrôlez, sinon vous ne pourrez pas satisfaire aux exigences réglementaires.</string>
-    <string name="exchange_global_add"/>
-    <string name="exchange_global_add_success"/>
-    <string name="exchange_global_delete"/>
-    <string name="exchange_global_delete_success"/>
-    <string name="settings_db_export_message"/>
-    <string name="settings_db_import_message"/>
+    <string name="exchange_global_add">Traiter comme global</string>
+    <string name="exchange_global_add_success">Le prestataire est désormais considéré comme global</string>
+    <string name="exchange_global_delete">Arrêter de traiter comme global</string>
+    <string name="exchange_global_delete_success">Le prestataire n\'est plus traité comme global</string>
+    <string name="settings_db_export_message">Exportation de la base de données, veuillez patienter jusqu\'à confirmation</string>
+    <string name="settings_db_import_message">Importation de la base de données, veuillez patienter jusqu\'à confirmation</string>
+    <string name="amount_available_transfer_fees">Valeur transférée après les frais : %1$s</string>
+    <string name="send_deposit_account_add">Ajouter un compte</string>
+    <string name="send_deposit_account_edit">Modifier le compte</string>
+    <string name="send_deposit_account_forget_dialog_message">Souhaitez-vous vraiment oublier ce compte dans le portefeuille ?</string>
+    <string name="send_deposit_account_forget_dialog_title">Oublier le compte</string>
+    <string name="send_deposit_account_note">Note</string>
+    <string name="send_deposit_account_manage">Gérer les comptes bancaires</string>
+    <string name="send_deposit_known_bank_accounts">Comptes bancaires connus</string>
+    <string name="send_deposit_known_bank_account_delete">Effacer</string>
+    <string name="send_deposit_known_bank_accounts_empty">Aucun compte bancaire enregistré dans le portefeuille</string>
+    <string name="send_deposit_select_amount_title">Sélectionnez le montant à déposer</string>
+    <string name="send_deposit_no_alias">Pas d\'alias</string>
+    <string name="send_deposit_account_error">Il n\'est pas possible de faire un dépôt sur ce compte, veuillez en sélectionner un autre</string>
+    <string name="send_deposit_select_account_title">Sélectionner un compte bancaire</string>
+    <string name="withdraw_cash_acceptor">Le montant à retirer sera déterminé par l\'utilisateur acceptant le paiement</string>
 </resources>
