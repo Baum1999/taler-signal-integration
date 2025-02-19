@@ -300,7 +300,7 @@
     <string name="receive_peer_title"/>
     <string name="send_deposit_bitcoin_address"/>
     <string name="send_deposit_check_fees_button"/>
-    <string name="pay_peer_title"/>
+    <string name="pay_peer_title">Оплатить платежный запрос</string>
     <string name="transactions_balance"/>
     <string name="transactions_send_funds"/>
     <string name="send_deposit_bitcoin_create_button"/>
