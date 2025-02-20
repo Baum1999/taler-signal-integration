@@ -204,7 +204,7 @@
     <string name="transaction_state_aborted_manual">Cette transaction a été annulée. Si vous avez déjà envoyé de l\'argent à cet exchange, il vous sera reversé dans %1$s</string>
     <string name="send_deposit_account">Compte</string>
     <string name="send_peer_expiration_7d">1 semaine</string>
-    <string name="transactions_abort">Annuler</string>
+    <string name="transactions_abort">Exécuter l\'annulation</string>
     <string name="share_payment">Partager le lien de paiement</string>
     <string name="error_no_uri">Erreur : Aucune URI Taler n’a été trouvée</string>
     <string name="send_peer_expiration_days">Jours</string>
