@@ -369,5 +369,5 @@
     <string name="send_deposit_no_alias">Pas d\'alias</string>
     <string name="send_deposit_account_error">Il n\'est pas possible de faire un dépôt sur ce compte, veuillez en sélectionner un autre</string>
     <string name="send_deposit_select_account_title">Sélectionner un compte bancaire</string>
-    <string name="withdraw_cash_acceptor">Le montant à retirer sera déterminé par l\'appareil de réception de l\'argent</string>
+    <string name="withdraw_cash_acceptor">Le montant à retirer sera déterminé par la borne de rechargement</string>
 </resources>
