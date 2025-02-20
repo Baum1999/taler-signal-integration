@@ -42,7 +42,7 @@
     <string name="transactions_error">Impossibile caricare transazioni
 \n
 \n%s</string>
-    <string name="transactions_detail_title">Transazioni</string>
+    <string name="transactions_detail_title">Transazione</string>
     <string name="transactions_detail_title_balance">Saldo: %s</string>
     <string name="transactions_delete">Elimina</string>
     <string name="transactions_select_all">Seleziona tutto</string>
