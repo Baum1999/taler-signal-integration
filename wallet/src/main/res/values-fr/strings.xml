@@ -201,7 +201,7 @@
     <string name="withdraw_manual_ready_details_intro">Détails du virement bancaire</string>
     <string name="withdraw_manual_ready_iban">IBAN</string>
     <string name="withdraw_manual_ready_warning">Assurez-vous d\'utiliser la bonne référence, sinon l\'argent n\'arrivera pas dans ce portefeuille.</string>
-    <string name="transaction_state_aborted_manual">Cette transaction a été annulée. Si vous avez déjà envoyé de l\'argent à cet exchange, il vous sera reversé dans %1$s</string>
+    <string name="transaction_state_aborted_manual">Cette transaction a été annulée. Si vous avez déjà envoyé de l\'argent à ce prestataire, il vous sera reversé dans %1$s</string>
     <string name="send_deposit_account">Compte</string>
     <string name="send_peer_expiration_7d">1 semaine</string>
     <string name="transactions_abort">Exécuter l\'annulation</string>
