@@ -83,11 +83,27 @@ android {
         // Exclude everything under META-INF to avoid conflicts
         resources.excludes.add("META-INF/**/*")
     }
+
     externalNativeBuild {
         cmake {
             path file('src/main/cpp/CMakeLists.txt')
             version '3.22.1'
         }
+    }
+
+    splits {
+        abi {
+            // can not be defined per flavor, so we use a property to turn this on for F-Droid
+            enable project.hasProperty('splitApk')
+            reset() // Resets the list of ABIs to remove all included by default
+            include "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+            universalApk false
+        }
+    }
+
+    lint {
+        abortOnError true
+        ignoreWarnings false
     }
 }
 
