@@ -70,7 +70,7 @@
     <string name="exchange_fee_withdrawal_fee_label">Abhebegebühr:</string>
     <string name="exchange_fee_overhead_label">Rundungsverlust:</string>
     <string name="exchange_fee_coin_expiration_label">Frühestes Gültigkeitsende:</string>
-    <string name="exchange_fee_coin_fees_label"></string>
+    <string name="exchange_fee_coin_fees_label">Coin fees</string>
     <string name="exchange_fee_wire_fees_label">Überweisungsgebühren</string>
     <plurals name="exchange_fee_coin">
         <item quantity="one">Münze: %s (verwendet %d Mal)</item>
@@ -78,7 +78,7 @@
     </plurals>
     <string name="exchange_fee_withdraw_fee">Abhebegebühr: %1$s</string>
     <string name="exchange_fee_deposit_fee">Einlösegebühr: %1$s</string>
-    <string name="exchange_fee_refresh_fee"></string>
+    <string name="exchange_fee_refresh_fee">Change fee: %1$s</string>
     <string name="exchange_fee_refund_fee">Rückerstattungsgebühr: %1$s</string>
     <string name="exchange_fee_wire_fee_timespan">Zeitraum: %1$s - %2$s</string>
     <string name="exchange_fee_wire_fee_wire_fee">Überweisungsgebühr: %1$s</string>
