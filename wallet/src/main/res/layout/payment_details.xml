@@ -35,10 +35,27 @@
             android:textColor="@android:color/holo_red_dark"
             android:textSize="22sp"
             android:visibility="gone"
-            app:layout_constraintBottom_toTopOf="@+id/orderLabelView"
+            app:layout_constraintBottom_toTopOf="@+id/errorHintView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="packed"
+            tools:text="@string/payment_balance_insufficient"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/errorHintView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:textAlignment="center"
+            android:textColor="@android:color/holo_red_dark"
+            android:textSize="22sp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/orderLabelView"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/errorView"
             app:layout_constraintVertical_chainStyle="packed"
             tools:text="@string/payment_balance_insufficient"
             tools:visibility="visible" />
@@ -56,7 +73,7 @@
             app:layout_constraintBottom_toTopOf="@+id/orderView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/errorView"
+            app:layout_constraintTop_toBottomOf="@+id/errorHintView"
             tools:visibility="visible" />
 
         <TextView

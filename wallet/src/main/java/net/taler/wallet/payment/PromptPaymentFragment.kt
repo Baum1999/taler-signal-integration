@@ -45,6 +45,7 @@ import net.taler.wallet.R
 import net.taler.wallet.TAG
 import net.taler.wallet.databinding.FragmentPromptPaymentBinding
 import net.taler.wallet.showError
+import net.taler.wallet.payment.InsufficientBalanceHint.*
 
 /**
  * Show a payment and ask the user to accept/decline.
@@ -132,8 +133,25 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
             is PayStatus.InsufficientBalance -> {
                 showLoading(false)
                 showOrder(payStatus.contractTerms, payStatus.amountRaw)
-                ui.details.errorView.setText(R.string.payment_balance_insufficient)
+                ui.details.errorView.text = getString(
+                    R.string.payment_balance_insufficient_max,
+                    payStatus.balanceDetails.balanceAvailable.toString(),
+                )
                 ui.details.errorView.fadeIn()
+                when(payStatus.balanceDetails.causeHint) {
+                    null -> null
+                    Unknown -> null
+                    MerchantAcceptInsufficient -> R.string.payment_balance_insufficient_hint_merchant_accept_insufficient
+                    MerchantDepositInsufficient -> R.string.payment_balance_insufficient_hint_merchant_deposit_insufficient
+                    AgeRestricted -> R.string.payment_balance_insufficient_hint_age_restricted
+                    WalletBalanceMaterialInsufficient -> R.string.payment_balance_insufficient_hint_wallet_balance_material_insufficient
+                    WalletBalanceAvailableInsufficient -> null // "normal case"
+                    ExchangeMissingGlobalFees -> R.string.payment_balance_insufficient_hint_exchange_missing_global_fees
+                    FeesNotCovered -> R.string.payment_balance_insufficient_hint_fees_not_covered
+                }?.let { hintRes ->
+                    ui.details.errorHintView.setText(hintRes)
+                    ui.details.errorHintView.fadeIn()
+                }
             }
             is PayStatus.Success -> {
                 showLoading(false)

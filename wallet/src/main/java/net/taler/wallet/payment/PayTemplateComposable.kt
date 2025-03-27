@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
@@ -34,6 +35,14 @@ import net.taler.wallet.AmountResult
 import net.taler.wallet.R
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.payment.InsufficientBalanceHint.AgeRestricted
+import net.taler.wallet.payment.InsufficientBalanceHint.ExchangeMissingGlobalFees
+import net.taler.wallet.payment.InsufficientBalanceHint.FeesNotCovered
+import net.taler.wallet.payment.InsufficientBalanceHint.MerchantAcceptInsufficient
+import net.taler.wallet.payment.InsufficientBalanceHint.MerchantDepositInsufficient
+import net.taler.wallet.payment.InsufficientBalanceHint.Unknown
+import net.taler.wallet.payment.InsufficientBalanceHint.WalletBalanceAvailableInsufficient
+import net.taler.wallet.payment.InsufficientBalanceHint.WalletBalanceMaterialInsufficient
 import net.taler.wallet.systemBarsPaddingBottom
 
 @Composable
@@ -70,7 +79,25 @@ fun PayTemplateComposable(
 
         is PayStatus.None, is PayStatus.Loading -> PayTemplateLoading()
         is PayStatus.AlreadyPaid -> PayTemplateError(stringResource(R.string.payment_already_paid))
-        is PayStatus.InsufficientBalance -> PayTemplateError(stringResource(R.string.payment_balance_insufficient))
+        is PayStatus.InsufficientBalance -> {
+            var errorMsg = stringResource(R.string.payment_balance_insufficient)
+            when(p.balanceDetails.causeHint) {
+                null -> null
+                Unknown -> null
+                MerchantAcceptInsufficient -> R.string.payment_balance_insufficient_hint_merchant_accept_insufficient
+                MerchantDepositInsufficient -> R.string.payment_balance_insufficient_hint_merchant_deposit_insufficient
+                AgeRestricted -> R.string.payment_balance_insufficient_hint_age_restricted
+                WalletBalanceMaterialInsufficient -> R.string.payment_balance_insufficient_hint_wallet_balance_material_insufficient
+                WalletBalanceAvailableInsufficient -> null // "normal case"
+                ExchangeMissingGlobalFees -> R.string.payment_balance_insufficient_hint_exchange_missing_global_fees
+                FeesNotCovered -> R.string.payment_balance_insufficient_hint_fees_not_covered
+            }?.let { hintRes ->
+                 errorMsg += "\n\n"
+                 errorMsg += stringResource(hintRes)
+            }
+
+            PayTemplateError(errorMsg)
+        }
         is PayStatus.Pending -> {
             val error = p.error
             PayTemplateError(if (error != null) {
@@ -97,6 +124,7 @@ fun PayTemplateError(message: String) {
             text = message,
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
         )
     }
 }
@@ -133,7 +161,20 @@ fun PayTemplateInsufficientBalancePreview() {
                     "test",
                     amount = Amount.zero("TESTKUDOS"),
                     products = emptyList()
-                ), Amount.zero("TESTKUDOS")
+                ),
+                Amount.zero("TESTKUDOS"),
+                PaymentInsufficientBalanceDetails(
+                    amountRequested = Amount.fromJSONString("TESTKUDOS:1"),
+                    causeHint = InsufficientBalanceHint.MerchantDepositInsufficient,
+                    balanceAvailable = Amount.fromJSONString("TESTKUDOS:1"),
+                    balanceMaterial = Amount.fromJSONString("TESTKUDOS:1"),
+                    balanceAgeAcceptable = Amount.fromJSONString("TESTKUDOS:1"),
+                    balanceReceiverAcceptable = Amount.fromJSONString("TESTKUDOS:0"),
+                    balanceReceiverDepositable = Amount.fromJSONString("TESTKUDOS:0"),
+                    balanceExchangeDepositable = Amount.fromJSONString("TESTKUDOS:1"),
+                    maxEffectiveSpendAmount = Amount.fromJSONString("TESTKUDOS:1"),
+                    perExchange = emptyMap(),
+                )
             ),
             currencies = listOf("KUDOS", "ARS"),
             onCreateAmount = { text, currency ->

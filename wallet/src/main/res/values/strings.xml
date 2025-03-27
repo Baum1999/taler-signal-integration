@@ -184,6 +184,12 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="payment_aborting">Aborting</string>
     <string name="payment_already_paid">You\'ve already paid for this purchase.</string>
     <string name="payment_balance_insufficient">Balance insufficient!</string>
+    <string name="payment_balance_insufficient_hint_age_restricted">Purchase not possible due to age restriction</string>
+    <string name="payment_balance_insufficient_hint_exchange_missing_global_fees">Provider is missing the global fee configuration, this likely means it is misconfigured</string>
+    <string name="payment_balance_insufficient_hint_fees_not_covered">Not enough funds to pay the provider fees not covered by the merchant</string>
+    <string name="payment_balance_insufficient_hint_merchant_accept_insufficient">Merchant doesn\'t accept money from one or more providers in this wallet</string>
+    <string name="payment_balance_insufficient_hint_merchant_deposit_insufficient">Merchant doesn\'t accept the wire method of the provider, this likely means it is misconfigured</string>
+    <string name="payment_balance_insufficient_hint_wallet_balance_material_insufficient">Some of the coins needed for this purchase are currently unavailable</string>
     <string name="payment_balance_insufficient_max">Balance insufficient! Maximum is %1$s</string>
     <string name="payment_button_confirm">Confirm payment</string>
     <string name="payment_confirmation_code">Confirmation code</string>
