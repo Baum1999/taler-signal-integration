@@ -35,14 +35,6 @@ import net.taler.wallet.AmountResult
 import net.taler.wallet.R
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
-import net.taler.wallet.payment.InsufficientBalanceHint.AgeRestricted
-import net.taler.wallet.payment.InsufficientBalanceHint.ExchangeMissingGlobalFees
-import net.taler.wallet.payment.InsufficientBalanceHint.FeesNotCovered
-import net.taler.wallet.payment.InsufficientBalanceHint.MerchantAcceptInsufficient
-import net.taler.wallet.payment.InsufficientBalanceHint.MerchantDepositInsufficient
-import net.taler.wallet.payment.InsufficientBalanceHint.Unknown
-import net.taler.wallet.payment.InsufficientBalanceHint.WalletBalanceAvailableInsufficient
-import net.taler.wallet.payment.InsufficientBalanceHint.WalletBalanceMaterialInsufficient
 import net.taler.wallet.systemBarsPaddingBottom
 
 @Composable

@@ -45,7 +45,6 @@ import net.taler.wallet.R
 import net.taler.wallet.TAG
 import net.taler.wallet.databinding.FragmentPromptPaymentBinding
 import net.taler.wallet.showError
-import net.taler.wallet.payment.InsufficientBalanceHint.*
 
 /**
  * Show a payment and ask the user to accept/decline.
