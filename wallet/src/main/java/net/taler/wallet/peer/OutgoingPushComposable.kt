@@ -51,6 +51,7 @@ import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.AmountCurrencyField
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.exchanges.ExchangeTosStatus
+import net.taler.wallet.payment.stringResId
 import net.taler.wallet.peer.CheckFeeResult.InsufficientBalance
 import net.taler.wallet.peer.CheckFeeResult.None
 import net.taler.wallet.peer.CheckFeeResult.Success
@@ -154,8 +155,9 @@ fun OutgoingPushIntroComposable(
                         )
                     }
 
-                    is InsufficientBalance -> if (res.maxAmountEffective != null) {
-                        Text(stringResource(R.string.payment_balance_insufficient_max, res.maxAmountEffective))
+                    is InsufficientBalance -> {
+                        Text(stringResource(res.causeHint?.stringResId()
+                            ?: R.string.payment_balance_insufficient))
                     }
 
                     else -> {}

@@ -81,21 +81,10 @@ fun PayTemplateComposable(
         is PayStatus.AlreadyPaid -> PayTemplateError(stringResource(R.string.payment_already_paid))
         is PayStatus.InsufficientBalance -> {
             var errorMsg = stringResource(R.string.payment_balance_insufficient)
-            when(p.balanceDetails.causeHint) {
-                null -> null
-                Unknown -> null
-                MerchantAcceptInsufficient -> R.string.payment_balance_insufficient_hint_merchant_accept_insufficient
-                MerchantDepositInsufficient -> R.string.payment_balance_insufficient_hint_merchant_deposit_insufficient
-                AgeRestricted -> R.string.payment_balance_insufficient_hint_age_restricted
-                WalletBalanceMaterialInsufficient -> R.string.payment_balance_insufficient_hint_wallet_balance_material_insufficient
-                WalletBalanceAvailableInsufficient -> null // "normal case"
-                ExchangeMissingGlobalFees -> R.string.payment_balance_insufficient_hint_exchange_missing_global_fees
-                FeesNotCovered -> R.string.payment_balance_insufficient_hint_fees_not_covered
-            }?.let { hintRes ->
-                 errorMsg += "\n\n"
-                 errorMsg += stringResource(hintRes)
+            p.balanceDetails.causeHint?.stringResId()?.let {
+                errorMsg += "\n\n"
+                errorMsg += stringResource(it)
             }
-
             PayTemplateError(errorMsg)
         }
         is PayStatus.Pending -> {

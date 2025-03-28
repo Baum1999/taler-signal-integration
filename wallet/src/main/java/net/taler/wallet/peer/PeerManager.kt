@@ -27,13 +27,10 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import net.taler.common.Amount
 import net.taler.common.Timestamp
 import net.taler.wallet.TAG
 import net.taler.wallet.backend.BackendManager
-import net.taler.wallet.backend.TalerErrorCode.WALLET_PEER_PUSH_PAYMENT_INSUFFICIENT_BALANCE
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.balances.ScopeInfo
@@ -41,8 +38,10 @@ import net.taler.wallet.cleanExchange
 import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.exchanges.ExchangeManager
 import net.taler.wallet.exchanges.ExchangeTosStatus
+import net.taler.wallet.payment.InsufficientBalanceHint
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit.HOURS
+import net.taler.wallet.peer.CheckPeerPushDebitResponse.*
 
 const val MAX_LENGTH_SUBJECT = 100
 val DEFAULT_EXPIRY = ExpirationOption.DAYS_1
@@ -59,6 +58,7 @@ sealed class CheckFeeResult {
     data class InsufficientBalance(
         val maxAmountEffective: Amount?,
         val maxAmountRaw: Amount?,
+        val causeHint: InsufficientBalanceHint? = null,
         override val maxDepositAmountEffective: Amount? = null,
         override val maxDepositAmountRaw: Amount? = null,
     ): CheckFeeResult()
@@ -153,37 +153,29 @@ class PeerManager(
             maxDepositAmountEffective = max?.effectiveAmount,
             maxDepositAmountRaw = max?.rawAmount,
         )
-        api.request("checkPeerPushDebit", CheckPeerPushDebitResponse.serializer()) {
+        api.request("checkPeerPushDebitV2", CheckPeerPushDebitResponse.serializer()) {
             exchangeBaseUrl?.let { put("exchangeBaseUrl", it) }
             put("amount", amount.toJSONString())
-        }.onSuccess {
-            response = CheckFeeResult.Success(
-                amountRaw = it.amountRaw,
-                amountEffective = it.amountEffective,
-                maxDepositAmountEffective = max?.effectiveAmount,
-                maxDepositAmountRaw = max?.rawAmount,
-                exchangeBaseUrl = it.exchangeBaseUrl,
-            )
+        }.onSuccess { res ->
+            response = when (val r = res) {
+                is CheckPeerPushDebitOkResponse -> CheckFeeResult.Success(
+                    amountRaw = r.amountRaw,
+                    amountEffective = r.amountEffective,
+                    maxDepositAmountEffective = max?.effectiveAmount,
+                    maxDepositAmountRaw = max?.rawAmount,
+                    exchangeBaseUrl = r.exchangeBaseUrl,
+                )
+
+                is CheckPeerPushDebitInsufficientBalanceResponse -> CheckFeeResult.InsufficientBalance(
+                    maxAmountEffective = r.insufficientBalanceDetails.maxEffectiveSpendAmount,
+                    maxAmountRaw = r.insufficientBalanceDetails.balanceAvailable,
+                    maxDepositAmountEffective = max?.effectiveAmount,
+                    maxDepositAmountRaw = max?.rawAmount,
+                    causeHint = r.insufficientBalanceDetails.causeHint,
+                )
+            }
         }.onError { error ->
             Log.e(TAG, "got checkPeerPushDebit error result $error")
-            if (error.code == WALLET_PEER_PUSH_PAYMENT_INSUFFICIENT_BALANCE) {
-                error.extra["insufficientBalanceDetails"]?.let { details ->
-                    val maxAmountRaw = details.jsonObject["balanceAvailable"]?.let { amount ->
-                        Amount.fromJSONString(amount.jsonPrimitive.content)
-                    }
-
-                    val maxAmountEffective = details.jsonObject["maxEffectiveSpendAmount"]?.let { amount ->
-                        Amount.fromJSONString(amount.jsonPrimitive.content)
-                    } ?: maxAmountRaw
-
-                    response = CheckFeeResult.InsufficientBalance(
-                        maxAmountEffective = maxAmountEffective,
-                        maxAmountRaw = maxAmountRaw,
-                        maxDepositAmountEffective = max?.effectiveAmount,
-                        maxDepositAmountRaw = max?.rawAmount,
-                    )
-                }
-            }
         }
 
         return response

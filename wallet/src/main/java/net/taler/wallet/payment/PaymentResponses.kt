@@ -16,13 +16,23 @@
 
 package net.taler.wallet.payment
 
+import androidx.annotation.StringRes
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonClassDiscriminator
 import net.taler.common.Amount
 import net.taler.common.ContractTerms
+import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.payment.InsufficientBalanceHint.AgeRestricted
+import net.taler.wallet.payment.InsufficientBalanceHint.ExchangeMissingGlobalFees
+import net.taler.wallet.payment.InsufficientBalanceHint.FeesNotCovered
+import net.taler.wallet.payment.InsufficientBalanceHint.MerchantAcceptInsufficient
+import net.taler.wallet.payment.InsufficientBalanceHint.MerchantDepositInsufficient
+import net.taler.wallet.payment.InsufficientBalanceHint.Unknown
+import net.taler.wallet.payment.InsufficientBalanceHint.WalletBalanceAvailableInsufficient
+import net.taler.wallet.payment.InsufficientBalanceHint.WalletBalanceMaterialInsufficient
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
@@ -120,7 +130,19 @@ enum class InsufficientBalanceHint {
      * balance.
      */
     @SerialName("fees-not-covered")
-    FeesNotCovered,
+    FeesNotCovered;
+}
+
+@StringRes
+fun InsufficientBalanceHint.stringResId(): Int? = when(this) {
+    Unknown -> null
+    MerchantAcceptInsufficient -> R.string.payment_balance_insufficient_hint_merchant_accept_insufficient
+    MerchantDepositInsufficient -> R.string.payment_balance_insufficient_hint_merchant_deposit_insufficient
+    AgeRestricted -> R.string.payment_balance_insufficient_hint_age_restricted
+    WalletBalanceMaterialInsufficient -> R.string.payment_balance_insufficient_hint_wallet_balance_material_insufficient
+    WalletBalanceAvailableInsufficient -> null // "normal case"
+    ExchangeMissingGlobalFees -> R.string.payment_balance_insufficient_hint_exchange_missing_global_fees
+    FeesNotCovered -> R.string.payment_balance_insufficient_hint_fees_not_covered
 }
 
 @Serializable

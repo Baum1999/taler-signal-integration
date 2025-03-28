@@ -16,10 +16,13 @@
 
 package net.taler.wallet.peer
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.taler.common.Amount
+import net.taler.common.Timestamp
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.exchanges.ExchangeTosStatus
+import net.taler.wallet.payment.PaymentInsufficientBalanceDetails
 
 sealed class OutgoingState
 
@@ -65,11 +68,22 @@ data class InitiatePeerPullPaymentResponse(
 )
 
 @Serializable
-data class CheckPeerPushDebitResponse(
-    val amountRaw: Amount,
-    val amountEffective: Amount,
-    val exchangeBaseUrl: String,
-)
+sealed class CheckPeerPushDebitResponse {
+    @Serializable
+    @SerialName("ok")
+    data class CheckPeerPushDebitOkResponse(
+        val amountRaw: Amount,
+        val amountEffective: Amount,
+        val exchangeBaseUrl: String,
+        val maxExpirationDate: Timestamp,
+    ) : CheckPeerPushDebitResponse()
+
+    @Serializable
+    @SerialName("insufficient-balance")
+    data class CheckPeerPushDebitInsufficientBalanceResponse(
+        val insufficientBalanceDetails: PaymentInsufficientBalanceDetails,
+    ) : CheckPeerPushDebitResponse()
+}
 
 @Serializable
 data class InitiatePeerPushDebitResponse(
