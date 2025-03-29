@@ -359,4 +359,10 @@
     <string name="send_deposit_select_account_title">Bankkonto auswählen</string>
     <string name="send_deposit_select_amount_title">Betrag der Einzahlung angeben</string>
     <string name="send_deposit_no_alias">Es wurde kein Kürzel angelegt</string>
+    <string name="payment_balance_insufficient_hint_age_restricted">Die Zahlung ist aufgrund einer Altersbeschränkung nicht durchführbar</string>
+    <string name="payment_balance_insufficient_hint_exchange_missing_global_fees">Der Zahlungsdienstleister stellt keine globale Gebührenordnung bereit, was eventuell auf eine Fehlkonfiguration zurückzuführen ist</string>
+    <string name="payment_balance_insufficient_hint_fees_not_covered">Das Guthaben ist niedriger als die Gebühren des Zahlungsdiensts, die nicht vom Verkäufer übernommen werden</string>
+    <string name="payment_balance_insufficient_hint_merchant_deposit_insufficient">Der Verkäufer verweigert die Überweisungsmethode des Zahlungsdiensts, was eventuell auf eine Fehlkonfiguration hinweist</string>
+    <string name="payment_balance_insufficient_hint_wallet_balance_material_insufficient">Einige elektronische Münzen, welche diese Zahlung benötigt, sind gegenwärtig nicht verfügbar</string>
+    <string name="payment_balance_insufficient_hint_merchant_accept_insufficient">Der Verkäufer verweigert die Annahme von Zahlungsmitteln, die von einem oder mehreren Zahlungsdiensten für diese Wallet-App erzeugt wurden</string>
 </resources>
