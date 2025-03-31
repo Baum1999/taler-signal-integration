@@ -13,7 +13,7 @@
     <string name="app_name">Portefeuille Taler</string>
     <string name="google_play_title" tools:keep="@string/google_play_title">Portefeuille Taler (expérimental)</string>
     <string name="google_play_short_desc" tools:keep="@string/google_play_short_desc">GNU Taler rend les transactions en ligne respectueuses de la vie privée, rapides et faciles.</string>
-    <string name="button_scan_qr_code">Scanner le QR code Taler</string>
+    <string name="button_scan_qr_code">Scanner un code QR</string>
     <string name="balances_title">Transactions</string>
     <string name="amount_positive">+%s</string>
     <string name="amount_chosen">Montant choisi</string>
@@ -111,7 +111,7 @@
     <string name="withdraw_manual_check_fees">Vérifier les frais</string>
     <string name="host_apdu_service_desc">Paiements Taler NFC</string>
     <string name="withdraw_manual_title">Effectuer un transfert manuel vers la bourse</string>
-    <string name="exchange_settings_title">Prestaires</string>
+    <string name="exchange_settings_title">Prestataires</string>
     <string name="exchange_settings_summary">Gérer la liste des prestataires connus par ce portefeuille</string>
     <string name="exchange_list_title">Prestataires</string>
     <string name="exchange_list_currency">Devise : %1$s</string>
@@ -211,7 +211,7 @@
     <string name="offline_banner">Aucune connexion internet</string>
     <string name="transaction_state_pending_bank">Attente de l\'autorisation de la banque</string>
     <string name="transactions_abort_dialog_message">Êtes-vous sûr de vouloir annuler cette transaction ? Les fonds encore en transit pourraient être perdus.</string>
-    <string name="button_scan_qr_code_label">Scanner le QR code</string>
+    <string name="button_scan_qr_code_label">Scanner le code QR</string>
     <string name="qr_scan_context_receive_message">Il semble que vous aviez l’intention de recevoir de l’argent, mais le code QR que vous avez scanné correspond à une autre action. Voulez-vous continuer ?</string>
     <string name="qr_scan_context_send_message">Il semble que vous aviez l’intention d\'envoyer de l’argent, mais le code QR que vous avez scanné correspond à une autre action. Voulez-vous continuer ?</string>
     <string name="amount_receive">Montant à recevoir</string>
