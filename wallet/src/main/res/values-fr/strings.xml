@@ -231,7 +231,7 @@
     <string name="send_peer_expiration_hours">Heures</string>
     <string name="transactions_send_funds_title">Envoyer %1$s</string>
     <string name="transaction_state_pending_kyc_bank">Cette transaction dépasserait la limite de retrait fixée par votre banque, afin de continuer, vous devez effectuer la vérification KYC</string>
-    <string name="transaction_state_pending_kyc_balance">Cette transaction dépasserait la limite de solde dans votre portefeuille définie par le fournisseur, afin de continuer, vous devez effectuer la vérification KYC</string>
+    <string name="transaction_state_pending_kyc_balance">Cette transaction dépasserait la limite de crédit dans votre portefeuille définie par le prestataire, afin de continuer, vous devez effectuer la vérification par une procédure de connaissance du client (KYC)</string>
     <string name="payment_confirmation_code">Code de confirmation</string>
     <string name="amount_received">Montant reçu</string>
     <string name="amount_sent">Montant envoyé</string>
@@ -371,9 +371,9 @@
     <string name="send_deposit_select_account_title">Sélectionner un compte bancaire</string>
     <string name="withdraw_cash_acceptor">Le montant à retirer sera déterminé par la borne de rechargement</string>
     <string name="payment_balance_insufficient_hint_age_restricted">Achat impossible en raison d\'une restriction d\'âge</string>
-    <string name="payment_balance_insufficient_hint_exchange_missing_global_fees">Le fournisseur ne dispose pas de la configuration globale des frais, ce qui signifie probablement qu\'elle est mal configurée</string>
-    <string name="payment_balance_insufficient_hint_fees_not_covered">Pas assez de fonds pour payer les frais du fournisseur non couverts par le commerçant</string>
+    <string name="payment_balance_insufficient_hint_exchange_missing_global_fees">Le prestataire ne dispose pas de la configuration globale des frais, ce qui signifie probablement qu\'elle est mal configurée</string>
+    <string name="payment_balance_insufficient_hint_fees_not_covered">Vous n\'avez pas assez de crédit pour payer les frais du prestataire non couverts par le commerçant</string>
     <string name="payment_balance_insufficient_hint_wallet_balance_material_insufficient">Certaines des pièces nécessaires à cet achat sont actuellement indisponibles</string>
-    <string name="payment_balance_insufficient_hint_merchant_accept_insufficient">Le commerçant n\'accepte pas d\'argent d\'un ou plusieurs fournisseurs dans ce portefeuille</string>
-    <string name="payment_balance_insufficient_hint_merchant_deposit_insufficient">Le commerçant n\'accepte pas la méthode de virement du fournisseur, cela signifie probablement qu\'elle est mal configurée</string>
+    <string name="payment_balance_insufficient_hint_merchant_accept_insufficient">Le commerçant n\'accepte pas d\'argent d\'un ou plusieurs prestataires dans ce portefeuille</string>
+    <string name="payment_balance_insufficient_hint_merchant_deposit_insufficient">Le commerçant n\'accepte pas la méthode de virement du prestataire, cela signifie probablement qu\'elle est mal configurée</string>
 </resources>
