@@ -102,4 +102,7 @@ enum class TransactionMinorState {
 
     @SerialName("exchange-wait-reserve")
     ExchangeWaitReserve,
+
+    @SerialName("paid-by-other")
+    PaidByOther,
 }

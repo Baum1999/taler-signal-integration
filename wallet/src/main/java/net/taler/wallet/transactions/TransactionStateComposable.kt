@@ -27,7 +27,9 @@ import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,6 +52,7 @@ import net.taler.wallet.transactions.TransactionMinorState.BalanceKycInit
 import net.taler.wallet.transactions.TransactionMinorState.BalanceKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
 import net.taler.wallet.transactions.TransactionMinorState.KycRequired
+import net.taler.wallet.transactions.TransactionMinorState.PaidByOther
 import net.taler.wallet.transactions.WithdrawalDetails.ManualTransfer
 
 @Composable
@@ -60,6 +63,7 @@ fun TransactionStateComposable(
 ) {
     val context = LocalContext.current
     val message = when (state) {
+        TransactionState(Done) -> stringResource(R.string.transaction_state_done)
         TransactionState(Pending, BankConfirmTransfer) -> stringResource(R.string.transaction_state_pending_bank)
         TransactionState(Pending, BalanceKycInit) -> stringResource(R.string.transaction_preparing_kyc)
         TransactionState(Pending, KycRequired) -> stringResource(R.string.transaction_state_pending_kyc_bank)
@@ -73,18 +77,21 @@ fun TransactionStateComposable(
         } else stringResource(R.string.transaction_state_aborted)
         TransactionState(Aborting) -> stringResource(R.string.transaction_state_aborting)
         TransactionState(Suspended) -> stringResource(R.string.transaction_state_suspended)
+        TransactionState(Failed, PaidByOther) -> stringResource(R.string.payment_already_paid)
         TransactionState(Failed) -> stringResource(R.string.transaction_state_failed)
         TransactionState(Expired) -> stringResource(R.string.transaction_state_expired)
         else -> return
     }
 
     val cardColor = when (state.major) {
+        Done -> colorResource(R.color.green)
         Aborted, Aborting, Failed, Expired -> MaterialTheme.colorScheme.errorContainer
         Pending, Suspended -> MaterialTheme.colorScheme.surfaceVariant
         else -> return
     }
 
     val textColor = when (state.major) {
+        Done -> Color.White
         Aborted, Aborting, Failed, Expired -> MaterialTheme.colorScheme.onErrorContainer
         Pending, Suspended -> MaterialTheme.colorScheme.onSurfaceVariant
         else -> return
@@ -126,6 +133,7 @@ fun TransactionStateComposablePreview() {
             TransactionStateComposable(modifier, state = TransactionState(Aborted))
             TransactionStateComposable(modifier, state = TransactionState(Aborting))
             TransactionStateComposable(modifier, state = TransactionState(Suspended))
+            TransactionStateComposable(modifier, state = TransactionState(Failed, PaidByOther))
             TransactionStateComposable(modifier, state = TransactionState(Failed))
             TransactionStateComposable(modifier, state = TransactionState(Expired))
             TransactionStateComposable(modifier, state = TransactionState(Done))
