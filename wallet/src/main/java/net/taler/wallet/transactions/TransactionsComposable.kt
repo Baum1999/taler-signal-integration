@@ -96,6 +96,7 @@ import net.taler.wallet.transactions.TransactionMinorState.BalanceKycInit
 import net.taler.wallet.transactions.TransactionMinorState.BalanceKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
 import net.taler.wallet.transactions.TransactionMinorState.KycRequired
+import net.taler.wallet.transactions.TransactionMinorState.Repurchase
 import net.taler.wallet.transactions.TransactionsResult.Error
 import net.taler.wallet.transactions.TransactionsResult.None
 import net.taler.wallet.transactions.TransactionsResult.Success
@@ -430,6 +431,10 @@ fun TransactionExtraInfo(tx: Transaction) {
         tx.txState.major == Aborted -> Text(
             stringResource(R.string.payment_aborted),
             color = MaterialTheme.colorScheme.error,
+        )
+
+        tx.txState.minor == Repurchase -> Text(
+            stringResource(R.string.payment_repurchase),
         )
 
         tx.txState.major == Failed -> Text(

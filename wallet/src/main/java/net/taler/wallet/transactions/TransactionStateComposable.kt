@@ -52,7 +52,7 @@ import net.taler.wallet.transactions.TransactionMinorState.BalanceKycInit
 import net.taler.wallet.transactions.TransactionMinorState.BalanceKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
 import net.taler.wallet.transactions.TransactionMinorState.KycRequired
-import net.taler.wallet.transactions.TransactionMinorState.PaidByOther
+import net.taler.wallet.transactions.TransactionMinorState.Repurchase
 import net.taler.wallet.transactions.WithdrawalDetails.ManualTransfer
 
 @Composable
@@ -77,23 +77,33 @@ fun TransactionStateComposable(
         } else stringResource(R.string.transaction_state_aborted)
         TransactionState(Aborting) -> stringResource(R.string.transaction_state_aborting)
         TransactionState(Suspended) -> stringResource(R.string.transaction_state_suspended)
-        TransactionState(Failed, PaidByOther) -> stringResource(R.string.payment_already_paid)
+        TransactionState(Failed, Repurchase) -> stringResource(R.string.payment_already_paid)
         TransactionState(Failed) -> stringResource(R.string.transaction_state_failed)
         TransactionState(Expired) -> stringResource(R.string.transaction_state_expired)
         else -> return
     }
 
-    val cardColor = when (state.major) {
-        Done -> colorResource(R.color.green)
-        Aborted, Aborting, Failed, Expired -> MaterialTheme.colorScheme.errorContainer
-        Pending, Suspended -> MaterialTheme.colorScheme.surfaceVariant
+    val cardColor = when (state) {
+        TransactionState(Done) -> colorResource(R.color.green)
+        TransactionState(Pending),
+        TransactionState(Suspended),
+        TransactionState(Failed, Repurchase) -> MaterialTheme.colorScheme.surfaceVariant
+        TransactionState(Aborted),
+        TransactionState(Aborting),
+        TransactionState(Failed),
+        TransactionState(Expired) -> MaterialTheme.colorScheme.errorContainer
         else -> return
     }
 
-    val textColor = when (state.major) {
-        Done -> Color.White
-        Aborted, Aborting, Failed, Expired -> MaterialTheme.colorScheme.onErrorContainer
-        Pending, Suspended -> MaterialTheme.colorScheme.onSurfaceVariant
+    val textColor = when (state) {
+        TransactionState(Done) -> Color.White
+        TransactionState(Pending),
+        TransactionState(Suspended),
+        TransactionState(Failed, Repurchase) -> MaterialTheme.colorScheme.onSurfaceVariant
+        TransactionState(Aborted),
+        TransactionState(Aborting),
+        TransactionState(Failed),
+        TransactionState(Expired) -> MaterialTheme.colorScheme.onErrorContainer
         else -> return
     }
 
@@ -133,7 +143,7 @@ fun TransactionStateComposablePreview() {
             TransactionStateComposable(modifier, state = TransactionState(Aborted))
             TransactionStateComposable(modifier, state = TransactionState(Aborting))
             TransactionStateComposable(modifier, state = TransactionState(Suspended))
-            TransactionStateComposable(modifier, state = TransactionState(Failed, PaidByOther))
+            TransactionStateComposable(modifier, state = TransactionState(Failed, Repurchase))
             TransactionStateComposable(modifier, state = TransactionState(Failed))
             TransactionStateComposable(modifier, state = TransactionState(Expired))
             TransactionStateComposable(modifier, state = TransactionState(Done))
