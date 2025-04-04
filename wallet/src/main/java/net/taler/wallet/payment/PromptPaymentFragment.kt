@@ -146,7 +146,6 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
                 showLoading(false)
                 paymentManager.resetPayStatus()
                 navigateToTransaction(payStatus.transactionId)
-                Snackbar.make(requireView(), R.string.payment_initiated, LENGTH_LONG).show()
             }
             is PayStatus.AlreadyPaid -> {
                 showLoading(false)
