@@ -23,7 +23,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.jsonPrimitive
 import net.taler.wallet.TAG
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
@@ -39,6 +43,18 @@ sealed class TransactionsResult {
     data class Success(val transactions: List<Transaction>) : TransactionsResult()
 }
 
+@Serializable
+enum class TransactionStateFilter {
+    @SerialName("final")
+    Final,
+
+    @SerialName("nonfinal")
+    Nonfinal,
+
+    @SerialName("done")
+    Done,
+}
+
 class TransactionManager(
     private val api: WalletBackendApi,
     private val scope: CoroutineScope,
@@ -48,20 +64,23 @@ class TransactionManager(
     private val mSelectedTransaction = MutableStateFlow<Transaction?>(null)
     private val mSelectedScope = MutableStateFlow<ScopeInfo?>(null)
     private val mSearchQuery = MutableStateFlow<String?>(null)
+    private val mStateFilter = MutableStateFlow<TransactionStateFilter?>(null)
 
     val selectedTransaction = mSelectedTransaction.asStateFlow()
     val selectedScope = mSelectedScope.asStateFlow()
     val searchQuery = mSearchQuery.asStateFlow()
+    val stateFilter = mStateFilter.asStateFlow()
 
     // This function must be called ONLY when scopeInfo / searchQuery change!
     // Use remember() {} in Compose to prevent multiple calls during recomposition
     fun transactionsFlow(
         scopeInfo: ScopeInfo? = null,
         searchQuery: String? = null,
+        stateFilter: TransactionStateFilter? = null,
     ): StateFlow<TransactionsResult> {
         loadTransactions()
         return if (scopeInfo != null) {
-            loadTransactions(scopeInfo, searchQuery)
+            loadTransactions(scopeInfo, searchQuery, stateFilter)
             mTransactions[scopeInfo]?.asStateFlow()
                 ?: MutableStateFlow(TransactionsResult.None)
         } else {
@@ -73,8 +92,9 @@ class TransactionManager(
     fun loadTransactions(
         scopeInfo: ScopeInfo? = null,
         searchQuery: String? = null,
+        stateFilter: TransactionStateFilter? = null,
     ) {
-        Log.d(TAG, "loadTransactions($scopeInfo, $searchQuery)")
+        Log.d(TAG, "loadTransactions($scopeInfo, $searchQuery, $stateFilter)")
         val s = scopeInfo ?: mSelectedScope.value ?: run {
             MutableStateFlow(TransactionsResult.None)
             return
@@ -92,7 +112,7 @@ class TransactionManager(
             }
 
             // ...then fetch new ones
-            val res = getTransactions(s, searchQuery)
+            val res = getTransactions(s, searchQuery, filterByState = stateFilter)
             if (res is TransactionsResult.Success) {
                 allTransactions[s] = res.transactions
             }
@@ -102,10 +122,24 @@ class TransactionManager(
         }
     }
 
-    private suspend fun getTransactions(scope: ScopeInfo, searchQuery: String?): TransactionsResult {
+    private suspend fun getTransactions(
+        scope: ScopeInfo,
+        searchQuery: String?,
+        filterByState: TransactionStateFilter? = null,
+        offsetTransactionId: String? = null,
+        limit: Int? = null,
+    ): TransactionsResult {
         var result: TransactionsResult = TransactionsResult.None
-        api.request("getTransactions", Transactions.serializer()) {
+        api.request("getTransactionsV2", Transactions.serializer()) {
             if (searchQuery != null) put("search", searchQuery)
+            if (filterByState != null) put(
+                "filterByState",
+                BackendManager.json
+                    .encodeToJsonElement(filterByState)
+                    .jsonPrimitive.content,
+            )
+            if (offsetTransactionId != null) put("offsetTransactionId", offsetTransactionId)
+            if (limit != null) put("limit", limit)
             put("scopeInfo", JSONObject(BackendManager.json.encodeToString(scope)))
         }.onError { error ->
             Log.e(TAG, "Error: getTransactions error result: $error")
@@ -164,8 +198,12 @@ class TransactionManager(
         mSelectedTransaction.value = tx
     }
 
-    fun selectScope(scopeInfo: ScopeInfo?) = scope.launch {
+    fun selectScope(
+        scopeInfo: ScopeInfo?,
+        stateFilter: TransactionStateFilter? = null,
+    ) = scope.launch {
         mSelectedScope.value = scopeInfo
+        mStateFilter.value = stateFilter
     }
 
     fun setSearchQuery(searchQuery: String?) = scope.launch {

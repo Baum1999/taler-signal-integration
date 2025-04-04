@@ -78,6 +78,7 @@ import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.BalanceItem
 import net.taler.wallet.balances.ScopeInfo.Exchange
 import net.taler.wallet.cleanExchange
+import net.taler.wallet.compose.Banner
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.SelectionModeTopAppBar
 import net.taler.wallet.compose.TalerSurface
@@ -100,6 +101,7 @@ import net.taler.wallet.transactions.TransactionMinorState.Repurchase
 import net.taler.wallet.transactions.TransactionsResult.Error
 import net.taler.wallet.transactions.TransactionsResult.None
 import net.taler.wallet.transactions.TransactionsResult.Success
+import net.taler.wallet.transactions.TransactionStateFilter.*
 
 @Composable
 fun TransactionsComposable(
@@ -107,6 +109,7 @@ fun TransactionsComposable(
     balance: BalanceItem,
     currencySpec: CurrencySpecification?,
     txResult: TransactionsResult,
+    txStateFilter: TransactionStateFilter?,
     onTransactionClick: (tx: Transaction) -> Unit,
     onTransactionsDelete: (txIds: List<String>) -> Unit,
     onShowBalancesClicked: () -> Unit,
@@ -177,6 +180,21 @@ fun TransactionsComposable(
                     spec = currencySpec,
                     onShowBalancesClicked = onShowBalancesClicked,
                 )
+            }
+
+            when (txStateFilter) {
+                Nonfinal -> item {
+                    Banner(Modifier.padding(bottom = 6.dp)) {
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            text = stringResource(R.string.transactions_filter_nonfinal),
+                            style = MaterialTheme.typography.labelLarge,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                }
+                else -> {}
             }
 
             val placeholderPadding = PaddingValues(vertical = 50.dp)
@@ -511,6 +529,7 @@ fun TransactionsComposableDonePreview() {
             balance = previewBalance,
             currencySpec = null,
             txResult = Success(transactions),
+            txStateFilter = null,
             onTransactionClick = {},
             onTransactionsDelete = {},
             onShowBalancesClicked = {},
@@ -545,6 +564,7 @@ fun TransactionsComposablePendingPreview() {
             balance = previewBalance,
             currencySpec = null,
             txResult = Success(transactions),
+            txStateFilter = Nonfinal,
             onTransactionClick = {},
             onTransactionsDelete = {},
             onShowBalancesClicked = {},
@@ -561,6 +581,7 @@ fun TransactionsComposableEmptyPreview() {
             balance = previewBalance,
             currencySpec = null,
             txResult = Success(listOf()),
+            txStateFilter = null,
             onTransactionClick = {},
             onTransactionsDelete = {},
             onShowBalancesClicked = {},
@@ -577,6 +598,7 @@ fun TransactionsComposableLoadingPreview() {
             balance = previewBalance,
             currencySpec = null,
             txResult = None,
+            txStateFilter = null,
             onTransactionClick = {},
             onTransactionsDelete = {},
             onShowBalancesClicked = {},

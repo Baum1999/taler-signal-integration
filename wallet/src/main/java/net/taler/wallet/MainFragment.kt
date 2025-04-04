@@ -89,6 +89,7 @@ import net.taler.wallet.compose.GridMenuItem
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.settings.SettingsFragment
+import net.taler.wallet.transactions.TransactionStateFilter.Nonfinal
 import kotlin.math.roundToInt
 
 class MainFragment: Fragment() {
@@ -114,7 +115,8 @@ class MainFragment: Fragment() {
                 val context = LocalContext.current
                 val balanceState by model.balanceManager.state.observeAsState(BalanceState.None)
                 val selectedScope by model.transactionManager.selectedScope.collectAsStateLifecycleAware()
-                val txResult by remember(selectedScope) { model.transactionManager.transactionsFlow(selectedScope) }.collectAsStateLifecycleAware()
+                val txStateFilter by model.transactionManager.stateFilter.collectAsStateLifecycleAware()
+                val txResult by remember(selectedScope, txStateFilter) { model.transactionManager.transactionsFlow(selectedScope, stateFilter = txStateFilter) }.collectAsStateLifecycleAware()
                 val selectedSpec = remember(selectedScope) { selectedScope?.let { model.balanceManager.getSpecForScopeInfo(it) } }
                 val actionButtonUsed by remember { model.getActionButtonUsed(context) }.collectAsStateLifecycleAware(true)
 
@@ -173,6 +175,7 @@ class MainFragment: Fragment() {
                             innerPadding = innerPadding,
                             state = balanceState,
                             txResult = txResult,
+                            txStateFilter = txStateFilter,
                             selectedScope = selectedScope,
                             selectedCurrencySpec = selectedSpec,
                             onGetDemoMoneyClicked = {
@@ -181,6 +184,9 @@ class MainFragment: Fragment() {
                             },
                             onBalanceClicked = {
                                 model.showTransactions(it.scopeInfo)
+                            },
+                            onPendingClicked = {
+                                model.showTransactions(it.scopeInfo, Nonfinal)
                             },
                             onTransactionClicked = { tx ->
                                 if (tx.detailPageNav != 0) {

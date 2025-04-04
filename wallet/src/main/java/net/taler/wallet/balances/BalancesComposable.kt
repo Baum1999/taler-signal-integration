@@ -29,8 +29,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.ProvideTextStyle
@@ -54,6 +59,7 @@ import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.transactions.Transaction
+import net.taler.wallet.transactions.TransactionStateFilter
 import net.taler.wallet.transactions.TransactionsComposable
 import net.taler.wallet.transactions.TransactionsResult
 import net.taler.wallet.withdraw.WithdrawalError
@@ -63,10 +69,12 @@ fun BalancesComposable(
     innerPadding: PaddingValues,
     state: BalanceState,
     txResult: TransactionsResult,
+    txStateFilter: TransactionStateFilter?,
     selectedScope: ScopeInfo?,
     selectedCurrencySpec: CurrencySpecification?,
     onGetDemoMoneyClicked: () -> Unit,
     onBalanceClicked: (balance: BalanceItem) -> Unit,
+    onPendingClicked: (balance: BalanceItem) -> Unit,
     onTransactionClicked: (tx: Transaction) -> Unit,
     onTransactionsDelete: (txIds: List<String>) -> Unit,
     onShowBalancesClicked: () -> Unit,
@@ -84,9 +92,10 @@ fun BalancesComposable(
                     contentPadding = innerPadding,
                 ) {
                     items(state.balances, key = { it.scopeInfo.hashCode() }) { balance ->
-                        BalanceRow(balance) {
-                            onBalanceClicked(balance)
-                        }
+                        BalanceRow(balance,
+                            onClick = { onBalanceClicked(balance) },
+                            onPendingClick = { onPendingClicked(balance) },
+                        )
                     }
                 }
             } else {
@@ -100,6 +109,7 @@ fun BalancesComposable(
                         balance = it,
                         currencySpec = selectedCurrencySpec,
                         txResult = txResult,
+                        txStateFilter = txStateFilter,
                         onTransactionClick = onTransactionClicked,
                         onTransactionsDelete = onTransactionsDelete,
                         onShowBalancesClicked = onShowBalancesClicked,
@@ -121,72 +131,102 @@ fun BalancesComposable(
 fun BalanceRow(
     balance: BalanceItem,
     onClick: () -> Unit,
+    onPendingClick: () -> Unit,
 ) {
     OutlinedCard(
         modifier = Modifier
             .padding(
                 horizontal = 9.dp,
                 vertical = 6.dp,
-            ).clickable { onClick() },
+            )
     ) {
-        ListItem(
-            modifier = Modifier
-                .animateContentSize()
-                .padding(6.dp),
-            headlineContent = {
-                Text(
-                    balance.available.toString(),
-                    style = MaterialTheme.typography.displaySmall,
-                )
-            },
-            overlineContent = {
-                ProvideTextStyle(MaterialTheme.typography.bodySmall) {
-                    when (balance.scopeInfo) {
-                        is Exchange -> Text(
-                            stringResource(
-                                R.string.balance_scope_exchange,
-                                cleanExchange(balance.scopeInfo.url)
-                            ),
-                        )
+        Column {
+            ListItem(
+                modifier = Modifier
+                    .animateContentSize()
+                    .clickable { onClick() }
+                    .padding(vertical = 6.dp),
+                headlineContent = {
+                    Text(
+                        balance.available.toString(),
+                        style = MaterialTheme.typography.displaySmall,
+                    )
+                },
+                overlineContent = {
+                    ProvideTextStyle(MaterialTheme.typography.bodySmall) {
+                        when (balance.scopeInfo) {
+                            is Exchange -> Text(
+                                stringResource(
+                                    R.string.balance_scope_exchange,
+                                    cleanExchange(balance.scopeInfo.url)
+                                ),
+                            )
 
-                        is Auditor -> Text(
-                            stringResource(
-                                R.string.balance_scope_auditor,
-                                cleanExchange(balance.scopeInfo.url)
-                            ),
-                        )
+                            is Auditor -> Text(
+                                stringResource(
+                                    R.string.balance_scope_auditor,
+                                    cleanExchange(balance.scopeInfo.url)
+                                ),
+                            )
 
-                        else -> {}
+                            else -> {}
+                        }
                     }
-                }
-            },
-            supportingContent = {
-                Column {
-                    ProvideTextStyle(MaterialTheme.typography.bodyLarge) {
-                        AnimatedVisibility(!balance.pendingIncoming.isZero()) {
-                            Text(
-                                stringResource(
-                                    R.string.balances_inbound_amount,
-                                    balance.pendingIncoming.toString(showSymbol = false),
-                                ),
-                                color = colorResource(R.color.green),
-                            )
-                        }
+                },
+            )
 
-                        AnimatedVisibility(!balance.pendingOutgoing.isZero()) {
-                            Text(
-                                stringResource(
-                                    R.string.balances_outbound_amount,
-                                    balance.pendingOutgoing.toString(showSymbol = false)
-                                ),
-                                color = MaterialTheme.colorScheme.error,
-                            )
-                        }
+            if (!balance.pendingIncoming.isZero() || !balance.pendingOutgoing.isZero()) {
+                HorizontalDivider()
+                PendingComposable(balance, onPendingClick)
+            }
+        }
+    }
+}
+
+@Composable
+fun PendingComposable(
+    balance: BalanceItem,
+    onClick: () -> Unit,
+) {
+    ListItem(
+        modifier = Modifier
+            .animateContentSize()
+            .clickable { onClick() },
+        colors = ListItemDefaults.colors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        ),
+        headlineContent = {
+            Column(modifier = Modifier.padding(vertical = 5.dp)) {
+                ProvideTextStyle(MaterialTheme.typography.bodyLarge) {
+                    AnimatedVisibility(!balance.pendingIncoming.isZero()) {
+                        Text(
+                            stringResource(
+                                R.string.balances_inbound_amount,
+                                balance.pendingIncoming.toString(showSymbol = false),
+                            ),
+                            color = colorResource(R.color.green),
+                        )
+                    }
+
+                    AnimatedVisibility(!balance.pendingOutgoing.isZero()) {
+                        Text(
+                            stringResource(
+                                R.string.balances_outbound_amount,
+                                balance.pendingOutgoing.toString(showSymbol = false)
+                            ),
+                            color = MaterialTheme.colorScheme.error,
+                        )
                     }
                 }
             }
-        )
-    }
+        },
+        trailingContent = {
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                contentDescription = null,
+            )
+        }
+    )
 }
 
 @Composable
@@ -244,6 +284,7 @@ fun BalancesComposablePreview() {
             innerPadding = PaddingValues(0.dp),
             state = BalanceState.Success(balances),
             txResult = TransactionsResult.Success(listOf()),
+            txStateFilter = null,
             selectedScope = null,
             selectedCurrencySpec = null,
             onGetDemoMoneyClicked = {},
@@ -251,6 +292,7 @@ fun BalancesComposablePreview() {
             onTransactionClicked = {},
             onTransactionsDelete = {},
             onShowBalancesClicked = {},
+            onPendingClicked = {},
         )
     }
 }
@@ -263,6 +305,7 @@ fun BalancesComposableEmptyPreview() {
             innerPadding = PaddingValues(0.dp),
             state = BalanceState.Success(listOf()),
             txResult = TransactionsResult.Success(listOf()),
+            txStateFilter = null,
             selectedScope = null,
             selectedCurrencySpec = null,
             onGetDemoMoneyClicked = {},
@@ -270,6 +313,7 @@ fun BalancesComposableEmptyPreview() {
             onTransactionClicked = {},
             onTransactionsDelete = {},
             onShowBalancesClicked = {},
+            onPendingClicked = {},
         )
     }
 }

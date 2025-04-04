@@ -20,10 +20,8 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -31,7 +29,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
@@ -40,6 +37,7 @@ import net.taler.common.Timestamp
 import net.taler.common.toAbsoluteTime
 import net.taler.wallet.R
 import net.taler.wallet.balances.ScopeInfo
+import net.taler.wallet.compose.Banner
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.transactions.TransactionMajorState.Aborted
 import net.taler.wallet.transactions.TransactionMajorState.Aborting
@@ -107,23 +105,12 @@ fun TransactionStateComposable(
         else -> return
     }
 
-    Card(
-        modifier = modifier
-            .padding(horizontal = 9.dp)
-            .fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = cardColor,
-        ),
-        shape = ShapeDefaults.ExtraSmall,
-    ) {
+    Banner(colors = CardDefaults.cardColors(containerColor = cardColor)) {
         Text(
             modifier = Modifier
-                .padding(10.dp)
                 .fillMaxWidth(),
             text = message,
-            style = MaterialTheme.typography.labelLarge,
             color = textColor,
-            textAlign = TextAlign.Center,
         )
     }
 }

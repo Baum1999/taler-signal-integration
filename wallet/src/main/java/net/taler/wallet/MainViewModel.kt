@@ -57,6 +57,7 @@ import net.taler.wallet.refund.RefundManager
 import net.taler.wallet.settings.SettingsManager
 import net.taler.wallet.settings.userPreferencesDataStore
 import net.taler.wallet.transactions.TransactionManager
+import net.taler.wallet.transactions.TransactionStateFilter
 import net.taler.wallet.withdraw.WithdrawManager
 import org.json.JSONObject
 
@@ -184,9 +185,9 @@ class MainViewModel(
      * Navigates to the given scope info's transaction list, when [MainFragment] is shown.
      */
     @UiThread
-    fun showTransactions(scopeInfo: ScopeInfo) {
+    fun showTransactions(scopeInfo: ScopeInfo, stateFilter: TransactionStateFilter? = null) {
         Log.d(TAG, "selectedScope should change to $scopeInfo")
-        transactionManager.selectScope(scopeInfo)
+        transactionManager.selectScope(scopeInfo, stateFilter)
     }
 
     @UiThread

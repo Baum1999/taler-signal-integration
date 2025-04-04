@@ -115,8 +115,8 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="balances_empty_state">There is no digital cash in your wallet.\n\nYou can get demo money from the demo bank:\n\nhttps://bank.demo.taler.net</string>
     <string name="balances_empty_demo_url">https://bank.demo.taler.net</string>
     <string name="balances_empty_get_money">Get demo money</string>
-    <string name="balances_inbound_amount">+%1$s inbound</string>
-    <string name="balances_outbound_amount">-%1$s outbound</string>
+    <string name="balances_inbound_amount">+%1$s incoming</string>
+    <string name="balances_outbound_amount">-%1$s outgoing</string>
     <string name="balances_title">Balances</string>
 
     <!-- Transactions -->
@@ -171,6 +171,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="transactions_fail">Abandon</string>
     <string name="transactions_fail_dialog_message">Are you sure you abandon this transaction? Funds still in transit WILL GET LOST.</string>
     <string name="transactions_fail_dialog_title">Abandon transaction</string>
+    <string name="transactions_filter_nonfinal">You are viewing pending transactions</string>
     <string name="transactions_receive_funds">Receive</string>
     <string name="transactions_resume">Resume</string>
     <string name="transactions_retry">Retry</string>
