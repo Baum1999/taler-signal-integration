@@ -12,7 +12,7 @@
     <string name="menu_retry_pending_operations">Ausstehende Vorgänge wiederholen</string>
     <string name="balances_title">Salden</string>
     <string name="app_name">Taler Wallet</string>
-    <string name="transactions_title">Salden</string>
+    <string name="transactions_title">Transaktionen</string>
     <string name="transactions_empty">Sie haben keine Transaktionen</string>
     <string name="transactions_empty_search">Keine Transaktion gefunden. Versuchen Sie eine andere Suche.</string>
     <string name="transactions_detail_title">Transaktion</string>
