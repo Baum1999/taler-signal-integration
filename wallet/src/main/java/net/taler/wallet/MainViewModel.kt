@@ -173,11 +173,18 @@ class MainViewModel(
         }
 
         if (payload.type in transactionNotifications) viewModelScope.launch(Dispatchers.Main) {
-            // TODO notification API should give us a currency to update
-            // update currently selected transaction
-            payload.transactionId?.let { transactionManager.updateTransactionIfSelected(it) }
-            // update currently selected transaction list
-            transactionManager.loadTransactions()
+            payload.transactionId?.let { id ->
+                // update currently selected transaction
+                transactionManager.updateTransactionIfSelected(id)
+                // update currently selected transaction list
+                if (payload.type == "transaction-state-transition") {
+                    transactionManager.getTransactionById(id)?.let { tx ->
+                        if (transactionManager.selectedScope.value in tx.scopes) {
+                            transactionManager.loadTransactions()
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -276,7 +283,7 @@ class MainViewModel(
                 put("amountToSpend", "KUDOS:23")
                 put("corebankApiBaseUrl", "https://bank.demo.taler.net/")
                 put("exchangeBaseUrl", "https://exchange.demo.taler.net/")
-                put("merchantBaseUrl", "https://backend.demo.taler.net/")
+                put("merchantBaseUrl", "https://backend.demo.taler.net/instances/sandbox/")
                 put("merchantAuthToken", "secret-token:sandbox")
             }.onError(onError)
         }
