@@ -367,4 +367,5 @@
     <string name="payment_balance_insufficient_hint_merchant_accept_insufficient">Der Verkäufer verweigert die Annahme von Zahlungsmitteln, die von einem oder mehreren Zahlungsdiensten für diese Wallet-App erzeugt wurden</string>
     <string name="transactions_filter_nonfinal">Sie sehen ausstehende Transaktionen</string>
     <string name="transaction_state_done">Diese Transaktion wurde erfolgreich abgeschlossen</string>
+    <string name="payment_repurchase">Repurchase (Wiederbezug eines bereits bezahlten Artikels)</string>
 </resources>
