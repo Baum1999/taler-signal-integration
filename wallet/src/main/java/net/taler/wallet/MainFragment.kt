@@ -127,7 +127,12 @@ class MainFragment: Fragment() {
                                 icon = { Icon(Icons.Default.BarChart, contentDescription = null) },
                                 label = { Text(stringResource(R.string.balances_title)) },
                                 selected = tab == Tab.BALANCES,
-                                onClick = { tab = Tab.BALANCES },
+                                onClick = {
+                                    tab = Tab.BALANCES
+                                    if (selectedScope != null) {
+                                        model.transactionManager.selectScope(null)
+                                    }
+                                }
                             )
 
                             TalerActionButton(
