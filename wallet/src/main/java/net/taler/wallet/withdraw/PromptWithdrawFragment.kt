@@ -78,6 +78,7 @@ class PromptWithdrawFragment: Fragment() {
 
     private var editableCurrency: Boolean = true
     private var navigating: Boolean = false
+    private var acceptingTos: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -229,6 +230,24 @@ class PromptWithdrawFragment: Fragment() {
                                     findNavController().navigate(R.id.action_promptWithdraw_to_nav_main)
                                 }
                             }
+                        }
+
+                        else -> {}
+                    }
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                withdrawManager.withdrawStatus.collect { status ->
+                    when (status.status) {
+                        TosReviewRequired -> {
+                            if (!acceptingTos) {
+                                acceptingTos = true
+                                val args = bundleOf("exchangeBaseUrl" to status.exchangeBaseUrl)
+                                findNavController().navigate(R.id.action_global_reviewExchangeTos, args)
+                            } else return@collect
                         }
 
                         else -> {}
