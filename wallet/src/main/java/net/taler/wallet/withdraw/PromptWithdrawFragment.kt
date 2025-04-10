@@ -65,6 +65,7 @@ import net.taler.wallet.withdraw.WithdrawStatus.Status.None
 import net.taler.wallet.withdraw.WithdrawStatus.Status.Success
 import net.taler.wallet.withdraw.WithdrawStatus.Status.TosReviewRequired
 import net.taler.wallet.withdraw.WithdrawStatus.Status.Updating
+import net.taler.wallet.withdraw.WithdrawalOperationStatusFlag.*
 
 class PromptWithdrawFragment: Fragment() {
     private val model: MainViewModel by activityViewModels()
@@ -138,6 +139,10 @@ class PromptWithdrawFragment: Fragment() {
                         return@let
                     }
 
+                    if (s.uriInfo?.status == Confirmed) {
+                        return@let
+                    }
+
                     if (defaultCurrency == null) {
                         LoadingScreen()
                         return@let
@@ -190,6 +195,14 @@ class PromptWithdrawFragment: Fragment() {
                 withdrawManager.withdrawStatus.collect { status ->
                     if (status.error != null) {
                         showError(status.error)
+                    }
+
+                    if (status.uriInfo?.status == Confirmed) {
+                        Snackbar.make(requireView(), R.string.withdraw_error_already_confirmed, LENGTH_LONG).show()
+                        if (!navigating) {
+                            navigating = true
+                            findNavController().navigate(R.id.action_promptWithdraw_to_nav_main)
+                        }
                     }
 
                     if (status.exchangeBaseUrl == null
@@ -281,6 +294,7 @@ fun WithdrawalShowInfoPreview() {
                     amount = null,
                     currency = "KUDOS",
                     editableAmount = true,
+                    status = Pending,
                     maxAmount = Amount.fromJSONString("KUDOS:10"),
                     wireFee = Amount.fromJSONString("KUDOS:0.2"),
                     defaultExchangeBaseUrl = "exchange.head.taler.net",

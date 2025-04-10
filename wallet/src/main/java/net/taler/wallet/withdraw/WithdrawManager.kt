@@ -16,7 +16,6 @@
 
 package net.taler.wallet.withdraw
 
-import android.net.Uri
 import android.util.Log
 import androidx.annotation.UiThread
 import androidx.lifecycle.MutableLiveData
@@ -42,6 +41,7 @@ import net.taler.wallet.exchanges.ExchangeManager
 import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
 import net.taler.wallet.withdraw.WithdrawStatus.Status.*
+import androidx.core.net.toUri
 
 sealed class TestWithdrawStatus {
     data object None : TestWithdrawStatus()
@@ -121,6 +121,23 @@ sealed class TransferData {
 }
 
 @Serializable
+enum class WithdrawalOperationStatusFlag {
+    Unknown,
+
+    @SerialName("pending")
+    Pending,
+
+    @SerialName("selected")
+    Selected,
+
+    @SerialName("aborted")
+    Aborted,
+
+    @SerialName("confirmed")
+    Confirmed,
+}
+
+@Serializable
 data class WithdrawalDetailsForUri(
     val amount: Amount? = null,
     val currency: String,
@@ -129,6 +146,7 @@ data class WithdrawalDetailsForUri(
     val wireFee: Amount? = null,
     val defaultExchangeBaseUrl: String? = null,
     val possibleExchanges: List<ExchangeItem> = emptyList(),
+    val status: WithdrawalOperationStatusFlag,
 )
 
 @Serializable
@@ -515,7 +533,7 @@ class WithdrawManager(
         transactionId = response.transactionId,
         withdrawalTransfers = response.withdrawalAccountsList.mapNotNull {
             val details = status.amountInfo ?: error("no amountInfo")
-            val uri = Uri.parse(it.paytoUri)
+            val uri = it.paytoUri.toUri()
             if ("bitcoin".equals(uri.authority, true)) {
                 val msg = uri.getQueryParameter("message").orEmpty()
                 val reg = "\\b([A-Z0-9]{52})\\b".toRegex().find(msg)

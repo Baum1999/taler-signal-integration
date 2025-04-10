@@ -274,6 +274,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="withdraw_button_label">Withdraw</string>
     <string name="withdraw_button_tos">Review terms</string>
     <string name="withdraw_cash_acceptor">The amount to be withdrawn will be determined by the cash acceptor</string>
+    <string name="withdraw_error_already_confirmed">Withdrawal is already confirmed</string>
     <string name="withdraw_error_message">Withdrawing is currently not possible. Please try again later!</string>
     <string name="withdraw_error_test">Error withdrawing TESTKUDOS</string>
     <string name="withdraw_error_title">Withdrawal error</string>
