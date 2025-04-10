@@ -76,6 +76,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="qr_scan_context_title">Possibly unintended action</string>
     <string name="qr_scan_context_receive_message">Seems like you were intending to receive money, but the QR code that you scanned corresponds to a different action. Do you wish to continue?</string>
     <string name="qr_scan_context_send_message">Seems like you were intending to send money, but the QR code that you scanned corresponds to a different action. Do you wish to continue?</string>
+    <string name="qr_scan_offline">This action requires internet connection, in order to retry when internet is available, please stay on this screen and wait, or press the button below.</string>
 
     <!-- Errors -->
 
