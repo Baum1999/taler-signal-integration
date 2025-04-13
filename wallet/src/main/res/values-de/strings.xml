@@ -368,4 +368,6 @@
     <string name="transactions_filter_nonfinal">Sie sehen ausstehende Transaktionen</string>
     <string name="transaction_state_done">Diese Transaktion wurde erfolgreich abgeschlossen</string>
     <string name="payment_repurchase">Repurchase (Wiederbezug eines bereits bezahlten Artikels)</string>
+    <string name="withdraw_error_already_confirmed">Die Abhebung wurde bereits bestätigt</string>
+    <string name="qr_scan_offline">Diese Aktion erfordert eine Internetverbindung. Um es erneut zu versuchen, wenn diese wieder verfügbar ist, halten Sie bitte die App offen und warten eine Zeitlang oder drücken die Taste unten.</string>
 </resources>
