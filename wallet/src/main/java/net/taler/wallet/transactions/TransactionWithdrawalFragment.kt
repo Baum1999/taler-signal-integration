@@ -82,6 +82,7 @@ class TransactionWithdrawalFragment : TransactionDetailFragment(), ActionListene
                 if (tx !is TransactionWithdrawal) return
                 if (tx.withdrawalDetails !is ManualTransfer) return
                 if (tx.withdrawalDetails.exchangeCreditAccountDetails.isNullOrEmpty()) return
+                if (tx.exchangeBaseUrl == null) return
 
                 withdrawManager.viewManualWithdrawal(
                     transactionId = tx.transactionId,
@@ -89,10 +90,10 @@ class TransactionWithdrawalFragment : TransactionDetailFragment(), ActionListene
                     amountRaw = tx.amountRaw,
                     amountEffective = tx.amountEffective,
                     withdrawalAccountList = tx.withdrawalDetails.exchangeCreditAccountDetails,
-                    scopeInfo = transactionManager.selectedScope.value ?: ScopeInfo.Exchange(
-                        currency = tx.amountRaw.currency,
-                        url = tx.exchangeBaseUrl,
-                    ),
+                    scopeInfo = transactionManager.selectedScope.value
+                        ?: tx.exchangeBaseUrl.let {
+                            ScopeInfo.Exchange(currency = tx.amountRaw.currency, url = it)
+                        },
                 )
 
                 findNavController().navigate(

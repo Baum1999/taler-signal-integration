@@ -111,10 +111,12 @@ fun TransactionWithdrawalComposable(
             amountType = AmountType.Positive,
         )
 
-        TransactionInfoComposable(
-            label = stringResource(id = R.string.withdraw_exchange),
-            info = cleanExchange(t.exchangeBaseUrl),
-        )
+        if (t.exchangeBaseUrl != null) {
+            TransactionInfoComposable(
+                label = stringResource(id = R.string.withdraw_exchange),
+                info = cleanExchange(t.exchangeBaseUrl),
+            )
+        }
         
         TransitionsComposable(t, devMode, onTransition)
 

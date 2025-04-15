@@ -58,6 +58,7 @@ import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.exchanges.SelectExchangeDialogFragment
 import net.taler.wallet.showError
+import net.taler.wallet.withdraw.WithdrawStatus.Status.AlreadyConfirmed
 import net.taler.wallet.withdraw.WithdrawStatus.Status.InfoReceived
 import net.taler.wallet.withdraw.WithdrawStatus.Status.Loading
 import net.taler.wallet.withdraw.WithdrawStatus.Status.ManualTransferRequired
@@ -65,7 +66,7 @@ import net.taler.wallet.withdraw.WithdrawStatus.Status.None
 import net.taler.wallet.withdraw.WithdrawStatus.Status.Success
 import net.taler.wallet.withdraw.WithdrawStatus.Status.TosReviewRequired
 import net.taler.wallet.withdraw.WithdrawStatus.Status.Updating
-import net.taler.wallet.withdraw.WithdrawalOperationStatusFlag.*
+import net.taler.wallet.withdraw.WithdrawalOperationStatusFlag.Pending
 
 class PromptWithdrawFragment: Fragment() {
     private val model: MainViewModel by activityViewModels()
@@ -110,7 +111,7 @@ class PromptWithdrawFragment: Fragment() {
                 if (status.status == None) {
                     if (withdrawUri != null) {
                         // get withdrawal details for taler://withdraw URI
-                        withdrawManager.getWithdrawalDetails(withdrawUri, loading = true)
+                        withdrawManager.prepareBankIntegratedWithdrawal(withdrawUri, loading = true)
                     } else if (withdrawExchangeUri != null) {
                         // get withdrawal details for taler://withdraw-exchange URI
                         withdrawManager.prepareManualWithdrawal(withdrawExchangeUri)
@@ -140,17 +141,13 @@ class PromptWithdrawFragment: Fragment() {
                         return@let
                     }
 
-                    if (s.uriInfo?.status == Confirmed) {
-                        return@let
-                    }
-
                     if (defaultCurrency == null) {
                         LoadingScreen()
                         return@let
                     }
 
                     when (s.status) {
-                        Loading -> LoadingScreen()
+                        Loading, AlreadyConfirmed -> LoadingScreen()
 
                         None, InfoReceived, TosReviewRequired, Updating -> {
                             // TODO: use scopeInfo instead of currency!
@@ -198,22 +195,23 @@ class PromptWithdrawFragment: Fragment() {
                         showError(status.error)
                     }
 
-                    if (status.uriInfo?.status == Confirmed) {
-                        Snackbar.make(requireView(), R.string.withdraw_error_already_confirmed, LENGTH_LONG).show()
-                        if (!navigating) {
-                            navigating = true
-                            findNavController().navigate(R.id.action_promptWithdraw_to_nav_main)
-                        }
-                    }
-
                     if (status.exchangeBaseUrl == null
                         && selectExchangeDialog.dialog?.isShowing != true) {
                         selectExchange()
                     }
 
                     when (status.status) {
-                        Success, ManualTransferRequired -> lifecycleScope.launch {
-                            Snackbar.make(requireView(), R.string.withdraw_initiated, LENGTH_LONG).show()
+                        Success, ManualTransferRequired, AlreadyConfirmed -> lifecycleScope.launch {
+                            Snackbar.make(
+                                requireView(),
+                                if (status.status == AlreadyConfirmed) {
+                                    R.string.withdraw_error_already_confirmed
+                                } else {
+                                    R.string.withdraw_initiated
+                                },
+                                LENGTH_LONG,
+                            ).show()
+
                             status.transactionId?.let {
                                 if (!navigating) {
                                     navigating = true
@@ -221,10 +219,10 @@ class PromptWithdrawFragment: Fragment() {
 
                                 if (transactionManager.selectTransaction(it)) {
                                     status.amountInfo?.scopeInfo?.let { s -> transactionManager.selectScope(s) }
-                                    if (status.status == Success) {
-                                        findNavController().navigate(R.id.action_promptWithdraw_to_nav_transactions_detail_withdrawal)
-                                    } else {
-                                        findNavController().navigate(R.id.action_promptWithdraw_to_nav_exchange_manual_withdrawal_success)
+                                    when (status.status) {
+                                        Success, AlreadyConfirmed -> findNavController().navigate(R.id.action_promptWithdraw_to_nav_transactions_detail_withdrawal)
+                                        ManualTransferRequired -> findNavController().navigate(R.id.action_promptWithdraw_to_nav_exchange_manual_withdrawal_success)
+                                        else -> error("unreachable")
                                     }
                                 } else {
                                     findNavController().navigate(R.id.action_promptWithdraw_to_nav_main)

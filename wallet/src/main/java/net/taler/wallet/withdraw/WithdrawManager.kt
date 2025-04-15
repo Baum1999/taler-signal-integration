@@ -42,6 +42,8 @@ import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
 import net.taler.wallet.withdraw.WithdrawStatus.Status.*
 import androidx.core.net.toUri
+import net.taler.wallet.transactions.TransactionMajorState
+import net.taler.wallet.transactions.TransactionManager
 
 sealed class TestWithdrawStatus {
     data object None : TestWithdrawStatus()
@@ -73,6 +75,7 @@ data class WithdrawStatus(
         Loading,
         Updating,
         InfoReceived,
+        AlreadyConfirmed,
         TosReviewRequired,
         ManualTransferRequired,
         Success,
@@ -136,6 +139,12 @@ enum class WithdrawalOperationStatusFlag {
     @SerialName("confirmed")
     Confirmed,
 }
+
+@Serializable
+data class PrepareBankIntegratedWithdrawalResponse(
+    val transactionId: String,
+    val info: WithdrawalDetailsForUri,
+)
 
 @Serializable
 data class WithdrawalDetailsForUri(
@@ -230,6 +239,7 @@ class WithdrawManager(
     private val api: WalletBackendApi,
     private val scope: CoroutineScope,
     private val exchangeManager: ExchangeManager,
+    private val transactionManager: TransactionManager,
 ) {
     private val _withdrawStatus = MutableStateFlow(WithdrawStatus())
     val withdrawStatus: StateFlow<WithdrawStatus> = _withdrawStatus.asStateFlow()
@@ -266,7 +276,7 @@ class WithdrawManager(
         _withdrawTestStatus.value = TestWithdrawStatus.None
     }
 
-    fun getWithdrawalDetails(
+    fun prepareBankIntegratedWithdrawal(
         uri: String,
         loading: Boolean = true,
     ) = scope.launch {
@@ -278,28 +288,40 @@ class WithdrawManager(
         }
 
         // first get URI details
-        api.request("getWithdrawalDetailsForUri", WithdrawalDetailsForUri.serializer()) {
+        api.request(
+            "prepareBankIntegratedWithdrawal",
+            PrepareBankIntegratedWithdrawalResponse.serializer(),
+        ) {
             put("talerWithdrawUri", uri)
         }.onError { error ->
-            handleError("getWithdrawalDetailsForUri", error)
+            handleError("prepareBankIntegratedWithdrawal", error)
         }.onSuccess { details ->
             Log.d(TAG, "Withdraw details: $details")
-            val status = _withdrawStatus.updateAndGet { value ->
-                value.copy(
-                    status = InfoReceived,
-                    uriInfo = details,
-                    currency = details.currency,
-                    exchangeBaseUrl = details.defaultExchangeBaseUrl,
-                )
-            }
+            scope.launch {
+                val tx = transactionManager.getTransactionById(details.transactionId)
+                    ?: error("transaction ${details.transactionId} not found")
+                val status = _withdrawStatus.updateAndGet { value ->
+                    value.copy(
+                        status = if (tx.txState.major == TransactionMajorState.Dialog) {
+                            InfoReceived
+                        } else {
+                            AlreadyConfirmed
+                        },
+                        uriInfo = details.info,
+                        currency = details.info.currency,
+                        exchangeBaseUrl = details.info.defaultExchangeBaseUrl,
+                        transactionId = details.transactionId,
+                    )
+                }
 
-            // then extend with amount details (not for cash acceptor)
-            if (!status.isCashAcceptor) {
-                getWithdrawalDetails(
-                    amount = details.amount,
-                    exchangeBaseUrl = details.defaultExchangeBaseUrl,
-                    loading = loading,
-                )
+                // then extend with amount details (not for cash acceptor)
+                if (!status.isCashAcceptor) {
+                    getWithdrawalDetails(
+                        amount = details.info.amount,
+                        exchangeBaseUrl = details.info.defaultExchangeBaseUrl,
+                        loading = loading,
+                    )
+                }
             }
         }
     }
@@ -498,7 +520,7 @@ class WithdrawManager(
      */
     fun viewManualWithdrawal(
         transactionId: String,
-        exchangeBaseUrl: String,
+        exchangeBaseUrl: String? = null,
         amountRaw: Amount,
         amountEffective: Amount,
         withdrawalAccountList: List<WithdrawalExchangeAccountDetails>,

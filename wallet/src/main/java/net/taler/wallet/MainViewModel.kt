@@ -119,7 +119,7 @@ class MainViewModel(
     val refundManager = RefundManager(api, viewModelScope)
     val balanceManager = BalanceManager(api, viewModelScope)
     val exchangeManager: ExchangeManager = ExchangeManager(api, viewModelScope)
-    val withdrawManager = WithdrawManager(api, viewModelScope, exchangeManager)
+    val withdrawManager = WithdrawManager(api, viewModelScope, exchangeManager, transactionManager)
     val peerManager: PeerManager = PeerManager(api, exchangeManager, viewModelScope)
     val settingsManager: SettingsManager = SettingsManager(app.applicationContext, api, viewModelScope, balanceManager)
     val accountManager: AccountManager = AccountManager(api, viewModelScope)

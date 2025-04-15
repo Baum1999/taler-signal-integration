@@ -161,7 +161,7 @@ class TransactionWithdrawal(
     override val txState: TransactionState,
     override val txActions: List<TransactionAction>,
     val kycUrl: String? = null,
-    val exchangeBaseUrl: String,
+    val exchangeBaseUrl: String? = null,
     val withdrawalDetails: WithdrawalDetails,
     override val error: TalerErrorInfo? = null,
     override val amountRaw: Amount,
