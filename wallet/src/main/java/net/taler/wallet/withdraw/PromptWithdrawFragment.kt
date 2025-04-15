@@ -241,7 +241,7 @@ class PromptWithdrawFragment: Fragment() {
                 withdrawManager.withdrawStatus.collect { status ->
                     when (status.status) {
                         TosReviewRequired -> {
-                            if (!acceptingTos) {
+                            if (!acceptingTos && transactionManager.selectedScope.value != null) {
                                 acceptingTos = true
                                 val args = bundleOf("exchangeBaseUrl" to status.exchangeBaseUrl)
                                 findNavController().navigate(R.id.action_global_reviewExchangeTos, args)
