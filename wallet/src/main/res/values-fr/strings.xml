@@ -140,9 +140,9 @@
     <string name="transactions_cancel_dialog_message">Êtes-vous sûr de vouloir annuler ce retrait \? Les fonds encore en transit peuvent être perdus.</string>
     <string name="transaction_deposit">Dépôt</string>
     <string name="receive_withdraw">Retrait du compte bancaire</string>
-    <string name="receive_peer">Créer une facture</string>
-    <string name="receive_peer_title">Demande de paiement</string>
-    <string name="receive_peer_create_button">Créer une facture</string>
+    <string name="receive_peer">Créer une demande</string>
+    <string name="receive_peer_title">Demander de l\'argent</string>
+    <string name="receive_peer_create_button">Créer une demande</string>
     <string name="transactions_delete_dialog_title">Supprimer la transaction</string>
     <string name="transactions_delete_dialog_message">Êtes-vous sûr de vouloir supprimer cette transaction de votre portefeuille ?</string>
     <string name="receive_amount_invalid">Montant invalide</string>
@@ -154,7 +154,7 @@
     <string name="transaction_peer_push_credit">Reçu</string>
     <string name="copy_uri">Copier l\'URI de Taler</string>
     <string name="transaction_peer_push_debit">Envoyé</string>
-    <string name="transaction_peer_pull_credit">Demande</string>
+    <string name="transaction_peer_pull_credit">Demander</string>
     <string name="receive_amount">Montant à recevoir</string>
     <string name="send_amount">Montant à envoyer</string>
     <string name="send_intro">Choisir où envoyer l\'argent :</string>
@@ -376,4 +376,9 @@
     <string name="payment_balance_insufficient_hint_wallet_balance_material_insufficient">Certaines des pièces nécessaires à cet achat sont actuellement indisponibles</string>
     <string name="payment_balance_insufficient_hint_merchant_accept_insufficient">Le commerçant n\'accepte pas d\'argent d\'un ou plusieurs prestataires dans ce portefeuille</string>
     <string name="payment_balance_insufficient_hint_merchant_deposit_insufficient">Le commerçant n\'accepte pas la méthode de virement du prestataire, cela signifie probablement qu\'elle est mal configurée</string>
+    <string name="transaction_state_done">Cette transaction a été menée à bien</string>
+    <string name="transactions_filter_nonfinal">Vous voyez les transactions en attente</string>
+    <string name="qr_scan_offline">Cette action nécessite une connexion Internet. Afin de réessayer lorsque l\'internet sera disponible, veuillez rester sur cet écran et attendre ou appuyez sur le bouton ci-dessous.</string>
+    <string name="payment_repurchase">Repurchase (rachat d\'un article déjà payé)</string>
+    <string name="withdraw_error_already_confirmed">Le retrait a déjà été confirmé</string>
 </resources>
