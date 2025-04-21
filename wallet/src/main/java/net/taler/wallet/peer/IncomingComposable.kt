@@ -178,10 +178,6 @@ fun ColumnScope.PeerPullTermsComposable(
                     modifier = Modifier
                         .align(End)
                         .padding(top = 8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(R.color.green),
-                        contentColor = Color.White,
-                    ),
                     onClick = { onAccept(terms) },
                 ) {
                     Text(
