@@ -96,9 +96,10 @@ class HandleUriFragment: Fragment() {
     }
 
     private fun processTalerUri() {
-        // FIXME: pressing `retry` is basically a fake action when offline,
-        //   may be useful in the future if Taler action errors properly allow retrying.
-        if (processing || model.networkManager.networkStatus.value == false) return
+        // TODO: pressing "Retry" button manually will not stop the
+        //  user from losing the QR code in case the action fails.
+        //  (i.e. "Retry" can only be pressed once)
+        if (processing) return
         processing = true
 
         val uri = uri.toUri()
