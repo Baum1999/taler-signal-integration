@@ -4,8 +4,8 @@
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorOnPrimary">@android:color/white</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimaryDark">@color/colorInversePrimary</item>
+        <item name="colorAccent">@color/colorTertiary</item>
     </style>
 
     <style name="AppTheme.NoActionBar">

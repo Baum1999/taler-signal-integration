@@ -19,7 +19,7 @@
     <string name="order_previous">Prev</string>
     <string name="order_next">Next</string>
     <string name="order_custom">Add custom product</string>
-    <string name="order_complete">Complete</string>
+    <string name="order_complete">Complete order</string>
     <string name="order_custom_product">Custom product name</string>
     <string name="order_custom_product_default">Tip</string>
     <string name="order_custom_add_button">Add</string>
