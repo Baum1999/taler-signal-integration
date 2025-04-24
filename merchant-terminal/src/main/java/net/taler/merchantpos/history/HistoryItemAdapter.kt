@@ -74,7 +74,7 @@ internal class HistoryItemAdapter(private val listener: RefundClickListener) :
                 orderIdView.setTextColor(orderIdColor)
             } else {
                 orderIdView.text = v.context.getString(R.string.history_unpaid)
-                orderIdView.setTextColor(getColor(v.context, R.color.red))
+                orderIdView.setTextColor(getColor(v.context, R.color.colorError))
             }
             if (item.refundable) {
                 refundButton.visibility = View.VISIBLE
