@@ -20,6 +20,7 @@ import android.content.Intent
 import android.content.Intent.ACTION_MAIN
 import android.content.Intent.CATEGORY_HOME
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.view.MenuItem
@@ -34,6 +35,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.navigation.NavigationView.OnNavigationItemSelectedListener
 import net.taler.lib.android.TalerNfcService
+import net.taler.merchantpos.config.Config
 import net.taler.merchantpos.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
@@ -72,6 +74,8 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
         setSupportActionBar(ui.main.toolbar)
         val appBarConfiguration = AppBarConfiguration(nav.graph, ui.drawerLayout)
         ui.main.toolbar.setupWithNavController(nav, appBarConfiguration)
+
+        handleSetupIntent(intent)
     }
 
     override fun onStart() {
@@ -103,6 +107,11 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
         return true
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleSetupIntent(intent)
+    }
+
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         val currentDestination = nav.currentDestination?.id
@@ -124,6 +133,54 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
                 Handler().postDelayed({ reallyExit = false }, 3000)
             }
         } else super.onBackPressed()
+    }
+
+    /**
+     * Handle the setup intent from the URL scheme. E.g. scanned the QR code from the camera
+     *
+     * This is the URL format:
+     * taler-pos://backend.demo.taler.net/#/username=<username>&password=<password>
+     */
+    private fun handleSetupIntent(intent: Intent) {
+        if (intent.action != Intent.ACTION_VIEW) return
+        val data = intent.data ?: return
+        if (data.scheme != "taler-pos") return
+
+        val host = data.host ?: return
+
+        val params = data.fragment
+            ?.removePrefix("/")
+            ?.split('&')
+            ?.associate { part ->
+                part.split('=', limit = 2).let { it[0] to Uri.decode(it.getOrElse(1) { "" }) }
+            } ?: return
+
+        val instance = params["username"] ?: return
+        val token    = params["password"] ?: return
+
+        // Build a regular Merchant-API URL:  https://<host>/instances/<instance>
+        val merchantUrl = Uri.Builder()
+            .scheme("https")
+            .encodedAuthority(host)
+            .appendPath("instances")
+            .appendPath(instance)
+            .build()
+            .toString()
+
+        // Re-use the existing “new config” class
+        val newConfig = Config.New(
+            merchantUrl  = merchantUrl,
+            accessToken  = token,
+            savePassword = true
+        )
+
+        // Kick off the exact same pipeline the Settings screen would start
+        model.configManager.fetchConfig(newConfig, /*save =*/ true)
+
+        // Take the user to the fetcher fragment so they see the spinner / error handling
+        if (nav.currentDestination?.id != R.id.configFetcher) {
+            nav.navigate(R.id.action_global_configFetcher)
+        }
     }
 
 }
