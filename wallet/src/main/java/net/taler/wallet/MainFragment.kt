@@ -89,6 +89,10 @@ import net.taler.wallet.compose.GridMenuItem
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.settings.SettingsFragment
+import net.taler.wallet.transactions.Transaction
+import net.taler.wallet.transactions.TransactionMajorState
+import net.taler.wallet.transactions.TransactionPayment
+import net.taler.wallet.transactions.TransactionState
 import net.taler.wallet.transactions.TransactionStateFilter.Nonfinal
 import kotlin.math.roundToInt
 
@@ -194,10 +198,7 @@ class MainFragment: Fragment() {
                                 model.showTransactions(it.scopeInfo, Nonfinal)
                             },
                             onTransactionClicked = { tx ->
-                                if (tx.detailPageNav != 0) {
-                                    model.transactionManager.selectTransaction(tx)
-                                    findNavController().navigate(tx.detailPageNav)
-                                }
+                                onTransactionClicked(tx)
                             },
                             onTransactionsDelete = { txIds ->
                                 model.transactionManager.deleteTransactions(txIds) { error ->
@@ -237,7 +238,29 @@ class MainFragment: Fragment() {
         }
     }
 
+    private fun onTransactionClicked(tx: Transaction) {
+        val showTxDetails = {
+            if (tx.detailPageNav != 0) {
+                model.transactionManager.selectTransaction(tx)
+                findNavController().navigate(tx.detailPageNav)
+            }
+        }
 
+        when (tx.txState) {
+            // unfinished transactions (dialog)
+            TransactionState(TransactionMajorState.Dialog) -> when (tx) {
+                is TransactionPayment -> {
+                    model.paymentManager.preparePay(tx) {
+                        findNavController().navigate(R.id.action_global_promptPayment)
+                    }
+                }
+
+                else -> showTxDetails()
+            }
+
+            else -> showTxDetails()
+        }
+    }
 
     override fun onStart() {
         super.onStart()

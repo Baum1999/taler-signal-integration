@@ -22,8 +22,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.JsonClassDiscriminator
 import net.taler.common.Amount
 import net.taler.common.ContractTerms
 import net.taler.wallet.TAG
@@ -35,6 +38,7 @@ import net.taler.wallet.payment.PayStatus.InsufficientBalance
 import net.taler.wallet.payment.PreparePayResponse.AlreadyConfirmedResponse
 import net.taler.wallet.payment.PreparePayResponse.InsufficientBalanceResponse
 import net.taler.wallet.payment.PreparePayResponse.PaymentPossibleResponse
+import net.taler.wallet.transactions.TransactionPayment
 import org.json.JSONObject
 
 sealed class PayStatus {
@@ -78,6 +82,31 @@ data class CheckPayTemplateResponse(
     val supportedCurrencies: List<String>,
 )
 
+@Serializable
+data class GetChoicesForPaymentResponse(
+    val choices: List<ChoiceSelectionDetail>,
+    val contractData: ContractTerms,
+) {
+    @Serializable
+    @OptIn(ExperimentalSerializationApi::class)
+    @JsonClassDiscriminator("status")
+    sealed class ChoiceSelectionDetail {
+        @Serializable
+        @SerialName("payment-possible")
+        data class PaymentPossible(
+            val amountRaw: Amount,
+            val amountEffective: Amount,
+        ) : ChoiceSelectionDetail()
+
+        @Serializable
+        @SerialName("insufficient-balance")
+        data class InsufficientBalance(
+            val amountRaw: Amount,
+            val balanceDetails: PaymentInsufficientBalanceDetails? = null,
+        ) : ChoiceSelectionDetail()
+    }
+}
+
 class PaymentManager(
     private val api: WalletBackendApi,
     private val scope: CoroutineScope,
@@ -105,6 +134,44 @@ class PaymentManager(
                     transactionId = response.transactionId,
                 )
             }
+        }
+    }
+
+    @UiThread
+    fun preparePay(
+        tx: TransactionPayment,
+        onSuccess: () -> Unit,
+    ) = scope.launch {
+        api.request("getChoicesForPayment", GetChoicesForPaymentResponse.serializer()) {
+            put("transactionId", tx.transactionId)
+        }.onSuccess { res ->
+            // TODO: this is a terrible v0-only hack!
+            if (res.choices.size == 1) {
+                when (val choice = res.choices[0]) {
+                    is GetChoicesForPaymentResponse.ChoiceSelectionDetail.PaymentPossible -> {
+                        mPayStatus.value = PayStatus.Prepared(
+                            transactionId = tx.transactionId,
+                            amountRaw = choice.amountRaw,
+                            amountEffective = choice.amountEffective,
+                            contractTerms = res.contractData,
+                        )
+                        onSuccess()
+                    }
+
+                    is GetChoicesForPaymentResponse.ChoiceSelectionDetail.InsufficientBalance -> {
+                        if (choice.balanceDetails != null) {
+                            mPayStatus.value = InsufficientBalance(
+                                amountRaw = choice.amountRaw,
+                                contractTerms = res.contractData,
+                                balanceDetails = choice.balanceDetails,
+                            )
+                            onSuccess()
+                        }
+                    }
+                }
+            }
+        }.onError { error ->
+            handleError("getChoicesForPayment", error)
         }
     }
 

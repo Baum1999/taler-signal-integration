@@ -37,6 +37,7 @@ import kotlinx.serialization.json.JsonElement
 import net.taler.common.Amount
 import net.taler.common.ContractMerchant
 import net.taler.common.ContractProduct
+import net.taler.common.ContractTerms
 import net.taler.common.Timestamp
 import net.taler.wallet.R
 import net.taler.wallet.TAG
@@ -309,6 +310,7 @@ class TransactionPayment(
     override val txState: TransactionState,
     override val txActions: List<TransactionAction>,
     val info: TransactionInfo,
+    val contractTerms: ContractTerms? = null,
     override val error: TalerErrorInfo? = null,
     override val amountRaw: Amount,
     override val amountEffective: Amount,

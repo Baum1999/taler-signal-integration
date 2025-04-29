@@ -180,7 +180,7 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
         totalFees: Amount? = null,
     ) {
         ui.details.orderView.text = contractTerms.summary
-        adapter.update(contractTerms.products)
+        adapter.update(contractTerms.products ?: emptyList())
         ui.details.productsList.fadeIn()
         ui.bottom.totalView.text = amount.toString()
 
