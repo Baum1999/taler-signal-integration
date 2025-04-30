@@ -86,6 +86,7 @@
             android:enabled="false"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:text="@string/payment_button_cancel"
+            android:textColor="?colorError"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/confirmButton"
             app:layout_constraintHorizontal_bias="0.0"

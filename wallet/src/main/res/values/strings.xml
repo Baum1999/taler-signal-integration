@@ -47,7 +47,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <!-- General -->
 
     <string name="actions">Actions</string>
-    <string name="button_back">Go Back</string>
+    <string name="button_back">Go back</string>
     <string name="button_scan_qr_code">Scan Taler QR code</string>
     <string name="button_scan_qr_code_label">Scan QR code</string>
     <string name="cancel">Cancel</string>
@@ -196,6 +196,8 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="payment_balance_insufficient_max">Balance insufficient! Maximum is %1$s</string>
     <string name="payment_button_cancel">Cancel</string>
     <string name="payment_button_confirm">Confirm payment</string>
+    <string name="payment_cancel_dialog_message">Are you sure you want to cancel this payment? You won\'t be able to complete it later. Alternatively, you can simply exit this screen and come back later.</string>
+    <string name="payment_cancel_dialog_title">Cancel payment</string>
     <string name="payment_confirmation_code">Confirmation code</string>
     <string name="payment_create_order">Create order</string>
     <string name="payment_error">Error: %s</string>

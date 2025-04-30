@@ -32,6 +32,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.snackbar.Snackbar.LENGTH_LONG
 import kotlinx.coroutines.launch
@@ -116,21 +117,27 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
                 }
                 ui.bottom.cancelButton.isEnabled = true
                 ui.bottom.cancelButton.setOnClickListener {
-                    transactionManager.abortTransaction(
-                        payStatus.transactionId,
-                        onSuccess = {
-                            Snackbar.make(requireView(), getString(R.string.payment_aborted), LENGTH_LONG).show()
-                            findNavController().popBackStack()
-                        },
-                        onError = { error ->
-                            Log.e(TAG, "Error abortTransaction $error")
-                            if (model.devMode.value == false) {
-                                showError(error.userFacingMsg)
-                            } else {
-                                showError(error)
-                            }
-                        }
-                    )
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(R.string.payment_cancel_dialog_title)
+                        .setMessage(R.string.payment_cancel_dialog_message)
+                        .setNeutralButton(R.string.button_back) { dialog, _ -> dialog.dismiss() }
+                        .setNegativeButton(R.string.payment_cancel_dialog_title) { _, _ ->
+                            transactionManager.abortTransaction(
+                                payStatus.transactionId,
+                                onSuccess = {
+                                    Snackbar.make(requireView(), getString(R.string.payment_aborted), LENGTH_LONG).show()
+                                    findNavController().popBackStack()
+                                },
+                                onError = { error ->
+                                    Log.e(TAG, "Error abortTransaction $error")
+                                    if (model.devMode.value == false) {
+                                        showError(error.userFacingMsg)
+                                    } else {
+                                        showError(error)
+                                    }
+                                }
+                            )
+                        }.show()
                 }
             }
             is PayStatus.InsufficientBalance -> {
