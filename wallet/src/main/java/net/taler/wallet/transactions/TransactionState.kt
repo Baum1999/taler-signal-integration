@@ -40,6 +40,9 @@ data class TransactionState(
 
 @Serializable
 enum class TransactionMajorState {
+    @SerialName("unknown")
+    Unknown,
+
     @SerialName("none")
     None,
 
@@ -55,11 +58,17 @@ enum class TransactionMajorState {
     @SerialName("aborted")
     Aborted,
 
+    @SerialName("dialog")
+    Dialog,
+
+    @SerialName("finalizing")
+    Finalizing,
+
     @SerialName("suspended")
     Suspended,
 
-    @SerialName("dialog")
-    Dialog,
+    @SerialName("suspended-finalizing")
+    SuspendedFinalizing,
 
     @SerialName("suspended-aborting")
     SuspendedAborting,
@@ -67,20 +76,26 @@ enum class TransactionMajorState {
     @SerialName("failed")
     Failed,
 
-    @SerialName("deleted")
-    Deleted,
-
     @SerialName("expired")
     Expired,
 
-    @SerialName("unknown")
-    Unknown;
+    @SerialName("deleted")
+    Deleted,
 }
 
 @Serializable
 enum class TransactionMinorState {
+    @SerialName("unknown")
+    Unknown,
+
+    @SerialName("deposit")
+    Deposit,
+
     @SerialName("kyc")
     KycRequired,
+
+    @SerialName("merge-kyc")
+    MergeKycRequired,
 
     @SerialName("balance-kyc")
     BalanceKycRequired,
@@ -88,24 +103,96 @@ enum class TransactionMinorState {
     @SerialName("balance-kyc-init")
     BalanceKycInit,
 
+    @SerialName("kyc-auth")
+    KycAuthRequired,
+
+    @SerialName("track")
+    Track,
+
+    @SerialName("submit-payment")
+    SubmitPayment,
+
+    @SerialName("rebind-session")
+    RebindSession,
+
+    @SerialName("refresh")
+    Refresh,
+
+    @SerialName("pickup")
+    Pickup,
+
+    @SerialName("auto-refund")
+    AutoRefund,
+
+    @SerialName("user")
+    User,
+
+    @SerialName("bank")
+    Bank,
+
     @SerialName("exchange")
     Exchange,
+
+    @SerialName("claim-proposal")
+    ClaimProposal,
+
+    @SerialName("check-refund")
+    CheckRefund,
 
     @SerialName("create-purse")
     CreatePurse,
 
+    @SerialName("delete-purse")
+    DeletePurse,
+
+    @SerialName("refresh-expired")
+    RefreshExpired,
+
     @SerialName("ready")
     Ready,
 
-    @SerialName("bank-confirm-transfer")
-    BankConfirmTransfer,
-
-    @SerialName("exchange-wait-reserve")
-    ExchangeWaitReserve,
+    @SerialName("merge")
+    Merge,
 
     @SerialName("repurchase")
     Repurchase,
 
-    @SerialName("unknown")
-    Unknown;
+    @SerialName("bank-register-reserve")
+    BankRegisterReserve,
+
+    @SerialName("bank-confirm-transfer")
+    BankConfirmTransfer,
+
+    @SerialName("withdraw-coins")
+    WithdrawCoins,
+
+    @SerialName("exchange-wait-reserve")
+    ExchangeWaitReserve,
+
+    @SerialName("aborting")
+    Aborting,
+
+    @SerialName("refused")
+    Refused,
+
+    @SerialName("withdraw")
+    Withdraw,
+
+    @SerialName("merchant-order-proposed")
+    MerchantOrderProposed,
+
+    @SerialName("proposed")
+    Proposed,
+
+    @SerialName("refund-available")
+    RefundAvailable,
+
+    @SerialName("accept-refund")
+    AcceptRefund,
+
+    @SerialName("paid-by-other")
+    PaidByOther,
+
+    @SerialName("completed-by-other-wallet")
+    CompletedByOtherWallet,
 }
