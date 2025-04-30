@@ -28,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
@@ -95,6 +96,7 @@ class PromptWithdrawFragment: Fragment() {
 
         setContent {
             val status by withdrawManager.withdrawStatus.collectAsStateLifecycleAware()
+            val devMode by model.devMode.observeAsState()
 
             val exchange by remember(status.exchangeBaseUrl) {
                 status.exchangeBaseUrl
@@ -153,6 +155,7 @@ class PromptWithdrawFragment: Fragment() {
                             // TODO: use scopeInfo instead of currency!
                             WithdrawalShowInfo(
                                 status = s,
+                                devMode = devMode ?: false,
                                 defaultCurrency = defaultCurrency,
                                 editableCurrency = editableCurrency,
                                 currencies = currencies,
@@ -344,6 +347,7 @@ fun WithdrawalShowInfoPreview() {
                     ),
                 )
             ),
+            devMode = true,
             defaultCurrency = "KUDOS",
             editableCurrency = true,
             currencies = listOf("KUDOS", "TESTKUDOS", "NETZBON"),

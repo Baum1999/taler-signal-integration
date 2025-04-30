@@ -65,6 +65,7 @@ import net.taler.wallet.withdraw.WithdrawStatus.Status.Updating
 @Composable
 fun WithdrawalShowInfo(
     status: WithdrawStatus,
+    devMode: Boolean,
     defaultCurrency: String,
     editableCurrency: Boolean,
     currencies: List<String>,
@@ -182,7 +183,7 @@ fun WithdrawalShowInfo(
                     label = stringResource(R.string.withdraw_exchange),
                     info = cleanExchange(it),
                     trailing = {
-                        if (possibleExchanges.size > 1) {
+                        if (devMode && possibleExchanges.size > 1) {
                             IconButton(
                                 modifier = Modifier.padding(start = 8.dp),
                                 onClick = { onSelectExchange() },
