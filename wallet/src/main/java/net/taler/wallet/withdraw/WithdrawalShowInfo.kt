@@ -59,6 +59,7 @@ import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.TransactionAmountComposable
 import net.taler.wallet.transactions.TransactionInfoComposable
 import net.taler.wallet.useDebounce
+import net.taler.wallet.withdraw.WithdrawStatus.Status.Error
 import net.taler.wallet.withdraw.WithdrawStatus.Status.TosReviewRequired
 import net.taler.wallet.withdraw.WithdrawStatus.Status.Updating
 
@@ -162,6 +163,11 @@ fun WithdrawalShowInfo(
                         AmountType.Neutral
                     },
                 )
+            }
+
+            if (status.status == Error && status.error != null) {
+                WithdrawalError(status.error)
+                return
             }
 
             if (!wireFee.isZero()) {

@@ -58,8 +58,8 @@ import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.exchanges.SelectExchangeDialogFragment
-import net.taler.wallet.showError
 import net.taler.wallet.withdraw.WithdrawStatus.Status.AlreadyConfirmed
+import net.taler.wallet.withdraw.WithdrawStatus.Status.Error
 import net.taler.wallet.withdraw.WithdrawStatus.Status.InfoReceived
 import net.taler.wallet.withdraw.WithdrawStatus.Status.Loading
 import net.taler.wallet.withdraw.WithdrawStatus.Status.ManualTransferRequired
@@ -138,11 +138,6 @@ class PromptWithdrawFragment: Fragment() {
 
             TalerSurface {
                 status.let { s ->
-                    if (s.error != null) {
-                        WithdrawalError(error = s.error)
-                        return@let
-                    }
-
                     if (defaultCurrency == null) {
                         LoadingScreen()
                         return@let
@@ -151,7 +146,7 @@ class PromptWithdrawFragment: Fragment() {
                     when (s.status) {
                         Loading, AlreadyConfirmed -> LoadingScreen()
 
-                        None, InfoReceived, TosReviewRequired, Updating -> {
+                        None, Error, InfoReceived, TosReviewRequired, Updating -> {
                             // TODO: use scopeInfo instead of currency!
                             WithdrawalShowInfo(
                                 status = s,
@@ -194,10 +189,6 @@ class PromptWithdrawFragment: Fragment() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 withdrawManager.withdrawStatus.collect { status ->
-                    if (status.error != null) {
-                        showError(status.error)
-                    }
-
                     if (status.exchangeBaseUrl == null
                         && selectExchangeDialog.dialog?.isShowing != true) {
                         selectExchange()
