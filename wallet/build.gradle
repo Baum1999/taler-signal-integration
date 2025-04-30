@@ -23,7 +23,7 @@ plugins {
     id "com.google.protobuf" version "0.9.4"
 }
 
-def qtart_version = "0.14.15"
+def qtart_version = "0.14.22"
 
 static def versionCodeEpoch() {
     return (new Date().getTime() / 1000).toInteger()
