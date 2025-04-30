@@ -233,13 +233,18 @@ class TransactionManager(
             }
         }
 
-    fun abortTransaction(transactionId: String, onError: (it: TalerErrorInfo) -> Unit) =
+    fun abortTransaction(
+        transactionId: String,
+        onSuccess: () -> Unit,
+        onError: (it: TalerErrorInfo) -> Unit,
+    ) =
         scope.launch {
             api.request<Unit>("abortTransaction") {
                 put("transactionId", transactionId)
             }.onError {
                 onError(it)
             }.onSuccess {
+                onSuccess()
                 loadTransactions()
             }
         }

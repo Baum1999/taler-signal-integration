@@ -76,21 +76,6 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        if (!requireActivity().isChangingConfigurations) {
-            val payStatus = paymentManager.payStatus.value as? PayStatus.Prepared ?: return
-            transactionManager.abortTransaction(payStatus.transactionId) { error ->
-                Log.e(TAG, "Error abortTransaction $error")
-                if (model.devMode.value == false) {
-                    showError(error.userFacingMsg)
-                } else {
-                    showError(error)
-                }
-            }
-        }
-    }
-
     private fun setupInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(ui.bottom.bottomLayout) { v, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -126,7 +111,26 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
                         currency = payStatus.contractTerms.amount.currency,
                     )
                     ui.bottom.confirmButton.fadeOut()
+                    ui.bottom.cancelButton.fadeOut()
                     ui.bottom.confirmProgressBar.fadeIn()
+                }
+                ui.bottom.cancelButton.isEnabled = true
+                ui.bottom.cancelButton.setOnClickListener {
+                    transactionManager.abortTransaction(
+                        payStatus.transactionId,
+                        onSuccess = {
+                            Snackbar.make(requireView(), getString(R.string.payment_aborted), LENGTH_LONG).show()
+                            findNavController().popBackStack()
+                        },
+                        onError = { error ->
+                            Log.e(TAG, "Error abortTransaction $error")
+                            if (model.devMode.value == false) {
+                                showError(error.userFacingMsg)
+                            } else {
+                                showError(error)
+                            }
+                        }
+                    )
                 }
             }
             is PayStatus.InsufficientBalance -> {

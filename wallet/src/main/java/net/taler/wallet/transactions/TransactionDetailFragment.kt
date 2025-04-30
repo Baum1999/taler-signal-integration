@@ -129,14 +129,18 @@ abstract class TransactionDetailFragment : Fragment() {
     }
 
     private fun abortTransaction(t: Transaction) {
-        transactionManager.abortTransaction(t.transactionId) {
-            Log.e(TAG, "Error abortTransaction $it")
-            if (model.devMode.value == true) {
-                showError(it)
-            } else {
-                showError(it.userFacingMsg)
+        transactionManager.abortTransaction(
+            t.transactionId,
+            onSuccess = {},
+            onError = {
+                Log.e(TAG, "Error abortTransaction $it")
+                if (model.devMode.value == true) {
+                    showError(it)
+                } else {
+                    showError(it.userFacingMsg)
+                }
             }
-        }
+        )
     }
 
     private fun failTransaction(t: Transaction) {
