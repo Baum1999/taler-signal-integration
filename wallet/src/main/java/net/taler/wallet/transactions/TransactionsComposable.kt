@@ -90,6 +90,7 @@ import net.taler.wallet.transactions.TransactionAction.Retry
 import net.taler.wallet.transactions.TransactionAction.Suspend
 import net.taler.wallet.transactions.TransactionMajorState.Aborted
 import net.taler.wallet.transactions.TransactionMajorState.Aborting
+import net.taler.wallet.transactions.TransactionMajorState.Dialog
 import net.taler.wallet.transactions.TransactionMajorState.Done
 import net.taler.wallet.transactions.TransactionMajorState.Failed
 import net.taler.wallet.transactions.TransactionMajorState.Pending
@@ -423,19 +424,19 @@ fun TransactionAmountInfo(
             when (tx.amountType) {
                 Positive -> Text(
                     stringResource(R.string.amount_positive, amountStr),
-                    color = if (tx.txState.major == Pending)
+                    color = if (tx.txState.major == Pending || tx.txState.major == Dialog)
                         Color.Unspecified else colorResource(R.color.green),
                 )
                 Negative -> Text(
                     stringResource(R.string.amount_negative, amountStr),
-                    color = if (tx.txState.major == Pending)
+                    color = if (tx.txState.major == Pending || tx.txState.major == Dialog)
                         Color.Unspecified else MaterialTheme.colorScheme.error,
                 )
                 Neutral -> Text(amountStr)
             }
         }
 
-        if (tx.txState.major == Pending) {
+        if (tx.txState.major == Pending || tx.txState.major == Dialog) {
             Badge(Modifier.padding(top = 3.dp)) {
                 Text(stringResource(R.string.transaction_pending))
             }
@@ -472,6 +473,8 @@ fun TransactionExtraInfo(tx: Transaction) {
             BalanceKycRequired -> Text(stringResource(R.string.transaction_action_kyc_balance))
             else -> Text(stringResource(R.string.transaction_pending))
         }
+
+        tx.txState.major == Dialog -> Text(stringResource(R.string.transaction_pending))
 
         tx is TransactionWithdrawal && !tx.confirmed -> Text(stringResource(R.string.withdraw_waiting_confirm))
         tx is TransactionPeerPushCredit && tx.info.summary != null -> Text(tx.info.summary)
