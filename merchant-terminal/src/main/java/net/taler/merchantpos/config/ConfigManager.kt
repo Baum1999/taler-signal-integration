@@ -43,6 +43,7 @@ import net.taler.merchantlib.MerchantApi
 import net.taler.merchantlib.MerchantConfig
 import net.taler.merchantpos.BuildConfig
 import net.taler.merchantpos.R
+import androidx.core.net.toUri
 
 private const val SETTINGS_NAME = "taler-merchant-terminal"
 
@@ -67,7 +68,7 @@ internal const val OLD_CONFIG_PASSWORD_DEMO = ""
 private const val SETTINGS_MERCHANT_URL = "merchantUrl"
 private const val SETTINGS_ACCESS_TOKEN = "accessToken"
 
-internal const val NEW_CONFIG_URL_DEMO = "https://backend.demo.taler.net/instances/pos"
+internal const val NEW_CONFIG_URL_DEMO = "https://backend.demo.taler.net/instances/sandbox"
 
 private val VERSION = Version.parse(BuildConfig.BACKEND_API_VERSION)!!
 
@@ -84,26 +85,22 @@ class ConfigManager(
     private val context: Context,
     private val scope: CoroutineScope,
     private val httpClient: HttpClient,
-    private val api: MerchantApi
+    private val api: MerchantApi,
 ) {
 
     private val prefs = context.getSharedPreferences(SETTINGS_NAME, MODE_PRIVATE)
     private val configurationReceivers = ArrayList<ConfigurationReceiver>()
 
-    var config: Config = if (prefs.getInt(SETTINGS_CONFIG_VERSION, CONFIG_VERSION_NEW) == CONFIG_VERSION_NEW) {
+    init {
+        migrateLegacyPrefsIfNeeded();
+    }
+
+    var config: Config =
         Config.New(
             merchantUrl = prefs.getString(SETTINGS_MERCHANT_URL, "")!!,
             accessToken = prefs.getString(SETTINGS_ACCESS_TOKEN, "")!!,
             savePassword = prefs.getBoolean(SETTINGS_SAVE_PASSWORD, true),
         )
-    } else {
-        Config.Old(
-            configUrl = prefs.getString(SETTINGS_CONFIG_URL, "")!!,
-            username = prefs.getString(SETTINGS_USERNAME, OLD_CONFIG_USERNAME_DEMO)!!,
-            password = prefs.getString(SETTINGS_PASSWORD, OLD_CONFIG_PASSWORD_DEMO)!!,
-            savePassword = prefs.getBoolean(SETTINGS_SAVE_PASSWORD, true)
-        )
-    }
 
     @Volatile
     var merchantConfig: MerchantConfig? = null
@@ -120,6 +117,13 @@ class ConfigManager(
         configurationReceivers.add(receiver)
     }
 
+    private fun migrateLegacyPrefsIfNeeded() {
+        val legacyVersion = prefs.getInt(SETTINGS_CONFIG_VERSION, CONFIG_VERSION_NEW)
+        if (legacyVersion == CONFIG_VERSION_OLD) {
+            prefs.edit().clear().apply()
+        }
+    }
+
     @UiThread
     fun reloadConfig() {
         fetchConfig(config, true)
@@ -130,7 +134,7 @@ class ConfigManager(
         mConfigUpdateResult.value = null
         val configToSave = if (save) {
             if (config.savePassword()) config else when (val c = config) {
-                is Config.Old -> c.copy(password = "")
+                //is Config.Old -> c.copy(password = "")
                 is Config.New -> c.copy(accessToken = "")
             }
         } else null
@@ -138,8 +142,8 @@ class ConfigManager(
         scope.launch(Dispatchers.IO) {
             try {
                 val url = when(val c = config) {
-                    is Config.Old -> c.configUrl
-                    is Config.New -> Uri.parse(c.merchantUrl)
+                    //is Config.Old -> c.configUrl
+                    is Config.New -> c.merchantUrl.toUri()
                         .buildUpon()
                         .appendPath("private/pos")
                         .build()
@@ -149,11 +153,6 @@ class ConfigManager(
                 // get PoS configuration
                 val posConfig: PosConfig = httpClient.get(url) {
                     when (val c = config) {
-                        is Config.Old -> {
-                            val credentials = "${c.username}:${c.password}"
-                            val auth = ("Basic ${encodeToString(credentials.toByteArray(), NO_WRAP)}")
-                            header(Authorization, auth)
-                        }
                         is Config.New -> {
                             val token = "secret-token:${c.accessToken}"
                             val auth = ("Bearer $token")
@@ -163,7 +162,7 @@ class ConfigManager(
                 }.body()
 
                 val merchantConfig = when (val c = config) {
-                    is Config.Old -> posConfig.merchantConfig!!
+                    //is Config.Old -> posConfig.merchantConfig!!
                     is Config.New -> MerchantConfig(c.merchantUrl, "secret-token:${c.accessToken}")
                 }
 
@@ -191,7 +190,7 @@ class ConfigManager(
         newConfig: Config?,
         posConfig: PosConfig,
         merchantConfig: MerchantConfig,
-        configResponse: ConfigResponse
+        configResponse: ConfigResponse,
     ) {
         val versionIncompatible =
             VERSION.getIncompatibleStringOrNull(context, configResponse.version)
@@ -224,7 +223,7 @@ class ConfigManager(
     @UiThread
     fun forgetPassword() {
         config = when (val c = config) {
-            is Config.Old -> c.copy(password = "")
+            //is Config.Old -> c.copy(password = "")
             is Config.New -> c.copy(accessToken = "")
         }
         saveConfig(config)
@@ -234,13 +233,13 @@ class ConfigManager(
     @UiThread
     private fun saveConfig(config: Config) {
         when (val c = config) {
-            is Config.Old -> prefs.edit()
-                .putInt(SETTINGS_CONFIG_VERSION, CONFIG_VERSION_OLD)
-                .putString(SETTINGS_CONFIG_URL, c.configUrl)
-                .putString(SETTINGS_USERNAME, c.username)
-                .putString(SETTINGS_PASSWORD, c.password)
-                .putBoolean(SETTINGS_SAVE_PASSWORD, c.savePassword)
-                .apply()
+//            is Config.Old -> prefs.edit()
+//                .putInt(SETTINGS_CONFIG_VERSION, CONFIG_VERSION_OLD)
+//                .putString(SETTINGS_CONFIG_URL, c.configUrl)
+//                .putString(SETTINGS_USERNAME, c.username)
+//                .putString(SETTINGS_PASSWORD, c.password)
+//                .putBoolean(SETTINGS_SAVE_PASSWORD, c.savePassword)
+//                .apply()
             is Config.New -> prefs.edit()
                 .putInt(SETTINGS_CONFIG_VERSION, CONFIG_VERSION_NEW)
                 .putString(SETTINGS_MERCHANT_URL, c.merchantUrl)

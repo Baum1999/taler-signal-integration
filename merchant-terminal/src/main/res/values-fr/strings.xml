@@ -67,7 +67,7 @@
     <string name="error_timeout">Aucun paiement n\'a été effectué pendant la période de paiement, veuillez réessayer !</string>
     <string name="product_image">Image du produit</string>
     <string name="order_custom_add_button">Ajouter</string>
-    <string name="config_new_label">Commerçant (nouveau)</string>
+    <string name="config_setup_password">Commerçant (nouveau)</string>
     <string name="product_category_uncategorized">Sans catégorie</string>
     <string name="config_old_label">Fichier JSON (ancien)</string>
     <string name="config_merchant_url">URL du commerçant</string>

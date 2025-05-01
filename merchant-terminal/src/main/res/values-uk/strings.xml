@@ -18,7 +18,7 @@
     <string name="order_custom_product_default">Чайові</string>
     <string name="order_custom_add_button">Додати</string>
     <string name="config_old_label">JSON файл (старий)</string>
-    <string name="config_new_label">Продавець (новий)</string>
+    <string name="config_setup_password">Продавець (новий)</string>
     <string name="config_url">URL конфігурації</string>
     <string name="config_password">Пароль</string>
     <string name="config_merchant_url">URL продавця</string>

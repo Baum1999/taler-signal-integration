@@ -16,17 +16,30 @@
 
 package net.taler.merchantpos.config
 
-import android.net.Uri
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
-import android.text.method.LinkMovementMethod
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.OptIn
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG
 import com.google.android.material.snackbar.Snackbar
 import net.taler.common.navigate
@@ -34,9 +47,16 @@ import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.R
 import net.taler.merchantpos.config.ConfigFragmentDirections.Companion.actionSettingsToOrder
 import net.taler.merchantpos.databinding.FragmentMerchantConfigBinding
+import androidx.core.view.isVisible
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.common.InputImage
+import net.taler.merchantpos.MainActivity
 
 /**
- * Fragment that displays merchant settings.
+ * Fragment that displays merchant settings, either by scanning a QR code
+ * or by manual token entry.
  */
 class ConfigFragment : Fragment() {
 
@@ -45,88 +65,66 @@ class ConfigFragment : Fragment() {
 
     private lateinit var ui: FragmentMerchantConfigBinding
 
+    private val scanner by lazy {
+        BarcodeScanning.getClient(
+            BarcodeScannerOptions.Builder()
+                    .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
+                    .build()
+        )
+    }
+
+    private val cameraExecutor by lazy {
+        ContextCompat.getMainExecutor(requireContext())
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         ui = FragmentMerchantConfigBinding.inflate(inflater, container, false)
         return ui.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        ui.configToggle.check(when (configManager.config) {
-            is Config.Old -> R.id.oldConfigButton
-            is Config.New -> R.id.newConfigButton
-        })
+        // set initial toggle
+        ui.configToggle.check(R.id.newConfigButton)
 
-        ui.oldConfigButton.setOnClickListener {
-            showOldConfig()
-        }
+        // wire up toggle group for QR vs manual
+        ui.configToggle.addOnButtonCheckedListener { _: MaterialButtonToggleGroup, checkedId: Int, isChecked: Boolean ->
+            if (!isChecked) return@addOnButtonCheckedListener
 
-        ui.newConfigButton.setOnClickListener {
-            showNewConfig()
-        }
-
-        /*
-         * Old configuration (JSON)
-         */
-
-        ui.configUrlView.editText!!.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus) checkForUrlCredentials()
-        }
-
-        ui.okOldButton.setOnClickListener {
-            checkForUrlCredentials()
-            val inputUrl = ui.configUrlView.editText!!.text
-            val url = if (inputUrl.startsWith("http")) {
-                inputUrl.toString()
-            } else {
-                "https://$inputUrl".also { ui.configUrlView.editText!!.setText(it) }
-            }
-            // ui.progressBarOld.visibility = VISIBLE
-            ui.okOldButton.visibility = INVISIBLE
-            val config = Config.Old(
-                configUrl = url,
-                username = ui.usernameView.editText!!.text.toString(),
-                password = ui.passwordView.editText!!.text.toString(),
-                savePassword = ui.savePasswordCheckBox.isChecked,
-            )
-            configManager.fetchConfig(config, true)
-            configManager.configUpdateResult.observe(viewLifecycleOwner) { result ->
-                if (onConfigUpdate(result)) {
-                    configManager.configUpdateResult.removeObservers(viewLifecycleOwner)
-                }
+            when (checkedId) {
+                R.id.qrConfigButton -> showQrConfig()
+                R.id.newConfigButton -> showManualConfig()
             }
         }
 
-        ui.forgetPasswordButton.setOnClickListener {
-            configManager.forgetPassword()
-            ui.passwordView.editText!!.text = null
-            ui.forgetPasswordButton.visibility = GONE
-        }
+//        configManager.configUpdateResult
+//            .observe(viewLifecycleOwner) { result ->
+//                if (result != null && onConfigUpdate(result)) {
+//                    // one‐shot observer
+//                    configManager.configUpdateResult.removeObservers(viewLifecycleOwner)
+//                }
+//            }
 
-        ui.configDocsView.movementMethod = LinkMovementMethod.getInstance()
-
-        /*
-         * New configuration (Merchant)
-         */
-
+        // manual configuration OK button
         ui.okNewButton.setOnClickListener {
-            val inputUrl = ui.merchantUrlView.editText!!.text
+            val inputUrl = ui.merchantUrlView.editText!!.text.toString()
             val url = if (inputUrl.startsWith("http")) {
-                inputUrl.toString()
+                inputUrl
             } else {
                 "https://$inputUrl".also { ui.merchantUrlView.editText!!.setText(it) }
             }
 
-            // ui.progressBarNew.visibility = VISIBLE
+            ui.progressBarNew.visibility = VISIBLE
             ui.okNewButton.visibility = INVISIBLE
             val config = Config.New(
                 merchantUrl = url,
                 accessToken = ui.tokenView.editText!!.text.toString(),
                 savePassword = ui.saveTokenCheckBox.isChecked,
             )
+
             configManager.fetchConfig(config, true)
             configManager.configUpdateResult.observe(viewLifecycleOwner) { result ->
                 if (onConfigUpdate(result)) {
@@ -140,85 +138,58 @@ class ConfigFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
-        // focus password if this is the only empty field
-        if (ui.passwordView.editText!!.text.isBlank()
-            && ui.configUrlView.editText!!.text.isNotBlank()
-            && ui.usernameView.editText!!.text.isNotBlank()
-        ) {
-            ui.passwordView.requestFocus()
+        // nothing to do here
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // if QR form is showing, re-request camera
+        if (ui.qrConfigForm.isVisible) {
+            requestCameraIfNeeded()
         }
+    }
+
+    override fun onDestroyView() {
+        // ensure camera is released
+        stopCamera()
+        super.onDestroyView()
+    }
+
+    private fun showQrConfig() {
+        Log.d("ConfigFragment", "showQrConfig() → requesting camera")
+        ui.qrConfigForm.visibility = VISIBLE
+        ui.newConfigForm.visibility = GONE
+        requestCameraIfNeeded()
+    }
+
+    private fun showManualConfig() {
+        ui.qrConfigForm.visibility = GONE
+        ui.newConfigForm.visibility = VISIBLE
+        stopCamera()
     }
 
     private fun updateView(isInitialization: Boolean = false) {
         if (isInitialization) {
-            ui.configUrlView.editText!!.setText(OLD_CONFIG_URL_DEMO)
-            ui.usernameView.editText!!.setText(OLD_CONFIG_USERNAME_DEMO)
-            ui.passwordView.editText!!.setText(OLD_CONFIG_PASSWORD_DEMO)
 
             ui.merchantUrlView.editText!!.setText(NEW_CONFIG_URL_DEMO)
-
-            when (val config = configManager.config) {
-                is Config.Old -> {
-                    if (config.configUrl.isNotBlank()) {
-                        ui.configUrlView.editText!!.setText(config.configUrl)
-                    }
-
-                    if (config.username.isNotBlank()) {
-                        ui.usernameView.editText!!.setText(config.username)
-                    }
-
-                    ui.savePasswordCheckBox.isChecked = config.savePassword
-                }
-
+            when (val cfg = configManager.config) {
                 is Config.New -> {
-                    if (config.merchantUrl.isNotBlank()) {
-                        ui.merchantUrlView.editText!!.setText(config.merchantUrl)
+                    if (cfg.merchantUrl.isNotBlank()) {
+                        ui.merchantUrlView.editText!!.setText(cfg.merchantUrl)
                     }
-
-                    ui.saveTokenCheckBox.isChecked = config.savePassword
+                    ui.saveTokenCheckBox.isChecked = cfg.savePassword
                 }
             }
         }
 
         when (configManager.config) {
-            is Config.Old -> {
-                ui.configToggle.check(R.id.oldConfigButton)
-                showOldConfig()
-            }
             is Config.New -> {
                 ui.configToggle.check(R.id.newConfigButton)
-                showNewConfig()
-            }
-        }
-
-    }
-
-    private fun showOldConfig() {
-        ui.oldConfigForm.visibility = VISIBLE
-        ui.newConfigForm.visibility = GONE
-    }
-
-    private fun showNewConfig() {
-        ui.oldConfigForm.visibility = GONE
-        ui.newConfigForm.visibility = VISIBLE
-    }
-
-    private fun checkForUrlCredentials() {
-        val text = ui.configUrlView.editText!!.text.toString()
-        Uri.parse(text)?.userInfo?.let { userInfo ->
-            if (userInfo.contains(':')) {
-                val (user, pass) = userInfo.split(':')
-                val strippedUrl = text.replace("${userInfo}@", "")
-                ui.configUrlView.editText!!.setText(strippedUrl)
-                ui.usernameView.editText!!.setText(user)
-                ui.passwordView.editText!!.setText(pass)
+                showManualConfig()
             }
         }
     }
 
-    /**
-     * Processes updated config and returns true, if observer can be removed.
-     */
     private fun onConfigUpdate(result: ConfigUpdateResult?) = when (result) {
         null -> false
         is ConfigUpdateResult.Error -> {
@@ -244,10 +215,90 @@ class ConfigFragment : Fragment() {
     }
 
     private fun onResultReceived() {
-        ui.progressBarOld.visibility = INVISIBLE
-        ui.okOldButton.visibility = VISIBLE
         ui.progressBarNew.visibility = INVISIBLE
         ui.okNewButton.visibility = VISIBLE
     }
 
+    // ─── CameraX integration ───────────────────────────────────────────
+
+    // 1) permission launcher
+    private val requestCameraPerm =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            Log.d("ConfigFragment", "CAMERA permission granted? $granted")
+            if (granted) startCamera()
+            else Toast.makeText(requireContext(),
+                "Camera permission is required for QR scanning", Toast.LENGTH_SHORT).show()
+        }
+
+    // 2) request if needed
+    private fun requestCameraIfNeeded() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
+            == PackageManager.PERMISSION_GRANTED) {
+            startCamera()
+        } else {
+            requestCameraPerm.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    // 3) start CameraX preview
+    @OptIn(ExperimentalGetImage::class)
+    private fun startCamera() {
+        Log.d("ConfigFragment", "startCamera() called")
+        val providerFuture = ProcessCameraProvider.getInstance(requireContext())
+        providerFuture.addListener({
+            val provider = providerFuture.get()
+            
+            val preview = Preview.Builder().build().also {
+                it.setSurfaceProvider(ui.previewView.surfaceProvider)
+            }
+            
+            val analysis = ImageAnalysis.Builder()
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .build().also { useCase ->
+                    useCase.setAnalyzer(cameraExecutor) { proxy ->
+                        val media = proxy.image ?: run { proxy.close(); return@setAnalyzer }
+                        val image = InputImage.fromMediaImage(
+                                                media,
+                                                proxy.imageInfo.rotationDegrees
+                                                )
+                        scanner.process(image)
+                            .addOnSuccessListener { codes ->
+                                codes.firstOrNull()?.rawValue?.let { onQrDecoded(it) }
+                            }
+                            .addOnCompleteListener { proxy.close() }
+                    }
+                }
+            
+            provider.unbindAll()
+            provider.bindToLifecycle(
+                viewLifecycleOwner,
+                CameraSelector.DEFAULT_BACK_CAMERA,
+                preview,
+                analysis
+            )
+        }, cameraExecutor)
+    }
+
+     private fun onQrDecoded(raw: String) {
+         if (!raw.startsWith("taler-pos://")) return          // guard
+        
+         stopCamera()                                         // freeze picture
+         // Re-use the rock-solid parsing inside MainActivity
+         val intent = Intent(Intent.ACTION_VIEW, raw.toUri())
+            (requireActivity() as MainActivity).handleSetupIntent(intent)
+        
+         // show loader until ConfigFetcherFragment takes over
+         ui.progressBarQr.visibility = View.VISIBLE
+         ui.previewView.visibility = View.INVISIBLE
+     }
+    
+    // 4) release camera
+    private fun stopCamera() {
+        try {
+            ProcessCameraProvider.getInstance(requireContext())
+                .get()
+                .unbindAll()
+        } catch (_: Exception) { /* no-op */ }
+    }
 }
+

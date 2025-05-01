@@ -37,6 +37,8 @@ import com.google.android.material.navigation.NavigationView.OnNavigationItemSel
 import net.taler.lib.android.TalerNfcService
 import net.taler.merchantpos.config.Config
 import net.taler.merchantpos.databinding.ActivityMainBinding
+import android.util.Log
+import net.taler.merchantpos.config.ConfigUpdateResult
 
 class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
 
@@ -141,7 +143,7 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
      * This is the URL format:
      * taler-pos://backend.demo.taler.net/#/username=<username>&password=<password>
      */
-    private fun handleSetupIntent(intent: Intent) {
+     fun handleSetupIntent(intent: Intent) {
         if (intent.action != Intent.ACTION_VIEW) return
         val data = intent.data ?: return
         if (data.scheme != "taler-pos") return
@@ -174,12 +176,29 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
             savePassword = true
         )
 
+        Log.d("MainActivity", "Config URL: $merchantUrl")
+
+        //add check that there was no config beforehand
+        model.configManager.config = newConfig
+
         // Kick off the exact same pipeline the Settings screen would start
         model.configManager.fetchConfig(newConfig, /*save =*/ true)
 
-        // Take the user to the fetcher fragment so they see the spinner / error handling
+        // Show the spinner immediately
         if (nav.currentDestination?.id != R.id.configFetcher) {
             nav.navigate(R.id.action_global_configFetcher)
+        }
+
+        // Observe for result
+        model.configManager.configUpdateResult.observe(this) { result ->
+            if (result is ConfigUpdateResult.Success) {
+                Log.d("MainActivity", "Config loaded successfully")
+                model.configManager.configUpdateResult.removeObservers(this)
+            } else if (result is ConfigUpdateResult.Error) {
+                Log.e("MainActivity", "Config failed: ${result.msg}")
+                model.configManager.configUpdateResult.removeObservers(this)
+                Toast.makeText(this, result.msg, Toast.LENGTH_LONG).show()
+            }
         }
     }
 

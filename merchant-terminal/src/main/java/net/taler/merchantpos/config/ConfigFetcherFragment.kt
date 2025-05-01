@@ -22,6 +22,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_SHORT
 import com.google.android.material.snackbar.Snackbar
 import net.taler.common.navigate
@@ -29,6 +30,7 @@ import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.config.ConfigFetcherFragmentDirections.Companion.actionConfigFetcherToMerchantSettings
 import net.taler.merchantpos.config.ConfigFetcherFragmentDirections.Companion.actionConfigFetcherToOrder
 import net.taler.merchantpos.databinding.FragmentConfigFetcherBinding
+import net.taler.merchantpos.R
 
 class ConfigFetcherFragment : Fragment() {
 
@@ -57,7 +59,7 @@ class ConfigFetcherFragment : Fragment() {
                 null -> return@observe
                 is ConfigUpdateResult.Error -> onNetworkError(result.msg)
                 is ConfigUpdateResult.Success -> {
-                    navigate(actionConfigFetcherToOrder())
+                    findNavController().navigate(R.id.action_global_order)
                 }
             }
         }

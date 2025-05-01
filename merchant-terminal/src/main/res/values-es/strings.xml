@@ -72,7 +72,7 @@
     <string name="config_old_label">Archivo JSON (antiguo)</string>
     <string name="config_old_deprecation">Este método de configuración está obsoleto, por favor usa la nueva configuración API para vendedor.</string>
     <string name="config_merchant_url">URL de vendedor</string>
-    <string name="config_new_label">Vendedor (nuevo)</string>
+    <string name="config_setup_password">Vendedor (nuevo)</string>
     <string name="config_token">Token de acceso</string>
     <string name="host_apdu_service_desc">Pagos NFC en Taler Merchant</string>
 </resources>

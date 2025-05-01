@@ -34,7 +34,10 @@ sealed class Config {
 
     /**
      * JSON config URL + user/password
+     *
+     * @Deprecated("Use New instead")
      */
+    /*
     data class Old(
         val configUrl: String,
         val username: String,
@@ -45,6 +48,7 @@ sealed class Config {
         override fun hasPassword() = password.isNotBlank()
         override fun savePassword() = savePassword
     }
+    */
 
     /**
      * Merchant URL + access token

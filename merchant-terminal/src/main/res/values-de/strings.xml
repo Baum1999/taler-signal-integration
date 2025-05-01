@@ -68,7 +68,7 @@
     <string name="order_custom_product_default">Tipp</string>
     <string name="order_custom_add_button">Hinzufügen</string>
     <string name="config_old_label">JSON-Datei (alt)</string>
-    <string name="config_new_label">Händler (neu)</string>
+    <string name="config_setup_password">Händler (neu)</string>
     <string name="config_merchant_url">Händler-URL</string>
     <string name="config_token">Zugangstoken</string>
     <string name="order_custom">Benutzerdefinierten Artikel hinzufügen</string>
