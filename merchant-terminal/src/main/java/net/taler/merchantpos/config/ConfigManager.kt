@@ -44,6 +44,28 @@ import net.taler.merchantlib.MerchantConfig
 import net.taler.merchantpos.BuildConfig
 import net.taler.merchantpos.R
 import androidx.core.net.toUri
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.descriptors.element
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.long
+import kotlinx.serialization.json.longOrNull
 
 private const val SETTINGS_NAME = "taler-merchant-terminal"
 
@@ -73,6 +95,122 @@ internal const val NEW_CONFIG_URL_DEMO = "https://backend.demo.taler.net/instanc
 private val VERSION = Version.parse(BuildConfig.BACKEND_API_VERSION)!!
 
 private val TAG = ConfigManager::class.java.simpleName
+
+/* -- Limited access token -- */
+@kotlinx.serialization.Serializable
+private data class LimitedTokenResponse(
+    val token: String,
+    val scope: String,
+    val refreshable: Boolean,
+    val expiration: TokenExpiration
+)
+
+@kotlinx.serialization.Serializable(with = TokenExpiration.Serializer::class)
+sealed class TokenExpiration {
+    data class Seconds(val t_s: Long) : TokenExpiration()
+    object Never : TokenExpiration()
+
+    object Serializer : KSerializer<TokenExpiration> {
+        override val descriptor: SerialDescriptor =
+            buildClassSerialDescriptor("TokenExpiration") {
+                element<JsonElement>("t_s")
+            }
+
+        override fun serialize(encoder: Encoder, value: TokenExpiration) {
+            val jsonEncoder = encoder as? JsonEncoder
+                ?: throw SerializationException("TokenExpiration can be serialized only by JSON")
+            val obj = when (value) {
+                is Seconds ->
+                    buildJsonObject { put("t_s", JsonPrimitive(value.t_s)) }
+                Never ->
+                    buildJsonObject { put("t_s", JsonPrimitive("never")) }
+            }
+            jsonEncoder.encodeJsonElement(obj)
+        }
+
+        override fun deserialize(decoder: Decoder): TokenExpiration {
+            val jsonDecoder = decoder as? JsonDecoder
+                ?: throw SerializationException("TokenExpiration can be deserialized only by JSON")
+            val element = jsonDecoder.decodeJsonElement()
+            if (element !is JsonObject) {
+                throw SerializationException("Expected JSON object for TokenExpiration, got: $element")
+            }
+            val field = element["t_s"]
+                ?: throw SerializationException("Missing 't_s' in TokenExpiration: $element")
+
+            return when {
+                field is JsonPrimitive && field.longOrNull != null ->
+                    Seconds(field.long)
+                field is JsonPrimitive && field.isString && field.content == "never" ->
+                    Never
+                else ->
+                    throw SerializationException("Invalid 't_s' value in TokenExpiration: $field")
+            }
+        }
+    }
+}
+
+@kotlinx.serialization.Serializable
+data class TokenRequest(
+    val scope: String,
+    val duration: TokenDuration
+)
+
+
+@kotlinx.serialization.Serializable(with = TokenDuration.Serializer::class)
+sealed class TokenDuration {
+    object Forever : TokenDuration()
+    data class Micros(val us: Long) : TokenDuration()
+
+    object Serializer : KSerializer<TokenDuration> {
+        // describe an object with a single property "d_us"
+        override val descriptor: SerialDescriptor = buildClassSerialDescriptor("TokenDuration") {
+            element<JsonElement>("d_us")
+        }
+
+        override fun serialize(encoder: Encoder, value: TokenDuration) {
+            // we need a Json-specific encoder
+            val jsonEncoder = encoder as? JsonEncoder
+                ?: throw SerializationException("Can be serialized only by JSON")
+            // build the JSON object
+            val obj = when (value) {
+                is Forever -> buildJsonObject {
+                    // for "forever", we still emit an object,
+                    // here storing the literal string under "d_us"
+                    put("d_us", JsonPrimitive("forever"))
+                }
+                is Micros -> buildJsonObject {
+                    put("d_us", JsonPrimitive(value.us))
+                }
+            }
+            jsonEncoder.encodeJsonElement(obj)
+        }
+
+        override fun deserialize(decoder: Decoder): TokenDuration {
+            // we need a Json-specific decoder
+            val jsonDecoder = decoder as? JsonDecoder
+                ?: throw SerializationException("Can be deserialized only by JSON")
+            val element = jsonDecoder.decodeJsonElement()
+            if (element !is JsonObject) {
+                throw SerializationException("Expected JSON object for TokenDuration, got: $element")
+            }
+            // look up our single field
+            val field = element["d_us"]
+                ?: throw SerializationException("Missing 'd_us' field in $element")
+            return when {
+                field is JsonPrimitive && field.longOrNull != null ->
+                    Micros(field.long)
+                field is JsonPrimitive && field.isString && field.content == "forever" ->
+                    Forever
+                else ->
+                    throw SerializationException("Invalid 'd_us' value: $field")
+            }
+        }
+    }
+}
+
+/* -- Limited access token END -- */
+
 
 interface ConfigurationReceiver {
     /**
@@ -218,6 +356,38 @@ class ConfigManager(
         this.merchantConfig = merchantConfig
         this.currency = configResponse.currency
         mConfigUpdateResult.postValue(ConfigUpdateResult.Success(configResponse.currency))
+    }
+
+    /**
+     * POSTs to /instances/{username}/private/token with the user’s raw secret,
+     * returns the new “write” token (without the “secret-token:” prefix).
+     */
+    @WorkerThread
+    suspend fun fetchLimitedAccessToken(
+        baseUrl: String,
+        username: String,
+        initialSecret: String,
+        duration: TokenDuration
+    ): String {
+        val tokenUrl = baseUrl.toUri()
+            .buildUpon()
+            .appendPath("instances")
+            .appendPath(username)
+            .appendPath("private")
+            .appendPath("token")
+            .build()
+            .toString()
+
+        val bearer = "Bearer secret-token:$initialSecret"
+        val resp: LimitedTokenResponse = httpClient
+            .post(tokenUrl) {
+                header(HttpHeaders.Authorization, bearer)
+                contentType(ContentType.Application.Json)
+                setBody(TokenRequest(scope = "write", duration = duration))
+            }
+            .body()
+
+        return resp.token.removePrefix("secret-token:")
     }
 
     @UiThread

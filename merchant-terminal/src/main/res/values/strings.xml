@@ -88,5 +88,16 @@
 
     <string name="host_apdu_service_desc">Taler Merchant NFC payments</string>
     <string name="config_qr_label">QR config</string>
+
     <string name="scan_qr_hint">Scan the QR code from Merchant Backoffice</string>
+    <string name="forever">Forever</string>
+    <string name="custom_duration">Custom duration</string>
+    <string name="duration">Duration</string>
+    <string-array name="time_units_array">
+        <item>Seconds</item>
+        <item>Minutes</item>
+        <item>Hours</item>
+        <item>Days</item>
+    </string-array>
+
 </resources>

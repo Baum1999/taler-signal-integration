@@ -39,9 +39,14 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.taler.common.navigate
 import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.R
@@ -68,8 +73,8 @@ class ConfigFragment : Fragment() {
     private val scanner by lazy {
         BarcodeScanning.getClient(
             BarcodeScannerOptions.Builder()
-                    .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
-                    .build()
+                .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
+                .build()
         )
     }
 
@@ -100,35 +105,84 @@ class ConfigFragment : Fragment() {
             }
         }
 
-//        configManager.configUpdateResult
-//            .observe(viewLifecycleOwner) { result ->
-//                if (result != null && onConfigUpdate(result)) {
-//                    // one‐shot observer
-//                    configManager.configUpdateResult.removeObservers(viewLifecycleOwner)
-//                }
-//            }
+        ui.timeOptionGroup.setOnCheckedChangeListener { _, checkedId ->
+            when (checkedId) {
+                R.id.foreverOption -> {
+                    ui.customDurationLayout.visibility = GONE
+                }
+                R.id.customOption -> {
+                    ui.customDurationLayout.visibility = VISIBLE
+                }
+            }
+        }
+
+
+        // 1) Extract base URL and username if pasted with /instances/username
+        // Only parse URL when user finishes editing (focus lost)
+        ui.merchantUrlView.editText!!.setOnFocusChangeListener { v, hasFocus ->
+            if (!hasFocus) {
+                parseMerchantUrlAndUpdateFields()
+            }
+        }
 
         // manual configuration OK button
         ui.okNewButton.setOnClickListener {
-            val inputUrl = ui.merchantUrlView.editText!!.text.toString()
-            val url = if (inputUrl.startsWith("http")) {
-                inputUrl
-            } else {
-                "https://$inputUrl".also { ui.merchantUrlView.editText!!.setText(it) }
-            }
+            // launch coroutine to fetch limited token before config update
+            lifecycleScope.launch {
+                // prepare UI
+                ui.progressBarNew.visibility = VISIBLE
+                ui.okNewButton.visibility = INVISIBLE
 
-            ui.progressBarNew.visibility = VISIBLE
-            ui.okNewButton.visibility = INVISIBLE
-            val config = Config.New(
-                merchantUrl = url,
-                accessToken = ui.tokenView.editText!!.text.toString(),
-                savePassword = ui.saveTokenCheckBox.isChecked,
-            )
+                // normalize URL
+                val inputUrl = ui.merchantUrlView.editText!!.text.toString()
+                val url = if (inputUrl.startsWith("http")) inputUrl else "https://$inputUrl"
 
-            configManager.fetchConfig(config, true)
-            configManager.configUpdateResult.observe(viewLifecycleOwner) { result ->
-                if (onConfigUpdate(result)) {
-                    configManager.configUpdateResult.removeObservers(viewLifecycleOwner)
+                // retrieve username (may have been set by listener)
+                val username = ui.usernameView.editText!!.text.toString().trim()
+                // initial secret/token from user
+                val initialSecret = ui.tokenView.editText!!.text.toString().trim()
+
+                val duration : TokenDuration = if (ui.foreverOption.isChecked) {
+                    TokenDuration.Forever
+                } else {
+                    val value = ui.durationValueInput.text.toString().toLongOrNull()
+                        ?: throw IllegalArgumentException("Please enter a number")
+                    val unit   = ui.durationUnitSpinner.selectedItem.toString()
+                    // convert to microseconds
+                    val factor = when (unit) {
+                        "seconds" -> 1_000_000L
+                        "minutes" -> 60 * 1_000_000L
+                        "hours"   -> 60 * 60 * 1_000_000L
+                        "days"    -> 24 * 60 * 60 * 1_000_000L
+                        else      -> 1_000_000L
+                    }
+                    TokenDuration.Micros(value * factor)
+                }
+
+                // fetch limited write token
+                val limitedToken = try {
+                    withContext(Dispatchers.IO) {
+                        configManager.fetchLimitedAccessToken(url, username, initialSecret, duration)
+                    }
+                } catch (e: Exception) {
+                    ui.progressBarNew.visibility = INVISIBLE
+                    ui.okNewButton.visibility = VISIBLE
+                    Log.e("ConfigFragment", "Error fetching limited token: ${e.message}")
+                    Snackbar.make(requireView(), getString(R.string.config_error_network), LENGTH_LONG).show()
+                    return@launch
+                }
+
+                // proceed with normal config fetch using limited token
+                val config = Config.New(
+                    merchantUrl = url,
+                    accessToken = limitedToken,
+                    savePassword = ui.saveTokenCheckBox.isChecked
+                )
+                configManager.fetchConfig(config, true)
+                configManager.configUpdateResult.observe(viewLifecycleOwner) { result ->
+                    if (onConfigUpdate(result)) {
+                        configManager.configUpdateResult.removeObservers(viewLifecycleOwner)
+                    }
                 }
             }
         }
@@ -170,12 +224,13 @@ class ConfigFragment : Fragment() {
 
     private fun updateView(isInitialization: Boolean = false) {
         if (isInitialization) {
-
             ui.merchantUrlView.editText!!.setText(NEW_CONFIG_URL_DEMO)
+
             when (val cfg = configManager.config) {
                 is Config.New -> {
                     if (cfg.merchantUrl.isNotBlank()) {
                         ui.merchantUrlView.editText!!.setText(cfg.merchantUrl)
+                        parseMerchantUrlAndUpdateFields()
                     }
                     ui.saveTokenCheckBox.isChecked = cfg.savePassword
                 }
@@ -218,6 +273,25 @@ class ConfigFragment : Fragment() {
         ui.progressBarNew.visibility = INVISIBLE
         ui.okNewButton.visibility = VISIBLE
     }
+
+    private fun parseMerchantUrlAndUpdateFields() {
+        val input =  ui.merchantUrlView.editText!!.text.toString().trim()
+        val uri = input.toUri()
+        // Build base URL: scheme://host[:port]
+        val scheme = uri.scheme ?: ""
+        val host = uri.host ?: ""
+        val port = if (uri.port != -1) ":${uri.port}" else ""
+        val baseUrl = "$scheme://$host$port"
+        // Check for /instances/username
+        val segments = uri.pathSegments
+        if (segments.size >= 2 && segments[0].equals("instances", true)) {
+            //Ensure that the username has been transferred to the username field
+            ui.usernameView.editText!!.setText(segments[1])
+        }
+        // Ensure merchant URL has only the base
+        ui.merchantUrlView.editText!!.setText(baseUrl)
+    }
+
 
     // ─── CameraX integration ───────────────────────────────────────────
 
@@ -288,7 +362,7 @@ class ConfigFragment : Fragment() {
             (requireActivity() as MainActivity).handleSetupIntent(intent)
         
          // show loader until ConfigFetcherFragment takes over
-         ui.progressBarQr.visibility = View.VISIBLE
+         ui.progressBarQr.visibility = VISIBLE
          ui.previewView.visibility = View.INVISIBLE
      }
     
