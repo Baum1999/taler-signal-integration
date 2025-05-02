@@ -93,6 +93,12 @@
     <string name="forever">Forever</string>
     <string name="custom_duration">Custom duration</string>
     <string name="duration">Duration</string>
+    <string name="token_validity_deadline">Token validity deadline:</string>
+    <string name="expires_on">Expires on…</string>
+    <string name="never_expires">Never expires</string>
+    <string name="no_deadline_set">No deadline set</string>
+    <string name="pick_date">Pick date</string>
+    <string name="pick_time">Pick time</string>
     <string-array name="time_units_array">
         <item>Seconds</item>
         <item>Minutes</item>

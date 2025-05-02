@@ -17,6 +17,8 @@
 package net.taler.merchantpos.config
 
 import android.Manifest
+import android.app.TimePickerDialog
+import android.app.DatePickerDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -27,6 +29,9 @@ import android.view.View.GONE
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.RadioButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
@@ -43,7 +48,6 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG
 import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -58,6 +62,9 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import net.taler.merchantpos.MainActivity
+import android.text.format.DateFormat
+import java.util.Calendar
+import java.util.Locale
 
 /**
  * Fragment that displays merchant settings, either by scanning a QR code
@@ -92,6 +99,17 @@ class ConfigFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        // 1) Views
+        val neverOption       = ui.root.findViewById<RadioButton>(R.id.neverExpiresOption)
+        val dateOption        = ui.root.findViewById<RadioButton>(R.id.dateExpiresOption)
+        val deadlineLayout    = ui.root.findViewById<View>(R.id.deadlinePickerLayout)
+        val selectDateButton  = ui.root.findViewById<Button>(R.id.selectDateButton)
+        val selectTimeButton  = ui.root.findViewById<Button>(R.id.selectTimeButton)
+        val selectedDeadline  = ui.root.findViewById<TextView>(R.id.selectedDeadline)
+
+        // 2) Shared Calendar instance for storing the deadline
+        val deadlineCal = Calendar.getInstance()
+
         // set initial toggle
         ui.configToggle.check(R.id.newConfigButton)
 
@@ -104,18 +122,6 @@ class ConfigFragment : Fragment() {
                 R.id.newConfigButton -> showManualConfig()
             }
         }
-
-        ui.timeOptionGroup.setOnCheckedChangeListener { _, checkedId ->
-            when (checkedId) {
-                R.id.foreverOption -> {
-                    ui.customDurationLayout.visibility = GONE
-                }
-                R.id.customOption -> {
-                    ui.customDurationLayout.visibility = VISIBLE
-                }
-            }
-        }
-
 
         // 1) Extract base URL and username if pasted with /instances/username
         // Only parse URL when user finishes editing (focus lost)
@@ -142,21 +148,11 @@ class ConfigFragment : Fragment() {
                 // initial secret/token from user
                 val initialSecret = ui.tokenView.editText!!.text.toString().trim()
 
-                val duration : TokenDuration = if (ui.foreverOption.isChecked) {
+                val duration: TokenDuration = if (neverOption.isChecked) {
                     TokenDuration.Forever
                 } else {
-                    val value = ui.durationValueInput.text.toString().toLongOrNull()
-                        ?: throw IllegalArgumentException("Please enter a number")
-                    val unit   = ui.durationUnitSpinner.selectedItem.toString()
-                    // convert to microseconds
-                    val factor = when (unit) {
-                        "seconds" -> 1_000_000L
-                        "minutes" -> 60 * 1_000_000L
-                        "hours"   -> 60 * 60 * 1_000_000L
-                        "days"    -> 24 * 60 * 60 * 1_000_000L
-                        else      -> 1_000_000L
-                    }
-                    TokenDuration.Micros(value * factor)
+                    val micros = deadlineCal.timeInMillis * 1_000L
+                    TokenDuration.Micros(micros)
                 }
 
                 // fetch limited write token
@@ -187,12 +183,43 @@ class ConfigFragment : Fragment() {
             }
         }
 
+
+        fun updateDeadlineText() {
+            val fmt = java.text.SimpleDateFormat("EEE, d MMM yyyy HH:mm", Locale.getDefault())
+            selectedDeadline.text = fmt.format(deadlineCal.time)
+        }
+
+
+        ui.expiryOptionGroup.setOnCheckedChangeListener { _, checkedId ->
+            deadlineLayout.visibility = if (checkedId == R.id.dateExpiresOption) VISIBLE else GONE
+        }
+
+        selectDateButton.setOnClickListener {
+            val year  = deadlineCal.get(Calendar.YEAR)
+            val month = deadlineCal.get(Calendar.MONTH)
+            val day   = deadlineCal.get(Calendar.DAY_OF_MONTH)
+            DatePickerDialog(requireContext(), { _, y, m, d ->
+                deadlineCal.set(y, m, d)
+                updateDeadlineText()
+            }, year, month, day).show()
+        }
+
+        selectTimeButton.setOnClickListener {
+            val hour   = deadlineCal.get(Calendar.HOUR_OF_DAY)
+            val minute = deadlineCal.get(Calendar.MINUTE)
+            TimePickerDialog(requireContext(), { _, h, min ->
+                deadlineCal.set(Calendar.HOUR_OF_DAY, h)
+                deadlineCal.set(Calendar.MINUTE, min)
+                updateDeadlineText()
+            }, hour, minute, DateFormat.is24HourFormat(requireContext())).show()
+        }
+
         updateView(savedInstanceState == null)
     }
 
     override fun onStart() {
         super.onStart()
-        // nothing to do here
+
     }
 
     override fun onResume() {

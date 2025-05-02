@@ -177,9 +177,9 @@
                 app:layout_constraintBottom_toBottomOf="@id/tokenView"
                 app:layout_constraintEnd_toEndOf="parent" />
 
-            <!-- Relative Time Selection -->
+            <!-- ─── Expiry Section: radio buttons + conditional date/time pickers ─── -->
             <LinearLayout
-                android:id="@+id/relativeTimeGroup"
+                android:id="@+id/expirySection"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="16dp"
@@ -188,53 +188,79 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
 
+                <!-- Expiry options -->
                 <RadioGroup
-                    android:id="@+id/timeOptionGroup"
+                    android:id="@+id/expiryOptionGroup"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
                     <RadioButton
-                        android:id="@+id/foreverOption"
+                        android:id="@+id/neverExpiresOption"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:gravity="center"
+                        android:layout_height="wrap_content"
                         android:checked="true"
-                        android:text="@string/forever" />
+                        android:text="@string/never_expires"/>
 
                     <RadioButton
-                        android:id="@+id/customOption"
+                        android:id="@+id/dateExpiresOption"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:gravity="center"
-                        android:text="@string/custom_duration" />
+                        android:layout_height="wrap_content"
+                        android:text="@string/expires_on"/>
                 </RadioGroup>
 
+                <!-- Deadline picker (initially hidden) -->
                 <LinearLayout
-                    android:id="@+id/customDurationLayout"
+                    android:id="@+id/deadlinePickerLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:orientation="vertical"
                     android:visibility="gone"
                     android:layout_marginTop="8dp">
 
-                    <EditText
-                        android:id="@+id/durationValueInput"
-                        android:layout_width="0dp"
-                        android:layout_weight="1"
-                        android:layout_height="wrap_content"
-                        android:inputType="number"
-                        android:hint="@string/duration" />
-
-                    <Spinner
-                        android:id="@+id/durationUnitSpinner"
+                    <TextView
+                        android:id="@+id/deadlineLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:entries="@array/time_units_array" />
+                        android:text="@string/token_validity_deadline"
+                        style="@style/TextAppearance.Material3.BodyMedium" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="8dp">
+
+                        <com.google.android.material.button.MaterialButton
+                            style="?attr/materialButtonOutlinedStyle"
+                            android:id="@+id/selectDateButton"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:text="@string/pick_date" />
+
+                        <com.google.android.material.button.MaterialButton
+                            style="?attr/materialButtonOutlinedStyle"
+                            android:id="@+id/selectTimeButton"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:text="@string/pick_time" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/selectedDeadline"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/no_deadline_set"
+                        style="@style/TextAppearance.Material3.BodyMedium"/>
                 </LinearLayout>
             </LinearLayout>
+
+
 
             <!-- save-password checkbox -->
             <CheckBox
@@ -248,7 +274,7 @@
                 android:text="@string/config_save_password"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/okNewButton"
-                app:layout_constraintTop_toBottomOf="@id/relativeTimeGroup"
+                app:layout_constraintTop_toBottomOf="@id/expirySection"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintHorizontal_chainStyle="spread_inside" />
 
@@ -260,7 +286,7 @@
                 android:layout_margin="16dp"
                 android:text="@string/config_ok"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/relativeTimeGroup"
+                app:layout_constraintTop_toBottomOf="@id/expirySection"
                 app:layout_constraintBottom_toBottomOf="parent" />
 
             <!-- progress spinner -->
