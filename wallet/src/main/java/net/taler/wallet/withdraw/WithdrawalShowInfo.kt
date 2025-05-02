@@ -125,7 +125,7 @@ fun WithdrawalShowInfo(
         ) {
             if (status.status == TosReviewRequired) {
                 Text(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier.padding(22.dp),
                     text = stringResource(R.string.withdraw_review_terms),
                 )
             } else if (status.isCashAcceptor) {
