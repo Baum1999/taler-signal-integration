@@ -20,6 +20,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -33,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
@@ -51,12 +51,10 @@ import net.taler.common.EventObserver
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorInfo
-import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.exchanges.ExchangeItem
-import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.exchanges.SelectExchangeDialogFragment
 import net.taler.wallet.withdraw.WithdrawStatus.Status.AlreadyConfirmed
 import net.taler.wallet.withdraw.WithdrawStatus.Status.Error
@@ -67,7 +65,6 @@ import net.taler.wallet.withdraw.WithdrawStatus.Status.None
 import net.taler.wallet.withdraw.WithdrawStatus.Status.Success
 import net.taler.wallet.withdraw.WithdrawStatus.Status.TosReviewRequired
 import net.taler.wallet.withdraw.WithdrawStatus.Status.Updating
-import net.taler.wallet.withdraw.WithdrawalOperationStatusFlag.Pending
 
 class PromptWithdrawFragment: Fragment() {
     private val model: MainViewModel by activityViewModels()
@@ -133,6 +130,16 @@ class PromptWithdrawFragment: Fragment() {
                     balanceManager.getSpecForScopeInfo(scopeInfo)
                 } ?: status.currency?.let {
                     balanceManager.getSpecForCurrency(it)
+                }
+            }
+
+            LaunchedEffect(currencySpec, amount) {
+                (requireActivity() as AppCompatActivity).apply {
+                    supportActionBar?.title = currencySpec?.symbol?.let { symbol ->
+                        getString(R.string.nav_prompt_withdraw_currency, symbol)
+                    } ?: amount?.currency?.let { currency ->
+                        getString(R.string.nav_prompt_withdraw_currency, currency)
+                    } ?: getString(R.string.nav_prompt_withdraw)
                 }
             }
 
@@ -285,68 +292,6 @@ fun WithdrawalError(
             text = error.userFacingMsg,
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.error,
-        )
-    }
-}
-
-@Preview
-@Composable
-fun WithdrawalShowInfoPreview() {
-    TalerSurface {
-        WithdrawalShowInfo(
-            WithdrawStatus(
-                status = Updating,
-                talerWithdrawUri = "taler://",
-                currency = "KUDOS",
-                exchangeBaseUrl = "exchange.head.taler.net",
-                transactionId = "tx:343434",
-                error = null,
-                uriInfo = WithdrawalDetailsForUri(
-                    amount = null,
-                    currency = "KUDOS",
-                    editableAmount = true,
-                    status = Pending,
-                    maxAmount = Amount.fromJSONString("KUDOS:10"),
-                    wireFee = Amount.fromJSONString("KUDOS:0.2"),
-                    defaultExchangeBaseUrl = "exchange.head.taler.net",
-                    possibleExchanges = listOf(
-                        ExchangeItem(
-                            exchangeBaseUrl = "exchange.demo.taler.net",
-                            currency = "KUDOS",
-                            paytoUris = emptyList(),
-                            scopeInfo = null,
-                            tosStatus = ExchangeTosStatus.Accepted,
-                        ),
-                        ExchangeItem(
-                            exchangeBaseUrl = "exchange.head.taler.net",
-                            currency = "KUDOS",
-                            paytoUris = emptyList(),
-                            scopeInfo = null,
-                            tosStatus = ExchangeTosStatus.Accepted,
-                        ),
-                    ),
-                ),
-                amountInfo = WithdrawalDetailsForAmount(
-                    tosAccepted = true,
-                    amountRaw = Amount.fromJSONString("KUDOS:10.1"),
-                    amountEffective = Amount.fromJSONString("KUDOS:10.2"),
-                    withdrawalAccountsList = emptyList(),
-                    ageRestrictionOptions = listOf(18, 23),
-                    scopeInfo = ScopeInfo.Exchange(
-                        currency = "KUDOS",
-                        url = "exchange.head.taler.net",
-                    ),
-                )
-            ),
-            devMode = true,
-            defaultCurrency = "KUDOS",
-            editableCurrency = true,
-            currencies = listOf("KUDOS", "TESTKUDOS", "NETZBON"),
-            spec = null,
-            onSelectExchange = {},
-            onSelectAmount = {},
-            onTosReview = {},
-            onConfirm = {},
         )
     }
 }

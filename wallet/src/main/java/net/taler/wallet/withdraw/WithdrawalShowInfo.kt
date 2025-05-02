@@ -46,14 +46,19 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.wallet.R
+import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.AmountCurrencyField
 import net.taler.wallet.compose.BottomButtonBox
+import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.WarningLabel
+import net.taler.wallet.exchanges.ExchangeItem
+import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.systemBarsPaddingBottom
 import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.TransactionAmountComposable
@@ -62,6 +67,7 @@ import net.taler.wallet.useDebounce
 import net.taler.wallet.withdraw.WithdrawStatus.Status.Error
 import net.taler.wallet.withdraw.WithdrawStatus.Status.TosReviewRequired
 import net.taler.wallet.withdraw.WithdrawStatus.Status.Updating
+import net.taler.wallet.withdraw.WithdrawalOperationStatusFlag.Pending
 
 @Composable
 fun WithdrawalShowInfo(
@@ -117,7 +123,12 @@ fun WithdrawalShowInfo(
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            if (status.isCashAcceptor) {
+            if (status.status == TosReviewRequired) {
+                Text(
+                    modifier = Modifier.padding(16.dp),
+                    text = stringResource(R.string.withdraw_review_terms),
+                )
+            } else if (status.isCashAcceptor) {
                 WarningLabel(
                     label = stringResource(R.string.withdraw_cash_acceptor),
                     modifier = Modifier
@@ -149,6 +160,10 @@ fun WithdrawalShowInfo(
                         }
                     },
                 )
+
+                LaunchedEffect(Unit) {
+                    focusRequester.requestFocus()
+                }
             } else {
                 TransactionAmountComposable(
                     label = if (wireFee.isZero()) {
@@ -170,7 +185,7 @@ fun WithdrawalShowInfo(
                 return
             }
 
-            if (!wireFee.isZero()) {
+            if (status.status != TosReviewRequired && !wireFee.isZero()) {
                 TransactionAmountComposable(
                     label = stringResource(R.string.amount_fee),
                     amount = wireFee,
@@ -206,7 +221,7 @@ fun WithdrawalShowInfo(
 
             var expanded by remember { mutableStateOf(false) }
 
-            if (ageRestrictionOptions.isNotEmpty()) {
+            if (status.status != TosReviewRequired && ageRestrictionOptions.isNotEmpty()) {
                 TransactionInfoComposable(
                     label = stringResource(R.string.withdraw_restrict_age),
                     info = selectedAge?.toString()
@@ -271,10 +286,89 @@ fun WithdrawalShowInfo(
             }
         }
     }
+}
 
-    LaunchedEffect(editableAmount) {
-        if (editableAmount) {
-            focusRequester.requestFocus()
-        }
+private fun buildPreviewWithdrawStatus(
+    status: WithdrawStatus.Status,
+) = WithdrawStatus(
+    status = status,
+    talerWithdrawUri = "taler://",
+    currency = "KUDOS",
+    exchangeBaseUrl = "exchange.head.taler.net",
+    transactionId = "tx:343434",
+    error = null,
+    uriInfo = WithdrawalDetailsForUri(
+        amount = null,
+        currency = "KUDOS",
+        editableAmount = true,
+        status = Pending,
+        maxAmount = Amount.fromJSONString("KUDOS:10"),
+        wireFee = Amount.fromJSONString("KUDOS:0.2"),
+        defaultExchangeBaseUrl = "exchange.head.taler.net",
+        possibleExchanges = listOf(
+            ExchangeItem(
+                exchangeBaseUrl = "exchange.demo.taler.net",
+                currency = "KUDOS",
+                paytoUris = emptyList(),
+                scopeInfo = null,
+                tosStatus = ExchangeTosStatus.Accepted,
+            ),
+            ExchangeItem(
+                exchangeBaseUrl = "exchange.head.taler.net",
+                currency = "KUDOS",
+                paytoUris = emptyList(),
+                scopeInfo = null,
+                tosStatus = ExchangeTosStatus.Accepted,
+            ),
+        ),
+    ),
+    amountInfo = WithdrawalDetailsForAmount(
+        tosAccepted = true,
+        amountRaw = Amount.fromJSONString("KUDOS:10.1"),
+        amountEffective = Amount.fromJSONString("KUDOS:10.2"),
+        withdrawalAccountsList = emptyList(),
+        ageRestrictionOptions = listOf(18, 23),
+        scopeInfo = ScopeInfo.Exchange(
+            currency = "KUDOS",
+            url = "exchange.head.taler.net",
+        ),
+    )
+)
+
+@Preview
+@Composable
+fun WithdrawalShowInfoUpdatingPreview() {
+    TalerSurface {
+        WithdrawalShowInfo(
+            status = buildPreviewWithdrawStatus(Updating),
+            devMode = true,
+            defaultCurrency = "KUDOS",
+            editableCurrency = true,
+            currencies = listOf("KUDOS", "TESTKUDOS", "NETZBON"),
+            spec = null,
+            onSelectExchange = {},
+            onSelectAmount = {},
+            onTosReview = {},
+            onConfirm = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+fun WithdrawalShowInfoTosReviewPreview() {
+    TalerSurface {
+        WithdrawalShowInfo(
+            status = buildPreviewWithdrawStatus(TosReviewRequired),
+            devMode = true,
+            defaultCurrency = "KUDOS",
+            editableCurrency = true,
+            currencies = listOf("KUDOS", "TESTKUDOS", "NETZBON"),
+            spec = null,
+            onSelectExchange = {},
+            onSelectAmount = {},
+            onTosReview = {},
+            onConfirm = {},
+        )
     }
 }

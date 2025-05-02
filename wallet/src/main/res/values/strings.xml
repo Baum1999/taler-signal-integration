@@ -43,6 +43,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="nav_exchange_fees">Provider fees</string>
     <string name="nav_exchange_tos">PSP\'s terms of service</string>
     <string name="nav_prompt_withdraw">Withdraw from bank</string>
+    <string name="nav_prompt_withdraw_currency">Withdraw %1$s</string>
 
     <!-- General -->
 
@@ -276,7 +277,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="withdraw_button_confirm">Confirm withdraw</string>
     <string name="withdraw_button_confirm_bank">Authorize in bank</string>
     <string name="withdraw_button_label">Withdraw</string>
-    <string name="withdraw_button_tos">Review terms</string>
+    <string name="withdraw_button_tos">Terms of service</string>
     <string name="withdraw_cash_acceptor">The amount to be withdrawn will be determined by the cash acceptor</string>
     <string name="withdraw_error_already_confirmed">Withdrawal is already confirmed</string>
     <string name="withdraw_error_message">Withdrawing is currently not possible. Please try again later!</string>
@@ -298,9 +299,10 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="withdraw_manual_ready_warning">Make sure to use the correct subject, otherwise the money will not arrive in this wallet.</string>
     <string name="withdraw_restrict_age">Restrict usage to age</string>
     <string name="withdraw_restrict_age_unrestricted">Unrestricted</string>
+    <string name="withdraw_review_terms">You must first accept the payment service\'s terms of service before you can withdraw electronic cash to your wallet.</string>
     <string name="withdraw_select_amount">Select amount</string>
     <string name="withdraw_subtitle">Select target bank account</string>
-    <string name="withdraw_title">Withdrawal</string>
+    <string name="withdraw_title">Withdraw</string>
     <string name="withdraw_waiting_confirm">Waiting for confirmation</string>
 
     <!-- Exchanges -->
