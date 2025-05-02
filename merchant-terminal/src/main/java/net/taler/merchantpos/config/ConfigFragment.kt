@@ -151,8 +151,8 @@ class ConfigFragment : Fragment() {
                 val duration: TokenDuration = if (neverOption.isChecked) {
                     TokenDuration.Forever
                 } else {
-                    val micros = deadlineCal.timeInMillis * 1_000L
-                    TokenDuration.Micros(micros)
+                    val microsToDeadline = (deadlineCal.timeInMillis - System.currentTimeMillis()) * 1_000L
+                    TokenDuration.Micros(microsToDeadline)
                 }
 
                 // fetch limited write token
@@ -328,7 +328,7 @@ class ConfigFragment : Fragment() {
             Log.d("ConfigFragment", "CAMERA permission granted? $granted")
             if (granted) startCamera()
             else Toast.makeText(requireContext(),
-                "Camera permission is required for QR scanning", Toast.LENGTH_SHORT).show()
+                R.string.config_fragment_camera_needed_text, Toast.LENGTH_SHORT).show()
         }
 
     // 2) request if needed

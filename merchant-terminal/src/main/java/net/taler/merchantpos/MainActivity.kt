@@ -36,9 +36,9 @@ import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.navigation.NavigationView.OnNavigationItemSelectedListener
 import net.taler.lib.android.TalerNfcService
 import net.taler.merchantpos.config.Config
+import net.taler.merchantpos.config.ConfigUpdateResult
 import net.taler.merchantpos.databinding.ActivityMainBinding
 import android.util.Log
-import net.taler.merchantpos.config.ConfigUpdateResult
 
 class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
 
@@ -66,6 +66,14 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
             }
         }
 
+        // new: if we ever see a 401, fire this and kick back to settings
+        model.configManager.sessionExpired.observe(this) {
+            Toast
+                .makeText(this, R.string.session_expired_toast, Toast.LENGTH_LONG)
+                .show()
+            nav.navigate(R.id.action_global_merchantSettings)
+        }
+
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.navHostFragment) as NavHostFragment
         nav = navHostFragment.navController
@@ -83,8 +91,10 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
     override fun onStart() {
         super.onStart()
         if (!model.configManager.config.isValid()) {
-            if (nav.currentDestination?.id != R.id.nav_settings) nav.navigate(R.id.action_global_merchantSettings)
-        } else if (model.configManager.merchantConfig == null && nav.currentDestination?.id != R.id.configFetcher) {
+            if (nav.currentDestination?.id != R.id.nav_settings)
+                nav.navigate(R.id.action_global_merchantSettings)
+        } else if (model.configManager.merchantConfig == null
+                && nav.currentDestination?.id != R.id.configFetcher) {
             nav.navigate(R.id.action_global_configFetcher)
         }
     }
@@ -101,9 +111,9 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.nav_order -> nav.navigate(R.id.action_global_order)
+            R.id.nav_order   -> nav.navigate(R.id.action_global_order)
             R.id.nav_history -> nav.navigate(R.id.action_global_merchantHistory)
-            R.id.nav_settings -> nav.navigate(R.id.action_global_merchantSettings)
+            R.id.nav_settings-> nav.navigate(R.id.action_global_merchantSettings)
         }
         ui.drawerLayout.closeDrawer(START)
         return true
@@ -119,7 +129,8 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
         val currentDestination = nav.currentDestination?.id
         if (ui.drawerLayout.isDrawerOpen(START)) {
             ui.drawerLayout.closeDrawer(START)
-        } else if (currentDestination == R.id.nav_settings && !model.configManager.config.isValid()) {
+        } else if (currentDestination == R.id.nav_settings
+                && !model.configManager.config.isValid()) {
             // we are in the configuration screen and need a config to continue
             val intent = Intent(ACTION_MAIN).apply {
                 addCategory(CATEGORY_HOME)

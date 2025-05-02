@@ -19,6 +19,8 @@ package net.taler.merchantpos
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import io.ktor.client.statement.*
+import io.ktor.http.HttpStatusCode
 import net.taler.common.getDefaultHttpClient
 import net.taler.merchantlib.MerchantApi
 import net.taler.merchantpos.config.ConfigManager
@@ -39,6 +41,16 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val paymentManager = PaymentManager(app, configManager, viewModelScope, api)
     val historyManager = HistoryManager(configManager, viewModelScope, api)
     val refundManager = RefundManager(configManager, viewModelScope, api)
+
+    init {
+      httpClient.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, body) ->
+        if (context.response.status == HttpStatusCode.Unauthorized) {
+          configManager.forgetPassword()
+          configManager.notifySessionExpired()
+        }
+        proceedWith(subject)
+      }
+    }
 
     override fun onCleared() {
         httpClient.close()

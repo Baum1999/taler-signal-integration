@@ -226,6 +226,9 @@ class ConfigManager(
     private val api: MerchantApi,
 ) {
 
+    private val _sessionExpired = MutableLiveData<Unit>()
+    val sessionExpired: LiveData<Unit> = _sessionExpired
+
     private val prefs = context.getSharedPreferences(SETTINGS_NAME, MODE_PRIVATE)
     private val configurationReceivers = ArrayList<ConfigurationReceiver>()
 
@@ -421,6 +424,11 @@ class ConfigManager(
 
     private fun onNetworkError(msg: String) = scope.launch(Dispatchers.Main) {
         mConfigUpdateResult.value = ConfigUpdateResult.Error(msg)
+    }
+
+    internal fun notifySessionExpired() {
+        // do it on the Main thread
+        _sessionExpired.postValue(Unit)
     }
 }
 

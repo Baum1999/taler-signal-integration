@@ -99,11 +99,6 @@
     <string name="no_deadline_set">No deadline set</string>
     <string name="pick_date">Pick date</string>
     <string name="pick_time">Pick time</string>
-    <string-array name="time_units_array">
-        <item>Seconds</item>
-        <item>Minutes</item>
-        <item>Hours</item>
-        <item>Days</item>
-    </string-array>
-
+    <string name="session_expired_toast">Session expired – please re-enter your credentials</string>
+    <string name="config_fragment_camera_needed_text">Camera permission is required for QR scanning</string>
 </resources>
