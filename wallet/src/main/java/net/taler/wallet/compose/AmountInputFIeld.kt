@@ -20,11 +20,16 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -69,30 +74,71 @@ fun AmountCurrencyField(
     isError: Boolean = false,
     readOnly: Boolean = false,
     enabled: Boolean = true,
+    showShortcuts: Boolean = false,
+    onShortcutSelected: ((amount: Amount) -> Unit)? = null,
 ) {
-    Row(modifier = modifier) {
-        AmountInputFieldBase(
-            modifier = Modifier
-                .weight(2f, true)
-                .padding(end = 16.dp),
-            amount = amount,
-            onAmountChanged = onAmountChanged,
-            label = label,
-            isError = isError,
-            supportingText = supportingText,
-            readOnly = readOnly,
-            enabled = enabled,
-            showSymbol = !editableCurrency
-                    || amount.currency != amount.spec?.symbol
-        )
+    Column(modifier) {
+        Row {
+            AmountInputFieldBase(
+                modifier = Modifier
+                    .weight(2f, true)
+                    .padding(end = 16.dp),
+                amount = amount,
+                onAmountChanged = onAmountChanged,
+                label = label,
+                isError = isError,
+                supportingText = supportingText,
+                readOnly = readOnly,
+                enabled = enabled,
+                showSymbol = !editableCurrency
+                        || amount.currency != amount.spec?.symbol
+            )
 
-        if (editableCurrency) {
-            CurrencyDropdown(
-                modifier = Modifier.weight(1f),
-                currencies = currencies,
-                onCurrencyChanged = { onAmountChanged(amount.copy(currency = it)) },
-                initialCurrency = amount.currency,
-                readOnly = readOnly || !enabled,
+            if (editableCurrency) {
+                CurrencyDropdown(
+                    modifier = Modifier.weight(1f),
+                    currencies = currencies,
+                    onCurrencyChanged = { onAmountChanged(amount.copy(currency = it)) },
+                    initialCurrency = amount.currency,
+                    readOnly = readOnly || !enabled,
+                )
+            }
+        }
+
+        if (showShortcuts) {
+            val currency = amount.currency
+            AmountInputShortcuts(
+                // TODO: currency-appropriate presets
+                amounts = listOf(
+                    Amount.fromString(currency, "50").withSpec(amount.spec),
+                    Amount.fromString(currency, "25").withSpec(amount.spec),
+                    Amount.fromString(currency, "10").withSpec(amount.spec),
+                    Amount.fromString(currency, "5").withSpec(amount.spec),
+                ),
+                onSelected = { shortcut ->
+                    onShortcutSelected?.let { it(shortcut) }
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun AmountInputShortcuts(
+    amounts: List<Amount>,
+    onSelected: (amount: Amount) -> Unit,
+) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        maxItemsInEachRow = 2,
+        horizontalArrangement = Arrangement.SpaceEvenly,
+    ) {
+        amounts.forEach {
+            SelectionChip (
+                selected = false,
+                label = { Text(it.toString()) },
+                value = it,
+                onSelected = onSelected,
             )
         }
     }

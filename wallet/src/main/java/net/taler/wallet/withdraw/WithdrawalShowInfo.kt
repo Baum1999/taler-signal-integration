@@ -159,6 +159,10 @@ fun WithdrawalShowInfo(
                             Text(stringResource(R.string.amount_excess, maxAmount))
                         }
                     },
+                    showShortcuts = true,
+                    onShortcutSelected = { amount ->
+                        selectedAmount = amount
+                    }
                 )
 
                 LaunchedEffect(Unit) {
