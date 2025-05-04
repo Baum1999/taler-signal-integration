@@ -18,6 +18,7 @@ package net.taler.wallet.withdraw.manual
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -52,16 +53,19 @@ fun TransferIBAN(
         Text(
             text = stringResource(
                 R.string.withdraw_manual_ready_intro,
-                transferAmount),
+                transferAmount,
+                transactionAmountEffective,
+            ),
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier
                 .padding(vertical = 8.dp)
         )
 
-        WarningLabel(
-            modifier = Modifier.padding(8.dp),
-            label = stringResource(R.string.withdraw_manual_ready_warning),
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 6.dp)
         )
+
+        TransferStep(1, stringResource(R.string.withdraw_manual_step_subject))
 
         DetailRow(
             stringResource(R.string.withdraw_manual_ready_subject),
@@ -69,21 +73,33 @@ fun TransferIBAN(
             characterBreak = true,
         )
 
+        WarningLabel(
+            modifier = Modifier.padding(8.dp),
+            label = stringResource(R.string.withdraw_manual_ready_warning),
+        )
+
+        TransferStep(2, stringResource(R.string.withdraw_manual_step_iban))
+
         transfer.receiverName?.let {
             DetailRow(stringResource(R.string.withdraw_manual_ready_receiver), it)
         }
 
         DetailRow(stringResource(R.string.withdraw_manual_ready_iban), transfer.iban)
 
-        TransactionInfoComposable(
-            label = stringResource(R.string.withdraw_exchange),
-            info = cleanExchange(exchangeBaseUrl),
-        )
+        TransferStep(3, stringResource(
+            R.string.withdraw_manual_step_finish,
+            transferAmount,
+        ))
 
         WithdrawalAmountTransfer(
             amountRaw = transactionAmountRaw,
             amountEffective = transactionAmountEffective,
             conversionAmountRaw = transferAmount,
+        )
+
+        TransactionInfoComposable(
+            label = stringResource(R.string.withdraw_exchange),
+            info = cleanExchange(exchangeBaseUrl),
         )
     }
 }

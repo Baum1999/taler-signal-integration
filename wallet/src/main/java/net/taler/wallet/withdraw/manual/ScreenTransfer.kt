@@ -21,18 +21,20 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,7 +46,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -189,6 +193,29 @@ fun ScreenTransfer(
 }
 
 @Composable
+fun TransferStep(
+    index: Int,
+    description: String,
+) {
+    Text(
+        modifier = Modifier.padding(
+            top = 16.dp,
+            start = 6.dp,
+            end = 6.dp,
+            bottom = 6.dp,
+        ),
+        text = AnnotatedString.fromHtml(
+            stringResource(
+                R.string.withdraw_manual_step,
+                index,
+                description,
+            )
+        ),
+        style = MaterialTheme.typography.bodyMedium,
+    )
+}
+
+@Composable
 fun DetailRow(
     label: String,
     content: String,
@@ -224,13 +251,16 @@ fun DetailRow(
         )
 
         if (copy) {
-            IconButton(
+            TextButton(
                 onClick = { copyToClipBoard(context, label, content) },
             ) {
                 Icon(
-                    imageVector = Icons.Default.ContentCopy,
-                    contentDescription = stringResource(R.string.copy),
+                    Icons.Default.ContentCopy,
+                    contentDescription = null,
+                    modifier = Modifier.size(ButtonDefaults.IconSize),
                 )
+                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                Text(stringResource(R.string.copy))
             }
         }
     }

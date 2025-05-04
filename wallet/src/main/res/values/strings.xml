@@ -293,10 +293,15 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="withdraw_manual_ready_bank_button">Open in banking app</string>
     <string name="withdraw_manual_ready_details_intro">Bank transfer details</string>
     <string name="withdraw_manual_ready_iban">IBAN</string>
-    <string name="withdraw_manual_ready_intro">To complete the process you need to wire %s to the provider\'s bank account</string>
-    <string name="withdraw_manual_ready_receiver">Receiver name</string>
+<!--    <string name="withdraw_manual_ready_intro">To complete the process you need to wire %s to the provider\'s bank account</string>-->
+    <string name="withdraw_manual_ready_intro">You need to transfer %1$s from your regular bank account to the payment service to receive %2$s as electronic cash in this wallet.</string>
+    <string name="withdraw_manual_ready_receiver">Recipient</string>
     <string name="withdraw_manual_ready_subject">Subject</string>
     <string name="withdraw_manual_ready_warning">Make sure to use the correct subject, otherwise the money will not arrive in this wallet.</string>
+    <string name="withdraw_manual_step">&lt;b&gt;Step %1$s:&lt;b/&gt; %2$s</string>
+    <string name="withdraw_manual_step_finish">Finish the wire transfer of %1$s in your banking app or website, then this withdrawal will proceed automatically. Depending on your bank the transfer can take from minutes to two working days, please be patient.</string>
+    <string name="withdraw_manual_step_iban">If you don\'t already have it in your banking favorites list, then copy and paste recipient and IBAN into the recipient/IBAN fields in your banking app or website (and save it as favorite for the next time):</string>
+    <string name="withdraw_manual_step_subject">Copy this code and paste it into the subject/purpose field in your banking app or bank website:</string>
     <string name="withdraw_restrict_age">Restrict usage to age</string>
     <string name="withdraw_restrict_age_unrestricted">Unrestricted</string>
     <string name="withdraw_review_terms">You must first accept the payment service\'s terms of service before you can withdraw electronic cash to your wallet.</string>
