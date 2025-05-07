@@ -34,7 +34,6 @@ import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.transactions.TransactionAction.Delete
-import net.taler.wallet.transactions.TransactionMajorState.Pending
 import org.json.JSONObject
 
 sealed class TransactionsResult {
@@ -145,10 +144,8 @@ class TransactionManager(
             Log.e(TAG, "Error: getTransactions error result: $error")
             result = TransactionsResult.Error(error)
         }.onSuccess { res ->
-            val comparator = compareBy<Transaction> { it.txState.major == Pending }
             result = TransactionsResult.Success(res
                 .transactions
-                .sortedWith(comparator)
                 .reversed())
         }
 
