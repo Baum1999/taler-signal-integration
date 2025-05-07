@@ -39,13 +39,13 @@
     <string name="payment_already_paid_title">Bereits bezahlt</string>
     <string name="payment_already_paid">Sie haben diesen Kauf bereits bezahlt.</string>
     <string name="withdraw_initiated">Abhebung eingeleitet</string>
-    <string name="withdraw_title">Abhebung</string>
+    <string name="withdraw_title">Abheben</string>
     <string name="withdraw_total">Abheben</string>
     <string name="withdraw_fees">Gebühr</string>
     <string name="withdraw_exchange">Zahlungsdienstleister</string>
     <string name="withdraw_button_confirm">Abhebung bestätigen</string>
     <string name="withdraw_button_confirm_bank">Überweisungsauftrag in der Bank erteilen</string>
-    <string name="withdraw_button_tos">AGB lesen</string>
+    <string name="withdraw_button_tos">Allgemeine Geschäftsbedingungen</string>
     <string name="withdraw_waiting_confirm">Warte auf Bestätigung</string>
     <string name="withdraw_manual_title">Führen Sie eine manuelle Überweisung an den Zahlungsdienstleister durch</string>
     <string name="withdraw_amount">Wie viel soll abgehoben werden\?</string>
@@ -142,7 +142,7 @@
     <string name="button_scan_qr_code">Taler-QR-Code scannen</string>
     <string name="withdraw_manual_ready_iban">IBAN</string>
     <string name="withdraw_manual_ready_title">Der Zahlungsdienstleister ist für den Abhebevorgang bereit!</string>
-    <string name="withdraw_manual_ready_intro">Um den Abhebevorgang abzuschließen, müssen Sie %s auf das Bankkonto des Zahlungsdienstleisters überweisen</string>
+    <string name="withdraw_manual_ready_intro">Sie müssen an den Zahlungsdienst %1$s von Ihrem normalen Bankkonto überweisen, damit diese elektronische Geldbörse %2$s als digitales Bargeld beziehen kann.</string>
     <string name="withdraw_manual_ready_details_intro">Details der Überweisung</string>
     <string name="withdraw_manual_ready_subject">Buchungsvermerk</string>
     <string name="withdraw_manual_ready_bank_button">In Banking-App öffnen</string>
@@ -165,7 +165,7 @@
     <string name="send_intro">Wählen Sie aus, wohin Sie Geld senden möchten:</string>
     <string name="send_deposit_title">Einzahlung an Bankkonto</string>
     <string name="withdraw_manual_ready_account">Konto</string>
-    <string name="withdraw_manual_ready_receiver">Name des Empfängers</string>
+    <string name="withdraw_manual_ready_receiver">Zahlungsempfänger</string>
     <string name="exchange_delete_force">Löschung erzwingen (bereinigen)</string>
     <string name="settings_db_export_summary">Interne Datenbank speichern</string>
     <string name="settings_db_clear_error">Fehler beim Bereinigen der Datenbank</string>
@@ -370,4 +370,13 @@
     <string name="payment_repurchase">Repurchase (Wiederbezug eines bereits bezahlten Artikels)</string>
     <string name="withdraw_error_already_confirmed">Die Abhebung wurde bereits bestätigt</string>
     <string name="qr_scan_offline">Diese Aktion erfordert eine Internetverbindung. Um es erneut zu versuchen, wenn diese wieder verfügbar ist, halten Sie bitte die App offen und warten eine Zeitlang oder drücken die Taste unten.</string>
+    <string name="nav_prompt_withdraw_currency">%1$s abheben</string>
+    <string name="payment_button_cancel">Abbrechen</string>
+    <string name="payment_cancel_dialog_title">Bezahlvorgang abbrechen</string>
+    <string name="withdraw_manual_step">&lt;b&gt;Schritt %1$s:&lt;b/&gt; %2$s</string>
+    <string name="withdraw_manual_step_finish">Nach Ihrer Überweisung von %1$s, die Sie durch Ihre Banking-App oder Ihr Online-Banking auslösen, wird diese Abhebung automatisch durchgeführt. Je nach Bank kann die Überweisung zwischen Minuten und zwei Werktagen dauern, bitte haben Sie etwas Geduld.</string>
+    <string name="withdraw_manual_step_iban">Sollte die Bankverbindung noch nicht in Ihrer Favoritenliste sein, kopieren Sie jetzt IBAN und Empfänger und füllen diese in Ihrer Banking-App bzw. im Online-Banking in die entsprechenden Felder, so dass Sie die Daten für das nächste Mal sofort zur Verfügung haben:</string>
+    <string name="withdraw_manual_step_subject">Kopieren Sie diese Zeichenkette und übertragen sie in das Feld Verwendungszweck in ihrer Banking-App oder Online-Banking-Webseite:</string>
+    <string name="withdraw_review_terms">Sie müssen zunächst die Allgemeinen Geschäftsbedingungen des Zahlungsdiensts akzeptieren, bevor Sie digitales Bargeld in Ihre elektronische Geldbörse abheben können.</string>
+    <string name="payment_cancel_dialog_message">Sind Sie sicher, dass Sie diese Zahlung abbrechen möchten? Sie können sie später nicht mehr abschließen. Sie können den Vorgang aber an dieser Stelle auch einfach abbrechen und später erneut beginnen.</string>
 </resources>
