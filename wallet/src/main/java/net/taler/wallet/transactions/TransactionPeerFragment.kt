@@ -16,6 +16,7 @@
 
 package net.taler.wallet.transactions
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -23,12 +24,19 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -38,6 +46,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -46,6 +56,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.launch
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
+import net.taler.common.copyToClipBoard
 import net.taler.common.toAbsoluteTime
 import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
@@ -155,22 +166,55 @@ fun TransactionPeerComposable(
 }
 
 @Composable
-fun TransactionAmountComposable(label: String, amount: Amount, amountType: AmountType) {
+fun TransactionAmountComposable(
+    label: String,
+    amount: Amount,
+    amountType: AmountType,
+    context: Context? = null,
+    copy: Boolean = false,
+) {
     Text(
         modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
         text = label,
         style = MaterialTheme.typography.bodyMedium,
     )
-    Text(
-        modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp, bottom = 16.dp),
-        text = amount.toString(negative = amountType == AmountType.Negative),
-        fontSize = 24.sp,
-        color = when (amountType) {
-            AmountType.Positive -> colorResource(R.color.green)
-            AmountType.Negative -> MaterialTheme.colorScheme.error
-            AmountType.Neutral -> Color.Unspecified
-        },
-    )
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            modifier = Modifier
+                .padding(
+                    top = 8.dp,
+                    start = 16.dp,
+                    end = 16.dp,
+                    bottom = 16.dp,
+                ).weight(1f),
+            text = amount.toString(negative = amountType == AmountType.Negative),
+            textAlign = TextAlign.Center,
+            fontSize = 24.sp,
+            color = when (amountType) {
+                AmountType.Positive -> colorResource(R.color.green)
+                AmountType.Negative -> MaterialTheme.colorScheme.error
+                AmountType.Neutral -> Color.Unspecified
+            },
+        )
+
+        if (copy) {
+            TextButton(
+                onClick = { context?.let {
+                    copyToClipBoard(context, label, amount.toString(showSymbol = false))
+                }  },
+            ) {
+                Icon(
+                    Icons.Default.ContentCopy,
+                    contentDescription = null,
+                    modifier = Modifier.size(ButtonDefaults.IconSize),
+                )
+                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                Text(stringResource(R.string.copy))
+            }
+        }
+    }
 }
 
 @Composable

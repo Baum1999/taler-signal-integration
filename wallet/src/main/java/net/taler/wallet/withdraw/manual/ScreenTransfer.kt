@@ -297,6 +297,8 @@ fun WithdrawalAmountTransfer(
             label = stringResource(R.string.amount_transfer),
             amount = conversionAmountRaw,
             amountType = AmountType.Neutral,
+            context = LocalContext.current,
+            copy = true,
         )
     }
 }
