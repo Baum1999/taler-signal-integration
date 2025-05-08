@@ -1,4 +1,4 @@
-This app is a wallet for GNU Taler. It is highly experimental, and not ready for production use yet.
+This app is a wallet for GNU Taler.
 
 GNU Taler is a privacy-preserving payment system. Customers can stay anonymous, but merchants can not hide their income through payments with GNU Taler. This helps to avoid tax evasion and money laundering.
 

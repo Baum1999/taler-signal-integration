@@ -1,1 +1,1 @@
-Taler Wallet (experimental)
+Taler Wallet
