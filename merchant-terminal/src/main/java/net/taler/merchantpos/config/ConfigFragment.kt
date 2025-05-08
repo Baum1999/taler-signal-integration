@@ -168,9 +168,11 @@ class ConfigFragment : Fragment() {
                     return@launch
                 }
 
+                val configUrl = "$url/instances/$username"
+
                 // proceed with normal config fetch using limited token
                 val config = Config.New(
-                    merchantUrl = url,
+                    merchantUrl = configUrl,
                     accessToken = limitedToken,
                     savePassword = ui.saveTokenCheckBox.isChecked
                 )
