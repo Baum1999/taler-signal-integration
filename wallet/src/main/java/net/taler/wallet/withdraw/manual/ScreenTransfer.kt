@@ -17,6 +17,7 @@
 package net.taler.wallet.withdraw.manual
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -78,9 +79,11 @@ fun ScreenTransfer(
     status: WithdrawStatus,
     qrCodes: List<QrCodeSpec>,
     spec: CurrencySpecification?,
+    showQrCodes: Boolean,
     getQrCodes: (account: WithdrawalExchangeAccountDetails) -> Unit,
     bankAppClick: ((transfer: TransferData) -> Unit)?,
     shareClick: ((transfer: TransferData) -> Unit)?,
+    devMode: Boolean = false,
 ) {
     // TODO: show some placeholder
     if (status.withdrawalTransfers.isEmpty()) return
@@ -128,63 +131,75 @@ fun ScreenTransfer(
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            if (showQrCodes) {
+                Text(
+                    text = stringResource(R.string.withdraw_manual_qr_intro),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier
+                        .padding(
+                            vertical = 8.dp,
+                            horizontal = 16.dp,
+                        )
+                )
+
+                qrCodes.forEach { spec ->
+                    PaytoQrCard(
+                        expanded = qrExpandedStates[spec]!!,
+                        setExpanded = { expanded ->
+                            if (expanded) { // un-expand all others
+                                qrExpandedStates.forEach { (k, _) ->
+                                    qrExpandedStates[k] = false
+                                }
+                            }
+                            // expand only toggled one
+                            qrExpandedStates[spec] = expanded
+                        },
+                        qrCode = spec,
+                    )
+                }
+
+                BottomInsetsSpacer()
+                return
+            }
+
             when (val transfer = selectedTransfer) {
                 is TransferData.Taler -> TransferTaler(
                     transfer = transfer,
                     exchangeBaseUrl = status.exchangeBaseUrl!!,
-                    transactionAmountRaw = status.amountInfo!!.amountRaw.withSpec(spec),
-                    transactionAmountEffective = status.amountInfo.amountEffective.withSpec(spec),
+                    transactionAmountEffective = status.amountInfo!!.amountEffective.withSpec(spec),
                 )
 
                 is TransferData.IBAN -> TransferIBAN(
                     transfer = transfer,
-                    exchangeBaseUrl = status.exchangeBaseUrl!!,
-                    transactionAmountRaw = status.amountInfo!!.amountRaw.withSpec(spec),
-                    transactionAmountEffective = status.amountInfo.amountEffective.withSpec(spec),
+                    transactionAmountEffective = status.amountInfo!!.amountEffective.withSpec(spec),
                 )
 
                 is TransferData.Bitcoin -> TransferBitcoin(
                     transfer = transfer,
-                    transactionAmountRaw = status.amountInfo!!.amountRaw.withSpec(spec),
-                    transactionAmountEffective = status.amountInfo.amountEffective.withSpec(spec),
-                )
-            }
-
-            qrCodes.forEach { spec ->
-                PaytoQrCard(
-                    expanded = qrExpandedStates[spec]!!,
-                    setExpanded = { expanded ->
-                        if (expanded) { // un-expand all others
-                            qrExpandedStates.forEach { (k, _) ->
-                                qrExpandedStates[k] = false
-                            }
-                        }
-                        // expand only toggled one
-                        qrExpandedStates[spec] = expanded
-                    },
-                    qrCode = spec,
                 )
             }
 
             Spacer(Modifier.height(24.dp))
 
-            val paytoUri = selectedTransfer.withdrawalAccount.paytoUri
-            if (bankAppClick != null && LocalContext.current.canAppHandleUri(paytoUri)) {
-                Button(
-                    onClick = { bankAppClick(selectedTransfer) },
-                    modifier = Modifier
-                        .padding(bottom = 16.dp),
-                ) {
-                    Text(text = stringResource(R.string.withdraw_manual_ready_bank_button))
+            if (devMode) {
+                val paytoUri = selectedTransfer.withdrawalAccount.paytoUri
+                if (bankAppClick != null && LocalContext.current.canAppHandleUri(paytoUri)) {
+                    Button(
+                        onClick = { bankAppClick(selectedTransfer) },
+                        modifier = Modifier
+                            .padding(bottom = 16.dp),
+                    ) {
+                        Text(text = stringResource(R.string.withdraw_manual_ready_bank_button))
+                    }
                 }
-            }
 
-            if (shareClick != null) {
-                ShareButton(
-                    content = selectedTransfer.withdrawalAccount.paytoUri,
-                    modifier = Modifier
-                        .padding(bottom = 16.dp),
-                )
+                if (shareClick != null) {
+                    ShareButton(
+                        content = selectedTransfer.withdrawalAccount.paytoUri,
+                        modifier = Modifier
+                            .padding(bottom = 16.dp),
+                    )
+                }
             }
 
             BottomInsetsSpacer()
@@ -234,33 +249,37 @@ fun DetailRow(
             style = MaterialTheme.typography.bodyMedium,
         )
 
-        Text(
-            modifier = Modifier.padding(
-                top = 8.dp,
-                start = 6.dp,
-                end = 6.dp,
-            ),
-            text = content,
-            style = if (characterBreak) {
-                MaterialTheme.typography.bodyLarge.copy(
-                    lineBreak = LineBreak.Heading,
-                )
-            } else MaterialTheme.typography.bodyLarge,
-            fontFamily = if (copy) FontFamily.Monospace else FontFamily.Default,
-            textAlign = TextAlign.Center,
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                modifier = Modifier.padding(
+                    top = 8.dp,
+                    start = 6.dp,
+                    end = 6.dp,
+                ).weight(1f),
+                text = content,
+                style = if (characterBreak) {
+                    MaterialTheme.typography.bodyLarge.copy(
+                        lineBreak = LineBreak.Heading,
+                    )
+                } else MaterialTheme.typography.bodyLarge,
+                fontFamily = if (copy) FontFamily.Monospace else FontFamily.Default,
+                textAlign = TextAlign.Center,
+            )
 
-        if (copy) {
-            TextButton(
-                onClick = { copyToClipBoard(context, label, content) },
-            ) {
-                Icon(
-                    Icons.Default.ContentCopy,
-                    contentDescription = null,
-                    modifier = Modifier.size(ButtonDefaults.IconSize),
-                )
-                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text(stringResource(R.string.copy))
+            if (copy) {
+                TextButton(
+                    onClick = { copyToClipBoard(context, label, content) },
+                ) {
+                    Icon(
+                        Icons.Default.ContentCopy,
+                        contentDescription = null,
+                        modifier = Modifier.size(ButtonDefaults.IconSize),
+                    )
+                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                    Text(stringResource(R.string.copy))
+                }
             }
         }
     }
@@ -268,8 +287,6 @@ fun DetailRow(
 
 @Composable
 fun WithdrawalAmountTransfer(
-    amountRaw: Amount,
-    amountEffective: Amount,
     conversionAmountRaw: Amount,
 ) {
     Column(
@@ -281,29 +298,6 @@ fun WithdrawalAmountTransfer(
             amount = conversionAmountRaw,
             amountType = AmountType.Neutral,
         )
-
-        if (amountRaw.currency != conversionAmountRaw.currency) {
-            TransactionAmountComposable(
-                label = stringResource(R.string.amount_conversion),
-                amount = amountRaw,
-                amountType = AmountType.Neutral,
-            )
-        }
-
-        if (amountRaw > amountEffective) {
-            val fee = amountRaw - amountEffective
-            TransactionAmountComposable(
-                label = stringResource(id = R.string.amount_fee),
-                amount = fee,
-                amountType = AmountType.Negative,
-            )
-
-            TransactionAmountComposable(
-                label = stringResource(id = R.string.amount_total),
-                amount = amountEffective,
-                amountType = AmountType.Positive,
-            )
-        }
     }
 }
 
@@ -351,7 +345,9 @@ fun TransferAccountChooser(
 
 @Preview
 @Composable
-fun ScreenTransferPreview() {
+fun ScreenTransferPreview(
+    showQrCodes: Boolean = false,
+) {
     Surface {
         ScreenTransfer(
             status = WithdrawStatus(
@@ -414,7 +410,14 @@ fun ScreenTransferPreview() {
                 QrCodeSpec(EpcQr, "BCD\\n002\\n1\\nSCT\\n\\n\\nGENODEM1GLS/DE54430609674049078800\\n\\n\\nTaler MJ15S835A5ENQZGJX161TS7FND6Q5DSABS8FCHB8ECF9NT1J8GH0"),
                 QrCodeSpec(SPC, "BCD\\n002\\n1\\nSCT\\n\\n\\nGENODEM1GLS/DE54430609674049078800\\n\\n\\nTaler MJ15S835A5ENQZGJX161TS7FND6Q5DSABS8FCHB8ECF9NT1J8GH0")
             ),
+            showQrCodes = showQrCodes,
             getQrCodes = {},
         )
     }
+}
+
+@Preview
+@Composable
+fun ScreenTransferQRPreview() {
+    ScreenTransferPreview(true)
 }

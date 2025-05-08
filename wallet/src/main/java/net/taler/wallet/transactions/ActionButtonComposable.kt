@@ -16,16 +16,19 @@
 
 package net.taler.wallet.transactions
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import net.taler.wallet.R
@@ -39,7 +42,8 @@ interface ActionListener {
     enum class Type {
         COMPLETE_KYC,
         CONFIRM_WITH_BANK,
-        CONFIRM_MANUAL
+        CONFIRM_MANUAL,
+        SHOW_WIRE_QR,
     }
 
     fun onActionButtonClicked(tx: Transaction, type: Type)
@@ -119,17 +123,33 @@ private fun ConfirmManualButton(
     tx: Transaction,
     listener: ActionListener,
 ) {
-    Button(
-        onClick = { listener.onActionButtonClicked(tx, ActionListener.Type.CONFIRM_MANUAL) },
-        modifier = modifier,
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        val label = stringResource(R.string.withdraw_manual_ready_details_intro)
-        Icon(
-            Icons.Default.AccountBalance,
-            label,
-            modifier = Modifier.size(ButtonDefaults.IconSize)
-        )
-        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-        Text(label)
+        Button(
+            onClick = { listener.onActionButtonClicked(tx, ActionListener.Type.CONFIRM_MANUAL) },
+            modifier = modifier,
+        ) {
+            Icon(
+                Icons.Default.AccountBalance,
+                contentDescription = null,
+                modifier = Modifier.size(ButtonDefaults.IconSize)
+            )
+            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+            Text(stringResource(R.string.withdraw_manual_ready_details_intro))
+        }
+
+        Button(
+            onClick = { listener.onActionButtonClicked(tx, ActionListener.Type.SHOW_WIRE_QR) },
+            modifier = modifier,
+        ) {
+            Icon(
+                Icons.Default.QrCode,
+                contentDescription = null,
+                modifier = Modifier.size(ButtonDefaults.IconSize)
+            )
+            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+            Text(stringResource(R.string.withdraw_manual_ready_details_qr))
+        }
     }
 }

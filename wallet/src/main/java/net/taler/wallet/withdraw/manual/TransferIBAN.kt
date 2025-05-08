@@ -28,16 +28,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
 import net.taler.wallet.R
-import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.WarningLabel
-import net.taler.wallet.transactions.TransactionInfoComposable
 import net.taler.wallet.withdraw.TransferData
 
 @Composable
 fun TransferIBAN(
     transfer: TransferData.IBAN,
-    exchangeBaseUrl: String,
-    transactionAmountRaw: Amount,
     transactionAmountEffective: Amount,
 ) {
     val transferAmount = transfer
@@ -74,7 +70,10 @@ fun TransferIBAN(
         )
 
         WarningLabel(
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier.padding(
+                horizontal = 8.dp,
+                vertical = 16.dp,
+            ),
             label = stringResource(R.string.withdraw_manual_ready_warning),
         )
 
@@ -86,20 +85,13 @@ fun TransferIBAN(
 
         DetailRow(stringResource(R.string.withdraw_manual_ready_iban), transfer.iban)
 
+        WithdrawalAmountTransfer(
+            conversionAmountRaw = transferAmount,
+        )
+
         TransferStep(3, stringResource(
             R.string.withdraw_manual_step_finish,
             transferAmount,
         ))
-
-        WithdrawalAmountTransfer(
-            amountRaw = transactionAmountRaw,
-            amountEffective = transactionAmountEffective,
-            conversionAmountRaw = transferAmount,
-        )
-
-        TransactionInfoComposable(
-            label = stringResource(R.string.withdraw_exchange),
-            info = cleanExchange(exchangeBaseUrl),
-        )
     }
 }

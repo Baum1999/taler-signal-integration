@@ -36,8 +36,6 @@ import net.taler.wallet.withdraw.TransferData
 @Composable
 fun TransferBitcoin(
     transfer: TransferData.Bitcoin,
-    transactionAmountRaw: Amount,
-    transactionAmountEffective: Amount,
 ) {
     Column(
         modifier = Modifier.padding(all = 16.dp),
@@ -58,8 +56,6 @@ fun TransferBitcoin(
 
         transfer.withdrawalAccount.transferAmount?.let { amount ->
             WithdrawalAmountTransfer(
-                amountRaw = transactionAmountRaw,
-                amountEffective = transactionAmountEffective,
                 conversionAmountRaw = amount.withSpec(
                     transfer.withdrawalAccount.currencySpecification,
                 ),

@@ -53,11 +53,13 @@ class ManualWithdrawSuccessFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View = ComposeView(requireContext()).apply {
+        val showQrCodes = arguments?.getBoolean("showQrCodes") == true
         setContent {
             TalerSurface {
                 val status by withdrawManager.withdrawStatus.collectAsStateLifecycleAware()
                 val selectedTx by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
                 val qrCodes by withdrawManager.qrCodes.observeAsState()
+                val devMode by model.devMode.observeAsState()
 
                 BackHandler {
                     selectedTx?.let { navigateToDetails(it) }
@@ -76,6 +78,8 @@ class ManualWithdrawSuccessFragment : Fragment() {
                     },
                     bankAppClick = { onBankAppClick(it) },
                     shareClick = { onShareClick(it) },
+                    showQrCodes = showQrCodes,
+                    devMode = devMode == true,
                 )
             }
         }

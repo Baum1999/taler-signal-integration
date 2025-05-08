@@ -36,7 +36,6 @@ import net.taler.wallet.withdraw.TransferData
 fun TransferTaler(
     transfer: TransferData.Taler,
     exchangeBaseUrl: String,
-    transactionAmountRaw: Amount,
     transactionAmountEffective: Amount,
 ) {
     val transferAmount = transfer
@@ -88,8 +87,6 @@ fun TransferTaler(
         )
 
         WithdrawalAmountTransfer(
-            amountRaw = transactionAmountRaw,
-            amountEffective = transactionAmountEffective,
             conversionAmountRaw = transferAmount,
         )
     }

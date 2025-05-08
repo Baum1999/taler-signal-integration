@@ -22,6 +22,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
+import androidx.core.os.bundleOf
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import net.taler.wallet.MainViewModel
@@ -78,7 +79,8 @@ class TransactionWithdrawalFragment : TransactionDetailFragment(), ActionListene
                 }
             }
 
-            ActionListener.Type.CONFIRM_MANUAL -> {
+            ActionListener.Type.CONFIRM_MANUAL,
+            ActionListener.Type.SHOW_WIRE_QR -> {
                 if (tx !is TransactionWithdrawal) return
                 if (tx.withdrawalDetails !is ManualTransfer) return
                 if (tx.withdrawalDetails.exchangeCreditAccountDetails.isNullOrEmpty()) return
@@ -98,6 +100,7 @@ class TransactionWithdrawalFragment : TransactionDetailFragment(), ActionListene
 
                 findNavController().navigate(
                     R.id.action_nav_transactions_detail_withdrawal_to_nav_exchange_manual_withdrawal_success,
+                    bundleOf("showQrCodes" to (type == ActionListener.Type.SHOW_WIRE_QR))
                 )
             }
         }
