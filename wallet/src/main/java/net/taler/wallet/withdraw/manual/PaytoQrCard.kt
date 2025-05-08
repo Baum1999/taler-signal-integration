@@ -39,6 +39,7 @@ fun PaytoQrCard(
         else -> return
     }
 
+    // TODO: copy/share actions
     ExpandableCard(
         expanded = expanded,
         setExpanded = setExpanded,
