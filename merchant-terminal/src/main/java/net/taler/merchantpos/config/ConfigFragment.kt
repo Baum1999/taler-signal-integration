@@ -388,7 +388,7 @@ class ConfigFragment : Fragment() {
          stopCamera()                                         // freeze picture
          // Re-use the rock-solid parsing inside MainActivity
          val intent = Intent(Intent.ACTION_VIEW, raw.toUri())
-            (requireActivity() as MainActivity).handleSetupIntent(intent)
+         (requireActivity() as MainActivity).handleSetupIntent(intent)
         
          // show loader until ConfigFetcherFragment takes over
          ui.progressBarQr.visibility = VISIBLE
