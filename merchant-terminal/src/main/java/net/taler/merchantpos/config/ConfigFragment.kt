@@ -21,6 +21,7 @@ import android.app.TimePickerDialog
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.Image
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -57,12 +58,10 @@ import net.taler.merchantpos.R
 import net.taler.merchantpos.config.ConfigFragmentDirections.Companion.actionSettingsToOrder
 import net.taler.merchantpos.databinding.FragmentMerchantConfigBinding
 import androidx.core.view.isVisible
-import com.google.mlkit.vision.barcode.BarcodeScannerOptions
-import com.google.mlkit.vision.barcode.BarcodeScanning
-import com.google.mlkit.vision.barcode.common.Barcode
-import com.google.mlkit.vision.common.InputImage
+import com.google.zxing.*
 import net.taler.merchantpos.MainActivity
 import android.text.format.DateFormat
+import com.google.zxing.common.HybridBinarizer
 import java.util.Calendar
 import java.util.Locale
 
@@ -77,16 +76,15 @@ class ConfigFragment : Fragment() {
 
     private lateinit var ui: FragmentMerchantConfigBinding
 
-    private val scanner by lazy {
-        BarcodeScanning.getClient(
-            BarcodeScannerOptions.Builder()
-                .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
-                .build()
-        )
-    }
-
     private val cameraExecutor by lazy {
         ContextCompat.getMainExecutor(requireContext())
+    }
+
+    private val qrReader = MultiFormatReader().apply {
+        setHints(mapOf(
+            DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE),
+            DecodeHintType.CHARACTER_SET to "UTF-8"
+        ))
     }
 
     override fun onCreateView(
@@ -359,16 +357,40 @@ class ConfigFragment : Fragment() {
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build().also { useCase ->
                     useCase.setAnalyzer(cameraExecutor) { proxy ->
-                        val media = proxy.image ?: run { proxy.close(); return@setAnalyzer }
-                        val image = InputImage.fromMediaImage(
-                                                media,
-                                                proxy.imageInfo.rotationDegrees
-                                                )
-                        scanner.process(image)
-                            .addOnSuccessListener { codes ->
-                                codes.firstOrNull()?.rawValue?.let { onQrDecoded(it) }
+                        val mediaImage = proxy.image
+                        if (mediaImage != null) {
+                            // 1) Convert YUV_420_888 to a ZXing-friendly NV21 byte array
+                            val nv21 = yuv420888ToNv21(mediaImage)
+                            val width  = mediaImage.width
+                            val height = mediaImage.height
+
+                            // 2) Build ZXing’s LuminanceSource
+                            val source = PlanarYUVLuminanceSource(
+                                nv21, width, height,
+                                0, 0, width, height,
+                                false
+                            )
+
+                            // 3) (Optional) rotate the source if your sensor’s orientation needs it
+                            val rotated = when (proxy.imageInfo.rotationDegrees) {
+                                90 -> source.rotateCounterClockwise()
+                                270 -> source.rotateCounterClockwise()
+                                else -> source
                             }
-                            .addOnCompleteListener { proxy.close() }
+
+                            // 4) Try to decode
+                            val bitmap = BinaryBitmap(HybridBinarizer(rotated))
+                            try {
+                                val result = qrReader.decodeWithState(bitmap)
+                                onQrDecoded(result.text)
+                            } catch (e: NotFoundException) {
+                                // no QR code in this frame
+                            } finally {
+                                proxy.close()
+                            }
+                        } else {
+                            proxy.close()
+                        }
                     }
                 }
             
@@ -380,6 +402,25 @@ class ConfigFragment : Fragment() {
                 analysis
             )
         }, cameraExecutor)
+    }
+
+    // 3) convert YUV_420_888 to NV21
+    private fun yuv420888ToNv21(image: Image): ByteArray {
+        val yPlane = image.planes[0].buffer
+        val uPlane = image.planes[1].buffer
+        val vPlane = image.planes[2].buffer
+
+        val ySize = yPlane.remaining()
+        val uSize = uPlane.remaining()
+        val vSize = vPlane.remaining()
+        val nv21 = ByteArray(ySize + uSize + vSize)
+
+        // U and V are swapped
+        yPlane.get(nv21, 0, ySize)
+        vPlane.get(nv21, ySize, vSize)
+        uPlane.get(nv21, ySize + vSize, uSize)
+
+        return nv21
     }
 
      private fun onQrDecoded(raw: String) {

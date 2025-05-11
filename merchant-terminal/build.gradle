@@ -78,8 +78,8 @@ dependencies {
     implementation "androidx.camera:camera-lifecycle:1.4.2"
     implementation "androidx.camera:camera-view:1.4.2"
 
-    // ML Kit – on-device barcode/QR detector
-    implementation "com.google.mlkit:barcode-scanning:17.3.0"
+    // ZXING core – on-device barcode/QR detector
+    implementation "com.google.zxing:core:3.5.2"
 
     // Navigation
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
