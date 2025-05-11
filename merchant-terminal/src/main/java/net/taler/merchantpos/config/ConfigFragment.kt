@@ -371,14 +371,14 @@ class ConfigFragment : Fragment() {
                                 false
                             )
 
-                            // 3) (Optional) rotate the source if your sensor’s orientation needs it
+                            //Rotate the image
                             val rotated = when (proxy.imageInfo.rotationDegrees) {
                                 90 -> source.rotateCounterClockwise()
                                 270 -> source.rotateCounterClockwise()
                                 else -> source
                             }
 
-                            // 4) Try to decode
+                            // 3) Try to decode
                             val bitmap = BinaryBitmap(HybridBinarizer(rotated))
                             try {
                                 val result = qrReader.decodeWithState(bitmap)
@@ -404,7 +404,6 @@ class ConfigFragment : Fragment() {
         }, cameraExecutor)
     }
 
-    // 3) convert YUV_420_888 to NV21
     private fun yuv420888ToNv21(image: Image): ByteArray {
         val yPlane = image.planes[0].buffer
         val uPlane = image.planes[1].buffer
