@@ -168,6 +168,13 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
                 showLoading(false)
                 paymentManager.resetPayStatus()
                 navigateToTransaction(payStatus.transactionId)
+                if (payStatus.error != null) {
+                    if (model.devMode.value == true) {
+                        showError(payStatus.error)
+                    } else {
+                        showError(payStatus.error.userFacingMsg)
+                    }
+                }
             }
             is PayStatus.None -> {
                 // No payment active.
