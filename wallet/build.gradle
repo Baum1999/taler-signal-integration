@@ -21,6 +21,7 @@ plugins {
     id "kotlin-android"
     id "kotlinx-serialization"
     id "com.google.protobuf" version "0.9.4"
+    id "org.jetbrains.kotlin.plugin.compose" version "$kotlin_version"
 }
 
 def qtart_version = "1.0.0"
@@ -90,14 +91,9 @@ android {
         jvmTarget = "17"
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion "1.5.14"
-    }
-
     buildFeatures {
         buildConfig true
         viewBinding true
-        compose true
     }
     packagingOptions {
         jniLibs {
@@ -174,7 +170,7 @@ dependencies {
     implementation "io.noties.markwon:recycler:$markwon_version"
 
     // Java Native Access (must always match JNA in qtart)
-    implementation "net.java.dev.jna:jna:5.13.0@aar"
+    implementation "net.java.dev.jna:jna:5.17.0@aar"
 
     // Shared preferences
     implementation "androidx.datastore:datastore:$datastore_version"
