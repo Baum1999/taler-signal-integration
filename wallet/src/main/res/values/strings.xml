@@ -108,7 +108,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="amount_total">Total amount</string>
     <string name="amount_total_label">Total:</string>
     <string name="amount_transfer">Transfer</string>
-    <string name="amount_withdraw">Amount to withdraw</string>
+    <string name="amount_withdraw">Amount to withdraw from bank</string>
 
     <!-- Balances -->
 
