@@ -307,7 +307,7 @@
     <string name="settings_test_withdrawal">TESTKUDOS werden nun abgehoben</string>
     <string name="amount_max">Höchstbetrag</string>
     <string name="amount_excess">Der Betrag übersteigt das Maximum von %1$s</string>
-    <string name="amount_withdraw">Betrag der Abhebung vom Bankkonto</string>
+    <string name="amount_withdraw">Von der Bank abzuhebender Betrag</string>
     <string name="withdraw_select_amount">Betrag wählen</string>
     <string name="edit">Bearbeiten</string>
     <string name="transaction_state_aborted_manual">Diese Transaktion wurde abgebrochen. Falls Sie bereits Geld an den Zahlungsdienst überwiesen haben, wird dieses an Sie zurücküberwiesen am %1$s</string>
