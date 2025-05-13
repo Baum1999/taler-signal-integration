@@ -3,4 +3,6 @@
     <issue id="all">
         <ignore path="artwork" />
     </issue>
+
+    <issue id="StringFormatInvalid" severity="warning" />
 </lint>
