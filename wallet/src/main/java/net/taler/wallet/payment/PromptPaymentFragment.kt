@@ -126,7 +126,7 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
                 showOrder(payStatus.contractTerms, payStatus.amountRaw)
                 ui.details.errorView.text = getString(
                     R.string.payment_balance_insufficient_max,
-                    payStatus.balanceDetails.balanceAvailable.toString(),
+                    payStatus.balanceDetails.maxEffectiveSpendAmount.toString(),
                 )
                 ui.details.errorView.fadeIn()
                 payStatus.balanceDetails.causeHint?.stringResId()?.let {
