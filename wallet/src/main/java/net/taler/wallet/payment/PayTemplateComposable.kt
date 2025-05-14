@@ -138,6 +138,7 @@ fun PayTemplateInsufficientBalancePreview() {
     TalerSurface {
         PayTemplateComposable(
             payStatus = PayStatus.InsufficientBalance(
+                "txn:3409F039F09",
                 ContractTerms(
                     "test",
                     amount = Amount.zero("TESTKUDOS"),

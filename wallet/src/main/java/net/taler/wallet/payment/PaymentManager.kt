@@ -57,6 +57,7 @@ sealed class PayStatus {
     ) : PayStatus()
 
     data class InsufficientBalance(
+        val transactionId: String,
         val contractTerms: ContractTerms,
         val amountRaw: Amount,
         val balanceDetails: PaymentInsufficientBalanceDetails,
@@ -126,6 +127,7 @@ class PaymentManager(
             mPayStatus.value = when (response) {
                 is PaymentPossibleResponse -> response.toPayStatusPrepared()
                 is InsufficientBalanceResponse -> InsufficientBalance(
+                    transactionId = response.transactionId,
                     contractTerms = response.contractTerms,
                     amountRaw = response.amountRaw,
                     balanceDetails = response.balanceDetails,
@@ -161,6 +163,7 @@ class PaymentManager(
                     is GetChoicesForPaymentResponse.ChoiceSelectionDetail.InsufficientBalance -> {
                         if (choice.balanceDetails != null) {
                             mPayStatus.value = InsufficientBalance(
+                                transactionId = tx.transactionId,
                                 amountRaw = choice.amountRaw,
                                 contractTerms = res.contractData,
                                 balanceDetails = choice.balanceDetails,
@@ -219,6 +222,7 @@ class PaymentManager(
             mPayStatus.value = when (response) {
                 is PaymentPossibleResponse -> response.toPayStatusPrepared()
                 is InsufficientBalanceResponse -> InsufficientBalance(
+                    transactionId = response.transactionId,
                     contractTerms = response.contractTerms,
                     amountRaw = response.amountRaw,
                     balanceDetails = response.balanceDetails,

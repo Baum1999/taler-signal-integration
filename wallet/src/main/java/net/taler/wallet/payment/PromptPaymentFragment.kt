@@ -22,10 +22,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -97,10 +99,12 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
     }
 
     private fun onPaymentStatusChanged(payStatus: PayStatus?) {
+        var transactionId: String? = null
         when (payStatus) {
             null -> {}
             is PayStatus.Checked -> {} // does not apply, only used for templates
             is PayStatus.Prepared -> {
+                transactionId = payStatus.transactionId
                 showLoading(false)
                 val fees = payStatus.amountEffective - payStatus.amountRaw
                 showOrder(payStatus.contractTerms, payStatus.amountRaw, fees)
@@ -115,32 +119,9 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
                     ui.bottom.cancelButton.fadeOut()
                     ui.bottom.confirmProgressBar.fadeIn()
                 }
-                ui.bottom.cancelButton.isEnabled = true
-                ui.bottom.cancelButton.setOnClickListener {
-                    MaterialAlertDialogBuilder(requireContext())
-                        .setTitle(R.string.payment_cancel_dialog_title)
-                        .setMessage(R.string.payment_cancel_dialog_message)
-                        .setNeutralButton(R.string.button_back) { dialog, _ -> dialog.dismiss() }
-                        .setNegativeButton(R.string.payment_cancel_dialog_title) { _, _ ->
-                            transactionManager.abortTransaction(
-                                payStatus.transactionId,
-                                onSuccess = {
-                                    Snackbar.make(requireView(), getString(R.string.payment_aborted), LENGTH_LONG).show()
-                                    findNavController().popBackStack()
-                                },
-                                onError = { error ->
-                                    Log.e(TAG, "Error abortTransaction $error")
-                                    if (model.devMode.value == false) {
-                                        showError(error.userFacingMsg)
-                                    } else {
-                                        showError(error)
-                                    }
-                                }
-                            )
-                        }.show()
-                }
             }
             is PayStatus.InsufficientBalance -> {
+                transactionId = payStatus.transactionId
                 showLoading(false)
                 showOrder(payStatus.contractTerms, payStatus.amountRaw)
                 ui.details.errorView.text = getString(
@@ -183,6 +164,37 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
             is PayStatus.Loading -> {
                 // Wait until loaded ...
                 showLoading(true)
+            }
+        }
+
+        ui.bottom.cancelButton.isEnabled = transactionId != null
+        if (transactionId != null) {
+            ui.bottom.cancelButton.setOnClickListener {
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.payment_cancel_dialog_title)
+                    .setMessage(R.string.payment_cancel_dialog_message)
+                    .setNeutralButton(R.string.button_back) { dialog, _ -> dialog.dismiss() }
+                    .setNegativeButton(R.string.payment_cancel_dialog_title) { _, _ ->
+                        transactionManager.abortTransaction(
+                            transactionId,
+                            onSuccess = {
+                                Snackbar.make(
+                                    requireView(),
+                                    getString(R.string.payment_aborted),
+                                    LENGTH_LONG
+                                ).show()
+                                findNavController().popBackStack()
+                            },
+                            onError = { error ->
+                                Log.e(TAG, "Error abortTransaction $error")
+                                if (model.devMode.value == false) {
+                                    showError(error.userFacingMsg)
+                                } else {
+                                    showError(error)
+                                }
+                            }
+                        )
+                    }.show()
             }
         }
     }

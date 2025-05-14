@@ -58,6 +58,7 @@ sealed class PreparePayResponse {
     @Serializable
     @SerialName("insufficient-balance")
     data class InsufficientBalanceResponse(
+        val transactionId: String,
         val amountRaw: Amount,
         val contractTerms: ContractTerms,
         val balanceDetails: PaymentInsufficientBalanceDetails,
