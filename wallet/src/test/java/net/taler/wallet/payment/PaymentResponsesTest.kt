@@ -30,6 +30,7 @@ class PaymentResponsesTest {
         val jsonStr = """
         {
           "status": "insufficient-balance",
+          "transactionId": "txn:payment:ZVY9B3R99W5EGGTJJMK4JYVS726BS57T4MM6HS2DPE475NGDRDRG",
           "contractTerms": {
             "summary": "Gummy bears (BFH)",
             "amount": "CHF:0.3",
