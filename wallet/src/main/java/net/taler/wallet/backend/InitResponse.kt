@@ -29,6 +29,7 @@ data class WalletRunConfig(
     val builtin: Builtin? = Builtin(),
     val testing: Testing? = Testing(),
     val features: Features? = Features(),
+    val logLevel: String?,
 ) {
     /**
      * Initialization values useful for a complete startup.

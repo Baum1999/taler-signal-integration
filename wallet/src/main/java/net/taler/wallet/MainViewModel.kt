@@ -107,8 +107,9 @@ class MainViewModel(
     private var walletConfig = WalletRunConfig(
         testing = Testing(
             emitObservabilityEvents = true,
-            devModeActive = devMode.value ?: false,
-        )
+            devModeActive = devMode.value == true,
+        ),
+        logLevel = if (devMode.value == true) "TRACE" else "INFO",
     )
 
     private val api = WalletBackendApi(app, walletConfig, this, this)
@@ -259,6 +260,7 @@ class MainViewModel(
                 ) ?: Testing(
                     devModeActive = enabled,
                 ),
+                logLevel = if (enabled) "TRACE" else "INFO",
             )
 
             api.setWalletConfig(config)
