@@ -38,7 +38,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.setupWithNavController
+import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceFragmentCompat.OnPreferenceStartFragmentCallback
@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
         nav = navHostFragment.navController
 
         setSupportActionBar(ui.toolbar)
-        ui.toolbar.setupWithNavController(nav)
+        setupActionBarWithNavController(nav)
         ui.toolbar.setNavigationOnClickListener {
             if (onBackPressedDispatcher.hasEnabledCallbacks()) {
                 onBackPressedDispatcher.onBackPressed()
