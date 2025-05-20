@@ -165,7 +165,7 @@ fun ScopeDropdown(
                 DropdownMenuItem(
                     text = {
                         Text(text = when (s) {
-                            is ScopeInfo.Global -> stringResource(R.string.currency)
+                            is ScopeInfo.Global -> s.currency
                             is ScopeInfo.Exchange -> stringResource(
                                 R.string.currency_url,
                                 s.currency,
