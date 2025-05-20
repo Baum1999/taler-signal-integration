@@ -38,6 +38,7 @@ import net.taler.wallet.transactions.TransactionAction.Retry
 import net.taler.wallet.transactions.TransactionAction.Suspend
 import net.taler.wallet.transactions.TransactionAmountComposable
 import net.taler.wallet.transactions.TransactionInfoComposable
+import net.taler.wallet.transactions.TransactionMajorState.Done
 import net.taler.wallet.transactions.TransactionMajorState.Pending
 import net.taler.wallet.transactions.TransactionMinorState.CreatePurse
 import net.taler.wallet.transactions.TransactionMinorState.Ready
@@ -76,7 +77,11 @@ fun ColumnScope.TransactionPeerPullCreditComposable(
     }
 
     TransactionAmountComposable(
-        label = stringResource(id = R.string.amount_received),
+        label = if (t.txState.major == Done) {
+            stringResource(id = R.string.amount_received)
+        } else {
+            stringResource(id = R.string.amount_receive)
+        },
         amount = t.amountEffective.withSpec(spec),
         amountType = AmountType.Positive,
     )
