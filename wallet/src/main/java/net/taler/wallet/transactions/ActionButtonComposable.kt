@@ -37,6 +37,7 @@ import net.taler.wallet.transactions.TransactionMinorState.BalanceKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
 import net.taler.wallet.transactions.TransactionMinorState.ExchangeWaitReserve
 import net.taler.wallet.transactions.TransactionMinorState.KycRequired
+import net.taler.wallet.transactions.TransactionMinorState.MergeKycRequired
 
 interface ActionListener {
     enum class Type {
@@ -57,7 +58,7 @@ fun ActionButton(
 ) {
     if (tx.txState.major == Pending) {
         when (tx.txState.minor) {
-            KycRequired, BalanceKycRequired -> KycButton(modifier, tx, listener)
+            KycRequired, BalanceKycRequired, MergeKycRequired -> KycButton(modifier, tx, listener)
             BankConfirmTransfer -> ConfirmBankButton(modifier, tx, listener)
             ExchangeWaitReserve -> ConfirmManualButton(modifier, tx, listener)
             else -> {}
@@ -78,6 +79,7 @@ private fun KycButton(
         val label = when (tx.txState.minor) {
             KycRequired -> stringResource(R.string.transaction_action_kyc_balance)
             BalanceKycRequired -> stringResource(R.string.transaction_action_kyc_bank)
+            MergeKycRequired -> stringResource(R.string.transaction_action_kyc_merge)
             else -> return@Button
         }
 

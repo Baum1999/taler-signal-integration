@@ -50,6 +50,7 @@ import net.taler.wallet.transactions.TransactionAmountComposable
 import net.taler.wallet.transactions.TransactionInfoComposable
 import net.taler.wallet.transactions.TransactionMajorState.Pending
 import net.taler.wallet.transactions.TransactionMinorState.CreatePurse
+import net.taler.wallet.transactions.TransactionMinorState.MergeKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.Ready
 import net.taler.wallet.transactions.TransactionPeerComposable
 import net.taler.wallet.transactions.TransactionPeerPushDebit
@@ -98,7 +99,7 @@ fun ColumnScope.PeerQrCode(
     talerUri: String?,
     instructionResId: Int,
 ) {
-    if (state == TransactionState(Pending)) {
+    if (state == TransactionState(Pending) && state.minor != MergeKycRequired) {
         Text(
             modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
             style = MaterialTheme.typography.titleLarge,
@@ -128,7 +129,6 @@ fun ColumnScope.PeerQrCode(
             )
         }
     }
-
 }
 
 @Preview
