@@ -147,14 +147,19 @@ class PeerManager(
         _outgoingPullState.value = OutgoingIntro
     }
 
-    suspend fun checkPeerPushFees(amount: Amount, exchangeBaseUrl: String? = null): CheckFeeResult {
-        val max = getMaxPeerPushDebitAmount(amount.currency, exchangeBaseUrl)
+    suspend fun checkPeerPushFees(
+        amount: Amount,
+        exchangeBaseUrl: String? = null,
+        restrictScope: ScopeInfo? = null,
+    ): CheckFeeResult {
+        val max = getMaxPeerPushDebitAmount(amount.currency, exchangeBaseUrl, restrictScope = restrictScope)
         var response: CheckFeeResult = CheckFeeResult.None(
             maxDepositAmountEffective = max?.effectiveAmount,
             maxDepositAmountRaw = max?.rawAmount,
         )
         api.request("checkPeerPushDebitV2", CheckPeerPushDebitResponse.serializer()) {
             exchangeBaseUrl?.let { put("exchangeBaseUrl", it) }
+            restrictScope?.let { put("restrictScope", JSONObject(BackendManager.json.encodeToString(it))) }
             put("amount", amount.toJSONString())
         }.onSuccess { res ->
             response = when (val r = res) {
@@ -189,7 +194,7 @@ class PeerManager(
         var response: GetMaxPeerPushDebitAmountResponse? = null
         api.request("getMaxPeerPushDebitAmount", GetMaxPeerPushDebitAmountResponse.serializer()) {
             exchangeBaseUrl?.let { put("exchangeBaseUrl", it) }
-            restrictScope?.let { put("restrictScope", it) }
+            restrictScope?.let { put("restrictScope", JSONObject(BackendManager.json.encodeToString(it))) }
             put("currency", currency)
         }.onError { error ->
             Log.e(TAG, "got getMaxPeerPushDebitAmount error result $error")
@@ -200,11 +205,17 @@ class PeerManager(
         return response
     }
 
-    fun initiatePeerPushDebit(amount: Amount, summary: String, expirationHours: Long) {
+    fun initiatePeerPushDebit(
+        amount: Amount,
+        summary: String,
+        expirationHours: Long,
+        restrictScope: ScopeInfo? = null,
+    ) {
         _outgoingPushState.value = OutgoingCreating
         scope.launch(Dispatchers.IO) {
             val expiry = Timestamp.fromMillis(System.currentTimeMillis() + HOURS.toMillis(expirationHours))
             api.request("initiatePeerPushDebit", InitiatePeerPushDebitResponse.serializer()) {
+                restrictScope?.let { put("restrictScope", JSONObject(BackendManager.json.encodeToString(it))) }
                 put("amount", amount.toJSONString())
                 put("partialContractTerms", JSONObject().apply {
                     put("amount", amount.toJSONString())

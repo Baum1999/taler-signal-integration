@@ -147,6 +147,11 @@ class BalanceManager(
     } ?: emptyList()
 
     @UiThread
+    fun getScopes() = balances.value?.map { balanceItem ->
+        balanceItem.scopeInfo
+    } ?: emptyList()
+
+    @UiThread
     fun hasSufficientBalance(amount: Amount): Boolean {
         balances.value?.forEach { balanceItem ->
             if (balanceItem.currency == amount.currency) {

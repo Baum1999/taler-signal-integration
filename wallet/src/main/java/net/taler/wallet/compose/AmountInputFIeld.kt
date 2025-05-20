@@ -17,22 +17,28 @@
 package net.taler.wallet.compose
 
 import android.annotation.SuppressLint
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -45,6 +51,7 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.key.utf16CodePoint
 import androidx.compose.ui.platform.LocalTextInputService
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.InternalTextApi
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.BackspaceCommand
@@ -60,8 +67,12 @@ import androidx.compose.ui.text.input.TextInputService
 import androidx.compose.ui.text.input.TextInputSession
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
-import net.taler.wallet.deposit.CurrencyDropdown
+import net.taler.wallet.R
 
+@Deprecated(
+    message = "Use AmountScopeField for scopeInfo support",
+    replaceWith = ReplaceWith("AmountScopeField"),
+)
 @Composable
 fun AmountCurrencyField(
     modifier: Modifier = Modifier,
@@ -124,6 +135,59 @@ fun AmountCurrencyField(
 }
 
 @Composable
+private fun CurrencyDropdown(
+    currencies: List<String>,
+    onCurrencyChanged: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    initialCurrency: String? = null,
+    readOnly: Boolean = false,
+) {
+    val initialIndex = currencies.indexOf(initialCurrency).let { if (it < 0) 0 else it }
+    var selectedIndex by remember { mutableIntStateOf(initialIndex) }
+    var expanded by remember { mutableStateOf(false) }
+    Box(
+        modifier = modifier,
+    ) {
+        OutlinedTextField(
+            modifier = Modifier
+                .clickable(onClick = { if (!readOnly) expanded = true })
+                .fillMaxWidth(),
+            value = currencies.getOrNull(selectedIndex)
+                ?: initialCurrency // wallet is empty or currency is new
+                ?: error("no currency available"),
+            onValueChange = { },
+            readOnly = true,
+            enabled = false,
+            textStyle = LocalTextStyle.current.copy( // show text as if not disabled
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            ),
+            singleLine = true,
+            label = {
+                Text(stringResource(R.string.currency))
+            }
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier,
+        ) {
+            currencies.forEachIndexed { index, s ->
+                DropdownMenuItem(
+                    text = {
+                        Text(text = s)
+                    },
+                    onClick = {
+                        selectedIndex = index
+                        onCurrencyChanged(currencies[index])
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun AmountInputShortcuts(
     amounts: List<Amount>,
     onSelected: (amount: Amount) -> Unit,
@@ -145,7 +209,7 @@ private fun AmountInputShortcuts(
 }
 
 @Composable
-private fun AmountInputFieldBase(
+internal fun AmountInputFieldBase(
     amount: Amount,
     onAmountChanged: (amount: Amount) -> Unit,
     modifier: Modifier,

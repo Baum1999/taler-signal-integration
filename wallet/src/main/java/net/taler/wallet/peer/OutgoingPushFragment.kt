@@ -31,9 +31,9 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
-import net.taler.common.Amount
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
+import net.taler.wallet.compose.AmountScope
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.showError
@@ -67,10 +67,10 @@ class OutgoingPushFragment : Fragment() {
                     val selectedScope by transactionManager.selectedScope.collectAsStateLifecycleAware()
                     OutgoingPushComposable(
                         state = state,
-                        defaultCurrency = selectedScope?.currency,
-                        currencies = balanceManager.getCurrencies(),
-                        getCurrencySpec = balanceManager::getSpecForCurrency,
-                        getFees = peerManager::checkPeerPushFees,
+                        defaultScope = selectedScope,
+                        scopes = balanceManager.getScopes(),
+                        getCurrencySpec = balanceManager::getSpecForScopeInfo,
+                        getFees = { peerManager.checkPeerPushFees(it.amount, restrictScope = it.scope) },
                         onSend = this@OutgoingPushFragment::onSend,
                         onClose = {
                             findNavController().navigate(R.id.action_nav_peer_push_to_nav_main)
@@ -115,7 +115,7 @@ class OutgoingPushFragment : Fragment() {
         if (!requireActivity().isChangingConfigurations) peerManager.resetPushPayment()
     }
 
-    private fun onSend(amount: Amount, summary: String, hours: Long) {
-        peerManager.initiatePeerPushDebit(amount, summary, hours)
+    private fun onSend(amount: AmountScope, summary: String, hours: Long) {
+        peerManager.initiatePeerPushDebit(amount.amount, summary, hours, restrictScope = amount.scope)
     }
 }

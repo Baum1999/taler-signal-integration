@@ -47,8 +47,10 @@ import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.cleanExchange
-import net.taler.wallet.compose.AmountCurrencyField
+import net.taler.wallet.compose.AmountScope
+import net.taler.wallet.compose.AmountScopeField
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.payment.stringResId
@@ -62,18 +64,18 @@ import kotlin.random.Random
 @Composable
 fun OutgoingPushComposable(
     state: OutgoingState,
-    defaultCurrency: String?,
-    currencies: List<String>,
-    getCurrencySpec: (currency: String) -> CurrencySpecification?,
-    getFees: suspend (amount: Amount) -> CheckFeeResult?,
-    onSend: (amount: Amount, summary: String, hours: Long) -> Unit,
+    defaultScope: ScopeInfo?,
+    scopes: List<ScopeInfo>,
+    getCurrencySpec: (scope: ScopeInfo) -> CurrencySpecification?,
+    getFees: suspend (amount: AmountScope) -> CheckFeeResult?,
+    onSend: (amount: AmountScope, summary: String, hours: Long) -> Unit,
     onClose: () -> Unit,
 ) {
     when(state) {
         is OutgoingChecking, is OutgoingCreating, is OutgoingResponse -> PeerCreatingComposable()
         is OutgoingIntro, is OutgoingChecked -> OutgoingPushIntroComposable(
-            defaultCurrency = defaultCurrency,
-            currencies = currencies,
+            defaultScope = defaultScope,
+            scopes = scopes,
             getCurrencySpec = getCurrencySpec,
             getFees = getFees,
             onSend = onSend,
@@ -84,11 +86,11 @@ fun OutgoingPushComposable(
 
 @Composable
 fun OutgoingPushIntroComposable(
-    defaultCurrency: String?,
-    currencies: List<String>,
-    getCurrencySpec: (currency: String) -> CurrencySpecification?,
-    getFees: suspend (amount: Amount) -> CheckFeeResult?,
-    onSend: (amount: Amount, summary: String, hours: Long) -> Unit,
+    defaultScope: ScopeInfo?,
+    scopes: List<ScopeInfo>,
+    getCurrencySpec: (scope: ScopeInfo) -> CurrencySpecification?,
+    getFees: suspend (amount: AmountScope) -> CheckFeeResult?,
+    onSend: (amount: AmountScope, summary: String, hours: Long) -> Unit,
 ) {
     val scrollState = rememberScrollState()
     Column(
@@ -98,8 +100,12 @@ fun OutgoingPushIntroComposable(
             .verticalScroll(scrollState),
         horizontalAlignment = CenterHorizontally,
     ) {
-        var amount by remember { mutableStateOf(Amount.zero(defaultCurrency ?: currencies[0])) }
-        val selectedSpec = remember(amount.currency) { getCurrencySpec(amount.currency) }
+        var amount by remember {
+            val scope = defaultScope ?: scopes[0]
+            val currency = scope.currency
+            mutableStateOf(AmountScope(Amount.zero(currency), scope))
+        }
+        val selectedSpec = remember(amount.scope) { getCurrencySpec(amount.scope) }
         var feeResult by remember { mutableStateOf<CheckFeeResult>(None()) }
 
         amount.useDebounce {
@@ -133,14 +139,14 @@ fun OutgoingPushIntroComposable(
             }
         }
 
-        AmountCurrencyField(
+        AmountScopeField(
             modifier = Modifier.fillMaxWidth(),
-            amount = amount.withSpec(selectedSpec),
-            currencies = currencies,
+            amount = amount.copy(amount = amount.amount.withSpec(selectedSpec)),
+            scopes = scopes,
             readOnly = false,
             onAmountChanged = { amount = it },
             label = { Text(stringResource(R.string.amount_send)) },
-            isError = amount.isZero() || feeResult is InsufficientBalance,
+            isError = amount.amount.isZero() || feeResult is InsufficientBalance,
             supportingText = {
                 when (val res = feeResult) {
                     is Success -> if (res.amountEffective > res.amountRaw) {
@@ -235,8 +241,12 @@ fun PeerPushComposableCreatingPreview() {
     TalerSurface {
         OutgoingPushComposable(
             state = OutgoingCreating,
-            defaultCurrency = "KUDOS",
-            currencies = listOf("KUDOS", "TESTKUDOS", "NETZBON"),
+            defaultScope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+            scopes = listOf(
+                ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+                ScopeInfo.Exchange("TESTKUDOS", "https://exchange.test.taler.net/"),
+                ScopeInfo.Global("CHF"),
+            ),
             getCurrencySpec = { null },
             getFees = { Success(
                 amountEffective = Amount.fromJSONString("KUDOS:10"),
@@ -256,8 +266,12 @@ fun PeerPushComposableCheckingPreview() {
         val state = if (Random.nextBoolean()) OutgoingIntro else OutgoingChecking
         OutgoingPushComposable(
             state = state,
-            defaultCurrency = "KUDOS",
-            currencies = listOf("KUDOS", "TESTKUDOS", "NETZBON"),
+            defaultScope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+            scopes = listOf(
+                ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+                ScopeInfo.Exchange("TESTKUDOS", "https://exchange.test.taler.net/"),
+                ScopeInfo.Global("CHF"),
+            ),
             getCurrencySpec = { null },
             getFees = { Success(
                 amountEffective = Amount.fromJSONString("KUDOS:10"),
@@ -280,9 +294,13 @@ fun PeerPushComposableCheckedPreview() {
         val state = OutgoingChecked(amountRaw, amountEffective, "https://exchange.demo.taler.net", ExchangeTosStatus.Accepted)
         OutgoingPushComposable(
             state = state,
-            defaultCurrency = "KUDOS",
-            currencies = listOf("KUDOS", "TESTKUDOS", "NETZBON"),
             getCurrencySpec = { null },
+            defaultScope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+            scopes = listOf(
+                ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+                ScopeInfo.Exchange("TESTKUDOS", "https://exchange.test.taler.net/"),
+                ScopeInfo.Global("CHF"),
+            ),
             getFees = { Success(
                 amountEffective = Amount.fromJSONString("KUDOS:10"),
                 amountRaw = Amount.fromJSONString("KUDOS:12"),
@@ -303,8 +321,12 @@ fun PeerPushComposableErrorPreview() {
         val state = OutgoingError(TalerErrorInfo(TalerErrorCode.WALLET_WITHDRAWAL_KYC_REQUIRED, "hint", "message", json))
         OutgoingPushComposable(
             state = state,
-            defaultCurrency = "KUDOS",
-            currencies = listOf("KUDOS", "TESTKUDOS", "NETZBON"),
+            defaultScope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+            scopes = listOf(
+                ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+                ScopeInfo.Exchange("TESTKUDOS", "https://exchange.test.taler.net/"),
+                ScopeInfo.Global("CHF"),
+            ),
             getCurrencySpec = { null },
             getFees = { Success(
                 amountEffective = Amount.fromJSONString("KUDOS:10"),

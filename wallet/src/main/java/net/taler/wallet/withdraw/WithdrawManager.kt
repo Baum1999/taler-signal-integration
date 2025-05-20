@@ -63,6 +63,7 @@ data class WithdrawStatus(
 
     // received details
     val currency: String? = null,
+    val scopeInfo: ScopeInfo? = null,
     val uriInfo: WithdrawalDetailsForUri? = null,
     val amountInfo: WithdrawalDetailsForAmount? = null,
 
@@ -328,6 +329,7 @@ class WithdrawManager(
 
     fun getWithdrawalDetails(
         amount: Amount? = null,
+        scopeInfo: ScopeInfo? = null,
         exchangeBaseUrl: String? = null,
         loading: Boolean = true,
     ) = scope.launch {
@@ -338,45 +340,36 @@ class WithdrawManager(
         val ex: ExchangeItem
         val am: Amount?
 
-        // TODO: use scopeInfo instead of currency
-        // use cases:
-        if (amount != null && exchangeBaseUrl != null) {
-            // 1. user sets both to null state
-            //    => they are processed as-is
-            ex = exchangeManager.findExchangeByUrl(exchangeBaseUrl)
+        if (amount != null && (scopeInfo != null || exchangeBaseUrl != null)) {
+            // 1. caller sets both parameters
+            ex = exchangeBaseUrl?.let { exchangeManager.findExchangeByUrl(it) }
+                ?: scopeInfo?.let { exchangeManager.findExchange(it) }
                 ?: error("could not resolve exchange")
-            am = amount
+            am = ex.currency?.let { amount.copy(currency = it) }
+                ?: error("could not resolve currency")
         } else if (amount != null) {
-            // 2a user updates amount
-            //    => amount is updated
-            //    => exchange URL is recycled (unless currency changes)
-            // 2b. user sets amount to null state
-            //    => exchange URL is calculated from amount
-            ex = if (status.exchangeBaseUrl != null
-                && status.currency == amount.currency) {
-                exchangeManager.findExchangeByUrl(status.exchangeBaseUrl)
-                    ?: error("could not resolve exchange")
-            } else {
-                exchangeManager.findExchange(amount.currency)
-                    ?: error("could not resolve exchange")
-            }
+            // 2. caller only provides amount
+            //   => amount is updated
+            //   => exchange URL is kept
+            ex = status.exchangeBaseUrl?.let { exchangeManager.findExchangeByUrl(it) }
+                ?: status.scopeInfo?.let { exchangeManager.findExchange(it) }
+                ?: exchangeManager.findExchange(amount.currency)
+                ?: error("could not resolve exchange")
             am = amount
         } else if (exchangeBaseUrl != null) {
-            // 3a. user updates exchange URL
-            //    => amount is recycled (unless currency changes)
-            //    => exchangeURL is updated
-            // 3b. user sets exchange URL to null state
-            //    => amount is calculated from exchange URL
+            // 3. caller only provides exchange URL
             ex = exchangeManager.findExchangeByUrl(exchangeBaseUrl)
                 ?: error("could not resolve exchange")
-            am = if (status.amountInfo?.amountRaw != null
-                && status.currency == ex.currency) {
-                status.amountInfo.amountRaw
-            } else {
-                ex.currency
-                    ?.let { Amount.zero(it) }
-                    ?: error("could not resolve currency")
-            }
+            am = status.amountInfo?.amountRaw
+                ?: ex.currency?.let { Amount.zero(ex.currency) }
+                ?: error("could not resolve currency")
+        } else if (scopeInfo != null) {
+            // 3. caller only provides scope
+            ex = exchangeManager.findExchange(scopeInfo)
+                ?: error("could not resolve exchange")
+            am = status.amountInfo?.amountRaw
+                ?: ex.currency?.let { Amount.zero(ex.currency) }
+                ?: error("could not resolve currency")
         } else {
             error("no parameters specified")
         }
@@ -398,6 +391,7 @@ class WithdrawManager(
                         exchangeBaseUrl = ex.exchangeBaseUrl,
                         amountInfo = details,
                         currency = details.amountRaw.currency,
+                        scopeInfo = details.scopeInfo,
                     )
                 }
             }

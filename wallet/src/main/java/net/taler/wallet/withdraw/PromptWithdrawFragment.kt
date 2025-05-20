@@ -50,7 +50,9 @@ import net.taler.common.Amount
 import net.taler.common.EventObserver
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
+import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
@@ -88,8 +90,9 @@ class PromptWithdrawFragment: Fragment() {
         val withdrawExchangeUri = arguments?.getString("withdrawExchangeUri")
         val exchangeBaseUrl = arguments?.getString("exchangeBaseUrl")
         val amount = arguments?.getString("amount")?.let { Amount.fromJSONString(it) }
+        val scope: ScopeInfo? = arguments?.getString("scopeInfo")?.let { BackendManager.json.decodeFromString(it) }
         editableCurrency = arguments?.getBoolean("editableCurrency") ?: true
-        val currencies = balanceManager.getCurrencies()
+        val scopes = balanceManager.getScopes()
 
         setContent {
             val status by withdrawManager.withdrawStatus.collectAsStateLifecycleAware()
@@ -101,10 +104,10 @@ class PromptWithdrawFragment: Fragment() {
                     ?: MutableStateFlow(null)
             }.collectAsStateLifecycleAware(null)
 
-            val defaultCurrency = amount?.currency
-                ?: status.currency
-                ?: transactionManager.selectedScope.value?.currency
-                ?: currencies.firstOrNull()
+            val defaultScope = scope
+                ?: status.scopeInfo
+                ?: transactionManager.selectedScope.value
+                ?: scopes.firstOrNull()
 
             LaunchedEffect(status.status) {
                 if (status.status == None) {
@@ -114,10 +117,11 @@ class PromptWithdrawFragment: Fragment() {
                     } else if (withdrawExchangeUri != null) {
                         // get withdrawal details for taler://withdraw-exchange URI
                         withdrawManager.prepareManualWithdrawal(withdrawExchangeUri)
-                    } else if (defaultCurrency != null && !status.isCashAcceptor) {
+                    } else if (defaultScope != null && !status.isCashAcceptor) {
                         // get withdrawal details for available data
                         withdrawManager.getWithdrawalDetails(
-                            amount = amount ?: Amount.zero(defaultCurrency),
+                            amount = amount ?: Amount.zero(defaultScope.currency),
+                            scopeInfo = scope ?: defaultScope,
                             exchangeBaseUrl = exchangeBaseUrl,
                             loading = true,
                         )
@@ -145,7 +149,7 @@ class PromptWithdrawFragment: Fragment() {
 
             TalerSurface {
                 status.let { s ->
-                    if (defaultCurrency == null) {
+                    if (defaultScope == null) {
                         LoadingScreen()
                         return@let
                     }
@@ -158,18 +162,19 @@ class PromptWithdrawFragment: Fragment() {
                             WithdrawalShowInfo(
                                 status = s,
                                 devMode = devMode ?: false,
-                                defaultCurrency = defaultCurrency,
-                                editableCurrency = editableCurrency,
-                                currencies = currencies,
+                                defaultScope = defaultScope,
+                                editableScope = editableCurrency,
+                                scopes = scopes,
                                 spec = currencySpec,
                                 onSelectExchange = {
                                     selectExchange()
                                 },
-                                onSelectAmount = { amount ->
+                                onSelectAmount = { amount, scope ->
                                     withdrawManager.getWithdrawalDetails(
                                         amount = amount,
+                                        scopeInfo = scope,
                                         // only show loading screen when switching currencies
-                                        loading = amount.currency != status.currency,
+                                        loading = scope != status.scopeInfo,
                                     )
                                 },
                                 onTosReview = {

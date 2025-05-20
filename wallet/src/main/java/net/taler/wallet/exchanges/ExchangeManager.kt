@@ -31,6 +31,7 @@ import net.taler.common.toEvent
 import net.taler.wallet.TAG
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
+import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.withdraw.TosResponse
 
 @Serializable
@@ -143,6 +144,19 @@ class ExchangeManager(
         ).onSuccess { exchangeListResponse ->
             // just pick the first for now
             exchange = exchangeListResponse.exchanges.find { it.currency == currency }
+        }
+        return exchange
+    }
+
+    @WorkerThread
+    suspend fun findExchange(scope: ScopeInfo): ExchangeItem? {
+        var exchange: ExchangeItem? = null
+        api.request(
+            operation = "listExchanges",
+            serializer = ExchangeListResponse.serializer()
+        ).onSuccess { exchangeListResponse ->
+            // just pick the first for now
+            exchange = exchangeListResponse.exchanges.find { it.scopeInfo == scope }
         }
         return exchange
     }

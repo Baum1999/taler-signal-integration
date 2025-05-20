@@ -53,7 +53,8 @@ import net.taler.common.CurrencySpecification
 import net.taler.wallet.R
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.cleanExchange
-import net.taler.wallet.compose.AmountCurrencyField
+import net.taler.wallet.compose.AmountScope
+import net.taler.wallet.compose.AmountScopeField
 import net.taler.wallet.compose.BottomButtonBox
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.WarningLabel
@@ -73,41 +74,43 @@ import net.taler.wallet.withdraw.WithdrawalOperationStatusFlag.Pending
 fun WithdrawalShowInfo(
     status: WithdrawStatus,
     devMode: Boolean,
-    defaultCurrency: String,
-    editableCurrency: Boolean,
-    currencies: List<String>,
+    defaultScope: ScopeInfo,
+    editableScope: Boolean,
+    scopes: List<ScopeInfo>,
     spec: CurrencySpecification?,
-    onSelectAmount: (amount: Amount) -> Unit,
+    onSelectAmount: (amount: Amount, scope: ScopeInfo) -> Unit,
     onSelectExchange: () -> Unit,
     onTosReview: () -> Unit,
     onConfirm: (age: Int?) -> Unit,
 ) {
     val defaultAmount = status.amountInfo?.amountRaw
         ?: status.uriInfo?.amount
-        ?: Amount.zero(defaultCurrency)
+        ?: Amount.zero(defaultScope.currency)
     val maxAmount = status.uriInfo?.maxAmount
     val editableAmount = status.uriInfo?.editableAmount ?: true
-    val wireFee = status.uriInfo?.wireFee ?: Amount.zero(defaultCurrency)
+    val wireFee = status.uriInfo?.wireFee ?: Amount.zero(defaultScope.currency)
     val exchange = status.exchangeBaseUrl
     val possibleExchanges = status.uriInfo?.possibleExchanges ?: emptyList()
     val ageRestrictionOptions = status.amountInfo?.ageRestrictionOptions ?: emptyList()
 
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
-    var startup by remember { mutableStateOf(true) }
-    var selectedAmount by remember { mutableStateOf(defaultAmount) }
+    var selectedAmount by remember { mutableStateOf(AmountScope(defaultAmount, defaultScope)) }
     var selectedAge by remember { mutableStateOf<Int?>(null) }
-    var error by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     val insufficientBalance = remember(selectedAmount, maxAmount) {
-        maxAmount == null || selectedAmount > maxAmount
+        maxAmount == null || selectedAmount.amount > maxAmount
     }
 
+    var startup by remember { mutableStateOf(true) }
     selectedAmount.useDebounce {
         if (startup) { // do not fire at startup
             startup = false
         } else {
-            onSelectAmount(it)
+            onSelectAmount(
+                selectedAmount.amount,
+                selectedAmount.scope,
+            )
         }
     }
 
@@ -136,24 +139,28 @@ fun WithdrawalShowInfo(
                         .fillMaxWidth(),
                 )
             } else if (editableAmount) {
-                AmountCurrencyField(
+                AmountScopeField(
                     modifier = Modifier
-                        .padding(16.dp)
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp)
                         .fillMaxWidth()
                         .focusRequester(focusRequester),
-                    amount = selectedAmount.withSpec(spec),
-                    currencies = currencies,
-                    editableCurrency = editableCurrency,
+                    amount = selectedAmount.copy(
+                        amount = selectedAmount.amount.withSpec(spec)),
+                    scopes = scopes,
+                    editableScope = editableScope,
                     onAmountChanged = { amount ->
-                        selectedAmount = if (amount.currency != status.currency) {
+                        selectedAmount = if (amount.scope != status.scopeInfo) {
                             // if amount changes, reset to zero!
-                            Amount.zero(amount.currency)
+                            amount.copy(amount = Amount.zero(amount.scope.currency))
                         } else {
                             amount
                         }
                     },
                     label = { Text(stringResource(R.string.amount_withdraw)) },
-                    isError = selectedAmount.isZero() || maxAmount != null && selectedAmount > maxAmount,
+                    isError = selectedAmount.amount.isZero()
+                            || maxAmount != null
+                            && selectedAmount.amount > maxAmount,
                     supportingText = {
                         if (insufficientBalance && maxAmount != null) {
                             Text(stringResource(R.string.amount_excess, maxAmount))
@@ -175,7 +182,7 @@ fun WithdrawalShowInfo(
                     } else {
                         stringResource(R.string.amount_chosen)
                     },
-                    amount = selectedAmount,
+                    amount = selectedAmount.amount,
                     amountType = if (wireFee.isZero()) {
                         AmountType.Positive
                     } else {
@@ -198,7 +205,7 @@ fun WithdrawalShowInfo(
 
                 TransactionAmountComposable(
                     label = stringResource(R.string.amount_total),
-                    amount = selectedAmount + wireFee,
+                    amount = selectedAmount.amount + wireFee,
                     amountType = AmountType.Positive,
                 )
             }
@@ -270,11 +277,10 @@ fun WithdrawalShowInfo(
             Button(
                 modifier = Modifier
                     .systemBarsPaddingBottom(),
-                enabled = !error
-                        && status.status != Updating
+                enabled = status.status != Updating
                         && (status.isCashAcceptor
                         || status.status == TosReviewRequired
-                        || !selectedAmount.isZero()),
+                        || !selectedAmount.amount.isZero()),
                 onClick = {
                     keyboardController?.hide()
                     if (status.status == TosReviewRequired) {
@@ -346,12 +352,16 @@ fun WithdrawalShowInfoUpdatingPreview() {
         WithdrawalShowInfo(
             status = buildPreviewWithdrawStatus(Updating),
             devMode = true,
-            defaultCurrency = "KUDOS",
-            editableCurrency = true,
-            currencies = listOf("KUDOS", "TESTKUDOS", "NETZBON"),
+            defaultScope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+            editableScope = true,
+            scopes = listOf(
+                ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+                ScopeInfo.Exchange("TESTKUDOS", "https://exchange.test.taler.net/"),
+                ScopeInfo.Global("CHF"),
+            ),
             spec = null,
             onSelectExchange = {},
-            onSelectAmount = {},
+            onSelectAmount = { _, _ -> },
             onTosReview = {},
             onConfirm = {},
         )
@@ -365,12 +375,16 @@ fun WithdrawalShowInfoTosReviewPreview() {
         WithdrawalShowInfo(
             status = buildPreviewWithdrawStatus(TosReviewRequired),
             devMode = true,
-            defaultCurrency = "KUDOS",
-            editableCurrency = true,
-            currencies = listOf("KUDOS", "TESTKUDOS", "NETZBON"),
+            defaultScope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+            editableScope = true,
+            scopes = listOf(
+                ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+                ScopeInfo.Exchange("TESTKUDOS", "https://exchange.test.taler.net/"),
+                ScopeInfo.Global("CHF"),
+            ),
             spec = null,
             onSelectExchange = {},
-            onSelectAmount = {},
+            onSelectAmount = { _, _ -> },
             onTosReview = {},
             onConfirm = {},
         )

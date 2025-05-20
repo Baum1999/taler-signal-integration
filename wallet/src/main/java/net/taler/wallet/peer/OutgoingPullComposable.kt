@@ -53,8 +53,10 @@ import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.cleanExchange
-import net.taler.wallet.compose.AmountCurrencyField
+import net.taler.wallet.compose.AmountScope
+import net.taler.wallet.compose.AmountScopeField
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.transactions.TransactionInfoComposable
@@ -64,19 +66,19 @@ import kotlin.random.Random
 @Composable
 fun OutgoingPullComposable(
     state: OutgoingState,
-    defaultCurrency: String?,
-    currencies: List<String>,
-    getCurrencySpec: (currency: String) -> CurrencySpecification?,
-    checkPeerPullCredit: suspend (amount: Amount) -> CheckPeerPullCreditResult?,
-    onCreateInvoice: (amount: Amount, subject: String, hours: Long, exchangeBaseUrl: String) -> Unit,
+    defaultScope: ScopeInfo?,
+    scopes: List<ScopeInfo>,
+    getCurrencySpec: (scope: ScopeInfo) -> CurrencySpecification?,
+    checkPeerPullCredit: suspend (amount: AmountScope) -> CheckPeerPullCreditResult?,
+    onCreateInvoice: (amount: AmountScope, subject: String, hours: Long, exchangeBaseUrl: String) -> Unit,
     onTosAccept: (exchangeBaseUrl: String) -> Unit,
     onClose: () -> Unit,
 ) {
     when(state) {
         is OutgoingChecking, is OutgoingCreating, is OutgoingResponse -> PeerCreatingComposable()
         is OutgoingIntro, is OutgoingChecked -> OutgoingPullIntroComposable(
-            defaultCurrency = defaultCurrency,
-            currencies = currencies,
+            defaultScope = defaultScope,
+            scopes = scopes,
             getCurrencySpec = getCurrencySpec,
             checkPeerPullCredit = checkPeerPullCredit,
             onCreateInvoice = onCreateInvoice,
@@ -102,11 +104,11 @@ fun PeerCreatingComposable() {
 
 @Composable
 fun OutgoingPullIntroComposable(
-    defaultCurrency: String?,
-    currencies: List<String>,
-    getCurrencySpec: (currency: String) -> CurrencySpecification?,
-    checkPeerPullCredit: suspend (amount: Amount) -> CheckPeerPullCreditResult?,
-    onCreateInvoice: (amount: Amount, subject: String, hours: Long, exchangeBaseUrl: String) -> Unit,
+    defaultScope: ScopeInfo?,
+    scopes: List<ScopeInfo>,
+    getCurrencySpec: (scope: ScopeInfo) -> CurrencySpecification?,
+    checkPeerPullCredit: suspend (amount: AmountScope) -> CheckPeerPullCreditResult?,
+    onCreateInvoice: (amount: AmountScope, subject: String, hours: Long, exchangeBaseUrl: String) -> Unit,
     onTosAccept: (exchangeBaseUrl: String) -> Unit,
 ) {
     val scrollState = rememberScrollState()
@@ -118,8 +120,12 @@ fun OutgoingPullIntroComposable(
         horizontalAlignment = CenterHorizontally,
     ) {
         var subject by rememberSaveable { mutableStateOf("") }
-        var amount by remember { mutableStateOf(Amount.zero(defaultCurrency ?: currencies[0])) }
-        val selectedSpec = remember(amount.currency) { getCurrencySpec(amount.currency) }
+        var amount by remember {
+            val scope = defaultScope ?: scopes[0]
+            val currency = scope.currency
+            mutableStateOf(AmountScope(Amount.zero(currency), scope))
+        }
+        val selectedSpec = remember(amount.scope) { getCurrencySpec(amount.scope) }
         var checkResult by remember { mutableStateOf<CheckPeerPullCreditResult?>(null) }
 
         amount.useDebounce {
@@ -130,15 +136,15 @@ fun OutgoingPullIntroComposable(
             checkResult = checkPeerPullCredit(amount)
         }
 
-        AmountCurrencyField(
+        AmountScopeField(
             modifier = Modifier
                 .padding(bottom = 16.dp)
                 .fillMaxWidth(),
-            amount = amount.withSpec(selectedSpec),
-            currencies = currencies,
+            amount = amount.copy(amount = amount.amount.withSpec(selectedSpec)),
+            scopes = scopes,
             readOnly = false,
             onAmountChanged = { amount = it },
-            isError = amount.isZero(),
+            isError = amount.amount.isZero(),
             label = { Text(stringResource(R.string.amount_receive)) },
         )
 
@@ -267,8 +273,12 @@ fun PeerPullComposableCreatingPreview() {
     TalerSurface {
         OutgoingPullComposable(
             state = OutgoingCreating,
-            defaultCurrency = "KUDOS",
-            currencies = listOf("KUDOS", "TESTKUDOS", "NETZBON"),
+            defaultScope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+            scopes = listOf(
+                ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+                ScopeInfo.Exchange("TESTKUDOS", "https://exchange.test.taler.net/"),
+                ScopeInfo.Global("CHF"),
+            ),
             getCurrencySpec = { null },
             checkPeerPullCredit = { null },
             onCreateInvoice = { _, _, _, _ -> },
@@ -284,8 +294,12 @@ fun PeerPullComposableCheckingPreview() {
     TalerSurface {
         OutgoingPullComposable(
             state = if (Random.nextBoolean()) OutgoingIntro else OutgoingChecking,
-            defaultCurrency = "KUDOS",
-            currencies = listOf("KUDOS", "TESTKUDOS", "NETZBON"),
+            defaultScope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+            scopes = listOf(
+                ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+                ScopeInfo.Exchange("TESTKUDOS", "https://exchange.test.taler.net/"),
+                ScopeInfo.Global("CHF"),
+            ),
             getCurrencySpec = { null },
             checkPeerPullCredit = { null },
             onCreateInvoice = { _, _, _, _ -> },
@@ -303,8 +317,12 @@ fun PeerPullComposableCheckedPreview() {
         val amountEffective = Amount.fromString("TESTKUDOS", "42.23")
         OutgoingPullComposable(
             state = OutgoingChecked(amountRaw, amountEffective, "https://exchange.demo.taler.net/", ExchangeTosStatus.Accepted),
-            defaultCurrency = "KUDOS",
-            currencies = listOf("KUDOS", "TESTKUDOS", "NETZBON"),
+            defaultScope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+            scopes = listOf(
+                ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+                ScopeInfo.Exchange("TESTKUDOS", "https://exchange.test.taler.net/"),
+                ScopeInfo.Global("CHF"),
+            ),
             getCurrencySpec = { null },
             checkPeerPullCredit = { null },
             onCreateInvoice = { _, _, _, _ -> },
@@ -322,8 +340,12 @@ fun PeerPullComposableErrorPreview() {
         val state = OutgoingError(TalerErrorInfo(TalerErrorCode.WALLET_WITHDRAWAL_KYC_REQUIRED, "hint", "message", json))
         OutgoingPullComposable(
             state = state,
-            defaultCurrency = "KUDOS",
-            currencies = listOf("KUDOS", "TESTKUDOS", "NETZBON"),
+            defaultScope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+            scopes = listOf(
+                ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+                ScopeInfo.Exchange("TESTKUDOS", "https://exchange.test.taler.net/"),
+                ScopeInfo.Global("CHF"),
+            ),
             getCurrencySpec = { null },
             checkPeerPullCredit = { null },
             onCreateInvoice = { _, _, _, _ -> },

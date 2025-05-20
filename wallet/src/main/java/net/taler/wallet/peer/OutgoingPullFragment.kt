@@ -30,9 +30,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
-import net.taler.common.Amount
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
+import net.taler.wallet.compose.AmountScope
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.showError
@@ -58,14 +58,14 @@ class OutgoingPullFragment : Fragment() {
                         state = state,
                         onCreateInvoice = this@OutgoingPullFragment::onCreateInvoice,
                         onTosAccept = this@OutgoingPullFragment::onTosAccept,
-                        defaultCurrency = selectedScope?.currency,
-                        currencies = balanceManager.getCurrencies(),
-                        getCurrencySpec = balanceManager::getSpecForCurrency,
+                        defaultScope = selectedScope,
+                        scopes = balanceManager.getScopes(),
+                        getCurrencySpec = balanceManager::getSpecForScopeInfo,
                         checkPeerPullCredit = {
-                            // TODO: this should work with scopeInfo/exchangeBaseUrl
-                            exchangeManager.findExchange(it.currency)?.let { ex ->
-                                peerManager.checkPeerPullCredit(it,
-                                    exchangeBaseUrl = ex.exchangeBaseUrl)
+                            exchangeManager.findExchange(it.scope)?.let { ex ->
+                                peerManager.checkPeerPullCredit(it.amount,
+                                    exchangeBaseUrl = ex.exchangeBaseUrl,
+                                    scopeInfo = it.scope)
                             }
                         },
                         onClose = {
@@ -118,7 +118,7 @@ class OutgoingPullFragment : Fragment() {
         findNavController().navigate(R.id.action_global_reviewExchangeTos, bundle)
     }
 
-    private fun onCreateInvoice(amount: Amount, summary: String, hours: Long, exchangeBaseUrl: String) {
-        peerManager.initiatePeerPullCredit(amount, summary, hours, exchangeBaseUrl)
+    private fun onCreateInvoice(amount: AmountScope, summary: String, hours: Long, exchangeBaseUrl: String) {
+        peerManager.initiatePeerPullCredit(amount.amount, summary, hours, exchangeBaseUrl)
     }
 }
