@@ -61,6 +61,11 @@ abstract class TransactionDetailFragment : Fragment() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        transactionManager.selectTransaction(null)
+    }
+
     private fun dialogTitle(t: TransactionAction): Int = when (t) {
         Delete -> R.string.transactions_delete_dialog_title
         Abort -> R.string.transactions_abort_dialog_title

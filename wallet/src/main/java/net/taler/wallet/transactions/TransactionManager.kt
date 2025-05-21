@@ -191,7 +191,7 @@ class TransactionManager(
         } ?: Log.d(TAG, "Error updating selected transaction $id")
     }
 
-    fun selectTransaction(tx: Transaction) = scope.launch {
+    fun selectTransaction(tx: Transaction?) = scope.launch {
         mSelectedTransaction.value = tx
     }
 

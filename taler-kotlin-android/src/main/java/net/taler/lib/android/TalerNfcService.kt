@@ -18,9 +18,11 @@ package net.taler.lib.android
 
 import android.app.Activity
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.nfc.NdefMessage
 import android.nfc.NdefRecord
 import android.nfc.NfcAdapter.getDefaultAdapter
@@ -28,6 +30,7 @@ import android.nfc.cardemulation.CardEmulation
 import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
 import android.util.Log
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import java.math.BigInteger
 
 class TalerNfcService : HostApduService() {
@@ -52,11 +55,14 @@ class TalerNfcService : HostApduService() {
 
     private var readCapabilityContainerCheck = false
 
+    private val broadcastReceiver = object: BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            intent?.getStringExtra("uri").let { uri = it }
+            Log.d(TAG, "onReceive() | URI: $uri")
+        }
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        intent?.getStringExtra("uri")?.let { uri = it }
-
-        Log.d(TAG, "onStartCommand() | URI: $uri")
-
         return Service.START_STICKY
     }
 
@@ -201,14 +207,24 @@ class TalerNfcService : HostApduService() {
         return fillByteArrayToFixedDimension(filledArray, fixedSize)
     }
 
+    override fun onCreate() {
+        super.onCreate()
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+            broadcastReceiver,
+            IntentFilter(SET_URI_INTENT),
+        )
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "onDestroy() NFC service")
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver)
         uri = null
     }
 
     companion object {
         private const val TAG = "taler-wallet-hce"
+        const val SET_URI_INTENT = "taler-wallet-set-url"
 
         private val APDU_SELECT = byteArrayOf(
             0x00.toByte(), // CLA	- Class - Class of instruction
@@ -245,14 +261,14 @@ class TalerNfcService : HostApduService() {
         )
 
         private val READ_CAPABILITY_CONTAINER_RESPONSE = byteArrayOf(
-            0x00.toByte(), 0x11.toByte(), // CCLEN length of the CC file
+            0x00.toByte(), 0x0F.toByte(), // CCLEN length of the CC file
             0x20.toByte(), // Mapping Version 2.0
-            0xFF.toByte(), 0xFF.toByte(), // MLe maximum
-            0xFF.toByte(), 0xFF.toByte(), // MLc maximum
+            0x00.toByte(), 0x3B.toByte(), // MLe maximum
+            0x00.toByte(), 0x34.toByte(), // MLc maximum
             0x04.toByte(), // T field of the NDEF File Control TLV
             0x06.toByte(), // L field of the NDEF File Control TLV
             0xE1.toByte(), 0x04.toByte(), // File Identifier of NDEF file
-            0xFF.toByte(), 0xFE.toByte(), // Maximum NDEF file size of 65534 bytes
+            0x00.toByte(), 0xFE.toByte(), // Maximum NDEF file size of 65534 bytes
             0x00.toByte(), // Read access without any security
             0xFF.toByte(), // Write access without any security
             0x90.toByte(), 0x00.toByte(), // A_OKAY
@@ -318,17 +334,30 @@ class TalerNfcService : HostApduService() {
             emulation.unsetPreferredService(activity)
         }
 
+        fun startService(activity: Activity) {
+            val intent = Intent(activity, TalerNfcService::class.java)
+            activity.startService(intent)
+        }
+
+        fun stopService(activity: Activity) {
+            val intent = Intent(activity, TalerNfcService::class.java)
+            activity.stopService(intent)
+        }
+
         fun setUri(activity: Activity, uri: String) {
             if (!hasNfc(activity)) return
-            val intent = Intent(activity, TalerNfcService::class.java)
+            val broadcastManager = LocalBroadcastManager.getInstance(activity)
+            val intent = Intent(SET_URI_INTENT)
             intent.putExtra("uri", uri)
-            activity.startService(intent)
+            broadcastManager.sendBroadcast(intent)
         }
 
         fun clearUri(activity: Activity) {
             if (!hasNfc(activity)) return
-            val intent = Intent(activity, TalerNfcService::class.java)
-            activity.stopService(intent)
+            val broadcastManager = LocalBroadcastManager.getInstance(activity)
+            val intent = Intent(SET_URI_INTENT)
+            intent.putExtra("uri", null as String?)
+            broadcastManager.sendBroadcast(intent)
         }
     }
 }

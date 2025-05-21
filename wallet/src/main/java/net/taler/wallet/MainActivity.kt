@@ -78,6 +78,8 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
         setContentView(ui.root)
         setupInsets()
 
+        TalerNfcService.startService(this)
+
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         nav = navHostFragment.navController
@@ -263,6 +265,7 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
 
     override fun onDestroy() {
         super.onDestroy()
+        TalerNfcService.stopService(this)
         TalerNfcService.clearUri(this)
         model.stopWallet()
     }

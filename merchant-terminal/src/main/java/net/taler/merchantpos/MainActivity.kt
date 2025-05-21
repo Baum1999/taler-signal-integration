@@ -58,6 +58,8 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
         ui = ActivityMainBinding.inflate(layoutInflater)
         setContentView(ui.root)
 
+        TalerNfcService.startService(this)
+
         model.paymentManager.payment.observe(this) { payment ->
             payment?.talerPayUri?.let {
                 TalerNfcService.setUri(this, it)
@@ -107,6 +109,11 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
     override fun onPause() {
         super.onPause()
         TalerNfcService.unsetDefaultHandler(this)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        TalerNfcService.stopService(this)
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {

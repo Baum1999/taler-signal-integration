@@ -44,6 +44,8 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         nav = navHostFragment.navController
+
+        TalerNfcService.startService(this)
     }
 
     override fun onStart() {
@@ -61,6 +63,11 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         TalerNfcService.unsetDefaultHandler(this)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        TalerNfcService.stopService(this)
     }
 
     @Deprecated("Deprecated in Java")
