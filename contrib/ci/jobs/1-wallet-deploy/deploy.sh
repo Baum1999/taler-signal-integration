@@ -58,7 +58,7 @@ function deploy_fdroid {
     cp "${NIGHTLY_KEYSTORE_PATH}" /root/.android/debug.keystore
 
     # Rename APK, so fdroid nightly accepts it (looks for *-debug.apk)
-    cp "${APK_PATH}"/*.apk wallet-debug.apk
+    cp "${APK_PATH}" wallet-debug.apk
 
     fdroid --version
 
