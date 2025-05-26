@@ -42,6 +42,7 @@ class TransactionDepositFragment : TransactionDetailFragment() {
                     t = tx,
                     devMode = devMode,
                     spec = balanceManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
+                    actionListener = this@TransactionDepositFragment,
                 ) {
                     onTransitionButtonClicked(tx, it)
                 }

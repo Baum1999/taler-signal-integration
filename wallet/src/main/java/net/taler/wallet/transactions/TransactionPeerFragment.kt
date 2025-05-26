@@ -62,7 +62,6 @@ import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
-import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.peer.TransactionPeerPullCreditComposable
 import net.taler.wallet.peer.TransactionPeerPullDebitComposable
 import net.taler.wallet.peer.TransactionPeerPushCreditComposable
@@ -102,22 +101,6 @@ class TransactionPeerFragment : TransactionDetailFragment(), ActionListener {
                     actionBar.title = tx?.getTitle(requireContext())
                 }
             }
-        }
-    }
-
-    override fun onActionButtonClicked(tx: Transaction, type: ActionListener.Type) {
-        when (type) {
-            ActionListener.Type.COMPLETE_KYC -> {
-                val kycUrl = when (tx) {
-                    is TransactionPeerPullCredit -> tx.kycUrl
-                    is TransactionPeerPushCredit -> tx.kycUrl
-                    else -> return
-                } ?: return
-
-                launchInAppBrowser(requireContext(), kycUrl)
-            }
-
-            else -> {} // does not apply
         }
     }
 }

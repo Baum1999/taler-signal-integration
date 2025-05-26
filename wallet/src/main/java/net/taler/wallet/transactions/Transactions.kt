@@ -400,6 +400,7 @@ class TransactionDeposit(
     override val timestamp: Timestamp,
     override val txState: TransactionState,
     override val txActions: List<TransactionAction>,
+    val kycUrl: String? = null,
     override val error: TalerErrorInfo? = null,
     override val amountRaw: Amount,
     override val amountEffective: Amount,
