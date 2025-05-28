@@ -401,6 +401,7 @@ class TransactionDeposit(
     override val txState: TransactionState,
     override val txActions: List<TransactionAction>,
     val kycUrl: String? = null,
+    val kycAuthTransferInfo: KycAuthTransferInfo? = null,
     override val error: TalerErrorInfo? = null,
     override val amountRaw: Amount,
     override val amountEffective: Amount,
@@ -422,6 +423,13 @@ class TransactionDeposit(
 
     override val generalTitleRes = R.string.transaction_deposit
 }
+
+@Serializable
+data class KycAuthTransferInfo(
+    val debitPaytoUri: String,
+    val accountPub: String,
+    val creditPaytoUris: List<String>,
+)
 
 @Serializable
 data class PeerInfoShort(

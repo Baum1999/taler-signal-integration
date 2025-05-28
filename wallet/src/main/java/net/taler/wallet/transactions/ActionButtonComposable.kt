@@ -36,7 +36,6 @@ import net.taler.wallet.transactions.TransactionMajorState.Pending
 import net.taler.wallet.transactions.TransactionMinorState.BalanceKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
 import net.taler.wallet.transactions.TransactionMinorState.ExchangeWaitReserve
-import net.taler.wallet.transactions.TransactionMinorState.KycAuthRequired
 import net.taler.wallet.transactions.TransactionMinorState.KycRequired
 import net.taler.wallet.transactions.TransactionMinorState.MergeKycRequired
 
@@ -77,21 +76,13 @@ private fun KycButton(
         onClick = { listener.onActionButtonClicked(tx, ActionListener.Type.COMPLETE_KYC) },
         modifier = modifier,
     ) {
-        val label = when (tx.txState.minor) {
-            KycRequired,
-            KycAuthRequired,
-            BalanceKycRequired,
-            MergeKycRequired -> stringResource(R.string.transaction_action_kyc)
-            else -> return@Button
-        }
-
         Icon(
             Icons.Default.Link,
-            label,
+            contentDescription = null,
             modifier = Modifier.size(ButtonDefaults.IconSize)
         )
         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-        Text(label)
+        Text(stringResource(R.string.transaction_action_kyc))
     }
 }
 
