@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -43,7 +44,6 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.JsonPrimitive
@@ -57,8 +57,10 @@ import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.AmountScope
 import net.taler.wallet.compose.AmountScopeField
+import net.taler.wallet.compose.BottomButtonBox
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.exchanges.ExchangeTosStatus
+import net.taler.wallet.systemBarsPaddingBottom
 import net.taler.wallet.transactions.TransactionInfoComposable
 import net.taler.wallet.useDebounce
 import kotlin.random.Random
@@ -111,129 +113,139 @@ fun OutgoingPullIntroComposable(
     onCreateInvoice: (amount: AmountScope, subject: String, hours: Long, exchangeBaseUrl: String) -> Unit,
     onTosAccept: (exchangeBaseUrl: String) -> Unit,
 ) {
-    val scrollState = rememberScrollState()
+    var subject by rememberSaveable { mutableStateOf("") }
+    var amount by remember {
+        val scope = defaultScope ?: scopes[0]
+        val currency = scope.currency
+        mutableStateOf(AmountScope(Amount.zero(currency), scope))
+    }
+    val selectedSpec = remember(amount.scope) { getCurrencySpec(amount.scope) }
+    var checkResult by remember { mutableStateOf<CheckPeerPullCreditResult?>(null) }
+    val res = checkResult
+
+    var option by rememberSaveable { mutableStateOf(DEFAULT_EXPIRY) }
+    var hours by rememberSaveable { mutableLongStateOf(DEFAULT_EXPIRY.hours) }
+
+    amount.useDebounce {
+        checkResult = checkPeerPullCredit(it)
+    }
+
+    LaunchedEffect(Unit) {
+        checkResult = checkPeerPullCredit(amount)
+    }
+
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .verticalScroll(scrollState),
-        horizontalAlignment = CenterHorizontally,
+        Modifier
+            .fillMaxSize()
+            .imePadding(),
     ) {
-        var subject by rememberSaveable { mutableStateOf("") }
-        var amount by remember {
-            val scope = defaultScope ?: scopes[0]
-            val currency = scope.currency
-            mutableStateOf(AmountScope(Amount.zero(currency), scope))
-        }
-        val selectedSpec = remember(amount.scope) { getCurrencySpec(amount.scope) }
-        var checkResult by remember { mutableStateOf<CheckPeerPullCreditResult?>(null) }
-
-        amount.useDebounce {
-            checkResult = checkPeerPullCredit(it)
-        }
-
-        LaunchedEffect(Unit) {
-            checkResult = checkPeerPullCredit(amount)
-        }
-
-        AmountScopeField(
-            modifier = Modifier
-                .padding(bottom = 16.dp)
-                .fillMaxWidth(),
-            amount = amount.copy(amount = amount.amount.withSpec(selectedSpec)),
-            scopes = scopes,
-            readOnly = false,
-            onAmountChanged = { amount = it },
-            isError = amount.amount.isZero(),
-            label = { Text(stringResource(R.string.amount_receive)) },
-        )
-
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            value = subject,
-            onValueChange = { input ->
-                if (input.length <= MAX_LENGTH_SUBJECT)
-                    subject = input.replace('\n', ' ')
-            },
-            isError = subject.isBlank(),
-            label = {
-                Text(
-                    stringResource(R.string.send_peer_purpose),
-                    color = if (subject.isBlank()) {
-                        MaterialTheme.colorScheme.error
-                    } else Color.Unspecified,
-                )
-            }
-        )
-
-        Text(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 5.dp),
-            color = if (subject.isBlank()) MaterialTheme.colorScheme.error else Color.Unspecified,
-            text = stringResource(R.string.char_count, subject.length, MAX_LENGTH_SUBJECT),
-            textAlign = TextAlign.End,
-        )
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = CenterHorizontally,
+        ) {
+            AmountScopeField(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                amount = amount.copy(amount = amount.amount.withSpec(selectedSpec)),
+                scopes = scopes,
+                readOnly = false,
+                onAmountChanged = { amount = it },
+                isError = amount.amount.isZero(),
+                label = { Text(stringResource(R.string.amount_receive)) },
+            )
 
-        val res = checkResult
-        if (res != null) {
-            if (res.amountEffective > res.amountRaw) {
-                val fee = res.amountEffective - res.amountRaw
-                Text(
-                    modifier = Modifier.padding(vertical = 16.dp),
-                    text = stringResource(id = R.string.payment_fee, fee.withSpec(selectedSpec)),
-                    softWrap = false,
-                    color = MaterialTheme.colorScheme.error,
+            OutlinedTextField(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(),
+                singleLine = true,
+                value = subject,
+                onValueChange = { input ->
+                    if (input.length <= MAX_LENGTH_SUBJECT)
+                        subject = input.replace('\n', ' ')
+                },
+                isError = subject.isBlank(),
+                label = {
+                    Text(
+                        stringResource(R.string.send_peer_purpose),
+                        color = if (subject.isBlank()) {
+                            MaterialTheme.colorScheme.error
+                        } else Color.Unspecified,
+                    )
+                },
+                supportingText = {
+                    Text(stringResource(R.string.char_count, subject.length, MAX_LENGTH_SUBJECT))
+                },
+            )
+
+            if (res != null) {
+                if (res.amountEffective > res.amountRaw) {
+                    val fee = res.amountEffective - res.amountRaw
+                    Text(
+                        modifier = Modifier.padding(vertical = 16.dp),
+                        text = stringResource(
+                            id = R.string.payment_fee,
+                            fee.withSpec(selectedSpec)
+                        ),
+                        softWrap = false,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
+
+            checkResult?.exchangeBaseUrl?.let { exchangeBaseUrl ->
+                TransactionInfoComposable(
+                    label = stringResource(id = R.string.withdraw_exchange),
+                    info = cleanExchange(exchangeBaseUrl),
                 )
             }
-        }
 
-        checkResult?.exchangeBaseUrl?.let { exchangeBaseUrl ->
-            TransactionInfoComposable(
-                label = stringResource(id = R.string.withdraw_exchange),
-                info = cleanExchange(exchangeBaseUrl),
+            Text(
+                modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                text = stringResource(R.string.send_peer_expiration_period),
+                style = MaterialTheme.typography.bodyMedium,
             )
+
+            ExpirationComposable(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 8.dp, bottom = 16.dp),
+                option = option,
+                hours = hours,
+                onOptionChange = { option = it }
+            ) { hours = it }
+
+            BottomInsetsSpacer()
         }
 
-        Text(
-            modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-            text = stringResource(R.string.send_peer_expiration_period),
-            style = MaterialTheme.typography.bodyMedium,
-        )
-
-        var option by rememberSaveable { mutableStateOf(DEFAULT_EXPIRY) }
-        var hours by rememberSaveable { mutableLongStateOf(DEFAULT_EXPIRY.hours) }
-        ExpirationComposable(
-            modifier = Modifier.padding(top = 8.dp, bottom = 16.dp),
-            option = option,
-            hours = hours,
-            onOptionChange = { option = it }
-        ) { hours = it }
-
-        Button(
-            modifier = Modifier.padding(16.dp),
-            enabled = subject.isNotBlank() && res != null,
-            onClick = {
-                val ex = res?.exchangeBaseUrl ?: error("clickable without exchange")
-                if (res.tosStatus == ExchangeTosStatus.Accepted) {
-                    onCreateInvoice(
-                        amount,
-                        subject,
-                        hours,
-                        ex
-                    )
-                } else onTosAccept(ex)
-            },
-        ) {
-            if (checkResult != null && checkResult?.tosStatus != ExchangeTosStatus.Accepted) {
-                Text(text = stringResource(R.string.exchange_tos_accept))
-            } else {
-                Text(text = stringResource(R.string.receive_peer_create_button))
+        BottomButtonBox(Modifier.fillMaxWidth()) {
+            Button(
+                modifier = Modifier
+                    .systemBarsPaddingBottom(),
+                enabled = subject.isNotBlank() && res != null,
+                onClick = {
+                    val ex = res?.exchangeBaseUrl ?: error("clickable without exchange")
+                    if (res.tosStatus == ExchangeTosStatus.Accepted) {
+                        onCreateInvoice(
+                            amount,
+                            subject,
+                            hours,
+                            ex
+                        )
+                    } else onTosAccept(ex)
+                },
+            ) {
+                if (checkResult != null && checkResult?.tosStatus != ExchangeTosStatus.Accepted) {
+                    Text(text = stringResource(R.string.exchange_tos_accept))
+                } else {
+                    Text(text = stringResource(R.string.receive_peer_create_button))
+                }
             }
         }
-
-        BottomInsetsSpacer()
     }
 }
 
