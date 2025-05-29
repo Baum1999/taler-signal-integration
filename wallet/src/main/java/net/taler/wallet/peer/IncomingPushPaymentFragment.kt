@@ -42,6 +42,7 @@ class IncomingPushPaymentFragment : Fragment() {
     private val model: MainViewModel by activityViewModels()
     private val peerManager get() = model.peerManager
     private val exchangeManager get() = model.exchangeManager
+    private val transactionManager get() = model.transactionManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -72,7 +73,11 @@ class IncomingPushPaymentFragment : Fragment() {
                 peerManager.incomingPushState.collect {
                     Log.d(TAG, "incomingPushState is $it")
                     if (it is IncomingAccepted) {
-                        findNavController().navigate(R.id.action_promptPushPayment_to_nav_main)
+                        if (transactionManager.selectTransaction(it.transactionId)) {
+                            findNavController().navigate(R.id.action_promptPushPayment_to_transaction_detail_peer)
+                        } else {
+                            findNavController().navigate(R.id.action_promptPushPayment_to_nav_main)
+                        }
                     } else if (it is IncomingError) {
                         if (model.devMode.value == true) {
                             showError(it.info)

@@ -183,6 +183,10 @@
             android:id="@+id/action_promptPullPayment_to_nav_main"
             app:destination="@id/nav_main"
             app:popUpTo="@id/nav_main" />
+        <action
+            android:id="@+id/action_promptPullPayment_to_transaction_detail_peer"
+            app:destination="@id/nav_transactions_detail_peer"
+            app:popUpTo="@id/nav_main" />
     </fragment>
 
     <fragment
@@ -192,6 +196,10 @@
         <action
             android:id="@+id/action_promptPushPayment_to_nav_main"
             app:destination="@id/nav_main"
+            app:popUpTo="@id/nav_main" />
+        <action
+            android:id="@+id/action_promptPushPayment_to_transaction_detail_peer"
+            app:destination="@id/nav_transactions_detail_peer"
             app:popUpTo="@id/nav_main" />
     </fragment>
 

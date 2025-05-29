@@ -95,7 +95,7 @@ fun IncomingComposable(
             is IncomingAccepting -> PeerPullTermsComposable(s, onAccept, data)
             is IncomingTerms -> PeerPullTermsComposable(s, onAccept, data)
             is IncomingError -> PeerPullErrorComposable(s)
-            IncomingAccepted -> {
+            is IncomingAccepted -> {
                 // we navigate away, don't show anything
             }
         }

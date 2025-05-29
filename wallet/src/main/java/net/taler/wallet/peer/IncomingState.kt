@@ -47,7 +47,9 @@ class IncomingTosReview(
 class IncomingAccepting(s: IncomingTerms) :
     IncomingTerms(s.amountRaw, s.amountEffective, s.contractTerms, s.id)
 
-data object IncomingAccepted : IncomingState()
+data class IncomingAccepted(
+    val transactionId: String,
+) : IncomingState()
 
 data class IncomingError(
     val info: TalerErrorInfo,

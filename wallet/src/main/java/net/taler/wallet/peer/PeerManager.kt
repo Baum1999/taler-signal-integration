@@ -260,7 +260,7 @@ class PeerManager(
             api.request<Unit>("confirmPeerPullDebit") {
                 put("transactionId", terms.id)
             }.onSuccess {
-                _incomingPullState.value = IncomingAccepted
+                _incomingPullState.value = IncomingAccepted(terms.id)
             }.onError { error ->
                 Log.e(TAG, "got confirmPeerPullDebit error result $error")
                 _incomingPullState.value = IncomingError(error)
@@ -317,7 +317,7 @@ class PeerManager(
             api.request<Unit>("confirmPeerPushCredit") {
                 put("transactionId", terms.id)
             }.onSuccess {
-                _incomingPushState.value = IncomingAccepted
+                _incomingPushState.value = IncomingAccepted(terms.id)
             }.onError { error ->
                 Log.e(TAG, "got confirmPeerPushCredit error result $error")
                 _incomingPushState.value = IncomingError(error)

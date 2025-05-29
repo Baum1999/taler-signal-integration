@@ -23,8 +23,11 @@ import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.launch
 import net.taler.common.showError
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
@@ -35,31 +38,42 @@ import net.taler.wallet.showError
 class IncomingPullPaymentFragment : Fragment() {
     private val model: MainViewModel by activityViewModels()
     private val peerManager get() = model.peerManager
+    private val transactionManager get() = model.transactionManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        lifecycleScope.launchWhenResumed {
-            peerManager.incomingPullState.collect {
-                if (it is IncomingAccepted) {
-                    findNavController().navigate(R.id.action_promptPullPayment_to_nav_main)
-                } else if (it is IncomingError) {
-                    if (model.devMode.value == true) {
-                        showError(it.info)
-                    } else {
-                        showError(it.info.userFacingMsg)
-                    }
-                }
-            }
-        }
         return ComposeView(requireContext()).apply {
             setContent {
                 TalerSurface {
                     val state = peerManager.incomingPullState.collectAsStateLifecycleAware()
                     IncomingComposable(state, incomingPull) { terms ->
                         peerManager.confirmPeerPullDebit(terms)
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                peerManager.incomingPullState.collect {
+                    if (it is IncomingAccepted) {
+                        if (transactionManager.selectTransaction(it.transactionId)) {
+                            findNavController().navigate(R.id.action_promptPullPayment_to_transaction_detail_peer)
+                        } else {
+                            findNavController().navigate(R.id.action_promptPullPayment_to_nav_main)
+                        }
+                    } else if (it is IncomingError) {
+                        if (model.devMode.value == true) {
+                            showError(it.info)
+                        } else {
+                            showError(it.info.userFacingMsg)
+                        }
                     }
                 }
             }
