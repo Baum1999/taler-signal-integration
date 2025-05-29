@@ -1,0 +1,4 @@
+* UI improvements for KYC
+* UI improvements for send/receive funds
+* Update wallet-core to 1.0.12
+* Updated translations
