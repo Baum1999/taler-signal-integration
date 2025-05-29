@@ -126,12 +126,7 @@ fun WithdrawalShowInfo(
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            if (status.status == TosReviewRequired) {
-                Text(
-                    modifier = Modifier.padding(22.dp),
-                    text = stringResource(R.string.withdraw_review_terms),
-                )
-            } else if (status.isCashAcceptor) {
+            if (status.isCashAcceptor) {
                 WarningLabel(
                     label = stringResource(R.string.withdraw_cash_acceptor),
                     modifier = Modifier
@@ -149,6 +144,7 @@ fun WithdrawalShowInfo(
                         amount = selectedAmount.amount.withSpec(spec)),
                     scopes = scopes,
                     editableScope = editableScope,
+                    enabledAmount = status.status != TosReviewRequired,
                     onAmountChanged = { amount ->
                         selectedAmount = if (amount.scope != status.scopeInfo) {
                             // if amount changes, reset to zero!
@@ -170,6 +166,11 @@ fun WithdrawalShowInfo(
                     onShortcutSelected = { amount ->
                         selectedAmount = amount
                     }
+                )
+
+                if (status.status == TosReviewRequired) Text(
+                    modifier = Modifier.padding(22.dp),
+                    text = stringResource(R.string.withdraw_review_terms),
                 )
 
                 LaunchedEffect(Unit) {

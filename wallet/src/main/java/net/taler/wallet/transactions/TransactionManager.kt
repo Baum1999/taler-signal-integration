@@ -198,7 +198,7 @@ class TransactionManager(
     fun selectScope(
         scopeInfo: ScopeInfo?,
         stateFilter: TransactionStateFilter? = null,
-    ) = scope.launch {
+    ) {
         mSelectedScope.value = scopeInfo
         mStateFilter.value = stateFilter
     }

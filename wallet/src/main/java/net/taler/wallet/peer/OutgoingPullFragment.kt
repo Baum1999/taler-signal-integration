@@ -21,6 +21,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
@@ -58,15 +59,15 @@ class OutgoingPullFragment : Fragment() {
                         state = state,
                         onCreateInvoice = this@OutgoingPullFragment::onCreateInvoice,
                         onTosAccept = this@OutgoingPullFragment::onTosAccept,
-                        defaultScope = selectedScope,
+                        defaultScope = remember { selectedScope },
                         scopes = balanceManager.getScopes(),
                         getCurrencySpec = balanceManager::getSpecForScopeInfo,
-                        checkPeerPullCredit = {
-                            exchangeManager.findExchange(it.scope)?.let { ex ->
-                                peerManager.checkPeerPullCredit(it.amount,
-                                    exchangeBaseUrl = ex.exchangeBaseUrl,
-                                    scopeInfo = it.scope)
-                            }
+                        checkPeerPullCredit = { amount, loading ->
+                            transactionManager.selectScope(amount.scope)
+                             peerManager.checkPeerPullCredit(amount.amount,
+                                scopeInfo = amount.scope,
+                                loading = loading,
+                            )
                         },
                         onClose = {
                             findNavController().navigate(R.id.action_nav_peer_pull_to_nav_main)

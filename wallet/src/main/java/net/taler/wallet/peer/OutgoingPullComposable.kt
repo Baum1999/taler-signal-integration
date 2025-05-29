@@ -71,47 +71,10 @@ fun OutgoingPullComposable(
     defaultScope: ScopeInfo?,
     scopes: List<ScopeInfo>,
     getCurrencySpec: (scope: ScopeInfo) -> CurrencySpecification?,
-    checkPeerPullCredit: suspend (amount: AmountScope) -> CheckPeerPullCreditResult?,
+    checkPeerPullCredit: suspend (amount: AmountScope, loading: Boolean) -> CheckPeerPullCreditResult?,
     onCreateInvoice: (amount: AmountScope, subject: String, hours: Long, exchangeBaseUrl: String) -> Unit,
     onTosAccept: (exchangeBaseUrl: String) -> Unit,
     onClose: () -> Unit,
-) {
-    when(state) {
-        is OutgoingChecking, is OutgoingCreating, is OutgoingResponse -> PeerCreatingComposable()
-        is OutgoingIntro, is OutgoingChecked -> OutgoingPullIntroComposable(
-            defaultScope = defaultScope,
-            scopes = scopes,
-            getCurrencySpec = getCurrencySpec,
-            checkPeerPullCredit = checkPeerPullCredit,
-            onCreateInvoice = onCreateInvoice,
-            onTosAccept = onTosAccept,
-        )
-        is OutgoingError -> PeerErrorComposable(state, onClose)
-    }
-}
-
-@Composable
-fun PeerCreatingComposable() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize(),
-    ) {
-        CircularProgressIndicator(
-            modifier = Modifier
-                .padding(32.dp)
-                .align(Center),
-        )
-    }
-}
-
-@Composable
-fun OutgoingPullIntroComposable(
-    defaultScope: ScopeInfo?,
-    scopes: List<ScopeInfo>,
-    getCurrencySpec: (scope: ScopeInfo) -> CurrencySpecification?,
-    checkPeerPullCredit: suspend (amount: AmountScope) -> CheckPeerPullCreditResult?,
-    onCreateInvoice: (amount: AmountScope, subject: String, hours: Long, exchangeBaseUrl: String) -> Unit,
-    onTosAccept: (exchangeBaseUrl: String) -> Unit,
 ) {
     var subject by rememberSaveable { mutableStateOf("") }
     var amount by remember {
@@ -126,12 +89,21 @@ fun OutgoingPullIntroComposable(
     var option by rememberSaveable { mutableStateOf(DEFAULT_EXPIRY) }
     var hours by rememberSaveable { mutableLongStateOf(DEFAULT_EXPIRY.hours) }
 
-    amount.useDebounce {
-        checkResult = checkPeerPullCredit(it)
+    val tosReview = checkResult != null && checkResult?.tosStatus != ExchangeTosStatus.Accepted
+
+    amount.amount.useDebounce {
+        checkResult = checkPeerPullCredit(amount, false)
     }
 
-    LaunchedEffect(Unit) {
-        checkResult = checkPeerPullCredit(amount)
+    LaunchedEffect(amount.scope) {
+        checkResult = checkPeerPullCredit(amount, true)
+    }
+
+    if (state is OutgoingChecking ||
+        state is OutgoingCreating ||
+        state is OutgoingResponse) {
+        PeerCreatingComposable()
+        return
     }
 
     Column(
@@ -153,71 +125,94 @@ fun OutgoingPullIntroComposable(
                 amount = amount.copy(amount = amount.amount.withSpec(selectedSpec)),
                 scopes = scopes,
                 readOnly = false,
+                enabledAmount = !tosReview,
                 onAmountChanged = { amount = it },
                 isError = amount.amount.isZero(),
                 label = { Text(stringResource(R.string.amount_receive)) },
             )
 
-            OutlinedTextField(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth(),
-                singleLine = true,
-                value = subject,
-                onValueChange = { input ->
-                    if (input.length <= MAX_LENGTH_SUBJECT)
-                        subject = input.replace('\n', ' ')
-                },
-                isError = subject.isBlank(),
-                label = {
-                    Text(
-                        stringResource(R.string.send_peer_purpose),
-                        color = if (subject.isBlank()) {
-                            MaterialTheme.colorScheme.error
-                        } else Color.Unspecified,
-                    )
-                },
-                supportingText = {
-                    Text(stringResource(R.string.char_count, subject.length, MAX_LENGTH_SUBJECT))
-                },
-            )
+            if (state is OutgoingError) {
+                PeerErrorComposable(state, onClose)
+                return@Column
+            }
 
-            if (res != null) {
-                if (res.amountEffective > res.amountRaw) {
-                    val fee = res.amountEffective - res.amountRaw
-                    Text(
-                        modifier = Modifier.padding(vertical = 16.dp),
-                        text = stringResource(
-                            id = R.string.payment_fee,
-                            fee.withSpec(selectedSpec)
-                        ),
-                        softWrap = false,
-                        color = MaterialTheme.colorScheme.error,
+            if (tosReview) {
+                Text(
+                    modifier = Modifier.padding(16.dp),
+                    text = stringResource(R.string.receive_peer_review_terms)
+                )
+            } else {
+                OutlinedTextField(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth(),
+                    singleLine = true,
+                    value = subject,
+                    onValueChange = { input ->
+                        if (input.length <= MAX_LENGTH_SUBJECT)
+                            subject = input.replace('\n', ' ')
+                    },
+                    isError = subject.isBlank(),
+                    label = {
+                        Text(
+                            stringResource(R.string.send_peer_purpose),
+                            color = if (subject.isBlank()) {
+                                MaterialTheme.colorScheme.error
+                            } else Color.Unspecified,
+                        )
+                    },
+                    supportingText = {
+                        Text(
+                            stringResource(
+                                R.string.char_count,
+                                subject.length,
+                                MAX_LENGTH_SUBJECT
+                            )
+                        )
+                    },
+                )
+
+                if (res != null) {
+                    if (res.amountEffective > res.amountRaw) {
+                        val fee = res.amountEffective - res.amountRaw
+                        Text(
+                            modifier = Modifier.padding(vertical = 16.dp),
+                            text = stringResource(
+                                id = R.string.payment_fee,
+                                fee.withSpec(selectedSpec)
+                            ),
+                            softWrap = false,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+
+                Text(
+                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                    text = stringResource(R.string.send_peer_expiration_period),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+
+                ExpirationComposable(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 8.dp, bottom = 16.dp),
+                    option = option,
+                    hours = hours,
+                    onOptionChange = { option = it }
+                ) { hours = it }
+            }
+
+            // only show provider for global scope,
+            // otherwise it's already in scope selector
+            if (amount.scope is ScopeInfo.Global) {
+                checkResult?.exchangeBaseUrl?.let { exchangeBaseUrl ->
+                    TransactionInfoComposable(
+                        label = stringResource(id = R.string.withdraw_exchange),
+                        info = cleanExchange(exchangeBaseUrl),
                     )
                 }
             }
-
-            checkResult?.exchangeBaseUrl?.let { exchangeBaseUrl ->
-                TransactionInfoComposable(
-                    label = stringResource(id = R.string.withdraw_exchange),
-                    info = cleanExchange(exchangeBaseUrl),
-                )
-            }
-
-            Text(
-                modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                text = stringResource(R.string.send_peer_expiration_period),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-
-            ExpirationComposable(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 8.dp, bottom = 16.dp),
-                option = option,
-                hours = hours,
-                onOptionChange = { option = it }
-            ) { hours = it }
 
             BottomInsetsSpacer()
         }
@@ -226,7 +221,7 @@ fun OutgoingPullIntroComposable(
             Button(
                 modifier = Modifier
                     .systemBarsPaddingBottom(),
-                enabled = subject.isNotBlank() && res != null,
+                enabled = tosReview || (res != null && subject.isNotBlank()),
                 onClick = {
                     val ex = res?.exchangeBaseUrl ?: error("clickable without exchange")
                     if (res.tosStatus == ExchangeTosStatus.Accepted) {
@@ -246,6 +241,20 @@ fun OutgoingPullIntroComposable(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun PeerCreatingComposable() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier
+                .padding(32.dp)
+                .align(Center),
+        )
     }
 }
 
@@ -292,7 +301,7 @@ fun PeerPullComposableCreatingPreview() {
                 ScopeInfo.Global("CHF"),
             ),
             getCurrencySpec = { null },
-            checkPeerPullCredit = { null },
+            checkPeerPullCredit = { _, _ -> null },
             onCreateInvoice = { _, _, _, _ -> },
             onTosAccept = {},
             onClose = {},
@@ -313,7 +322,7 @@ fun PeerPullComposableCheckingPreview() {
                 ScopeInfo.Global("CHF"),
             ),
             getCurrencySpec = { null },
-            checkPeerPullCredit = { null },
+            checkPeerPullCredit = { _, _ -> null },
             onCreateInvoice = { _, _, _, _ -> },
             onTosAccept = {},
             onClose = {},
@@ -336,7 +345,7 @@ fun PeerPullComposableCheckedPreview() {
                 ScopeInfo.Global("CHF"),
             ),
             getCurrencySpec = { null },
-            checkPeerPullCredit = { null },
+            checkPeerPullCredit = { _, _ -> null },
             onCreateInvoice = { _, _, _, _ -> },
             onTosAccept = {},
             onClose = {},
@@ -359,7 +368,7 @@ fun PeerPullComposableErrorPreview() {
                 ScopeInfo.Global("CHF"),
             ),
             getCurrencySpec = { null },
-            checkPeerPullCredit = { null },
+            checkPeerPullCredit = { _, _ -> null },
             onCreateInvoice = { _, _, _, _ -> },
             onTosAccept = {},
             onClose = {},

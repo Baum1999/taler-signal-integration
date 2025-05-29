@@ -225,6 +225,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="receive_peer_payment_instruction">Scan this QR code to pay %1$s</string>
     <string name="receive_peer_payment_intro">Do you want to receive this payment?</string>
     <string name="receive_peer_payment_title">Receive payment</string>
+    <string name="receive_peer_review_terms">You must first accept the payment service\'s terms of service before you can request electronic cash.</string>
     <string name="receive_peer_title">Request money</string>
 
     <!-- P2P send -->

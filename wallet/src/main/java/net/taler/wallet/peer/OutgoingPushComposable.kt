@@ -225,7 +225,9 @@ fun OutgoingPushIntroComposable(
                 onOptionChange = { option = it }
             ) { hours = it }
 
-            AnimatedVisibility(feeResult is Success) {
+            // only show provider for global scope,
+            // otherwise it's already in scope selector
+            AnimatedVisibility(feeResult is Success && amount.scope is ScopeInfo.Global) {
                 (feeResult as? Success)?.let {
                     Column(
                         modifier = Modifier.padding(bottom = 8.dp),

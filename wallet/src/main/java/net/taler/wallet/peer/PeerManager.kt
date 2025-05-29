@@ -22,6 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -99,15 +100,18 @@ class PeerManager(
 
     suspend fun checkPeerPullCredit(
         amount: Amount,
-        exchangeBaseUrl: String? = null,
-        scopeInfo: ScopeInfo? = null,
+        scopeInfo: ScopeInfo,
+        loading: Boolean = false,
     ): CheckPeerPullCreditResult? {
         var response: CheckPeerPullCreditResult? = null
-        val exchangeItem = exchangeManager.findExchange(amount.currency) ?: return null
+        val exchangeItem = exchangeManager.findExchange(scopeInfo) ?: return null
+
+        if (loading) {
+            _outgoingPullState.value = OutgoingChecking
+        }
 
         api.request("checkPeerPullCredit", CheckPeerPullCreditResponse.serializer()) {
-            exchangeBaseUrl?.let { put("exchangeBaseUrl", it) }
-            scopeInfo?.let { put("restrictScope", JSONObject(BackendManager.json.encodeToString(scopeInfo))) }
+            put("restrictScope", JSONObject(BackendManager.json.encodeToString(scopeInfo)))
             put("amount", amount.toJSONString())
         }.onSuccess {
             response = CheckPeerPullCreditResult(
@@ -118,6 +122,10 @@ class PeerManager(
             )
         }.onError { error ->
             Log.e(TAG, "got checkPeerPullCredit error result $error")
+        }
+
+        if (loading) {
+            _outgoingPullState.value = OutgoingIntro
         }
 
         return response

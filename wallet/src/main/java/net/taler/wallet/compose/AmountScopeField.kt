@@ -60,7 +60,8 @@ fun AmountScopeField(
     supportingText: @Composable (() -> Unit)? = null,
     isError: Boolean = false,
     readOnly: Boolean = false,
-    enabled: Boolean = true,
+    enabledAmount: Boolean = true,
+    enabledScope: Boolean = true,
     showShortcuts: Boolean = false,
     onShortcutSelected: ((amount: AmountScope) -> Unit)? = null,
 ) {
@@ -78,41 +79,42 @@ fun AmountScopeField(
                     ))
                 },
                 initialScope = amount.scope,
-                readOnly = readOnly || !enabled,
+                readOnly = readOnly || !enabledScope,
             )
         }
 
-        AmountInputFieldBase(
-            modifier = Modifier
-                .fillMaxWidth(),
-            amount = amount.amount,
-            onAmountChanged = {
-                onAmountChanged(amount.copy(amount = it))
-            },
-            label = label,
-            isError = isError,
-            supportingText = supportingText,
-            readOnly = readOnly,
-            enabled = enabled,
-            showSymbol = true,
-        )
-
-        if (showShortcuts) {
-            val currency = amount.amount.currency
-            AmountInputShortcuts(
-                // TODO: currency-appropriate presets
-                amounts = listOf(
-                    Amount.fromString(currency, "50").withSpec(amount.amount.spec),
-                    Amount.fromString(currency, "25").withSpec(amount.amount.spec),
-                    Amount.fromString(currency, "10").withSpec(amount.amount.spec),
-                    Amount.fromString(currency, "5").withSpec(amount.amount.spec),
-                ),
-                onSelected = { shortcut ->
-                    onShortcutSelected?.let {
-                        it(amount.copy(amount = shortcut))
-                    }
+        if (enabledAmount) {
+            AmountInputFieldBase(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                amount = amount.amount,
+                onAmountChanged = {
+                    onAmountChanged(amount.copy(amount = it))
                 },
+                label = label,
+                isError = isError,
+                supportingText = supportingText,
+                readOnly = readOnly,
+                showSymbol = true,
             )
+
+            if (showShortcuts) {
+                val currency = amount.amount.currency
+                AmountInputShortcuts(
+                    // TODO: currency-appropriate presets
+                    amounts = listOf(
+                        Amount.fromString(currency, "50").withSpec(amount.amount.spec),
+                        Amount.fromString(currency, "25").withSpec(amount.amount.spec),
+                        Amount.fromString(currency, "10").withSpec(amount.amount.spec),
+                        Amount.fromString(currency, "5").withSpec(amount.amount.spec),
+                    ),
+                    onSelected = { shortcut ->
+                        onShortcutSelected?.let {
+                            it(amount.copy(amount = shortcut))
+                        }
+                    },
+                )
+            }
         }
     }
 }
@@ -234,7 +236,6 @@ fun AmountInputFieldPreview() {
             label = { Text("Amount to withdraw") },
             isError = false,
             readOnly = false,
-            enabled = true,
             showShortcuts = true,
             onShortcutSelected = { amount = it },
         )
