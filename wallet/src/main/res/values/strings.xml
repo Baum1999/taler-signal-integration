@@ -285,7 +285,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="withdraw_cash_acceptor">The amount to be withdrawn will be determined by the cash acceptor</string>
     <string name="withdraw_error_already_confirmed">Withdrawal is already confirmed</string>
     <string name="withdraw_error_message">Withdrawing is currently not possible. Please try again later!</string>
-    <string name="withdraw_error_test">Error withdrawing TESTKUDOS</string>
+    <string name="withdraw_error_test">Error withdrawing KUDOS</string>
     <string name="withdraw_error_title">Withdrawal error</string>
     <string name="withdraw_exchange">Provider</string>
     <string name="withdraw_fee">+%1$s withdrawal fees</string>
@@ -403,7 +403,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="settings_test">Run integration test</string>
     <string name="settings_test_running">The integration test is now running</string>
     <string name="settings_test_summary">Performs test transactions with demo setup</string>
-    <string name="settings_test_withdrawal">Now withdrawing TESTKUDOS</string>
+    <string name="settings_test_withdrawal">Now withdrawing KUDOS</string>
     <string name="settings_version_app">App version</string>
     <string name="settings_version_core">Wallet Core version</string>
     <string name="settings_version_protocol_exchange">Supported Exchange versions</string>
