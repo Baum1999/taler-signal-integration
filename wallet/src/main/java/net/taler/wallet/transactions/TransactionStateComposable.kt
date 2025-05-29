@@ -66,8 +66,8 @@ fun TransactionStateComposable(
         TransactionState(Pending, BankConfirmTransfer) -> stringResource(R.string.transaction_state_pending_bank)
         TransactionState(Pending, BalanceKycInit) -> stringResource(R.string.transaction_preparing_kyc)
         TransactionState(Pending, KycRequired) -> stringResource(R.string.transaction_state_pending_kyc_bank)
-        TransactionState(Pending, BalanceKycRequired) -> stringResource(R.string.transaction_state_pending_kyc_balance)
-        TransactionState(Pending, MergeKycRequired) -> stringResource(R.string.transaction_state_pending_kyc_merge)
+        TransactionState(Pending, BalanceKycRequired) -> stringResource(R.string.transaction_state_pending_kyc_bank)
+        TransactionState(Pending, MergeKycRequired) -> stringResource(R.string.transaction_state_pending_kyc_bank)
         TransactionState(Pending) -> stringResource(R.string.transaction_state_pending)
         TransactionState(Aborted) -> if (tx is TransactionWithdrawal && tx.withdrawalDetails is ManualTransfer) {
             stringResource(

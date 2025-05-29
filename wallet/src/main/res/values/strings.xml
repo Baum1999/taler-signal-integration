@@ -154,9 +154,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="transaction_state_failed">This transaction has failed or been abandoned</string>
     <string name="transaction_state_pending">This transaction is pending</string>
     <string name="transaction_state_pending_bank">Waiting for authorization in the bank</string>
-    <string name="transaction_state_pending_kyc_bank">This transaction would exceed the withdrawal limit set by your bank, in order to continue you must complete KYC verification</string>
-    <string name="transaction_state_pending_kyc_balance">This transaction would exceed the limit of balance in your wallet set by the provider, in order to continue you must complete KYC verification</string>
-    <string name="transaction_state_pending_kyc_merge">This transaction would exceed the transfer limit set by the provider, in order to continue you must complete KYC verification</string>
+    <string name="transaction_state_pending_kyc_bank">This transaction would exceed a limit set by the payment service provider. To increase the limit, follow the instructions linked below.</string>
     <string name="transaction_state_suspended">This transaction is suspended</string>
     <string name="transactions_abort">Abort</string>
     <string name="transactions_abort_dialog_message">Are you sure you want to abort this transaction? Funds still in transit might get lost.</string>
