@@ -102,7 +102,7 @@ class HandleUriFragment: Fragment() {
         if (processing) return
         processing = true
 
-        val uri = uri.toUri()
+        val uri = uri.trim().toUri()
         if (uri.fragment != null && !requireContext().isOnline()) {
             connectToWifi(requireContext(), uri.fragment!!)
         }
