@@ -225,11 +225,7 @@ class PromptWithdrawFragment: Fragment() {
 
                                 if (transactionManager.selectTransaction(it)) {
                                     status.amountInfo?.scopeInfo?.let { s -> transactionManager.selectScope(s) }
-                                    when (status.status) {
-                                        Success, AlreadyConfirmed -> findNavController().navigate(R.id.action_promptWithdraw_to_nav_transactions_detail_withdrawal)
-                                        ManualTransferRequired -> findNavController().navigate(R.id.action_promptWithdraw_to_nav_exchange_manual_withdrawal_success)
-                                        else -> error("unreachable")
-                                    }
+                                    findNavController().navigate(R.id.action_promptWithdraw_to_nav_transactions_detail_withdrawal)
                                 } else {
                                     findNavController().navigate(R.id.action_promptWithdraw_to_nav_main)
                                 }

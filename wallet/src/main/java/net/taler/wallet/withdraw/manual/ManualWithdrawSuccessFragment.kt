@@ -61,10 +61,6 @@ class ManualWithdrawSuccessFragment : Fragment() {
                 val qrCodes by withdrawManager.qrCodes.observeAsState()
                 val devMode by model.devMode.observeAsState()
 
-                BackHandler {
-                    selectedTx?.let { navigateToDetails(it) }
-                }
-
                 ScreenTransfer(
                     status = status,
                     qrCodes = qrCodes ?: emptyList(),
