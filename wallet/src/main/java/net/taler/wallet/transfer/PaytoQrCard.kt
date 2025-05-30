@@ -14,7 +14,7 @@
  * GNU Taler; see the file COPYING.  If not, see <http://www.gnu.org/licenses/>
  */
 
-package net.taler.wallet.withdraw.manual
+package net.taler.wallet.transfer
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text

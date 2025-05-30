@@ -32,7 +32,6 @@ import net.taler.common.showError
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.TAG
-import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.showError
 import net.taler.wallet.transactions.TransactionAction.Abort
@@ -125,28 +124,28 @@ abstract class TransactionDetailFragment : Fragment(), ActionListener {
             }
 
             ActionListener.Type.CONFIRM_MANUAL,
-            ActionListener.Type.SHOW_WIRE_QR -> {
-                if (tx !is TransactionWithdrawal) return
-                if (tx.withdrawalDetails !is ManualTransfer) return
-                if (tx.withdrawalDetails.exchangeCreditAccountDetails.isNullOrEmpty()) return
-                if (tx.exchangeBaseUrl == null) return
+            ActionListener.Type.SHOW_WIRE_QR -> lifecycleScope.launch {
+                when (tx) {
+                    is TransactionWithdrawal -> {
+                        if (tx.withdrawalDetails !is ManualTransfer) return@launch
+                        if (tx.withdrawalDetails.exchangeCreditAccountDetails.isNullOrEmpty()) return@launch
+                        findNavController().navigate(
+                            R.id.nav_wire_transfer_details,
+                            bundleOf("showQrCodes" to (type == ActionListener.Type.SHOW_WIRE_QR))
+                        )
 
-                withdrawManager.viewManualWithdrawal(
-                    transactionId = tx.transactionId,
-                    exchangeBaseUrl = tx.exchangeBaseUrl,
-                    amountRaw = tx.amountRaw,
-                    amountEffective = tx.amountEffective,
-                    withdrawalAccountList = tx.withdrawalDetails.exchangeCreditAccountDetails,
-                    scopeInfo = transactionManager.selectedScope.value
-                        ?: tx.exchangeBaseUrl.let {
-                            ScopeInfo.Exchange(currency = tx.amountRaw.currency, url = it)
-                        },
-                )
+                    }
 
-                findNavController().navigate(
-                    R.id.action_nav_transactions_detail_withdrawal_to_nav_exchange_manual_withdrawal_success,
-                    bundleOf("showQrCodes" to (type == ActionListener.Type.SHOW_WIRE_QR))
-                )
+                    is TransactionDeposit -> {
+                        if (tx.kycAuthTransferInfo == null) return@launch
+                        findNavController().navigate(
+                            R.id.nav_wire_transfer_details,
+                            bundleOf("showQrCodes" to (type == ActionListener.Type.SHOW_WIRE_QR))
+                        )
+                    }
+
+                    else -> {}
+                }
             }
         }
     }

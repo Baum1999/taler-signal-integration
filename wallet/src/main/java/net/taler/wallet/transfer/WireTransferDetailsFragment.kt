@@ -14,7 +14,7 @@
  * GNU Taler; see the file COPYING.  If not, see <http://www.gnu.org/licenses/>
  */
 
-package net.taler.wallet.withdraw.manual
+package net.taler.wallet.transfer
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -23,6 +23,7 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -39,14 +40,21 @@ import net.taler.wallet.R
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.transactions.Transaction
+import net.taler.wallet.transactions.TransactionDeposit
 import net.taler.wallet.transactions.TransactionMajorState.Done
+import net.taler.wallet.transactions.TransactionWithdrawal
+import net.taler.wallet.transactions.WithdrawalDetails
+import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
+import net.taler.wallet.transfer.ScreenTransfer
 import net.taler.wallet.withdraw.TransferData
 
-class ManualWithdrawSuccessFragment : Fragment() {
+class WireTransferDetailsFragment : Fragment() {
     private val model: MainViewModel by activityViewModels()
     private val withdrawManager by lazy { model.withdrawManager }
     private val transactionManager by lazy { model.transactionManager }
     private val balanceManager by lazy { model.balanceManager }
+
+    private var navigating: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -55,16 +63,45 @@ class ManualWithdrawSuccessFragment : Fragment() {
         val showQrCodes = arguments?.getBoolean("showQrCodes") == true
         setContent {
             TalerSurface {
-                val status by withdrawManager.withdrawStatus.collectAsStateLifecycleAware()
                 val selectedTx by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
-                val qrCodes by withdrawManager.qrCodes.observeAsState()
                 val devMode by model.devMode.observeAsState()
 
+                // TODO: move this code somewhere else
+                // TODO: better error handling
+                val transfers = remember(selectedTx) {
+                    selectedTx?.let { tx ->
+                        when (tx) {
+                            is TransactionWithdrawal -> when (tx.withdrawalDetails) {
+                                is WithdrawalDetails.ManualTransfer -> {
+                                    tx.withdrawalDetails.exchangeCreditAccountDetails
+                                }
+
+                                else -> null
+                            }
+
+                            is TransactionDeposit -> tx.kycAuthTransferInfo?.let {
+                                it.creditPaytoUris.map { paytoUri ->
+                                    WithdrawalExchangeAccountDetails(
+                                        paytoUri = paytoUri,
+                                        status = WithdrawalExchangeAccountDetails.Status.Ok,
+                                    )
+                                }
+                            }
+
+                            else -> null
+                        }?.map {
+                            it.getTransferDetails(
+                                amountRaw = tx.amountRaw,
+                                amountEffective = tx.amountEffective
+                            )
+                        }
+                    }
+                }?.filterNotNull() ?: return@TalerSurface
+
                 ScreenTransfer(
-                    status = status,
-                    qrCodes = qrCodes ?: emptyList(),
-                    getQrCodes = { withdrawManager.getQrCodesForPayto(it.paytoUri) },
-                    spec = status.amountInfo?.amountRaw?.currency?.let {
+                    transfers = transfers,
+                    getQrCodes = { withdrawManager.getQrCodesForPayto(it.withdrawalAccount.paytoUri) },
+                    spec = selectedTx?.amountRaw?.currency?.let {
                         selectedTx?.scopes?.let { selectedScopes ->
                             balanceManager.getSpecForCurrency(it, selectedScopes)
                         } ?: run {
@@ -75,16 +112,21 @@ class ManualWithdrawSuccessFragment : Fragment() {
                     shareClick = { onShareClick(it) },
                     showQrCodes = showQrCodes,
                     devMode = devMode == true,
+                    transferContext = when(selectedTx) {
+                        is TransactionWithdrawal -> TransferContext.ManualWithdrawal
+                        is TransactionDeposit -> TransferContext.DepositKycAuth
+                        else -> return@TalerSurface
+                    }
                 )
             }
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 model.withdrawManager.withdrawStatus.collect { status ->
                     // Set action bar subtitle and unset on exit
                     if (status.withdrawalTransfers.size > 1) {
@@ -97,10 +139,12 @@ class ManualWithdrawSuccessFragment : Fragment() {
         }
 
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 model.transactionManager.selectedTransaction.collect { tx ->
                     if (tx?.txState?.major == Done) {
-                        navigateToDetails(tx)
+                        if (navigating) return@collect
+                        findNavController().popBackStack()
+                        navigating = true
                     }
                 }
             }
@@ -112,14 +156,6 @@ class ManualWithdrawSuccessFragment : Fragment() {
         (requireActivity() as? AppCompatActivity)?.apply {
             supportActionBar?.subtitle = null
         }
-    }
-
-    private fun navigateToDetails(tx: Transaction) {
-        val options = NavOptions.Builder()
-            .setPopUpTo(R.id.nav_main, false)
-            .build()
-        findNavController()
-            .navigate(tx.detailPageNav, null, options)
     }
 
     private fun onBankAppClick(transfer: TransferData) {

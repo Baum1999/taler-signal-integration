@@ -1,6 +1,6 @@
 /*
  * This file is part of GNU Taler
- * (C) 2023 Taler Systems S.A.
+ * (C) 2025 Taler Systems S.A.
  *
  * GNU Taler is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -14,7 +14,7 @@
  * GNU Taler; see the file COPYING.  If not, see <http://www.gnu.org/licenses/>
  */
 
-package net.taler.wallet.withdraw.manual
+package net.taler.wallet.transfer
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -102,7 +102,7 @@ private val SEGWIT_MIN = Amount("BTC", 0, 294)
 
 private fun getCopyText(amount: Amount, addr: String, segwitAddresses: List<String>): String {
     val sr = segwitAddresses.joinToString(separator = "\n") { s ->
-        "\n$s ${SEGWIT_MIN}\n"
+        "\n$s $SEGWIT_MIN\n"
     }
     return "$addr ${amount.withCurrency("BTC")}\n$sr"
 }

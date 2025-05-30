@@ -1,6 +1,6 @@
 /*
  * This file is part of GNU Taler
- * (C) 2023 Taler Systems S.A.
+ * (C) 2025 Taler Systems S.A.
  *
  * GNU Taler is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -14,7 +14,7 @@
  * GNU Taler; see the file COPYING.  If not, see <http://www.gnu.org/licenses/>
  */
 
-package net.taler.wallet.withdraw.manual
+package net.taler.wallet.transfer
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -30,32 +30,46 @@ import net.taler.common.Amount
 import net.taler.wallet.R
 import net.taler.wallet.compose.WarningLabel
 import net.taler.wallet.withdraw.TransferData
+import net.taler.wallet.transfer.TransferContext.*
 
 @Composable
 fun TransferIBAN(
     transfer: TransferData.IBAN,
     transactionAmountEffective: Amount,
+    transferContext: TransferContext,
 ) {
-    val transferAmount = transfer
-        .withdrawalAccount
-        .transferAmount
-        ?.withSpec(transfer.withdrawalAccount.currencySpecification)
-        ?: transfer.amountRaw
-
     Column(
         modifier = Modifier.padding(all = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = stringResource(
-                R.string.withdraw_manual_ready_intro,
-                transferAmount,
-                transactionAmountEffective,
-            ),
+            text = when(transferContext) {
+                ManualWithdrawal -> stringResource(
+                    R.string.withdraw_manual_ready_intro,
+                    transfer.transferAmount,
+                    transactionAmountEffective,
+                )
+
+                DepositKycAuth -> stringResource(
+                    R.string.send_deposit_kyc_auth_intro_bank,
+                    transfer.transferAmount,
+                    transfer.iban,
+                )
+            },
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier
                 .padding(vertical = 8.dp)
         )
+
+        if (transferContext == DepositKycAuth) {
+            WarningLabel(
+                modifier = Modifier.padding(
+                    horizontal = 8.dp,
+                    vertical = 16.dp,
+                ),
+                label = stringResource(R.string.send_deposit_kyc_auth_warning_account),
+            )
+        }
 
         HorizontalDivider(
             modifier = Modifier.padding(vertical = 6.dp)
@@ -74,7 +88,10 @@ fun TransferIBAN(
                 horizontal = 8.dp,
                 vertical = 16.dp,
             ),
-            label = stringResource(R.string.withdraw_manual_ready_warning),
+            label = when (transferContext) {
+                ManualWithdrawal -> stringResource(R.string.withdraw_manual_ready_warning)
+                DepositKycAuth -> stringResource(R.string.send_deposit_kyc_auth_warning_subject)
+            },
         )
 
         TransferStep(2, stringResource(R.string.withdraw_manual_step_iban))
@@ -86,12 +103,22 @@ fun TransferIBAN(
         DetailRow(stringResource(R.string.withdraw_manual_ready_iban), transfer.iban)
 
         WithdrawalAmountTransfer(
-            conversionAmountRaw = transferAmount,
+            conversionAmountRaw = transfer.transferAmount,
         )
 
-        TransferStep(3, stringResource(
-            R.string.withdraw_manual_step_finish,
-            transferAmount,
-        ))
+        TransferStep(3,
+            when (transferContext) {
+                ManualWithdrawal -> stringResource(
+                    R.string.withdraw_manual_step_finish,
+                    transfer.transferAmount,
+                )
+
+                DepositKycAuth -> stringResource(
+                    R.string.send_deposit_kyc_auth_step_finish,
+                    transfer.transferAmount,
+                    transfer.iban,
+                )
+            }
+        )
     }
 }

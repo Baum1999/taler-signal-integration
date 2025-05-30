@@ -49,6 +49,7 @@ import net.taler.wallet.transactions.TransactionMajorState.Suspended
 import net.taler.wallet.transactions.TransactionMinorState.BalanceKycInit
 import net.taler.wallet.transactions.TransactionMinorState.BalanceKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
+import net.taler.wallet.transactions.TransactionMinorState.KycAuthRequired
 import net.taler.wallet.transactions.TransactionMinorState.KycRequired
 import net.taler.wallet.transactions.TransactionMinorState.MergeKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.Repurchase
@@ -68,6 +69,7 @@ fun TransactionStateComposable(
         TransactionState(Pending, KycRequired) -> stringResource(R.string.transaction_state_pending_kyc_bank)
         TransactionState(Pending, BalanceKycRequired) -> stringResource(R.string.transaction_state_pending_kyc_bank)
         TransactionState(Pending, MergeKycRequired) -> stringResource(R.string.transaction_state_pending_kyc_bank)
+        TransactionState(Pending, KycAuthRequired) -> stringResource(R.string.transaction_state_pending_kyc_auth)
         TransactionState(Pending) -> stringResource(R.string.transaction_state_pending)
         TransactionState(Aborted) -> if (tx is TransactionWithdrawal && tx.withdrawalDetails is ManualTransfer) {
             stringResource(
@@ -129,6 +131,7 @@ fun TransactionStateComposablePreview() {
             TransactionStateComposable(modifier, state = TransactionState(Pending, KycRequired))
             TransactionStateComposable(modifier, state = TransactionState(Pending, BalanceKycRequired))
             TransactionStateComposable(modifier, state = TransactionState(Pending, MergeKycRequired))
+            TransactionStateComposable(modifier, state = TransactionState(Pending, KycAuthRequired))
             TransactionStateComposable(modifier, state = TransactionState(Pending))
             TransactionStateComposable(modifier, state = TransactionState(Aborted))
             TransactionStateComposable(modifier, state = TransactionState(Aborting))

@@ -22,6 +22,7 @@ import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.annotation.IdRes
 import androidx.annotation.StringRes
+import androidx.core.net.toUri
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -35,6 +36,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonElement
 import net.taler.common.Amount
+import net.taler.common.Bech32
 import net.taler.common.ContractMerchant
 import net.taler.common.ContractProduct
 import net.taler.common.ContractTerms
@@ -52,6 +54,7 @@ import net.taler.wallet.transactions.TransactionMajorState.None
 import net.taler.wallet.transactions.TransactionMajorState.Pending
 import net.taler.wallet.transactions.WithdrawalDetails.ManualTransfer
 import net.taler.wallet.transactions.WithdrawalDetails.TalerBankIntegrationApi
+import net.taler.wallet.withdraw.TransferData
 import java.util.UUID
 
 @Serializable
@@ -267,6 +270,54 @@ data class WithdrawalExchangeAccountDetails (
 
         @SerialName("error")
         Error;
+    }
+
+    fun getTransferDetails(
+        amountRaw: Amount,
+        amountEffective: Amount,
+    ): TransferData? {
+        val uri = paytoUri.trim().toUri()
+        val transferAmount = (transferAmount
+            ?: uri.getQueryParameter("amount")
+                ?.let { Amount.fromJSONString(it) }
+            ?: amountEffective).withSpec(currencySpecification)
+        return if ("bitcoin".equals(uri.authority, true)) {
+            val msg = uri.getQueryParameter("message").orEmpty()
+            val reg = "\\b([A-Z0-9]{52})\\b".toRegex().find(msg)
+            val reserve = reg?.value ?: uri.getQueryParameter("subject")!!
+            val segwitAddresses =
+                Bech32.generateFakeSegwitAddress(reserve, uri.pathSegments.first())
+            TransferData.Bitcoin(
+                account = uri.lastPathSegment!!,
+                segwitAddresses = segwitAddresses,
+                subject = reserve,
+                amountRaw = amountRaw,
+                amountEffective = amountEffective,
+                transferAmount = transferAmount,
+                withdrawalAccount = copy(paytoUri = uri.toString()),
+            )
+        } else if (uri.authority.equals("x-taler-bank", true)) {
+            TransferData.Taler(
+                account = uri.lastPathSegment!!,
+                receiverName = uri.getQueryParameter("receiver-name"),
+                subject = uri.getQueryParameter("message") ?: "Error: No message in URI",
+                amountRaw = amountRaw,
+                amountEffective = amountEffective,
+                exchangeBaseUrl = uri.pathSegments[0] ?: return null,
+                transferAmount = transferAmount,
+                withdrawalAccount = copy(paytoUri = uri.toString()),
+            )
+        } else if (uri.authority.equals("iban", true)) {
+            TransferData.IBAN(
+                iban = uri.lastPathSegment!!,
+                receiverName = uri.getQueryParameter("receiver-name"),
+                subject = uri.getQueryParameter("message") ?: "Error: No message in URI",
+                amountRaw = amountRaw,
+                amountEffective = amountEffective,
+                transferAmount = transferAmount,
+                withdrawalAccount = copy(paytoUri = uri.toString()),
+            )
+        } else null
     }
 }
 

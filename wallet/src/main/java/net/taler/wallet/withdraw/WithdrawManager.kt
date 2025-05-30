@@ -42,6 +42,7 @@ import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
 import net.taler.wallet.withdraw.WithdrawStatus.Status.*
 import androidx.core.net.toUri
+import kotlinx.coroutines.runBlocking
 import net.taler.wallet.transactions.TransactionMajorState
 import net.taler.wallet.transactions.TransactionManager
 
@@ -92,6 +93,7 @@ sealed class TransferData {
     abstract val subject: String
     abstract val amountRaw: Amount
     abstract val amountEffective: Amount
+    abstract val transferAmount: Amount
     abstract val withdrawalAccount: WithdrawalExchangeAccountDetails
 
     val currency get() = withdrawalAccount.transferAmount?.currency
@@ -100,15 +102,18 @@ sealed class TransferData {
         override val subject: String,
         override val amountRaw: Amount,
         override val amountEffective: Amount,
+        override val transferAmount: Amount,
         override val withdrawalAccount: WithdrawalExchangeAccountDetails,
         val receiverName: String? = null,
         val account: String,
+        val exchangeBaseUrl: String,
     ): TransferData()
 
     data class IBAN(
         override val subject: String,
         override val amountRaw: Amount,
         override val amountEffective: Amount,
+        override val transferAmount: Amount,
         override val withdrawalAccount: WithdrawalExchangeAccountDetails,
         val receiverName: String? = null,
         val iban: String,
@@ -118,6 +123,7 @@ sealed class TransferData {
         override val subject: String,
         override val amountRaw: Amount,
         override val amountEffective: Amount,
+        override val transferAmount: Amount,
         override val withdrawalAccount: WithdrawalExchangeAccountDetails,
         val account: String,
         val segwitAddresses: List<String>,
@@ -488,7 +494,7 @@ class WithdrawManager(
         }
     }
 
-    fun getQrCodesForPayto(uri: String) = scope.launch {
+    fun getQrCodesForPayto(uri: String): List<QrCodeSpec> = runBlocking {
         var codes = emptyList<QrCodeSpec>()
         api.request("getQrCodesForPayto", GetQrCodesForPaytoResponse.serializer()) {
             put("paytoUri", uri)
@@ -498,7 +504,7 @@ class WithdrawManager(
             codes = response.codes
         }
 
-        qrCodes.value = codes
+        return@runBlocking codes
     }
 
     private fun handleError(operation: String, error: TalerErrorInfo) {
@@ -562,6 +568,9 @@ class WithdrawManager(
                     subject = reserve,
                     amountRaw = details.amountRaw,
                     amountEffective = details.amountEffective,
+                    transferAmount = it.transferAmount
+                        ?.withSpec(it.currencySpecification)
+                        ?: details.amountEffective,
                     withdrawalAccount = it.copy(paytoUri = uri.toString()),
                 )
             } else if (uri.authority.equals("x-taler-bank", true)) {
@@ -571,6 +580,10 @@ class WithdrawManager(
                     subject = uri.getQueryParameter("message") ?: "Error: No message in URI",
                     amountRaw = details.amountRaw,
                     amountEffective = details.amountEffective,
+                    exchangeBaseUrl = uri.host!!,
+                    transferAmount = it.transferAmount
+                        ?.withSpec(it.currencySpecification)
+                        ?: details.amountEffective,
                     withdrawalAccount = it.copy(paytoUri = uri.toString()),
                 )
             } else if (uri.authority.equals("iban", true)) {
@@ -580,6 +593,9 @@ class WithdrawManager(
                     subject = uri.getQueryParameter("message") ?: "Error: No message in URI",
                     amountRaw = details.amountRaw,
                     amountEffective = details.amountEffective,
+                    transferAmount = it.transferAmount
+                        ?.withSpec(it.currencySpecification)
+                        ?: details.amountEffective,
                     withdrawalAccount = it.copy(paytoUri = uri.toString()),
                 )
             } else null

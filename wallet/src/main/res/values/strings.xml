@@ -155,6 +155,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="transaction_state_pending">This transaction is pending</string>
     <string name="transaction_state_pending_bank">Waiting for authorization in the bank</string>
     <string name="transaction_state_pending_kyc_bank">This transaction would exceed a limit set by the payment service provider. To increase the limit, follow the instructions linked below.</string>
+    <string name="transaction_state_pending_kyc_auth">You need to verify having control over the bank account for the deposit. To continue, follow the instructions linked below.</string>
     <string name="transaction_state_suspended">This transaction is suspended</string>
     <string name="transactions_abort">Abort</string>
     <string name="transactions_abort_dialog_message">Are you sure you want to abort this transaction? Funds still in transit might get lost.</string>
@@ -253,6 +254,10 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="send_deposit_known_bank_accounts">Known bank accounts</string>
     <string name="send_deposit_known_bank_account_delete">Delete</string>
     <string name="send_deposit_known_bank_accounts_empty">No bank accounts saved in the wallet</string>
+    <string name="send_deposit_kyc_auth_intro_bank">You need to transfer %1$s from the bank account %2$s to the payment service to verify having control over it.</string>
+    <string name="send_deposit_kyc_auth_step_finish">Finish the wire transfer of %1$s in your banking app or website to verify having control over the bank account %2$s. Depending on your bank the transfer can take from minutes to two working days, please be patient.</string>
+    <string name="send_deposit_kyc_auth_warning_account">Don\'t use a different bank account, or the verification will fail.</string>
+    <string name="send_deposit_kyc_auth_warning_subject">This is mandatory, otherwise the verification will fail.</string>
     <string name="send_deposit_name">Account holder</string>
     <string name="send_deposit_no_methods_error">No supported wire methods</string>
     <string name="send_deposit_select_account_title">Select bank account</string>
@@ -298,7 +303,6 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="withdraw_manual_ready_details_intro">Wire transfer instructions</string>
     <string name="withdraw_manual_ready_details_qr">Wire transfer QR codes</string>
     <string name="withdraw_manual_ready_iban">IBAN</string>
-<!--    <string name="withdraw_manual_ready_intro">To complete the process you need to wire %s to the provider\'s bank account</string>-->
     <string name="withdraw_manual_ready_intro">You need to transfer %1$s from your regular bank account to the payment service to receive %2$s as electronic cash in this wallet.</string>
     <string name="withdraw_manual_ready_receiver">Recipient</string>
     <string name="withdraw_manual_ready_subject">Subject</string>

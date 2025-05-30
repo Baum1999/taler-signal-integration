@@ -36,6 +36,7 @@ import net.taler.wallet.transactions.TransactionMajorState.Pending
 import net.taler.wallet.transactions.TransactionMinorState.BalanceKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
 import net.taler.wallet.transactions.TransactionMinorState.ExchangeWaitReserve
+import net.taler.wallet.transactions.TransactionMinorState.KycAuthRequired
 import net.taler.wallet.transactions.TransactionMinorState.KycRequired
 import net.taler.wallet.transactions.TransactionMinorState.MergeKycRequired
 
@@ -60,7 +61,7 @@ fun ActionButton(
         when (tx.txState.minor) {
             KycRequired, BalanceKycRequired, MergeKycRequired -> KycButton(modifier, tx, listener)
             BankConfirmTransfer -> ConfirmBankButton(modifier, tx, listener)
-            ExchangeWaitReserve -> ConfirmManualButton(modifier, tx, listener)
+            ExchangeWaitReserve, KycAuthRequired -> ConfirmManualButton(modifier, tx, listener)
             else -> {}
         }
     }
