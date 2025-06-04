@@ -156,7 +156,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="transaction_state_pending">This transaction is pending</string>
     <string name="transaction_state_pending_bank">Waiting for authorization in the bank</string>
     <string name="transaction_state_pending_kyc_bank">This transaction would exceed a limit set by the payment service provider. To increase the limit, follow the instructions linked below.</string>
-    <string name="transaction_state_pending_kyc_auth">You need to verify having control over the bank account for the deposit. To continue, follow the instructions linked below.</string>
+    <string name="transaction_state_pending_kyc_auth">You need to prove having control over the bank account for the deposit. To continue, follow the instructions linked below.</string>
     <string name="transaction_state_suspended">This transaction is suspended</string>
     <string name="transactions_abort">Abort</string>
     <string name="transactions_abort_dialog_message">Are you sure you want to abort this transaction? Funds still in transit might get lost.</string>
@@ -255,9 +255,9 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="send_deposit_known_bank_accounts">Known bank accounts</string>
     <string name="send_deposit_known_bank_account_delete">Delete</string>
     <string name="send_deposit_known_bank_accounts_empty">No bank accounts saved in the wallet</string>
-    <string name="send_deposit_kyc_auth_intro_bank">You need to transfer %1$s from the bank account %2$s to the payment service to verify having control over it.</string>
-    <string name="send_deposit_kyc_auth_step_finish">Finish the wire transfer of %1$s in your banking app or website to verify having control over the bank account %2$s. Depending on your bank the transfer can take from minutes to two working days, please be patient.</string>
-    <string name="send_deposit_kyc_auth_warning_account">Don\'t use a different bank account, or the verification will fail.</string>
+    <string name="send_deposit_kyc_auth_intro_bank">You need to transfer %1$s from the bank account %2$s to the payment service to prove having control over it.</string>
+    <string name="send_deposit_kyc_auth_step_finish">Finish the wire transfer of %1$s in your banking app or website to prove having control over the bank account %2$s. Depending on your bank the transfer can take from minutes to two working days, please be patient.</string>
+    <string name="send_deposit_kyc_auth_warning_account">Do not use a different bank account for the deposit, or the verification will fail.</string>
     <string name="send_deposit_kyc_auth_warning_subject">This is mandatory, otherwise the verification will fail.</string>
     <string name="send_deposit_name">Account holder</string>
     <string name="send_deposit_no_methods_error">No supported wire methods</string>
