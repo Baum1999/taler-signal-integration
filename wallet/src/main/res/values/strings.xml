@@ -152,6 +152,7 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="transaction_state_done">This transaction was completed successfully</string>
     <string name="transaction_state_expired">This transaction has expired</string>
     <string name="transaction_state_failed">This transaction has failed or been abandoned</string>
+    <string name="transaction_state_finalizing">This transaction is finalizing</string>
     <string name="transaction_state_pending">This transaction is pending</string>
     <string name="transaction_state_pending_bank">Waiting for authorization in the bank</string>
     <string name="transaction_state_pending_kyc_bank">This transaction would exceed a limit set by the payment service provider. To increase the limit, follow the instructions linked below.</string>

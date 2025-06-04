@@ -44,6 +44,7 @@ import net.taler.wallet.transactions.TransactionMajorState.Aborting
 import net.taler.wallet.transactions.TransactionMajorState.Done
 import net.taler.wallet.transactions.TransactionMajorState.Expired
 import net.taler.wallet.transactions.TransactionMajorState.Failed
+import net.taler.wallet.transactions.TransactionMajorState.Finalizing
 import net.taler.wallet.transactions.TransactionMajorState.Pending
 import net.taler.wallet.transactions.TransactionMajorState.Suspended
 import net.taler.wallet.transactions.TransactionMinorState.BalanceKycInit
@@ -81,6 +82,7 @@ fun TransactionStateComposable(
         TransactionState(Suspended) -> stringResource(R.string.transaction_state_suspended)
         TransactionState(Failed, Repurchase) -> stringResource(R.string.payment_already_paid)
         TransactionState(Failed) -> stringResource(R.string.transaction_state_failed)
+        TransactionState(Finalizing) -> stringResource(R.string.transaction_state_finalizing)
         TransactionState(Expired) -> stringResource(R.string.transaction_state_expired)
         else -> return
     }
@@ -89,7 +91,8 @@ fun TransactionStateComposable(
         TransactionState(Done) -> colorResource(R.color.green)
         TransactionState(Pending),
         TransactionState(Suspended),
-        TransactionState(Failed, Repurchase) -> MaterialTheme.colorScheme.surfaceVariant
+        TransactionState(Failed, Repurchase),
+        TransactionState(Finalizing) -> MaterialTheme.colorScheme.surfaceVariant
         TransactionState(Aborted),
         TransactionState(Aborting),
         TransactionState(Failed),
@@ -101,7 +104,8 @@ fun TransactionStateComposable(
         TransactionState(Done) -> Color.White
         TransactionState(Pending),
         TransactionState(Suspended),
-        TransactionState(Failed, Repurchase) -> MaterialTheme.colorScheme.onSurfaceVariant
+        TransactionState(Failed, Repurchase),
+        TransactionState(Finalizing) -> MaterialTheme.colorScheme.onSurfaceVariant
         TransactionState(Aborted),
         TransactionState(Aborting),
         TransactionState(Failed),
@@ -138,6 +142,7 @@ fun TransactionStateComposablePreview() {
             TransactionStateComposable(modifier, state = TransactionState(Suspended))
             TransactionStateComposable(modifier, state = TransactionState(Failed, Repurchase))
             TransactionStateComposable(modifier, state = TransactionState(Failed))
+            TransactionStateComposable(modifier, state = TransactionState(Finalizing))
             TransactionStateComposable(modifier, state = TransactionState(Expired))
             TransactionStateComposable(modifier, state = TransactionState(Done))
 
