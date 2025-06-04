@@ -209,7 +209,7 @@
     <string name="settings_version_protocol_merchant">Versions de comerciant disponibles</string>
     <string name="settings_version_unknown">Desconegut</string>
     <string name="settings_reset">Resetejar cartera (perillós!)</string>
-    <string name="settings_reset_summary">Malgasta els teus diners</string>
+    <string name="settings_reset_summary">Perdràs els teus diners</string>
     <string name="nav_settings_backup"/>
     <string name="backup_last"/>
     <string name="refund_title">Reemborsar</string>
