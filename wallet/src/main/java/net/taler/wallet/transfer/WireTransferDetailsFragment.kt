@@ -112,9 +112,10 @@ class WireTransferDetailsFragment : Fragment() {
                     shareClick = { onShareClick(it) },
                     showQrCodes = showQrCodes,
                     devMode = devMode == true,
-                    transferContext = when(selectedTx) {
+                    transferContext = when(val tx = selectedTx) {
                         is TransactionWithdrawal -> TransferContext.ManualWithdrawal
-                        is TransactionDeposit -> TransferContext.DepositKycAuth
+                        is TransactionDeposit -> TransferContext.DepositKycAuth(tx.kycAuthTransferInfo?.debitPaytoUri
+                            ?: error("no kycAuthTransferInfo"))
                         else -> return@TalerSurface
                     }
                 )

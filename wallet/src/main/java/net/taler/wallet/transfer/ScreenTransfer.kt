@@ -72,9 +72,9 @@ import net.taler.wallet.withdraw.QrCodeSpec.Type.EpcQr
 import net.taler.wallet.withdraw.QrCodeSpec.Type.SPC
 import net.taler.wallet.withdraw.TransferData
 
-enum class TransferContext {
-    ManualWithdrawal,
-    DepositKycAuth,
+sealed class TransferContext {
+    data object ManualWithdrawal : TransferContext()
+    data class DepositKycAuth(val debitPaytoUri: String) : TransferContext()
 }
 
 @Composable
@@ -417,7 +417,7 @@ fun ScreenTransferPreview(
 @Preview
 @Composable
 fun ScreenTransferKycAuthPreview() {
-    ScreenTransferPreview(transferContext = TransferContext.DepositKycAuth)
+    ScreenTransferPreview(transferContext = TransferContext.DepositKycAuth("CH120912"))
 }
 
 @Preview

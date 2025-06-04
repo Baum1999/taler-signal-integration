@@ -28,9 +28,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
 import net.taler.wallet.R
+import net.taler.wallet.accounts.PaytoUri
+import net.taler.wallet.accounts.PaytoUriTalerBank
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.WarningLabel
-import net.taler.wallet.transactions.TransactionInfoComposable
 import net.taler.wallet.withdraw.TransferData
 import net.taler.wallet.transfer.TransferContext.*
 
@@ -52,18 +53,22 @@ fun TransferTaler(
                     transactionAmountEffective,
                 )
 
-                DepositKycAuth -> stringResource(
-                    R.string.send_deposit_kyc_auth_intro_bank,
-                    transfer.transferAmount,
-                    transfer.account,
-                )
+                is DepositKycAuth -> {
+                    val paytoTaler = PaytoUri.parse(transferContext.debitPaytoUri)
+                    if (paytoTaler !is PaytoUriTalerBank) return@Column // TODO: render error
+                    stringResource(
+                        R.string.send_deposit_kyc_auth_intro_bank,
+                        transfer.transferAmount,
+                        paytoTaler.account,
+                    )
+                }
             },
             style = MaterialTheme.typography.bodyLarge,
             modifier = Modifier
                 .padding(vertical = 8.dp)
         )
 
-        if (transferContext == DepositKycAuth) {
+        if (transferContext is DepositKycAuth) {
             WarningLabel(
                 modifier = Modifier.padding(
                     horizontal = 8.dp,
@@ -90,7 +95,7 @@ fun TransferTaler(
             ),
             label = when (transferContext) {
                 ManualWithdrawal -> stringResource(R.string.withdraw_manual_ready_warning)
-                DepositKycAuth -> stringResource(R.string.send_deposit_kyc_auth_warning_subject)
+                is DepositKycAuth -> stringResource(R.string.send_deposit_kyc_auth_warning_subject)
             },
         )
 
