@@ -28,7 +28,6 @@ import com.google.android.material.snackbar.Snackbar
 import net.taler.common.navigate
 import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.config.ConfigFetcherFragmentDirections.Companion.actionConfigFetcherToMerchantSettings
-import net.taler.merchantpos.config.ConfigFetcherFragmentDirections.Companion.actionConfigFetcherToOrder
 import net.taler.merchantpos.databinding.FragmentConfigFetcherBinding
 import net.taler.merchantpos.R
 
@@ -38,6 +37,8 @@ class ConfigFetcherFragment : Fragment() {
     private val configManager by lazy { model.configManager }
 
     private lateinit var ui: FragmentConfigFetcherBinding
+
+    private var navigating: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,7 +51,8 @@ class ConfigFetcherFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         if (configManager.config.savePassword()) {
             configManager.fetchConfig(configManager.config, false)
-        } else {
+        } else if (!navigating) {
+            navigating = true
             navigate(actionConfigFetcherToMerchantSettings())
         }
 
@@ -59,7 +61,10 @@ class ConfigFetcherFragment : Fragment() {
                 null -> return@observe
                 is ConfigUpdateResult.Error -> onNetworkError(result.msg)
                 is ConfigUpdateResult.Success -> {
-                    findNavController().navigate(R.id.action_global_order)
+                    if (!navigating) {
+                        navigating = true
+                        findNavController().navigate(R.id.action_global_order)
+                    }
                 }
             }
         }
@@ -67,7 +72,6 @@ class ConfigFetcherFragment : Fragment() {
 
     private fun onNetworkError(msg: String) {
         Snackbar.make(requireView(), msg, LENGTH_SHORT).show()
-        navigate(actionConfigFetcherToMerchantSettings())
     }
 
 }
