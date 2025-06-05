@@ -56,7 +56,7 @@
     <string name="withdraw_manual_check_fees">Überprüfen Sie die Gebühren</string>
     <string name="withdraw_error_title">Fehler beim Abheben</string>
     <string name="withdraw_error_message">Ein Abheben ist derzeit nicht möglich. Bitte zu einem späteren Zeitpunkt erneut versuchen!</string>
-    <string name="withdraw_error_test">Fehler beim Abheben von TESTKUDOS aufgetreten</string>
+    <string name="withdraw_error_test">Es kam zu einem Fehler beim Abheben von KUDOS</string>
     <string name="exchange_settings_summary">Verwaltung der Zahlungsdienstleister, die diesem Wallet bekannt sind</string>
     <string name="payment_fee">+%s Zahlungsgebühr</string>
     <string name="exchange_list_title">Zahlungsdienstleister</string>
@@ -304,7 +304,7 @@
     <string name="error_no_uri">Fehler: Kein Taler-URI gefunden</string>
     <string name="payment_balance_insufficient_max">Unzureichende Deckung! Höchstbetrag ist %1$s</string>
     <string name="withdraw_fee">+%1$s Abhebegebühr</string>
-    <string name="settings_test_withdrawal">TESTKUDOS werden nun abgehoben</string>
+    <string name="settings_test_withdrawal">KUDOS werden nun abgehoben</string>
     <string name="amount_max">Höchstbetrag</string>
     <string name="amount_excess">Der Betrag übersteigt das Maximum von %1$s</string>
     <string name="amount_withdraw">Von der Bank abzuhebender Betrag</string>
@@ -313,7 +313,7 @@
     <string name="transaction_state_aborted_manual">Diese Transaktion wurde abgebrochen. Falls Sie bereits Geld an den Zahlungsdienst überwiesen haben, wird dieses an Sie zurücküberwiesen am %1$s</string>
     <string name="transaction_preparing_kyc">Die Abfrage des wirtschaftlich Berechtigten wird vorbereitet</string>
     <string name="exchange_tos_view">Allgemeine Geschäftsbedingungen lesen</string>
-    <string name="transaction_state_pending_kyc_bank">Diese Überweisung würde die von Ihrer Bank maximal erlaubte Abhebung übersteigen. Um fortzufahren ist eine vollständige KYC-Prüfung nötig</string>
+    <string name="transaction_state_pending_kyc_bank">Diese Transaktion würde die vom Zahlungsdienst maximal erlaubte Höhe übersteigen. Folgen Sie bitte den Anweisungen unten, um sie anzuheben.</string>
     <string name="exchange_tos_forget">Allgemeine Geschäftsbedingungen ablehnen</string>
     <string name="transaction_action_kyc_balance">Gesamtguthaben (KYC)</string>
     <string name="transaction_action_kyc_bank">KYC-Prüfung zum Abheben durchführen</string>
@@ -381,4 +381,15 @@
     <string name="payment_cancel_dialog_message">Sind Sie sicher, dass Sie diese Zahlung abbrechen möchten? Sie können sie später nicht mehr abschließen. Sie können den Vorgang aber an dieser Stelle auch einfach abbrechen und später erneut beginnen.</string>
     <string name="withdraw_manual_qr_intro">Wenn Sie Ihr Online-Banking auf einem anderen Gerät ausführen, scannen Sie einen dieser QR-Codes:</string>
     <string name="withdraw_manual_ready_details_qr">QR-Codes für die Überweisung</string>
+    <string name="transaction_state_finalizing">Diese Transaktion wird abgeschlossen</string>
+    <string name="transactions_required_kyc">Eine KYC-Prüfung ist erforderlich, um fortzufahren</string>
+    <string name="send_deposit_kyc_auth_intro_bank">Sie müssen %1$s vom Bankkonto %2$s an den Zahlungsdienst überweisen, um zu beweisen, dass Sie die Kontrolle über das Bankkonto haben.</string>
+    <string name="send_deposit_kyc_auth_warning_account">Verwenden Sie für die Auszahlung kein anderes Bankkonto, da sonst die Verifizierung fehlschlägt.</string>
+    <string name="receive_peer_review_terms">Sie müssen zunächst die Allgemeinen Geschäftsbedingungen des Zahlungsdiensts akzeptieren, bevor Sie digitales Bargeld anfordern können.</string>
+    <string name="send_deposit_kyc_auth_step_finish">Durch Ihre Überweisung von %1$s, die Sie in Ihrer Banking-App oder Ihrem Online-Banking ausführen, beweisen Sie die Kontrolle über das Bankkonto %2$s. Je nach Bank kann die Überweisung zwischen Minuten und zwei Werktagen dauern, bitte haben Sie etwas Geduld.</string>
+    <string name="send_deposit_kyc_auth_warning_subject">Dies ist zwingend erforderlich, da sonst die Überprüfung fehlschlägt.</string>
+    <string name="currency_url">%1$s (%2$s)</string>
+    <string name="currency_via">über</string>
+    <string name="transaction_action_kyc">KYC vervollständigen</string>
+    <string name="transaction_state_pending_kyc_auth">Sie müssen nachweisen, dass Sie die Kontrolle über das Bankkonto für die Auszahlung haben. Um fortzufahren, folgen Sie den unten verlinkten Anweisungen.</string>
 </resources>
