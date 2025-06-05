@@ -100,7 +100,7 @@
     <string name="withdraw_manual_ready_cancel">Para çekme işlemini iptal et</string>
     <string name="withdraw_manual_ready_warning">Doğru konuyu kullandığınızdan emin olun, aksi takdirde para bu cüzdana ulaşmayacaktır.</string>
     <string name="withdraw_error_title">Para çekme hatası</string>
-    <string name="withdraw_error_test">TESTKUDOS çekilirken hata oluştu</string>
+    <string name="withdraw_error_test">KUDOS çekilirken hata oluştu</string>
     <string name="exchange_settings_title">Sağlayıcılar</string>
     <string name="exchange_settings_summary">Bu cüzdan tarafından bilinen sağlayıcıların listesini yönetin</string>
     <string name="exchange_list_title">Sağlayıcılar</string>
@@ -286,7 +286,7 @@
     <string name="withdraw_select_amount">Tutar seç</string>
     <string name="exchange_list_add_dev">Geliştirme sağlayıcıları ekle</string>
     <string name="loss_reason">Sebep</string>
-    <string name="settings_test_withdrawal">Şimdi TESTKUDOS\'u çek</string>
+    <string name="settings_test_withdrawal">Şimdi KUDOS\'u çek</string>
     <string name="transaction_denom_loss">Fon kaybı</string>
     <string name="payment_create_order">Sipariş oluştur</string>
     <string name="send_deposit">Banka hesabına</string>
