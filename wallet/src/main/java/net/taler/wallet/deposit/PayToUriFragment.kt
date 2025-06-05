@@ -61,6 +61,7 @@ class PayToUriFragment : Fragment() {
     private val model: MainViewModel by activityViewModels()
     private val depositManager get() = model.depositManager
     private val balanceManager get() = model.balanceManager
+    private val exchangeManager get() = model.exchangeManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -92,7 +93,7 @@ class PayToUriFragment : Fragment() {
                             findNavController().navigate(
                                 R.id.action_nav_payto_uri_to_nav_deposit, bundle)
                         },
-                        getCurrencySpec = balanceManager::getSpecForCurrency,
+                        getCurrencySpec = exchangeManager::getSpecForCurrency,
                     ) else Text(
                         text = stringResource(id = R.string.uri_invalid),
                         color = MaterialTheme.colorScheme.error,

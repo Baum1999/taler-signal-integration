@@ -40,7 +40,7 @@ class TransactionWithdrawalFragment : TransactionDetailFragment(), ActionListene
                     TransactionWithdrawalComposable(
                         t = tx,
                         devMode = devMode,
-                        spec = balanceManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
+                        spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
                         actionListener = this@TransactionWithdrawalFragment,
                     ) {
                         onTransitionButtonClicked(tx, it)

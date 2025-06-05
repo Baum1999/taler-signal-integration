@@ -31,6 +31,7 @@ import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil.ItemCallback
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.Adapter
+import net.taler.common.base64Bitmap
 import net.taler.merchantpos.R
 import net.taler.merchantpos.config.ConfigProduct
 import net.taler.merchantpos.order.OrderAdapter.OrderViewHolder
@@ -91,7 +92,7 @@ internal class OrderAdapter : Adapter<OrderViewHolder>() {
             price.text = product.totalPrice.amountStr
 
             // base64 encoded image
-            val bitmap = product.imageBitmap
+            val bitmap = product.image?.base64Bitmap
             if (bitmap == null) {
                 image.visibility = GONE
             } else {

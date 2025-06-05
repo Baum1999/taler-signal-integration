@@ -115,7 +115,10 @@ fun TransactionStateComposable(
         else -> return
     }
 
-    Banner(colors = CardDefaults.cardColors(containerColor = cardColor)) {
+    Banner(
+        modifier = Modifier.padding(horizontal = 9.dp),
+        colors = CardDefaults.cardColors(containerColor = cardColor),
+    ) {
         Text(
             modifier = Modifier
                 .fillMaxWidth(),

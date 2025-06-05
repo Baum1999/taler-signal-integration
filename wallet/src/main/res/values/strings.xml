@@ -62,6 +62,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="edit">Edit</string>
     <string name="enter_uri">Enter taler:// URI</string>
     <string name="enter_uri_label">Enter URI</string>
+    <string name="error">Error</string>
     <string name="import_db">Import</string>
     <string name="loading">Loading</string>
     <string name="menu">Menu</string>
@@ -74,6 +75,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="reset">Reset</string>
     <string name="share_payment">Share payment link</string>
     <string name="uri_invalid">Not a valid Taler URI</string>
+    <string name="warning">Warning</string>
 
     <!-- Biometric lock -->
     <string name="biometric_auth_error">Authentication error: %1$s</string>
@@ -198,7 +200,9 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="payment_aborted">Aborted</string>
     <string name="payment_aborting">Aborting</string>
     <string name="payment_already_paid">You\'ve already paid for this purchase.</string>
-    <string name="payment_balance_insufficient">Balance insufficient!</string>
+    <string name="payment_amount_total">Total: %1$s</string>
+    <string name="payment_automatic_execution">This payment was automatically confirmed</string>
+    <string name="payment_balance_insufficient">Insufficient balance</string>
     <string name="payment_balance_insufficient_hint_age_restricted">Purchase not possible due to age restriction</string>
     <string name="payment_balance_insufficient_hint_exchange_missing_global_fees">Provider is missing the global fee configuration, this likely means it is misconfigured</string>
     <string name="payment_balance_insufficient_hint_fees_not_covered">Not enough funds to pay the provider fees not covered by the merchant</string>
@@ -208,8 +212,12 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="payment_balance_insufficient_max">Balance insufficient! Maximum is %1$s</string>
     <string name="payment_button_cancel">Cancel</string>
     <string name="payment_button_confirm">Confirm payment</string>
+    <string name="payment_button_confirm_amount">Pay %1$s</string>
+    <string name="payment_button_confirm_tokens">Pay with tokens</string>
     <string name="payment_cancel_dialog_message">Are you sure you want to cancel this payment? You won\'t be able to complete it later. Alternatively, you can simply exit this screen and come back later.</string>
     <string name="payment_cancel_dialog_title">Cancel payment</string>
+    <string name="payment_choice_inputs">Spend now</string>
+    <string name="payment_choice_outputs">You receive with purchase</string>
     <string name="payment_confirmation_code">Confirmation code</string>
     <string name="payment_create_order">Create order</string>
     <string name="payment_error">Error: %s</string>
@@ -219,10 +227,21 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="payment_label_order_summary">Purchase</string>
     <string name="payment_pay_template_title">Customize your order</string>
     <string name="payment_pending">Payment not completed, it will be retried</string>
+    <!-- <quantity> × <price> -->
+    <string name="payment_product_price_quantity">%1$s × %2$s</string>
     <string name="payment_prompt_title">Review payment</string>
     <string name="payment_repurchase">Repurchase</string>
+    <string name="payment_section_choices">Select payment option</string>
+    <string name="payment_section_review">Review order</string>
     <!-- including <amount> <tax name> -->
     <string name="payment_tax">incl. %1$s %2$s</string>
+    <!-- <quantity> × <token name> -->
+    <string name="payment_token_name_quantity">%1$d × %2$s</string>
+    <string name="payment_token_discount">Discount</string>
+    <string name="payment_token_subscription">Subscription</string>
+    <string name="payment_tokens_insufficient">Insufficient tokens</string>
+    <string name="payment_tokens_unexpected">Unexpected merchant %1$s, your token could be stolen.</string>
+    <string name="payment_tokens_untrusted">Merchant %1$s is untrusted, cannot spend this token.</string>
     <string name="payment_template_error">Error creating order</string>
     <string name="payment_title">Payment</string>
 

@@ -52,7 +52,7 @@ class WireTransferDetailsFragment : Fragment() {
     private val model: MainViewModel by activityViewModels()
     private val withdrawManager by lazy { model.withdrawManager }
     private val transactionManager by lazy { model.transactionManager }
-    private val balanceManager by lazy { model.balanceManager }
+    private val exchangeManager by lazy { model.exchangeManager }
 
     private var navigating: Boolean = false
 
@@ -103,9 +103,9 @@ class WireTransferDetailsFragment : Fragment() {
                     getQrCodes = { withdrawManager.getQrCodesForPayto(it.withdrawalAccount.paytoUri) },
                     spec = selectedTx?.amountRaw?.currency?.let {
                         selectedTx?.scopes?.let { selectedScopes ->
-                            balanceManager.getSpecForCurrency(it, selectedScopes)
+                            exchangeManager.getSpecForCurrency(it, selectedScopes)
                         } ?: run {
-                            balanceManager.getSpecForCurrency(it)
+                            exchangeManager.getSpecForCurrency(it)
                         }
                     },
                     bankAppClick = { onBankAppClick(it) },

@@ -38,7 +38,7 @@ class TransactionRefundFragment : TransactionDetailFragment() {
                 val t by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
                 (t as? TransactionRefund)?.let { tx ->
                     TransactionRefundComposable(tx, devMode,
-                        balanceManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes)
+                        exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes)
                     ) {
                         onTransitionButtonClicked(tx, it)
                     }

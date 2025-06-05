@@ -48,6 +48,7 @@ abstract class TransactionDetailFragment : Fragment(), ActionListener {
     private val model: MainViewModel by activityViewModels()
     protected val transactionManager by lazy { model.transactionManager }
     protected val balanceManager by lazy { model.balanceManager }
+    protected val exchangeManager by lazy { model.exchangeManager }
     protected val withdrawManager by lazy { model.withdrawManager }
     protected val devMode get() = model.devMode.value == true
 

@@ -122,7 +122,7 @@ class MainFragment: Fragment() {
                 val selectedScope by model.transactionManager.selectedScope.collectAsStateLifecycleAware()
                 val txStateFilter by model.transactionManager.stateFilter.collectAsStateLifecycleAware()
                 val txResult by remember(selectedScope, txStateFilter) { model.transactionManager.transactionsFlow(selectedScope, stateFilter = txStateFilter) }.collectAsStateLifecycleAware()
-                val selectedSpec = remember(selectedScope) { selectedScope?.let { model.balanceManager.getSpecForScopeInfo(it) } }
+                val selectedSpec = remember(selectedScope) { selectedScope?.let { model.exchangeManager.getSpecForScopeInfo(it) } }
                 val actionButtonUsed by remember { model.settingsManager.getActionButtonUsed(context) }.collectAsStateLifecycleAware(true)
 
                 Scaffold(
@@ -251,7 +251,7 @@ class MainFragment: Fragment() {
             // unfinished transactions (dialog)
             TransactionState(TransactionMajorState.Dialog) -> when (tx) {
                 is TransactionPayment -> {
-                    model.paymentManager.preparePay(tx) {
+                    model.paymentManager.preparePay(tx.transactionId) {
                         findNavController().navigate(R.id.action_global_promptPayment)
                     }
                 }

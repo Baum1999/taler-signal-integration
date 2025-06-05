@@ -26,7 +26,7 @@ import net.taler.common.RelativeTime
 @Serializable
 data class PostOrderRequest(
     @SerialName("order")
-    val contractTerms: ContractTerms,
+    val contractTerms: net.taler.common.Order,
     @SerialName("refund_delay")
     val refundDelay: RelativeTime? = null,
     @SerialName("create_token")

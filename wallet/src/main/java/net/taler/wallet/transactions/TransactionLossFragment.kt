@@ -71,7 +71,7 @@ class TransactionLossFragment: TransactionDetailFragment() {
             TalerSurface {
                 (t as? TransactionDenomLoss)?.let { tx ->
                     val spec = remember(tx.amountRaw.currency, tx.scopes) {
-                        balanceManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes)
+                        exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes)
                     }
                     TransitionLossComposable(tx, devMode, spec) {
                         onTransitionButtonClicked(tx, it)

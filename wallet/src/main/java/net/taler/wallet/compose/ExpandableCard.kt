@@ -18,6 +18,7 @@ package net.taler.wallet.compose
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -27,9 +28,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -46,6 +50,7 @@ import androidx.compose.ui.unit.dp
 fun ExpandableCard(
     modifier: Modifier = Modifier,
     expanded: Boolean = false,
+    section: Boolean = false, // card or section?
     setExpanded: (expanded: Boolean) -> Unit,
     header: @Composable RowScope.() -> Unit,
     content: @Composable ColumnScope.() -> Unit,
@@ -55,10 +60,7 @@ fun ExpandableCard(
         label = "Rotation state of expand icon button",
     )
 
-    OutlinedCard(
-        modifier = modifier.padding(8.dp),
-        onClick = { setExpanded(!expanded) }
-    ) {
+    val body = @Composable {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -67,11 +69,20 @@ fun ExpandableCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .clickable { setExpanded(!expanded) }
                     .padding(start = 16.dp, top = 4.dp, bottom = 4.dp, end  = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                header()
+                ProvideTextStyle(
+                    if (section) {
+                        MaterialTheme.typography.titleLarge
+                    } else {
+                        MaterialTheme.typography.titleMedium
+                    },
+                ) {
+                    header()
+                }
 
                 IconButton(
                     modifier = Modifier.rotate(rotationState),
@@ -89,16 +100,51 @@ fun ExpandableCard(
             }
         }
     }
+
+    if (section) {
+        Column {
+            body()
+            HorizontalDivider()
+        }
+    } else {
+        OutlinedCard(
+            modifier = modifier.padding(8.dp),
+            onClick = { setExpanded(!expanded) }
+        ) {
+            body()
+        }
+    }
+}
+
+@Composable
+fun ExpandableSection(
+    modifier: Modifier = Modifier,
+    expanded: Boolean = false,
+    setExpanded: (expanded: Boolean) -> Unit,
+    header: @Composable RowScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    ExpandableCard(
+        modifier = modifier,
+        expanded = expanded,
+        section = true,
+        setExpanded = setExpanded,
+        header = header,
+        content = content,
+    )
 }
 
 @Preview
 @Composable
-fun ExpandableCardPreview() {
+fun ExpandableCardPreview(
+    section: Boolean = false,
+) {
     TalerSurface {
         var expanded by remember { mutableStateOf(true) }
         ExpandableCard(
             expanded = expanded,
             setExpanded = { expanded = it },
+            section = section,
             header = { Text("Swiss QR") },
             content = {
                 QrCodeUriComposable(
@@ -109,4 +155,10 @@ fun ExpandableCardPreview() {
             }
         )
     }
+}
+
+@Preview
+@Composable
+fun ExpandableSectionPreview() {
+    ExpandableCardPreview(true)
 }

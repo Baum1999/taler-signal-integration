@@ -25,14 +25,20 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import net.taler.common.CurrencySpecification
 import net.taler.common.Event
 import net.taler.common.toEvent
 import net.taler.wallet.TAG
+import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
+import net.taler.wallet.balances.GetCurrencySpecificationResponse
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.withdraw.TosResponse
+import org.json.JSONObject
 
 @Serializable
 data class ExchangeListResponse(
@@ -64,6 +70,8 @@ class ExchangeManager(
 
     var withdrawalExchange: ExchangeItem? = null
 
+    private val currencySpecs: MutableMap<ScopeInfo, CurrencySpecification?> = mutableMapOf()
+
     private fun list(): LiveData<List<ExchangeItem>> {
         mProgress.value = true
         scope.launch {
@@ -75,6 +83,14 @@ class ExchangeManager(
                 Log.d(TAG, "Exchange list: ${it.exchanges}")
                 mProgress.value = false
                 mExchanges.value = it.exchanges
+                scope.launch {
+                    // load and cache all currency specs
+                    it.exchanges.forEach { exchange ->
+                        if (exchange.scopeInfo != null) {
+                            getCurrencySpecification(exchange.scopeInfo)
+                        }
+                    }
+                }
             }
         }
         return mExchanges
@@ -266,4 +282,38 @@ class ExchangeManager(
         }
     }
 
+    suspend fun getCurrencySpecification(scopeInfo: ScopeInfo): CurrencySpecification? {
+        if (currencySpecs.containsKey(scopeInfo)) {
+            return currencySpecs[scopeInfo]
+        }
+
+        var spec: CurrencySpecification? = null
+        api.request("getCurrencySpecification", GetCurrencySpecificationResponse.serializer()) {
+            val json = BackendManager.json.encodeToString(scopeInfo)
+            Log.d(TAG, "ExchangeManager: $json")
+            put("scope", JSONObject(json))
+        }.onSuccess {
+            currencySpecs[scopeInfo] = it.currencySpecification
+            spec = it.currencySpecification
+        }.onError {
+            Log.e(TAG, "Error getting currency spec for scope $scopeInfo: $it")
+        }
+        return spec
+    }
+
+    @Deprecated("Please find spec via scopeInfo instead", ReplaceWith("getSpecForScopeInfo"))
+    fun getSpecForCurrency(currency: String): CurrencySpecification? {
+        return currencySpecs.keys.firstOrNull {
+            it.currency == currency
+        }?.let { currencySpecs[it] }
+    }
+
+    fun getSpecForCurrency(currency: String, scopes: List<ScopeInfo>) =
+        scopes.find { it.currency == currency }?.let { scope ->
+            runBlocking { getCurrencySpecification(scope) }
+        }
+
+    fun getSpecForScopeInfo(scopeInfo: ScopeInfo): CurrencySpecification? {
+        return runBlocking { getCurrencySpecification(scopeInfo) }
+    }
 }

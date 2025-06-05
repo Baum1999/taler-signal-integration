@@ -16,62 +16,179 @@
 
 package net.taler.common
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory.decodeByteArray
-import android.os.Build
-import android.util.Base64
+import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import net.taler.common.TalerUtils.getLocalizedString
-
-val REGEX_PRODUCT_IMAGE = Regex("^data:image/(jpeg|png);base64,([A-Za-z0-9+/=]+)$")
+import kotlinx.serialization.json.JsonClassDiscriminator
+import kotlinx.serialization.json.JsonContentPolymorphicSerializer
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 @Serializable
-data class ContractTerms(
-    val summary: String,
-    @SerialName("summary_i18n")
-    val summaryI18n: Map<String, String>? = null,
-    val amount: Amount,
-    @SerialName("fulfillment_url")
-    val fulfillmentUrl: String? = null,
-    @SerialName("fulfillment_message")
-    val fulfillmentMessage: String? = null,
-    @SerialName("fulfillment_message_i18n")
-    val fulfillmentMessageI18n: Map <String, String>? = null,
-    val products: List<ContractProduct>? = null,
-    @SerialName("wire_transfer_deadline")
-    val wireTransferDeadline: Timestamp? = null,
-    @SerialName("refund_deadline")
-    val refundDeadline: Timestamp? = null,
-    @SerialName("pay_deadline")
-    val payDeadline: Timestamp? = null
+enum class ContractVersion(val version: Int) {
+    V0(0),
+    V1(1),
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable(with = ContractTermsSerializer::class)
+sealed class ContractTerms {
+    abstract val version: ContractVersion
+    abstract val summary: String
+    abstract val summaryI18n: Map<String, String>?
+    abstract val orderId: String
+    abstract val fulfillmentUrl: String?
+    abstract val fulfillmentMessage: String?
+    abstract val fulfillmentMessageI18n: Map <String, String>?
+    abstract val products: List<ContractProduct>?
+    abstract val refundDeadline: Timestamp?
+    abstract val payDeadline: Timestamp?
+    abstract val wireTransferDeadline: Timestamp?
+    abstract val merchantBaseUrl: String
+    abstract val merchant: Merchant
+    abstract val exchanges: List<Exchange>
+    abstract val deliveryLocation: Location?
+    abstract val deliveryDate: Timestamp?
+
+    @Serializable
+    @JsonClassDiscriminator("version")
+    data class V0 (
+        override val summary: String,
+
+        @SerialName("summary_i18n")
+        override val summaryI18n: Map<String, String>? = null,
+
+        @SerialName("order_id")
+        override val orderId: String,
+
+        @SerialName("fulfillment_url")
+        override val fulfillmentUrl: String? = null,
+
+        @SerialName("fulfillment_message")
+        override val fulfillmentMessage: String? = null,
+
+        @SerialName("fulfillment_message_i18n")
+        override val fulfillmentMessageI18n: Map<String, String>? = null,
+
+        override val products: List<ContractProduct>? = null,
+
+        @SerialName("refund_deadline")
+        override val refundDeadline: Timestamp? = null,
+
+        @SerialName("pay_deadline")
+        override val payDeadline: Timestamp? = null,
+
+        @SerialName("wire_transfer_deadline")
+        override val wireTransferDeadline: Timestamp? = null,
+
+        @SerialName("merchant_base_url")
+        override val merchantBaseUrl: String,
+
+        override val merchant: Merchant,
+
+        override val exchanges: List<Exchange> = listOf(),
+
+        @SerialName("delivery_location")
+        override val deliveryLocation: Location? = null,
+
+        @SerialName("delivery_date")
+        override val deliveryDate: Timestamp? = null,
+
+        val amount: Amount,
+
+        @SerialName("max_fee")
+        val maxFee: Amount,
+    ) : ContractTerms() {
+        override val version: ContractVersion = ContractVersion.V0
+    }
+
+    @Serializable
+    @JsonClassDiscriminator("version")
+    data class V1 (
+        override val summary: String,
+
+        @SerialName("summary_i18n")
+        override val summaryI18n: Map<String, String>? = null,
+
+        @SerialName("order_id")
+        override val orderId: String,
+
+        @SerialName("fulfillment_url")
+        override val fulfillmentUrl: String? = null,
+
+        @SerialName("fulfillment_message")
+        override val fulfillmentMessage: String? = null,
+
+        @SerialName("fulfillment_message_i18n")
+        override val fulfillmentMessageI18n: Map<String, String>? = null,
+
+        override val products: List<ContractProduct>? = null,
+
+        @SerialName("refund_deadline")
+        override val refundDeadline: Timestamp? = null,
+
+        @SerialName("pay_deadline")
+        override val payDeadline: Timestamp? = null,
+
+        @SerialName("wire_transfer_deadline")
+        override val wireTransferDeadline: Timestamp? = null,
+
+        @SerialName("merchant_base_url")
+        override val merchantBaseUrl: String,
+
+        override val merchant: Merchant,
+
+        override val exchanges: List<Exchange> = listOf(),
+
+        @SerialName("delivery_location")
+        override val deliveryLocation: Location? = null,
+
+        @SerialName("delivery_date")
+        override val deliveryDate: Timestamp? = null,
+
+        val choices: List<ContractChoice>,
+
+        @SerialName("token_families")
+        val tokenFamilies: Map<String, ContractTokenFamily>,
+    ) : ContractTerms() {
+        override val version: ContractVersion = ContractVersion.V1
+
+        fun getTokenFamily(slug: String) = tokenFamilies[slug]
+    }
+}
+
+@Serializable
+data class Merchant(
+    val name: String,
+    val email: String? = null,
+    val website: String? = null,
+    val logo: String? = null,
+    val address: Location? = null,
+    val jurisdiction: Location? = null
 )
 
-abstract class Product {
-    abstract val productId: String?
-    abstract val description: String
-    abstract val descriptionI18n: Map<String, String>?
-    abstract val price: Amount?
-    abstract val location: String?
-    abstract val image: String?
-    abstract val taxes: Set<Tax>?
-    val localizedDescription: String
-        get() = if (Build.VERSION.SDK_INT >= 26) {
-            getLocalizedString(descriptionI18n, description)
-        } else {
-            description
-        }
-
-    val imageBitmap: Bitmap?
-        get() = image?.let {
-            REGEX_PRODUCT_IMAGE.matchEntire(it)?.let { match ->
-                match.groups[2]?.value?.let { group ->
-                    val decodedString = Base64.decode(group, Base64.DEFAULT)
-                    decodeByteArray(decodedString, 0, decodedString.size)
-                }
-            }
-        }
-}
+@Serializable
+data class Location(
+    val country: String? = null,
+    @SerialName("country_subdivision")
+    val countrySubdivision: String? = null,
+    val district: String? = null,
+    val town: String? = null,
+    @SerialName("town_location")
+    val townLocation: String? = null,
+    @SerialName("post_code")
+    val postCode: String? = null,
+    val street: String? = null,
+    @SerialName("building_name")
+    val buildingName: String? = null,
+    @SerialName("building_number")
+    val buildingNumber: String? = null,
+    @SerialName("address_lines")
+    val addressLines: List<String>? = null,
+)
 
 @Serializable
 data class ContractProduct(
@@ -86,11 +203,16 @@ data class ContractProduct(
     override val image: String? = null,
     override val taxes: Set<Tax>? = null,
     val quantity: Int = 1,
-) : Product() {
+) : OrderProduct() {
     val totalPrice: Amount? by lazy {
         price?.let { price * quantity }
     }
 }
+
+@Serializable
+data class Exchange(
+    val url: String,
+)
 
 @Serializable
 data class Tax(
@@ -99,6 +221,84 @@ data class Tax(
 )
 
 @Serializable
-data class ContractMerchant(
-    val name: String
+data class ContractChoice(
+    val amount: Amount,
+    val inputs: List<ContractInput>,
+    val outputs: List<ContractOutput>,
+    @SerialName("max_fee")
+    val maxFee: Amount,
 )
+
+@Serializable
+enum class ContractInputType {
+    @SerialName("token")
+    Token,
+}
+
+@Serializable
+sealed class ContractInput {
+    abstract val type: ContractInputType
+
+    @Serializable
+    @SerialName("token")
+    data class Token(
+        @SerialName("token_family_slug")
+        val tokenFamilySlug: String,
+        val count: Int = 1,
+    ): ContractInput() {
+        override val type: ContractInputType = ContractInputType.Token
+    }
+}
+
+@Serializable
+enum class ContractOutputType {
+    @SerialName("token")
+    Token,
+}
+
+@Serializable
+sealed class ContractOutput {
+    abstract val type: ContractOutputType
+
+    @Serializable
+    @SerialName("token")
+    data class Token(
+        @SerialName("token_family_slug")
+        val tokenFamilySlug: String,
+        val count: Int = 1,
+    ): ContractOutput() {
+        override val type: ContractOutputType = ContractOutputType.Token
+    }
+}
+
+@Serializable
+data class ContractTokenFamily(
+    val name: String,
+    val description: String,
+    val descriptionI18n: Map<String, String>? = null,
+    val details: ContractTokenDetails,
+    val critical: Boolean,
+)
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable
+@JsonClassDiscriminator("class")
+sealed class ContractTokenDetails {
+    @Serializable
+    @SerialName("subscription")
+    data object Subscription: ContractTokenDetails()
+
+    @Serializable
+    @SerialName("discount")
+    data object Discount: ContractTokenDetails()
+}
+
+object ContractTermsSerializer : JsonContentPolymorphicSerializer<ContractTerms>(ContractTerms::class) {
+    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<ContractTerms> {
+        return when(val type = element.jsonObject["version"]?.jsonPrimitive?.intOrNull) {
+            null, 0 -> ContractTerms.V0.serializer()
+            1 -> ContractTerms.V1.serializer()
+            else -> error("unknown contract version $type")
+        }
+    }
+}

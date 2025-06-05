@@ -21,7 +21,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.taler.common.Amount
 import net.taler.common.ContractProduct
-import net.taler.common.Product
+import net.taler.common.OrderProduct
 import net.taler.common.TalerUtils
 import net.taler.common.Tax
 import net.taler.merchantlib.MerchantConfig
@@ -99,7 +99,7 @@ data class ConfigProduct(
     override val taxes: Set<Tax>? = null,
     val categories: List<Int>,
     val quantity: Int = 0
-) : Product() {
+) : OrderProduct() {
     val totalPrice by lazy { price * quantity }
 
     fun toContractProduct() = ContractProduct(

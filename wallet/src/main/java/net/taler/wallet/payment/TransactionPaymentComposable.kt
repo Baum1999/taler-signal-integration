@@ -31,8 +31,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
-import net.taler.common.ContractMerchant
 import net.taler.common.CurrencySpecification
+import net.taler.common.Merchant
 import net.taler.common.Timestamp
 import net.taler.common.toAbsoluteTime
 import net.taler.wallet.BottomInsetsSpacer
@@ -166,7 +166,7 @@ fun TransactionPaymentComposablePreview() {
         txActions = listOf(Retry, Suspend, Abort),
         info = TransactionInfo(
             orderId = "123",
-            merchant = ContractMerchant(name = "Taler"),
+            merchant = Merchant(name = "Taler"),
             summary = "Some Product that was bought and can have quite a long label",
             fulfillmentMessage = "This is some fulfillment message",
             fulfillmentUrl = "https://bank.demo.taler.net/",

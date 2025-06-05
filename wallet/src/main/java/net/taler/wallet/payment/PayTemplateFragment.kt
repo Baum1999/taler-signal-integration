@@ -60,7 +60,7 @@ class PayTemplateFragment : Fragment() {
                         onCreateAmount = model::createAmount,
                         onSubmit = this@PayTemplateFragment::createOrder,
                         onError = { this@PayTemplateFragment.showError(it) },
-                        getCurrencySpec = model.balanceManager::getSpecForCurrency,
+                        getCurrencySpec = model.exchangeManager::getSpecForCurrency,
                     )
                 }
             }

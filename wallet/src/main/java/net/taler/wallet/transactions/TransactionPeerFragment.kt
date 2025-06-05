@@ -80,7 +80,7 @@ class TransactionPeerFragment : TransactionDetailFragment(), ActionListener {
                 t?.let { tx ->
                     TransactionPeerComposable(
                         tx, devMode,
-                        balanceManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
+                        exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
                         this@TransactionPeerFragment,
                     ) {
                         onTransitionButtonClicked(tx, it)

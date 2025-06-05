@@ -16,9 +16,7 @@
 
 package net.taler.merchantpos.order
 
-import android.graphics.BitmapFactory.decodeByteArray
 import android.os.Bundle
-import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
@@ -32,6 +30,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import net.taler.common.base64Bitmap
 import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.R
 import net.taler.merchantpos.config.ConfigProduct
@@ -115,7 +114,7 @@ private class ProductAdapter(
             price.text = product.price.amountStr
 
             // base64 encoded image
-            val bitmap = product.imageBitmap
+            val bitmap = product.image?.base64Bitmap
             if (bitmap == null) {
                 image.visibility = GONE
             } else {

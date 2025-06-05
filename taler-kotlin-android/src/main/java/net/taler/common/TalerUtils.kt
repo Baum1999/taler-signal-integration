@@ -16,16 +16,17 @@
 
 package net.taler.common
 
+import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.os.LocaleListCompat
 import java.util.Locale
 
 object TalerUtils {
 
-    @RequiresApi(26)
     fun getLocalizedString(map: Map<String, String>?, default: String): String {
         // just return the default, if it is the only element
         if (map == null) return default
+        if (Build.VERSION.SDK_INT < 26) return default
         // create a priority list of language ranges from system locales
         val locales = LocaleListCompat.getDefault()
         val priorityList = ArrayList<Locale.LanguageRange>(locales.size())

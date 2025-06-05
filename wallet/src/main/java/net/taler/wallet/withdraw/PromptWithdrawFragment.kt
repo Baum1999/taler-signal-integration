@@ -131,9 +131,9 @@ class PromptWithdrawFragment: Fragment() {
 
             val currencySpec = remember(exchange?.scopeInfo) {
                 exchange?.scopeInfo?.let { scopeInfo ->
-                    balanceManager.getSpecForScopeInfo(scopeInfo)
+                    exchangeManager.getSpecForScopeInfo(scopeInfo)
                 } ?: status.currency?.let {
-                    balanceManager.getSpecForCurrency(it)
+                    exchangeManager.getSpecForCurrency(it)
                 }
             }
 

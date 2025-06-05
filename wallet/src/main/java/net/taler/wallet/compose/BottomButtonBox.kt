@@ -19,6 +19,7 @@ package net.taler.wallet.compose
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,27 +37,37 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun BottomButtonBox(
     modifier: Modifier = Modifier,
+    heading: (@Composable ColumnScope.() -> Unit)? = null,
     leading: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
 ) {
-    Row(
-        modifier = modifier
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    Column(modifier = modifier
+        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+        .padding(12.dp),
+        horizontalAlignment = Alignment.End,
     ) {
-        leading?.let {
-            Box(
-                modifier = Modifier.weight(1f),
-                contentAlignment = Alignment.CenterStart,
-            ) { it() }
+        if (heading != null) {
+            Column(
+                modifier = Modifier.padding(bottom = 6.dp),
+                horizontalAlignment = Alignment.End,
+                content = heading,
+            )
         }
 
-        trailing?.let {
-            Box(
-                modifier = Modifier.weight(1f),
-                contentAlignment = Alignment.CenterEnd,
-            ) { it() }
+        Row(verticalAlignment = Alignment.Bottom) {
+            leading?.let {
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.CenterStart,
+                ) { it() }
+            }
+
+            trailing?.let {
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.CenterEnd,
+                ) { it() }
+            }
         }
     }
 }
@@ -70,6 +81,9 @@ fun BottomButtonBoxPreview() {
 
             BottomButtonBox(
                 modifier = Modifier.fillMaxWidth(),
+                heading = {
+                    Text("Something, something")
+                },
                 leading = {
                     Button(onClick = {}) {
                         Text("Back")

@@ -25,6 +25,7 @@ import android.content.Context.CONNECTIVITY_SERVICE
 import android.content.Intent
 import android.content.Intent.ACTION_SEND
 import android.content.Intent.EXTRA_INITIAL_INTENTS
+import android.graphics.BitmapFactory.decodeByteArray
 import android.content.Intent.EXTRA_STREAM
 import android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
 import android.graphics.Bitmap
@@ -43,6 +44,7 @@ import android.text.format.DateUtils.FORMAT_SHOW_YEAR
 import android.text.format.DateUtils.MINUTE_IN_MILLIS
 import android.text.format.DateUtils.formatDateTime
 import android.text.format.DateUtils.getRelativeTimeSpanString
+import android.util.Base64
 import android.util.Log
 import android.view.View
 import android.view.View.INVISIBLE
@@ -260,3 +262,13 @@ suspend fun String.shareAsQrCode(context: Context, authority: String) {
         Log.d("taler-kotlin-android", "Failed to generate or store PNG image")
     }
 }
+
+private val REGEX_BASE64_IMAGE = Regex("^data:image/(jpeg|png);base64,([A-Za-z0-9+/=]+)$")
+
+val String.base64Bitmap: Bitmap?
+    get() = REGEX_BASE64_IMAGE.matchEntire(this)?.let { match ->
+        match.groups[2]?.value?.let { group ->
+            val decodedString = Base64.decode(group, Base64.DEFAULT)
+            decodeByteArray(decodedString, 0, decodedString.size)
+        }
+    }

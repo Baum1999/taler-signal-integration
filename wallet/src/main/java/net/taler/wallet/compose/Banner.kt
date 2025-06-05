@@ -26,7 +26,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
@@ -34,6 +36,7 @@ import androidx.compose.ui.unit.dp
 fun Banner(
     modifier: Modifier = Modifier,
     colors: CardColors = CardDefaults.cardColors(),
+    shape: Shape = ShapeDefaults.ExtraSmall,
     content: @Composable () -> Unit,
 ) {
     Card(
@@ -41,11 +44,13 @@ fun Banner(
             .safeHorizontalPadding()
             .fillMaxWidth(),
         colors = colors,
-        shape = ShapeDefaults.ExtraSmall,
+        shape = shape,
     ) {
         Box(Modifier
             .padding(10.dp)
-            .fillMaxWidth()) {
+            .fillMaxWidth(),
+            contentAlignment = Alignment.Center,
+        ) {
             ProvideTextStyle(MaterialTheme.typography.labelLarge.copy(
                 textAlign = TextAlign.Center,
             )) {

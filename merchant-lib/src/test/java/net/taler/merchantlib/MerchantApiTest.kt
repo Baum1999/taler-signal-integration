@@ -22,7 +22,8 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import net.taler.common.Amount
 import net.taler.common.ContractProduct
-import net.taler.common.ContractTerms
+import net.taler.common.Order
+import net.taler.common.OrderProduct
 import net.taler.common.Timestamp
 import net.taler.merchantlib.MockHttpClient.giveJsonResponse
 import net.taler.merchantlib.MockHttpClient.httpClient
@@ -63,7 +64,7 @@ class MerchantApiTest {
             price = Amount("TEST", 1, 0),
             quantity = 2
         )
-        val contractTerms = ContractTerms(
+        val contractTerms = Order(
             summary = "test",
             amount = Amount("TEST", 2, 1),
             fulfillmentUrl = "http://example.org",

@@ -45,7 +45,7 @@ class DepositFragment : Fragment() {
     private val model: MainViewModel by activityViewModels()
     private val depositManager get() = model.depositManager
     private val accountManager get() = model.accountManager
-    private val balanceManager get() = model.balanceManager
+    private val exchangeManager get() = model.exchangeManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -101,7 +101,7 @@ class DepositFragment : Fragment() {
                         is DepositState.AccountSelected -> {
                             DepositAmountComposable(
                                 state = s,
-                                getCurrencySpec = balanceManager::getSpecForCurrency,
+                                getCurrencySpec = exchangeManager::getSpecForCurrency,
                                 checkDeposit = { a ->
                                     depositManager.checkDepositFees(s.account.paytoUri, a)
                                 },

@@ -43,15 +43,11 @@ sealed class PreparePayResponse {
     @SerialName("payment-possible")
     data class PaymentPossibleResponse(
         val transactionId: String,
-        val amountRaw: Amount,
-        val amountEffective: Amount,
         val contractTerms: ContractTerms,
     ) : PreparePayResponse() {
         fun toPayStatusPrepared() = PayStatus.Prepared(
             contractTerms = contractTerms,
             transactionId = transactionId,
-            amountRaw = amountRaw,
-            amountEffective = amountEffective,
         )
     }
 
@@ -76,6 +72,45 @@ sealed class PreparePayResponse {
         val amountEffective: Amount? = null,
         val contractTerms: ContractTerms,
     ) : PreparePayResponse()
+
+    @Serializable
+    @SerialName("choice-selection")
+    data class ChoiceSelection(
+        val transactionId: String,
+        val contractTerms: ContractTerms,
+    ) : PreparePayResponse()
+}
+
+@Serializable
+data class GetChoicesForPaymentResponse(
+    val choices: List<ChoiceSelectionDetail>,
+    val contractData: ContractTerms,
+    val defaultChoiceIndex: Int? = null,
+    val automaticExecution: Boolean? = null,
+) {
+    @Serializable
+    @OptIn(ExperimentalSerializationApi::class)
+    @JsonClassDiscriminator("status")
+    sealed class ChoiceSelectionDetail {
+        abstract val amountRaw: Amount
+        abstract val tokenDetails: PaymentTokenAvailabilityDetails?
+
+        @Serializable
+        @SerialName("payment-possible")
+        data class PaymentPossible(
+            override val amountRaw: Amount,
+            val amountEffective: Amount,
+            override val tokenDetails: PaymentTokenAvailabilityDetails? = null,
+        ) : ChoiceSelectionDetail()
+
+        @Serializable
+        @SerialName("insufficient-balance")
+        data class InsufficientBalance(
+            override val amountRaw: Amount,
+            val balanceDetails: PaymentInsufficientBalanceDetails? = null,
+            override val tokenDetails: PaymentTokenAvailabilityDetails? = null,
+        ) : ChoiceSelectionDetail()
+    }
 }
 
 @Serializable
@@ -228,6 +263,62 @@ data class PaymentInsufficientBalanceDetails(
          */
         val causeHint: InsufficientBalanceHint? = null,
     )
+}
+
+@Serializable
+data class PaymentTokenAvailabilityDetails(
+    /**
+     * Number of tokens requested by the merchant.
+     */
+    val tokensRequested: Int,
+
+    /**
+     * Number of tokens for which the merchant is unexpected.
+     *
+     * Can be used to pay (i.e. with forced selection),
+     * but a warning should be displayed to the user.
+     */
+    val tokensAvailable: Int,
+
+    /**
+     * Number of tokens for which the merchant is untrusted.
+     *
+     * Cannot be used to pay, so an error should be displayed.
+     */
+    val tokensUnexpected: Int,
+
+    /**
+     * Number of tokens with a malformed domain.
+     *
+     * Cannot be used to pay, so an error should be displayed.
+     */
+    val tokensUntrusted: Int,
+
+    // {[slug: String]: PerTokenFamily}
+    val perTokenFamily: Map<String, PerTokenFamily>,
+) {
+    @Serializable
+    data class PerTokenFamily(
+        val causeHint: TokenAvailabilityHint? = null,
+        val requested: Int,
+        val available: Int,
+        val unexpected: Int,
+        val untrusted: Int,
+    )
+}
+
+@Serializable
+enum class TokenAvailabilityHint {
+    Unknown,
+
+    @SerialName("wallet-tokens-available-insufficient")
+    WalletTokensAvailableInsufficient,
+
+    @SerialName("merchant-unexpected")
+    MerchantUnexpected,
+
+    @SerialName("merchant-untrusted")
+    MerchantUntrusted,
 }
 
 @Serializable

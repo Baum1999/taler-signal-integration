@@ -43,6 +43,7 @@ class OutgoingPushFragment : Fragment() {
     private val peerManager get() = model.peerManager
     private val transactionManager get() = model.transactionManager
     private val balanceManager get() = model.balanceManager
+    private val exchangeManager get() = model.exchangeManager
 
     // hacky way to change back action until we have navigation for compose
     private val backPressedCallback = object : OnBackPressedCallback(false) {
@@ -69,7 +70,7 @@ class OutgoingPushFragment : Fragment() {
                         state = state,
                         defaultScope = selectedScope,
                         scopes = balanceManager.getScopes(),
-                        getCurrencySpec = balanceManager::getSpecForScopeInfo,
+                        getCurrencySpec = exchangeManager::getSpecForScopeInfo,
                         getFees = { peerManager.checkPeerPushFees(it.amount, restrictScope = it.scope) },
                         onSend = this@OutgoingPushFragment::onSend,
                         onClose = {

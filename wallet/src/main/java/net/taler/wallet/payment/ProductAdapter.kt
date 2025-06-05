@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import net.taler.common.ContractProduct
+import net.taler.common.base64Bitmap
 import net.taler.wallet.R
 import net.taler.wallet.payment.ProductAdapter.ProductViewHolder
 
@@ -76,7 +77,7 @@ internal class ProductAdapter(private val listener: ProductImageClickListener) :
             quantity.text = product.quantity.toString()
 
             // base64 encoded image
-            val bitmap = product.imageBitmap
+            val bitmap = product.image?.base64Bitmap
             if (bitmap == null) {
                 image.visibility = GONE
             } else {

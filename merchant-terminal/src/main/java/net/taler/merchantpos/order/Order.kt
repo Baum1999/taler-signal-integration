@@ -17,7 +17,6 @@
 package net.taler.merchantpos.order
 
 import net.taler.common.Amount
-import net.taler.common.ContractTerms
 import net.taler.common.Timestamp
 import net.taler.common.now
 import net.taler.merchantpos.config.Category
@@ -107,9 +106,9 @@ data class Order(val id: Int, val currency: String, val availableCategories: Map
             }.toMap()
         }
 
-    fun toContractTerms(): ContractTerms {
+    fun toContractTerms(): net.taler.common.Order {
         val deadline = Timestamp.fromMillis(now() + HOURS.toMillis(1))
-        return ContractTerms(
+        return net.taler.common.Order(
             summary = summary,
             summaryI18n = summaryI18n,
             amount = total,

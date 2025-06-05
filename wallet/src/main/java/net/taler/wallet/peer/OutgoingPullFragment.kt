@@ -61,7 +61,7 @@ class OutgoingPullFragment : Fragment() {
                         onTosAccept = this@OutgoingPullFragment::onTosAccept,
                         defaultScope = remember { selectedScope },
                         scopes = balanceManager.getScopes(),
-                        getCurrencySpec = balanceManager::getSpecForScopeInfo,
+                        getCurrencySpec = exchangeManager::getSpecForScopeInfo,
                         checkPeerPullCredit = { amount, loading ->
                             transactionManager.selectScope(amount.scope)
                              peerManager.checkPeerPullCredit(amount.amount,

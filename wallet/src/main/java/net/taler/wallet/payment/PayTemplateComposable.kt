@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
 import net.taler.common.ContractTerms
 import net.taler.common.CurrencySpecification
+import net.taler.common.Merchant
 import net.taler.wallet.AmountResult
 import net.taler.wallet.R
 import net.taler.wallet.compose.LoadingScreen
@@ -89,6 +90,7 @@ fun PayTemplateComposable(
         }
         is PayStatus.Prepared -> {} // handled in fragment, will redirect
         is PayStatus.Success -> {} // handled by other UI flow, no need for content here
+        is PayStatus.Choices -> {} // only applies to regular payments
     }
 }
 
@@ -139,10 +141,14 @@ fun PayTemplateInsufficientBalancePreview() {
         PayTemplateComposable(
             payStatus = PayStatus.InsufficientBalance(
                 "txn:3409F039F09",
-                ContractTerms(
+                ContractTerms.V0(
                     "test",
                     amount = Amount.zero("TESTKUDOS"),
-                    products = emptyList()
+                    products = emptyList(),
+                    orderId = "xxxxx",
+                    merchantBaseUrl = "https://backend.test.taler.net/",
+                    merchant = Merchant(name = "Test Backend"),
+                    maxFee = Amount.zero("TESTKUDOS")
                 ),
                 Amount.zero("TESTKUDOS"),
                 PaymentInsufficientBalanceDetails(

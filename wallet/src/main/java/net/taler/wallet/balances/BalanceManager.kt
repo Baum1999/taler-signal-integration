@@ -32,6 +32,7 @@ import net.taler.wallet.TAG
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.exchanges.ExchangeItem
+import net.taler.wallet.exchanges.ExchangeManager
 import org.json.JSONObject
 
 @Serializable
@@ -60,14 +61,13 @@ sealed class BalanceState {
 class BalanceManager(
     private val api: WalletBackendApi,
     private val scope: CoroutineScope,
+    private val exchangeManager: ExchangeManager,
 ) {
     private val mBalances = MutableLiveData<List<BalanceItem>>(emptyList())
     val balances: LiveData<List<BalanceItem>> = mBalances
 
     private val mState = MutableLiveData<BalanceState>(BalanceState.None)
     val state: LiveData<BalanceState> = mState.distinctUntilChanged()
-
-    private val currencySpecs: MutableMap<ScopeInfo, CurrencySpecification?> = mutableMapOf()
 
     @UiThread
     fun loadBalances() {
@@ -86,14 +86,12 @@ class BalanceManager(
                 scope.launch {
                     // Fetch missing currency specs for all balances
                     it.balances.forEach { balance ->
-                        if (!currencySpecs.containsKey(balance.scopeInfo)) {
-                            currencySpecs[balance.scopeInfo] = getCurrencySpecification(balance.scopeInfo)
-                        }
+                        exchangeManager.getCurrencySpecification(balance.scopeInfo)
                     }
 
                     mState.postValue(
                         BalanceState.Success(it.balances.map { balance ->
-                            val spec = currencySpecs[balance.scopeInfo]
+                            val spec = exchangeManager.getCurrencySpecification(balance.scopeInfo)
                             balance.copy(
                                 available = balance.available.withSpec(spec),
                                 pendingIncoming = balance.pendingIncoming.withSpec(spec),
@@ -119,26 +117,6 @@ class BalanceManager(
         }
 
         return spec
-    }
-
-    @Deprecated("Please find spec via scopeInfo instead", ReplaceWith("getSpecForScopeInfo"))
-    fun getSpecForCurrency(currency: String): CurrencySpecification? {
-        val state = mState.value
-        if (state !is BalanceState.Success) return null
-
-        return state.balances.find { it.currency == currency }?.available?.spec
-    }
-
-    fun getSpecForCurrency(currency: String, scopes: List<ScopeInfo>) =
-        scopes.find { it.currency == currency }?.let { scope ->
-            getSpecForScopeInfo(scope)
-        }
-
-    fun getSpecForScopeInfo(scopeInfo: ScopeInfo): CurrencySpecification? {
-        val state = mState.value
-        if (state !is BalanceState.Success) return null
-
-        return state.balances.find { it.scopeInfo == scopeInfo }?.available?.spec
     }
 
     @UiThread

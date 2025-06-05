@@ -22,12 +22,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
-import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.view.ViewGroup.MarginLayoutParams
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -52,7 +50,8 @@ import net.taler.wallet.showError
 /**
  * Show a payment and ask the user to accept/decline.
  */
-class PromptPaymentFragment : Fragment(), ProductImageClickListener {
+/*
+class PromptPaymentFragment2 : Fragment(), ProductImageClickListener {
 
     private val model: MainViewModel by activityViewModels()
     private val paymentManager by lazy { model.paymentManager }
@@ -237,3 +236,4 @@ class PromptPaymentFragment : Fragment(), ProductImageClickListener {
         }
     }
 }
+*/

@@ -39,7 +39,7 @@ class TransactionPaymentFragment : TransactionDetailFragment() {
                 val t by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
                 (t as? TransactionPayment)?.let { tx ->
                     TransactionPaymentComposable(tx, devMode,
-                        balanceManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
+                        exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
                         onFulfill = { url ->
                             launchInAppBrowser(requireContext(), url)
                         },

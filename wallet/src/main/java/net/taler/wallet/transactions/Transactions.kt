@@ -37,7 +37,6 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonElement
 import net.taler.common.Amount
 import net.taler.common.Bech32
-import net.taler.common.ContractMerchant
 import net.taler.common.ContractProduct
 import net.taler.common.ContractTerms
 import net.taler.common.Timestamp
@@ -46,6 +45,7 @@ import net.taler.wallet.TAG
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.common.CurrencySpecification
+import net.taler.common.Merchant
 import net.taler.common.RelativeTime
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.refund.RefundPaymentInfo
@@ -382,7 +382,7 @@ class TransactionPayment(
 @Serializable
 class TransactionInfo(
     val orderId: String,
-    val merchant: ContractMerchant,
+    val merchant: Merchant,
     val summary: String,
     @SerialName("summary_i18n")
     val summaryI18n: Map<String, String>? = null,
