@@ -1,3 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">Cassîr Taler</string>
+    <string name="config_username">Non utent</string>
+    <string name="config_password">Password</string>
+    <string name="config_button_save">Salve</string>
+    <string name="config_bank_url">Direzion de API de bancje</string>
+    <string name="config_bank_url_error">La direzion no je valide.</string>
+    <string name="config_username_error">Par plasê inserìs il to non utent!</string>
+    <string name="config_error">Erôr tal recuperâ la configurazion</string>
+    <string name="config_error_auth">Non utent o password no valits!</string>
+    <string name="config_demo_hint">Par provâ, tu puedis <![CDATA[<a href="%s">vierzi un cont di prove ae bancje dimostrative</a>]]>.</string>
+    <string name="balance_current_label">Salt atuâl</string>
+    <string name="balance_error">ERÔR: %s</string>
+    <string name="balance_offline">Fûr rêt. Conetiti a internet.</string>\
+    <string name="balance_debit_threshold">Debit massim: %1$s</string>
+    <string name="ok">Va ben</string>
+    <string name="action_reconfigure">Torne configure</string>
+    <string name="action_lock">Bloche</string>
+    <string name="action_about">Informazions</string>
+    <string name="withdraw_input_amount">Impuart</string>
+    <string name="withdraw_into">Trops bêçs eletronics si varessial di prelevâ?</string>
+    <string name="withdraw_error_zero">Inserìs un impuart positîf!</string>
+    <string name="withdraw_error_insufficient_balance">Salt insuficient</string>
+    <string name="withdraw_error_under_min_cashout">Impuart inferiôr al prelêf minim di %1$s</string>
+    <string name="withdraw_error_currency_mismatch">Erôr: la bancje e à segnalât une valude divierse</string>
+    <string name="withdraw_error_fetch">Erôr tal comunicâ cu la bancje: %s</string>
+    <string name="withdraw_button_confirm">Preleve</string>
+    <string name="transaction_intro">Scansione il codiç cu la aplicazion-tacuin di Taler par prelevâ:</string>
+    <string name="transaction_intro_scanned">Par plasê conferme la transazion!</string>
+    <string name="transaction_confirm">Conferme</string>
+    <string name="transaction_abort">Anule</string>
+    <string name="transaction_aborted">Transazion anulade</string>
+    <string name="transaction_button_back">Torne indaûr</string>
+    <string name="transaction_last_success">Ultime transazion: prelevâts %s</string>
+    <string name="transaction_last_aborted">Ultime transazion: anulade</string>
+    <string name="transaction_last_error">Ultime transazion: falide</string>
+    <string name="about_title">GNU Taler Cassîr</string>
+    <string name="about_version">Version: %s</string>
+    <string name="about_license">Licence: %s</string>
+    <string name="about_copyright">Dirits di autôr: %s</string>
+    <string name="about_supported_bank_api">Version de API de bancje: %s</string>
+    <string name="host_apdu_service_desc">Paiaments NFC Cassîr Taler</string>
+    <string name="withdraw_error_timeout">Nissun tacuin al à cirût di prelevâ. Torne prove.</string>
+    <string name="transaction_intro_nfc">Scansione il codiç o dopre il NFC cu la aplicazion-tacuin di Taler par prelevâ:</string>
 </resources>
