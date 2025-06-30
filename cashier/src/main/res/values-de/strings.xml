@@ -8,7 +8,7 @@
     <string name="balance_current_label">Aktueller Saldo</string>
     <string name="balance_error">FEHLER: %s</string>
     <string name="balance_offline">Offline. Bitte Verbindung zum Internet herstellen.</string>
-    <string name="action_reconfigure">Neukonfiguration</string>
+    <string name="action_reconfigure">Erneut konfigurieren</string>
     <string name="action_lock">Sperren</string>
     <string name="withdraw_input_amount">Betrag</string>
     <string name="withdraw_into">Welcher Betrag soll abgehoben werden\?</string>
@@ -19,28 +19,28 @@
     <string name="transaction_intro_nfc">Scannen Sie zum Abheben den Code oder kontaktlos mit NFC:</string>
     <string name="config_password">Passwort</string>
     <string name="transaction_confirm">Bestätigen</string>
-    <string name="transaction_abort">Abbrechen</string>
+    <string name="transaction_abort">Abbruch ausführen</string>
     <string name="transaction_aborted">Transaktion abgebrochen</string>
     <string name="transaction_button_back">Zurück</string>
     <string name="transaction_last_success">Letzte Transaktion: %s abgehoben</string>
     <string name="transaction_last_error">Letzte Transaktion: Fehler</string>
     <string name="app_name">Taler Cashier</string>
-    <string name="config_bank_url">Bank API Adresse</string>
+    <string name="config_bank_url">API-Adresse der Bank</string>
     <string name="config_demo_hint">Zum Testen können Sie <![CDATA[<a href="%s">ein Testkonto bei der Demobank erstellen</a>]]>.</string>
-    <string name="transaction_intro">Scannen Sie zum Abheben diesen Code mit dem Taler-Wallet:</string>
+    <string name="transaction_intro">Zum Abheben diesen Code mit dem Taler-Wallet scannen:</string>
     <string name="transaction_intro_scanned">Bitte bestätigen Sie die Transaktion!</string>
     <string name="transaction_last_aborted">Letzte Transaktion: Abgebrochen</string>
     <string name="config_username">Benutzername</string>
-    <string name="withdraw_error_timeout">Bitte lassen Sie ein Wallet die Abhebung auslösen.</string>
+    <string name="withdraw_error_timeout">Es hat bisher kein Wallet den Betrag abgehoben. Bitte lassen Sie die Abhebung erneut durchführen.</string>
     <string name="action_about">Info</string>
     <string name="ok">OK</string>
-    <string name="about_title">GNU Taler Kassierer</string>
+    <string name="about_title">GNU Taler Cashier</string>
     <string name="about_license">Lizenz: %s</string>
     <string name="about_version">Version: %s</string>
     <string name="about_copyright">Copyright: %s</string>
-    <string name="about_supported_bank_api">Bankschnittstellen-Version: %s</string>
+    <string name="about_supported_bank_api">Version der Bank-API: %s</string>
     <string name="withdraw_error_currency_mismatch">Fehler: Die Bank hat eine andere Währung gemeldet</string>
-    <string name="host_apdu_service_desc">Taler-NFC-Zahlungen mit der Cashier-App</string>
-    <string name="balance_debit_threshold">Höchstes zulässiges Minus: %1$s</string>
+    <string name="host_apdu_service_desc">NFC-Zahlungen mit der Taler Cashier-App</string>
+    <string name="balance_debit_threshold">Höchster zulässiger Kredit: %1$s</string>
     <string name="withdraw_error_under_min_cashout">Dieser Wert ist unterhalb des geringsten Auszahlungsbetrags von %1$s</string>
 </resources>
