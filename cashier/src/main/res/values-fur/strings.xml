@@ -9,7 +9,7 @@
     <string name="config_username_error">Par plasê inserìs il to non utent!</string>
     <string name="config_error">Erôr tal recuperâ la configurazion</string>
     <string name="config_error_auth">Non utent o password no valits!</string>
-    <string name="config_demo_hint">Par provâ, tu puedis <![CDATA[<a href="%s">vierzi un cont di prove ae bancje dimostrative</a>]]>.</string>
+    <string name="config_demo_hint">Par provâ, tu puedis &lt;a href=%s&gt;vierzi un cont di prove ae bancje dimostrative&lt;/a&gt;.</string>
     <string name="balance_current_label">Salt atuâl</string>
     <string name="balance_error">ERÔR: %s</string>
     <string name="balance_offline">Fûr rêt. Conetiti a internet.</string>\
