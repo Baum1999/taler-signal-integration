@@ -117,6 +117,7 @@ class MainFragment: Fragment() {
                 val settingsFragmentState = rememberFragmentState()
 
                 val context = LocalContext.current
+                val online by model.networkManager.networkStatus.observeAsState(false)
                 val balanceState by model.balanceManager.state.observeAsState(BalanceState.None)
                 val selectedScope by model.transactionManager.selectedScope.collectAsStateLifecycleAware()
                 val txStateFilter by model.transactionManager.stateFilter.collectAsStateLifecycleAware()
@@ -218,8 +219,8 @@ class MainFragment: Fragment() {
                     }
                 }
 
-                val disableActions = remember(balanceState) {
-                    (balanceState as? BalanceState.Success)?.balances?.isEmpty() ?: true
+                val disableActions = remember(balanceState, online) {
+                    !online || (balanceState as? BalanceState.Success)?.balances?.isEmpty() ?: true
                 }
 
                 TalerActionsModal(

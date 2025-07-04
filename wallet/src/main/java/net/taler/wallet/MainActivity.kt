@@ -25,6 +25,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.ViewGroup.MarginLayoutParams
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -140,7 +142,7 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
         })
 
         model.networkManager.networkStatus.observe(this) { online ->
-            // ui.offlineBanner.visibility = if (online) GONE else VISIBLE
+            ui.offlineBanner.visibility = if (online) GONE else VISIBLE
             model.hintNetworkAvailability(online)
         }
 
