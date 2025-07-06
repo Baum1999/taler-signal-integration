@@ -18,4 +18,6 @@ message PrefsScopeInfo {
 message UserPreferences {
   optional PrefsScopeInfo selectedScope = 1;
   optional bool actionButtonUsed = 2;
+  optional bool devModeEnabled = 3;
+  optional bool biometricLockEnabled = 4;
 }

@@ -24,8 +24,13 @@
         app:summary="@string/exchange_settings_summary"
         app:title="@string/exchange_settings_title" />
 
+    <SwitchPreference
+        app:icon="@drawable/ic_shield"
+        app:key="pref_biometric_lock"
+        app:title="@string/settings_lock_auth"
+        app:summary="@string/settings_lock_auth_summary"/>
 
-    <SwitchPreferenceCompat
+    <SwitchPreference
         app:icon="@drawable/ic_developer_mode"
         app:key="pref_dev_mode"
         app:summary="@string/settings_dev_mode_summary"

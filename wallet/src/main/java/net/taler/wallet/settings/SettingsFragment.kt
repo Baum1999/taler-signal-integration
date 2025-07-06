@@ -16,6 +16,7 @@
 
 package net.taler.wallet.settings
 
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
@@ -27,6 +28,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SwitchPreference
 import androidx.preference.SwitchPreferenceCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG
@@ -50,7 +52,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private val settingsManager get() = model.settingsManager
     private val withdrawManager by lazy { model.withdrawManager }
 
-    private lateinit var prefDevMode: SwitchPreferenceCompat
+    private lateinit var prefDevMode: SwitchPreference
+    private lateinit var prefBiometricLock: SwitchPreference
     private lateinit var prefWithdrawTest: Preference
     private lateinit var prefLogcat: Preference
     private lateinit var prefExportDb: Preference
@@ -93,6 +96,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.settings_main, rootKey)
         prefDevMode = findPreference("pref_dev_mode")!!
+        prefBiometricLock = findPreference("pref_biometric_lock")!!
         prefWithdrawTest = findPreference("pref_testkudos")!!
         prefLogcat = findPreference("pref_logcat")!!
         prefExportDb = findPreference("pref_export_db")!!
@@ -113,14 +117,34 @@ class SettingsFragment : PreferenceFragmentCompat() {
         model.exchangeVersion?.let { prefVersionExchange.summary = it }
         model.merchantVersion?.let { prefVersionMerchant.summary = it }
 
-        model.devMode.observe(viewLifecycleOwner) { enabled ->
-            prefDevMode.isChecked = enabled
-            devPrefs.forEach { it.isVisible = enabled }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            prefBiometricLock.isVisible = false
         }
-        prefDevMode.setOnPreferenceChangeListener { _, newValue ->
-            model.setDevMode(newValue as Boolean) { error ->
-                showError(error)
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                settingsManager.getBiometricLockEnabled(requireContext()).collect { enabled ->
+                    prefBiometricLock.isChecked = enabled
+                }
             }
+        }
+
+        prefBiometricLock.setOnPreferenceChangeListener { _, newValue ->
+            settingsManager.setBiometricLockEnabled(requireContext(), newValue as Boolean)
+            true
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                settingsManager.getDevModeEnabled(requireContext()).collect { enabled ->
+                    prefDevMode.isChecked = enabled
+                    devPrefs.forEach { it.isVisible = enabled }
+                }
+            }
+        }
+
+        prefDevMode.setOnPreferenceChangeListener { _, newValue ->
+            settingsManager.setDevModeEnabled(requireContext(), newValue as Boolean)
             true
         }
 

@@ -78,4 +78,19 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/biometricOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:background="?colorSurface"
+        tools:visibility="gone">
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/unlockButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/biometric_unlock_label"
+            app:icon="@drawable/ic_shield"/>
+    </LinearLayout>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

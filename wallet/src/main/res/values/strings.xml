@@ -75,6 +75,12 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="share_payment">Share payment link</string>
     <string name="uri_invalid">Not a valid Taler URI</string>
 
+    <!-- Biometric lock -->
+    <string name="biometric_auth_error">Authentication error: %1$s</string>
+    <string name="biometric_auth_failed">Authentication failed</string>
+    <string name="biometric_prompt_title">Unlock to use wallet</string>
+    <string name="biometric_unlock_label">Tap to unlock</string>
+
     <!-- QR code handling -->
 
     <string name="qr_scan_context_title">Possibly unintended action</string>
@@ -398,6 +404,8 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="settings_dev_mode_summary">Shows more information intended for debugging</string>
     <string name="settings_dialog_import_message">This operation will overwrite your existing database. Do you want to continue?</string>
     <string name="settings_dialog_reset_message">Do you really want to reset the wallet and lose all coins and purchases?</string>
+    <string name="settings_lock_auth">Lock with fingerprint</string>
+    <string name="settings_lock_auth_summary">Require fingerprint or password to access the wallet</string>
     <string name="settings_logcat">Debug log</string>
     <string name="settings_logcat_error">Error exporting log</string>
     <string name="settings_logcat_success">Log exported to file</string>

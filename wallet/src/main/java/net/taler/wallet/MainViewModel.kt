@@ -17,8 +17,6 @@
 package net.taler.wallet
 
 import android.app.Application
-import android.content.Context
-import android.net.Uri
 import android.util.Log
 import androidx.annotation.UiThread
 import androidx.lifecycle.AndroidViewModel
@@ -29,7 +27,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.getAndUpdate
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import net.taler.common.Amount
@@ -55,11 +52,10 @@ import net.taler.wallet.payment.PaymentManager
 import net.taler.wallet.peer.PeerManager
 import net.taler.wallet.refund.RefundManager
 import net.taler.wallet.settings.SettingsManager
-import net.taler.wallet.settings.userPreferencesDataStore
 import net.taler.wallet.transactions.TransactionManager
 import net.taler.wallet.transactions.TransactionStateFilter
 import net.taler.wallet.withdraw.WithdrawManager
-import org.json.JSONObject
+import androidx.core.net.toUri
 
 const val TAG = "taler-wallet"
 const val OBSERVABILITY_LIMIT = 100
@@ -126,6 +122,9 @@ class MainViewModel(
     val accountManager: AccountManager = AccountManager(api, viewModelScope)
     val depositManager: DepositManager = DepositManager(api, viewModelScope, balanceManager)
 
+    private val mAuthenticated = MutableStateFlow(false)
+    val authenticated: StateFlow<Boolean> = mAuthenticated
+
     private val mTransactionsEvent = MutableLiveData<Event<ScopeInfo>>()
     val transactionsEvent: LiveData<Event<ScopeInfo>> = mTransactionsEvent
 
@@ -189,6 +188,16 @@ class MainViewModel(
         }
     }
 
+    @UiThread
+    fun lockWallet() {
+        mAuthenticated.value = false
+    }
+
+    @UiThread
+    fun unlockWallet() {
+        mAuthenticated.value = true
+    }
+
     /**
      * Navigates to the given scope info's transaction list, when [MainFragment] is shown.
      */
@@ -215,24 +224,6 @@ class MainViewModel(
         balanceManager.resetBalances()
     }
 
-    fun startTunnel() {
-        viewModelScope.launch {
-            api.sendRequest("startTunnel")
-        }
-    }
-
-    fun stopTunnel() {
-        viewModelScope.launch {
-            api.sendRequest("stopTunnel")
-        }
-    }
-
-    fun tunnelResponse(resp: String) {
-        viewModelScope.launch {
-            api.sendRequest("tunnelResponse", JSONObject(resp))
-        }
-    }
-
     @UiThread
     fun scanCode(context: ScanQrContext = ScanQrContext.Unknown) {
         scanQrContext = context
@@ -242,7 +233,7 @@ class MainViewModel(
     fun getScanQrContext() = scanQrContext
 
     fun checkScanQrContext(uri: String): Boolean {
-        val parsed = Uri.parse(uri)
+        val parsed = uri.toUri()
         val action = parsed.host
         return when (scanQrContext) {
             ScanQrContext.Send -> action in sendUriActions
@@ -296,44 +287,6 @@ class MainViewModel(
             api.request<Unit>("applyDevExperiment") {
                 put("devExperimentUri", uri)
             }.onError(onError)
-        }
-    }
-
-    fun getSelectedScope(c: Context) = c.userPreferencesDataStore.data.map { prefs ->
-        if (prefs.hasSelectedScope()) {
-            ScopeInfo.fromPrefs(prefs.selectedScope)
-        } else {
-            null
-        }
-    }
-
-    fun saveSelectedScope(c: Context, scopeInfo: ScopeInfo?) = viewModelScope.launch {
-        c.userPreferencesDataStore.updateData { current ->
-            if (scopeInfo != null) {
-                current.toBuilder()
-                    .setSelectedScope(scopeInfo.toPrefs())
-                    .build()
-            } else {
-                current.toBuilder()
-                    .clearSelectedScope()
-                    .build()
-            }
-        }
-    }
-
-    fun getActionButtonUsed(c: Context) = c.userPreferencesDataStore.data.map { prefs ->
-        if (prefs.hasActionButtonUsed()) {
-            prefs.actionButtonUsed
-        } else {
-            false
-        }
-    }
-
-    fun saveActionButtonUsed(c: Context) = viewModelScope.launch {
-        c.userPreferencesDataStore.updateData { current ->
-            current.toBuilder()
-                .setActionButtonUsed(true)
-                .build()
         }
     }
 }

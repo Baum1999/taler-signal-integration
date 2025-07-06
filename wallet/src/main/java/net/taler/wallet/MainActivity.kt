@@ -28,9 +28,14 @@ import android.view.MenuItem
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup.MarginLayoutParams
+import android.widget.Toast
+import android.widget.Toast.LENGTH_SHORT
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
+import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
+import androidx.biometric.BiometricPrompt
 import androidx.core.os.bundleOf
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -50,6 +55,7 @@ import com.google.zxing.client.android.Intents.Scan.SCAN_TYPE
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import com.journeyapps.barcodescanner.ScanOptions.QR_CODE
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import net.taler.common.EventObserver
 import net.taler.lib.android.TalerNfcService
@@ -63,8 +69,11 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
 
     private lateinit var ui: ActivityMainBinding
     private lateinit var nav: NavController
+    private lateinit var biometricPrompt: BiometricPrompt
+    private lateinit var promptInfo: BiometricPrompt.PromptInfo
 
     private val barcodeLauncher = registerForActivityResult(ScanContract()) { result ->
+        model.unlockWallet() // hack to prevent from locking after scanning QR
         if (result == null || result.contents == null) return@registerForActivityResult
         if (model.checkScanQrContext(result.contents)) {
             handleTalerUri(result.contents, "QR code")
@@ -79,6 +88,7 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
         ui = ActivityMainBinding.inflate(layoutInflater)
         setContentView(ui.root)
         setupInsets()
+        setupBiometrics()
 
         TalerNfcService.startService(this)
 
@@ -105,6 +115,17 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
 
         handleIntents(intent)
 
+        // Update devMode in model from Datastore API
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                model.settingsManager.getDevModeEnabled(this@MainActivity).collect { enabled ->
+                    model.setDevMode(enabled) { error ->
+                        showError(error)
+                    }
+                }
+            }
+        }
+
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 model.transactionManager.selectedTransaction.collect { tx ->
@@ -125,7 +146,7 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 model.transactionManager.selectedScope.collect { tx ->
-                    model.saveSelectedScope(this@MainActivity, tx)
+                    model.settingsManager.saveSelectedScope(this@MainActivity, tx)
                 }
             }
         }
@@ -170,6 +191,58 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
             }
             windowInsets
         }
+    }
+
+    private fun setupBiometrics() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                combine(
+                    model.authenticated,
+                    model.settingsManager.getBiometricLockEnabled(this@MainActivity)
+                ) { a, b -> a to b }.collect { c ->
+                    val authenticated = c.first
+                    val biometricEnabled = c.second
+                    if (!authenticated && biometricEnabled) {
+                        ui.biometricOverlay.visibility = VISIBLE
+                        biometricPrompt.authenticate(promptInfo)
+                    } else {
+                        ui.biometricOverlay.visibility = GONE
+                    }
+                }
+            }
+        }
+
+        ui.unlockButton.setOnClickListener {
+            biometricPrompt.authenticate(promptInfo)
+        }
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return
+        biometricPrompt = BiometricPrompt(
+            this,
+            mainExecutor,
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    super.onAuthenticationError(errorCode, errString)
+                    Toast.makeText(this@MainActivity, getString(R.string.biometric_auth_error, errString), LENGTH_SHORT).show()
+                }
+
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    super.onAuthenticationSucceeded(result)
+                    model.unlockWallet()
+                }
+
+                override fun onAuthenticationFailed() {
+                    super.onAuthenticationFailed()
+                    Toast.makeText(this@MainActivity, getString(R.string.biometric_auth_failed), LENGTH_SHORT).show()
+                }
+            },
+        )
+
+        promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle(getString(R.string.biometric_prompt_title))
+            .setAllowedAuthenticators(BIOMETRIC_STRONG or DEVICE_CREDENTIAL)
+            .setConfirmationRequired(true)
+            .build()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -263,6 +336,11 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
     override fun onPause() {
         super.onPause()
         TalerNfcService.unsetDefaultHandler(this)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        model.lockWallet()
     }
 
     override fun onDestroy() {

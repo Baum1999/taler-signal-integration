@@ -123,7 +123,7 @@ class MainFragment: Fragment() {
                 val txStateFilter by model.transactionManager.stateFilter.collectAsStateLifecycleAware()
                 val txResult by remember(selectedScope, txStateFilter) { model.transactionManager.transactionsFlow(selectedScope, stateFilter = txStateFilter) }.collectAsStateLifecycleAware()
                 val selectedSpec = remember(selectedScope) { selectedScope?.let { model.balanceManager.getSpecForScopeInfo(it) } }
-                val actionButtonUsed by remember { model.getActionButtonUsed(context) }.collectAsStateLifecycleAware(true)
+                val actionButtonUsed by remember { model.settingsManager.getActionButtonUsed(context) }.collectAsStateLifecycleAware(true)
 
                 Scaffold(
                     bottomBar = {
@@ -144,11 +144,11 @@ class MainFragment: Fragment() {
                                 demandAttention = !actionButtonUsed,
                                 onShowSheet = {
                                     showSheet = true
-                                    model.saveActionButtonUsed(context)
+                                    model.settingsManager.saveActionButtonUsed(context)
                                 },
                                 onScanQr = {
                                     onScanQr()
-                                    model.saveActionButtonUsed(context)
+                                    model.settingsManager.saveActionButtonUsed(context)
                                 },
                             )
 
@@ -167,7 +167,7 @@ class MainFragment: Fragment() {
                     LaunchedEffect(Unit) {
                         if (selectedScope == null) {
                             model.transactionManager.selectScope(
-                                model.getSelectedScope(context).first()
+                                model.settingsManager.getSelectedScope(context).first()
                             )
                         }
                     }
@@ -464,4 +464,3 @@ fun TalerActionsModal(
         }
     }
 }
-
