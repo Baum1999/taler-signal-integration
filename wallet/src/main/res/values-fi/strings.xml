@@ -68,10 +68,8 @@
     <string name="balance_scope_auditor">Tarkastaja: %1$s</string>
     <string name="transactions_title">Tapahtumat</string>
     <string name="transactions_balance">Saldo</string>
-    <string name="transactions_send_funds">Lähetä
-\nVarat</string>
-    <string name="transactions_receive_funds">Vastaanota
-\nVarat</string>
+    <string name="transactions_send_funds">Lähetä \nVarat</string>
+    <string name="transactions_receive_funds">Vastaanota \nVarat</string>
     <string name="transactions_empty">Sinulla ei ole tapahtumia</string>
     <string name="transactions_empty_search">Tapahtumia ei löytynyt. Yritä toista hakua.</string>
     <string name="transactions_error">Tapahtumaa ei voinut ladata
