@@ -16,11 +16,22 @@
 
 package net.taler.wallet.settings
 
+import android.app.Activity.RESULT_OK
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings.ACTION_BIOMETRIC_ENROLL
+import android.provider.Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED
 import android.view.View
-import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
+import androidx.activity.result.contract.ActivityResultContracts.OpenDocument
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
+import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
+import androidx.biometric.BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED
+import androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -29,7 +40,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
-import androidx.preference.SwitchPreferenceCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_SHORT
@@ -51,6 +61,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private val model: MainViewModel by activityViewModels()
     private val settingsManager get() = model.settingsManager
     private val withdrawManager by lazy { model.withdrawManager }
+    private lateinit var biometricManager: BiometricManager
 
     private lateinit var prefDevMode: SwitchPreference
     private lateinit var prefBiometricLock: SwitchPreference
@@ -76,6 +87,14 @@ class SettingsFragment : PreferenceFragmentCompat() {
             prefTest,
             prefReset,
         )
+    }
+
+    private val biometricEnrollLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            enableBiometrics(false)
+        }
     }
 
     private val logLauncher = registerForActivityResult(CreateDocument("text/plain")) { uri ->
@@ -111,6 +130,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        biometricManager = BiometricManager.from(requireContext())
 
         prefVersionApp.summary = "$VERSION_NAME ($FLAVOR $VERSION_CODE)"
         prefVersionCore.summary = "${model.walletVersion} (${model.walletVersionHash?.take(7)})"
@@ -130,8 +150,13 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
 
         prefBiometricLock.setOnPreferenceChangeListener { _, newValue ->
-            settingsManager.setBiometricLockEnabled(requireContext(), newValue as Boolean)
-            true
+            val enabled = newValue as Boolean
+            if (enabled) {
+                return@setOnPreferenceChangeListener enableBiometrics(true)
+            } else {
+                disableBiometrics()
+                true
+            }
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -199,6 +224,46 @@ class SettingsFragment : PreferenceFragmentCompat() {
     override fun onStart() {
         super.onStart()
         requireActivity().title = getString(R.string.menu_settings)
+    }
+
+    private fun enableBiometrics(prompt: Boolean): Boolean {
+        when (biometricManager.canAuthenticate(BIOMETRIC_STRONG or DEVICE_CREDENTIAL)) {
+            BIOMETRIC_SUCCESS -> {
+                settingsManager.setBiometricLockEnabled(requireContext(), true)
+                return true
+            }
+
+            BIOMETRIC_ERROR_NONE_ENROLLED -> {
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.biometric_auth_unavailable),
+                    Toast.LENGTH_SHORT,
+                ).show()
+
+                // Prompt the user to enroll valid credentials
+                if (prompt && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    val intent = Intent(ACTION_BIOMETRIC_ENROLL).apply {
+                        putExtra(
+                            EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
+                            BIOMETRIC_STRONG or DEVICE_CREDENTIAL
+                        )
+                    }
+                    biometricEnrollLauncher.launch(intent)
+                }
+            }
+
+            else -> Toast.makeText(
+                requireContext(),
+                getString(R.string.biometric_auth_unavailable),
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+
+        return false
+    }
+
+    private fun disableBiometrics() {
+        settingsManager.setBiometricLockEnabled(requireContext(), false)
     }
 
     private fun showImportDialog() {
