@@ -64,7 +64,7 @@
     <string name="exchange_add_error">Non è stato possibile aggiungere il cambio</string>
     <plurals name="exchange_fee_coin">
         <item quantity="one">Moneta: %s (usata %d volte)</item>
-        <item quantity="many"></item>
+        <item quantity="many"/>
         <item quantity="other">Moneta: %s (usate %d volte)</item>
     </plurals>
     <string name="settings_withdraw_testkudos">Ritirare TESTKUDOS</string>
@@ -173,8 +173,7 @@
     <string name="receive_peer_payment_title">Ricevi pagamento</string>
     <string name="receive_peer_payment_intro">Vuoi ricevere questo pagamento?</string>
     <string name="withdraw_manual_ready_iban">IBAN</string>
-    <string name="transactions_send_funds">Invia
-\nFondi</string>
+    <string name="transactions_send_funds">Invia \nFondi</string>
     <string name="withdraw_manual_ready_warning">Assicurati di usare il soggetto corretto, altrimenti il denaro non arriverà in questo portafogli.</string>
     <string name="settings_db_export">Banca dati</string>
     <string name="withdraw_manual_ready_intro">Per completare il processo devi trasferire %s al tuo conto bancario di cambio</string>
@@ -190,8 +189,7 @@
     <string name="settings_test_summary">Realizza transazioni di prova con la configurazione demo</string>
     <string name="settings_test">Avvia test d\'integrazione</string>
     <string name="copy" tools:override="true">Copia</string>
-    <string name="transactions_receive_funds">Ricevi
-\nFondi</string>
+    <string name="transactions_receive_funds">Ricevi \nFondi</string>
     <string name="transaction_peer_pull_credit">Fattura</string>
     <string name="send_amount">Importo da inviare</string>
     <string name="withdraw_manual_ready_cancel">Cancella prelievo</string>
