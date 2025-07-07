@@ -38,15 +38,11 @@
     <string name="amount_negative">- %s</string>
     <string name="amount_chosen">選択した金額</string>
     <string name="balances_inbound_label">到着</string>
-    <string name="balances_empty_state">あなたの財布のデジタルキャッシュはありません。
-\nあなたは、試し銀行から模擬の金を受け取れます。
-\nこのURLは、試し銀行です。
-\nhttps://bank.demo.taler.net</string>
+    <string name="balances_empty_state">あなたの財布のデジタルキャッシュはありません。 \nあなたは、試し銀行から模擬の金を受け取れます。 \nこのURLは、試し銀行です。 \nhttps://bank.demo.taler.net</string>
     <string name="transactions_title">取引履歴</string>
     <string name="transactions_empty">あなたは、取引履歴を持っていません</string>
     <string name="transactions_empty_search">取引履歴は見つかりません。別のものを探してください。</string>
-    <string name="transactions_error">取引履歴を取得ことは出来ません
-\n%s</string>
+    <string name="transactions_error">取引履歴を取得ことは出来ません \n%s</string>
     <string name="transactions_detail_title">取引履歴</string>
     <string name="transactions_detail_title_balance">残高: %s</string>
     <string name="transactions_delete">消す</string>
