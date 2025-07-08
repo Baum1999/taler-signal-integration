@@ -16,10 +16,14 @@
 
 package net.taler.wallet.transfer
 
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import net.taler.wallet.R
 import net.taler.wallet.compose.ExpandableCard
 import net.taler.wallet.compose.QrCodeUriComposable
@@ -39,7 +43,6 @@ fun PaytoQrCard(
         else -> return
     }
 
-    // TODO: copy/share actions
     ExpandableCard(
         expanded = expanded,
         setExpanded = setExpanded,
@@ -50,8 +53,11 @@ fun PaytoQrCard(
             QrCodeUriComposable(
                 talerUri = qrCode.qrContent,
                 clipBoardLabel = label,
-                showContents = false,
+                showContents = true,
+                shareAsQrCode = true,
             )
+
+            Spacer(Modifier.height(8.dp))
         },
     )
 }

@@ -17,6 +17,8 @@
 package net.taler.wallet.peer
 
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
@@ -113,6 +115,7 @@ fun ColumnScope.PeerQrCode(
         )
 
         if (state.minor == Ready && talerUri != null) {
+            Spacer(Modifier.height(8.dp))
             QrCodeUriComposable(
                 talerUri = talerUri,
                 clipBoardLabel = "Push payment",

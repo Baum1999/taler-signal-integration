@@ -23,10 +23,13 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Context.CONNECTIVITY_SERVICE
 import android.content.Intent
+import android.content.Intent.ACTION_SEND
 import android.content.Intent.EXTRA_INITIAL_INTENTS
+import android.content.Intent.EXTRA_STREAM
+import android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
+import android.graphics.Bitmap
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET
-import android.net.Uri
 import android.os.Build.VERSION.SDK_INT
 import android.os.Looper
 import android.text.format.DateUtils.DAY_IN_MILLIS
@@ -48,15 +51,23 @@ import android.view.inputmethod.InputMethodManager
 import androidx.annotation.RequiresPermission
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.content.FileProvider
 import androidx.core.content.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavDirections
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import net.taler.lib.android.ErrorBottomSheet
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import androidx.core.view.isVisible
+import androidx.core.net.toUri
 
 fun View.fadeIn(endAction: () -> Unit = {}) {
-    if (visibility == VISIBLE && alpha == 1f) return
+    if (isVisible && alpha == 1f) return
     alpha = 0f
     visibility = VISIBLE
     animate().alpha(1f).withEndAction {
@@ -127,7 +138,7 @@ fun Context.startActivitySafe(intent: Intent) {
 
 fun Context.canAppHandleUri(uri: String): Boolean {
     val intent = Intent(Intent.ACTION_VIEW).apply {
-        data = Uri.parse(uri)
+        data = uri.toUri()
     }
 
     return packageManager.queryIntentActivities(intent, 0).any {
@@ -137,7 +148,7 @@ fun Context.canAppHandleUri(uri: String): Boolean {
 
 fun Context.openUri(uri: String, title: String, excludeOwn: Boolean = true) {
     val intent = Intent(Intent.ACTION_VIEW).apply {
-        data = Uri.parse(uri)
+        data = uri.toUri()
     }
 
     if (excludeOwn) {
@@ -209,4 +220,43 @@ fun copyToClipBoard(context: Context, label: String, str: String) {
     val clipboard = context.getSystemService<ClipboardManager>()
     val clip = ClipData.newPlainText(label, str)
     clipboard?.setPrimaryClip(clip)
+}
+
+const val SHARE_QR_TEMP_PREFIX = "taler_qr_"
+const val SHARE_QR_SIZE = 512
+const val SHARE_QR_QUALITY = 90
+
+/**
+ * Share string as QR code via sharing dialog
+ *
+ * NOTE: make sure to properly setup file provider
+ * https://developer.android.com/training/secure-file-sharing/setup-sharing
+ */
+suspend fun String.shareAsQrCode(context: Context, authority: String) {
+    val qrBitmap = QrCodeManager.makeQrCode(this, SHARE_QR_SIZE)
+    val outputDir = context.cacheDir
+    try {
+        val uri = withContext(Dispatchers.IO) {
+            val outputFile = File.createTempFile(SHARE_QR_TEMP_PREFIX, ".png", outputDir)
+            outputFile.deleteOnExit()
+            val stream = FileOutputStream(outputFile)
+            qrBitmap.compress(Bitmap.CompressFormat.PNG, SHARE_QR_QUALITY, stream)
+            stream.flush()
+            stream.close()
+            FileProvider.getUriForFile(context, authority, outputFile)
+        }
+
+        // TODO: also allow saving QR to files (under a human-readable name?)
+        val intent = Intent(ACTION_SEND).apply {
+            putExtra(EXTRA_STREAM, uri)
+            clipData = ClipData.newRawUri("", uri)
+            addFlags(FLAG_GRANT_READ_URI_PERMISSION)
+            setType("image/png")
+        }
+
+        val shareIntent = Intent.createChooser(intent, null)
+        context.startActivitySafe(shareIntent)
+    } catch(e: IOException) {
+        Log.d("taler-kotlin-android", "Failed to generate or store PNG image")
+    }
 }

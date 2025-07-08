@@ -16,9 +16,6 @@
 
 package net.taler.wallet.compose
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -61,6 +58,7 @@ fun ColumnScope.QrCodeUriComposable(
     clipBoardLabel: String,
     buttonText: String = stringResource(R.string.copy),
     showContents: Boolean = true,
+    shareAsQrCode: Boolean = false,
     inBetween: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     val qrCodeSize = getQrCodeSize()
@@ -75,7 +73,7 @@ fun ColumnScope.QrCodeUriComposable(
             modifier = Modifier
                 .size(qrCodeSize)
                 .align(CenterHorizontally)
-                .padding(vertical = if (showContents) 8.dp else 0.dp),
+                .padding(bottom = if (showContents) 8.dp else 0.dp),
             bitmap = qrCode,
             contentDescription = stringResource(id = R.string.button_scan_qr_code),
         )
@@ -83,35 +81,42 @@ fun ColumnScope.QrCodeUriComposable(
     if (inBetween != null) inBetween()
     val scrollState = rememberScrollState()
     if (showContents) {
-        Box(modifier = Modifier.padding(16.dp)) {
-            Text(
-                modifier = Modifier.horizontalScroll(scrollState),
-                fontFamily = FontFamily.Monospace,
-                style = MaterialTheme.typography.bodyLarge,
-                text = talerUri,
-            )
+        if (!shareAsQrCode) {
+            Box(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    modifier = Modifier.horizontalScroll(scrollState),
+                    fontFamily = FontFamily.Monospace,
+                    style = MaterialTheme.typography.bodyLarge,
+                    text = talerUri,
+                )
+            }
         }
+
         Row(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
-            CopyToClipboardButton(
-                label = clipBoardLabel,
-                content = talerUri,
-                buttonText = buttonText,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+            if (!shareAsQrCode) {
+                CopyToClipboardButton(
+                    label = clipBoardLabel,
+                    content = talerUri,
+                    buttonText = buttonText,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 )
-            )
+            }
+
             ShareButton(
                 content = talerUri,
+                shareAsQrCode = shareAsQrCode,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                ),
             )
         }
     }

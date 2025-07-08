@@ -29,10 +29,13 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat.startActivity
+import kotlinx.coroutines.launch
+import net.taler.common.shareAsQrCode
 import net.taler.wallet.R
 
 @Composable
@@ -41,19 +44,25 @@ fun ShareButton(
     modifier: Modifier = Modifier,
     buttonText: String = stringResource(R.string.share),
     colors: ButtonColors = ButtonDefaults.buttonColors(),
+    shareAsQrCode: Boolean = false,
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     Button(
         modifier = modifier,
         colors = colors,
         onClick = {
-            val sendIntent: Intent = Intent().apply {
-                action = ACTION_SEND
-                putExtra(EXTRA_TEXT, content)
-                type = "text/plain"
+            if (shareAsQrCode) {
+                scope.launch { content.shareAsQrCode(context, "net.taler.wallet.fileprovider") }
+            } else {
+                val sendIntent: Intent = Intent().apply {
+                    action = ACTION_SEND
+                    putExtra(EXTRA_TEXT, content)
+                    type = "text/plain"
+                }
+                val shareIntent = Intent.createChooser(sendIntent, null)
+                startActivity(context, shareIntent, null)
             }
-            val shareIntent = Intent.createChooser(sendIntent, null)
-            startActivity(context, shareIntent, null)
         },
     ) {
         Icon(
