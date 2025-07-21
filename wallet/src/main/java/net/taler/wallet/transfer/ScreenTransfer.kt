@@ -63,7 +63,6 @@ import net.taler.common.copyToClipBoard
 import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.compose.ShareButton
 import net.taler.wallet.transactions.AmountType
-import net.taler.wallet.transactions.KycAuthTransferInfo
 import net.taler.wallet.transactions.TransactionAmountComposable
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails.Status.Ok
