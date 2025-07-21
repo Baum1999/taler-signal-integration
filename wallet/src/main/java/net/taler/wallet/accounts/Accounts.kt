@@ -23,6 +23,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonClassDiscriminator
 import net.taler.common.Bech32
 import net.taler.wallet.backend.TalerErrorInfo
+import androidx.core.net.toUri
 
 @Serializable
 data class KnownBankAccountInfo(
@@ -80,7 +81,7 @@ sealed class PaytoUri(
 
     companion object {
         fun parse(paytoUri: String): PaytoUri? {
-            val uri = Uri.parse(paytoUri)
+            val uri = paytoUri.toUri()
             if (uri.scheme != "payto") return null
             if (uri.pathSegments.isEmpty()) return null
             return when (uri.authority?.lowercase()) {
@@ -101,6 +102,8 @@ data class PaytoUriIban(
     override val targetPath: String,
     override val params: Map<String, String>,
     override val receiverName: String?,
+    val receiverPostalCode: String?,
+    val receiverTown: String?,
 ) : PaytoUri(
     isKnown = true,
     targetType = "iban",
@@ -111,12 +114,16 @@ data class PaytoUriIban(
             .authority(targetType)
             .apply { if (bic != null) appendPath(bic) }
             .appendPath(iban)
+            .appendQueryParameter("receiver-name", receiverName)
+            .appendQueryParameter("receiver-postal-code", receiverPostalCode)
+            .appendQueryParameter("receiver-town", receiverTown)
             .apply {
                 params.forEach { (key, value) ->
-                    appendQueryParameter(key, value)
+                    if (value.isNotEmpty() && build().getQueryParameter(key) == null) {
+                        appendQueryParameter(key, value)
+                    }
                 }
-            }
-            .build().toString()
+            }.build().toString()
 
     companion object {
         fun fromString(uri: Uri): PaytoUriIban? {
@@ -127,6 +134,8 @@ data class PaytoUriIban(
                 } else null,
                 params = uri.queryParametersMap,
                 receiverName = uri.getQueryParameter("receiver-name"),
+                receiverPostalCode = uri.getQueryParameter("receiver-postal-code"),
+                receiverTown = uri.getQueryParameter("receiver-town"),
                 targetPath = "",
             )
         }
@@ -153,7 +162,9 @@ data class PaytoUriTalerBank(
             .appendPath(account)
             .apply {
                 params.forEach { (key, value) ->
-                    appendQueryParameter(key, value)
+                    if (value.isNotEmpty()) {
+                        appendQueryParameter(key, value)
+                    }
                 }
             }
             .build().toString()
@@ -194,7 +205,9 @@ data class PaytoUriBitcoin(
             }
             .apply {
                 params.forEach { (key, value) ->
-                    appendQueryParameter(key, value)
+                    if (value.isNotEmpty()) {
+                        appendQueryParameter(key, value)
+                    }
                 }
             }
             .build().toString()

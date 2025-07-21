@@ -362,6 +362,8 @@ fun ScreenTransferPreview(
                     amountRaw = Amount("KUDOS", 10, 0),
                     amountEffective = Amount("KUDOS", 9, 5),
                     transferAmount = Amount("KUDOS", 10, 0),
+                    receiverTown = "Biel/Bienne",
+                    receiverPostalCode = "2500",
                     withdrawalAccount = WithdrawalExchangeAccountDetails(
                         paytoUri = "https://taler.net/kudos",
                         transferAmount = Amount("KUDOS", 10, 0),

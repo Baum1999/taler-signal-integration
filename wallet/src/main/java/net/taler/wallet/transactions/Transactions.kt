@@ -311,6 +311,8 @@ data class WithdrawalExchangeAccountDetails (
             TransferData.IBAN(
                 iban = uri.lastPathSegment!!,
                 receiverName = uri.getQueryParameter("receiver-name"),
+                receiverTown = uri.getQueryParameter("receiver-town"),
+                receiverPostalCode = uri.getQueryParameter("receiver-postal-code"),
                 subject = uri.getQueryParameter("message") ?: "Error: No message in URI",
                 amountRaw = amountRaw,
                 amountEffective = amountEffective,

@@ -116,6 +116,8 @@ sealed class TransferData {
         override val transferAmount: Amount,
         override val withdrawalAccount: WithdrawalExchangeAccountDetails,
         val receiverName: String? = null,
+        val receiverPostalCode: String? = null,
+        val receiverTown: String? = null,
         val iban: String,
     ): TransferData()
 
@@ -514,38 +516,6 @@ class WithdrawManager(
         }
     }
 
-    /**
-     * A hack to be able to view bank details for manual withdrawal with the same logic.
-     * Don't call this from ongoing withdrawal processes as it destroys state.
-     */
-    fun viewManualWithdrawal(
-        transactionId: String,
-        exchangeBaseUrl: String? = null,
-        amountRaw: Amount,
-        amountEffective: Amount,
-        withdrawalAccountList: List<WithdrawalExchangeAccountDetails>,
-        scopeInfo: ScopeInfo,
-    ) {
-        _withdrawStatus.value = createManualTransfer(
-            status = WithdrawStatus(
-                transactionId = transactionId,
-                exchangeBaseUrl = exchangeBaseUrl,
-                amountInfo = WithdrawalDetailsForAmount(
-                    amountRaw = amountRaw,
-                    amountEffective = amountEffective,
-                    withdrawalAccountsList = withdrawalAccountList,
-                    scopeInfo = scopeInfo,
-                    tosAccepted = true,
-                )
-            ),
-            response = AcceptManualWithdrawalResponse(
-                transactionId = transactionId,
-                reservePub = "",
-                withdrawalAccountsList = withdrawalAccountList,
-            )
-        )
-    }
-
     private fun createManualTransfer(
         status: WithdrawStatus,
         response: AcceptManualWithdrawalResponse,
@@ -590,6 +560,8 @@ class WithdrawManager(
                 TransferData.IBAN(
                     iban = uri.lastPathSegment!!,
                     receiverName = uri.getQueryParameter("receiver-name"),
+                    receiverTown = uri.getQueryParameter("receiver-town"),
+                    receiverPostalCode = uri.getQueryParameter("receiver-postal-code"),
                     subject = uri.getQueryParameter("message") ?: "Error: No message in URI",
                     amountRaw = details.amountRaw,
                     amountEffective = details.amountEffective,

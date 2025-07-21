@@ -268,9 +268,11 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="send_deposit_kyc_auth_warning_subject">This is mandatory, otherwise the verification will fail.</string>
     <string name="send_deposit_name">Account holder</string>
     <string name="send_deposit_no_methods_error">No supported wire methods</string>
+    <string name="send_deposit_postal_code">Postal code (optional)</string>
     <string name="send_deposit_select_account_title">Select bank account</string>
     <string name="send_deposit_select_amount_title">Select amount to deposit</string>
     <string name="send_deposit_taler">x-taler-bank</string>
+    <string name="send_deposit_town">Town (optional)</string>
     <string name="send_deposit_title">Deposit to bank account</string>
     <string name="send_deposit_no_alias">No alias</string>
     <string name="send_peer_create_button">Send funds now</string>
@@ -312,8 +314,10 @@ GNU Taler is immune against many types of fraud, such as phishing of credit card
     <string name="withdraw_manual_ready_details_qr">Wire transfer QR codes</string>
     <string name="withdraw_manual_ready_iban">IBAN</string>
     <string name="withdraw_manual_ready_intro">You need to transfer %1$s from your regular bank account to the payment service to receive %2$s as electronic cash in this wallet.</string>
+    <string name="withdraw_manual_ready_postal_code">Postal code</string>
     <string name="withdraw_manual_ready_receiver">Recipient</string>
     <string name="withdraw_manual_ready_subject">Subject</string>
+    <string name="withdraw_manual_ready_town">Town</string>
     <string name="withdraw_manual_ready_warning">This is mandatory, otherwise your money will not arrive in this wallet.</string>
     <string name="withdraw_manual_step">&lt;b&gt;Step %1$s:&lt;/b&gt; %2$s</string>
     <string name="withdraw_manual_step_finish">Finish the wire transfer of %1$s in your banking app or website, then this withdrawal will proceed automatically. Depending on your bank the transfer can take from minutes to two working days, please be patient.</string>

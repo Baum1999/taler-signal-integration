@@ -54,10 +54,12 @@ class DepositFragment : Fragment() {
     ): View {
         val presetAmount = arguments?.getString("amount")?.let { Amount.fromJSONString(it) }
         val receiverName = arguments?.getString("receiverName")
+        val receiverPostalCode = arguments?.getString("receiverPostalCode")
+        val receiverTown = arguments?.getString("receiverTown")
         val iban = arguments?.getString("IBAN")
 
         if (presetAmount != null && receiverName != null && iban != null) {
-            val paytoUri = getIbanPayto(receiverName, iban)
+            val paytoUri = getIbanPayto(receiverName, receiverPostalCode, receiverTown, iban)
             depositManager.makeDeposit(presetAmount, paytoUri)
         }
 

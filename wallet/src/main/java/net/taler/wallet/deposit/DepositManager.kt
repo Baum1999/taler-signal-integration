@@ -185,12 +185,19 @@ class DepositManager(
     }
 }
 
-fun getIbanPayto(receiverName: String, iban: String) = PaytoUriIban(
+fun getIbanPayto(
+    receiverName: String,
+    receiverPostalCode: String?,
+    receiverTown: String?,
+    iban: String,
+) = PaytoUriIban(
     iban = iban,
     bic = null,
     targetPath = "",
     params = mapOf("receiver-name" to receiverName),
     receiverName = receiverName,
+    receiverPostalCode = receiverPostalCode,
+    receiverTown = receiverTown,
 ).paytoUri
 
 fun getTalerPayto(receiverName: String, host: String, account: String) = PaytoUriTalerBank(

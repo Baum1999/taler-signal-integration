@@ -101,6 +101,8 @@ fun AddAccountComposable(
     var ibanError by rememberSaveable(presetPaytoUri) { mutableStateOf(presetPaytoUri == null) }
     var formAlias by rememberSaveable(presetAccount) { mutableStateOf(presetAccount?.label ?: "") }
     var ibanName by rememberSaveable(presetPaytoUri) { mutableStateOf((presetPaytoUri as? PaytoUriIban)?.receiverName ?: "") }
+    var ibanTown by rememberSaveable(presetPaytoUri) { mutableStateOf((presetPaytoUri as? PaytoUriIban)?.receiverTown) }
+    var ibanZip by rememberSaveable(presetPaytoUri) { mutableStateOf((presetPaytoUri as? PaytoUriIban)?.receiverPostalCode) }
     var ibanIban by rememberSaveable(presetPaytoUri) { mutableStateOf((presetPaytoUri as? PaytoUriIban)?.iban ?: "") }
     var talerName by rememberSaveable(presetPaytoUri) { mutableStateOf((presetPaytoUri as? PaytoUriTalerBank)?.receiverName ?: "") }
     var talerHost by rememberSaveable(presetPaytoUri) { mutableStateOf((presetPaytoUri as? PaytoUriTalerBank)?.host ?: talerBankHostnames.firstOrNull() ?: "") }
@@ -108,7 +110,7 @@ fun AddAccountComposable(
     var bitcoinAddress by rememberSaveable(presetPaytoUri) { mutableStateOf("") } // TODO: fill-in bitcoin address
 
     val paytoUri = when(selectedWireType) {
-        WireType.IBAN -> getIbanPayto(ibanName, ibanIban)
+        WireType.IBAN -> getIbanPayto(ibanName, ibanZip, ibanTown, ibanIban)
         WireType.TalerBank -> getTalerPayto(talerName, talerHost, talerAccount)
         WireType.Bitcoin -> getBitcoinPayto(bitcoinAddress)
         else -> null
@@ -169,10 +171,14 @@ fun AddAccountComposable(
             WireType.IBAN -> item {
                 AddAccountIBAN(
                     name = ibanName,
+                    town = ibanTown,
+                    zip = ibanZip,
                     iban = ibanIban,
                     ibanError = ibanError,
-                    onFormEdited = { name, iban ->
+                    onFormEdited = { name, town, zip, iban ->
                         ibanName = name
+                        ibanTown = town
+                        ibanZip = zip
                         ibanIban = iban
                     }
                 )

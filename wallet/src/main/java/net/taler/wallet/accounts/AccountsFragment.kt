@@ -290,6 +290,8 @@ val previewKnownAccounts = listOf(
             targetPath = "",
             params = emptyMap(),
             receiverName = "John Doe",
+            receiverPostalCode = "1234",
+            receiverTown = "Texas",
         ).paytoUri,
         kycCompleted = true,
         currencies = listOf("KUDOS"),

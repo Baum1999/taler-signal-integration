@@ -106,6 +106,14 @@ fun TransferIBAN(
             DetailRow(stringResource(R.string.withdraw_manual_ready_receiver), it)
         }
 
+        transfer.receiverPostalCode?.let {
+            DetailRow(stringResource(R.string.withdraw_manual_ready_postal_code), it)
+        }
+
+        transfer.receiverTown?.let {
+            DetailRow(stringResource(R.string.withdraw_manual_ready_town), it)
+        }
+
         DetailRow(stringResource(R.string.withdraw_manual_ready_iban), transfer.iban)
 
         WithdrawalAmountTransfer(

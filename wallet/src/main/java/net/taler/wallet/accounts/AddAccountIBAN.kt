@@ -36,9 +36,11 @@ import net.taler.wallet.R
 @Composable
 fun AddAccountIBAN(
     name: String,
+    town: String?,
+    zip: String?,
     iban: String,
     ibanError: Boolean,
-    onFormEdited: (name: String, iban: String) -> Unit
+    onFormEdited: (name: String, town: String?, zip: String?, iban: String) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
     OutlinedTextField(
@@ -50,7 +52,7 @@ fun AddAccountIBAN(
             ).fillMaxWidth(),
         value = name,
         onValueChange = { input ->
-            onFormEdited(input, iban)
+            onFormEdited(input, town, zip, iban)
         },
         singleLine = true,
         isError = name.isBlank(),
@@ -73,7 +75,7 @@ fun AddAccountIBAN(
         value = iban,
         singleLine = true,
         onValueChange = { input ->
-            onFormEdited(name, input
+            onFormEdited(name, town, zip, input
                 .uppercase()
                 .replace(" ", "")
                 .replace("\n", "")
@@ -97,6 +99,46 @@ fun AddAccountIBAN(
                     MaterialTheme.colorScheme.error
                 } else Color.Unspecified,
             )
+        },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Next) }),
+    )
+
+    OutlinedTextField(
+        modifier = Modifier
+            .padding(
+                bottom = 16.dp,
+                start = 16.dp,
+                end = 16.dp,
+            ).fillMaxWidth(),
+        value = zip ?: "",
+        singleLine = true,
+        onValueChange = { input ->
+            onFormEdited(name, town, input.trim(), iban)
+        },
+        isError = ibanError,
+        label = {
+            Text(stringResource(R.string.send_deposit_postal_code))
+        },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Next) }),
+    )
+
+    OutlinedTextField(
+        modifier = Modifier
+            .padding(
+                bottom = 16.dp,
+                start = 16.dp,
+                end = 16.dp,
+            ).fillMaxWidth(),
+        value = town ?: "",
+        singleLine = true,
+        onValueChange = { input ->
+            onFormEdited(name, input.trim(), zip, iban)
+        },
+        isError = ibanError,
+        label = {
+            Text(stringResource(R.string.send_deposit_town))
         },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Next) }),
