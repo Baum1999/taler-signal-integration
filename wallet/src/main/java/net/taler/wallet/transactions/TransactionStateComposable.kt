@@ -51,6 +51,7 @@ import net.taler.wallet.transactions.TransactionMinorState.BalanceKycInit
 import net.taler.wallet.transactions.TransactionMinorState.BalanceKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
 import net.taler.wallet.transactions.TransactionMinorState.KycAuthRequired
+import net.taler.wallet.transactions.TransactionMinorState.KycInit
 import net.taler.wallet.transactions.TransactionMinorState.KycRequired
 import net.taler.wallet.transactions.TransactionMinorState.MergeKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.Repurchase
@@ -66,6 +67,7 @@ fun TransactionStateComposable(
     val message = when (state) {
         TransactionState(Done) -> stringResource(R.string.transaction_state_done)
         TransactionState(Pending, BankConfirmTransfer) -> stringResource(R.string.transaction_state_pending_bank)
+        TransactionState(Pending, KycInit) -> stringResource(R.string.transaction_preparing_kyc)
         TransactionState(Pending, BalanceKycInit) -> stringResource(R.string.transaction_preparing_kyc)
         TransactionState(Pending, KycRequired) -> stringResource(R.string.transaction_state_pending_kyc_bank)
         TransactionState(Pending, BalanceKycRequired) -> stringResource(R.string.transaction_state_pending_kyc_bank)
@@ -131,6 +133,7 @@ fun TransactionStateComposablePreview() {
 
             val modifier = Modifier.padding(vertical = 6.dp)
             TransactionStateComposable(modifier, state = TransactionState(Pending, BankConfirmTransfer))
+            TransactionStateComposable(modifier, state = TransactionState(Pending, KycInit))
             TransactionStateComposable(modifier, state = TransactionState(Pending, BalanceKycInit))
             TransactionStateComposable(modifier, state = TransactionState(Pending, KycRequired))
             TransactionStateComposable(modifier, state = TransactionState(Pending, BalanceKycRequired))

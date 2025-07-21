@@ -73,7 +73,12 @@ fun AddAccountIBAN(
         value = iban,
         singleLine = true,
         onValueChange = { input ->
-            onFormEdited(name, input.uppercase())
+            onFormEdited(name, input
+                .uppercase()
+                .replace(" ", "")
+                .replace("\n", "")
+                .replace("\t", "")
+                .trim())
         },
         isError = ibanError,
         supportingText = {

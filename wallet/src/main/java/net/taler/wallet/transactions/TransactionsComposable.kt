@@ -18,7 +18,6 @@ package net.taler.wallet.transactions
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
@@ -99,6 +98,7 @@ import net.taler.wallet.transactions.TransactionMinorState.BalanceKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
 import net.taler.wallet.transactions.TransactionMinorState.KycRequired
 import net.taler.wallet.transactions.TransactionMinorState.KycAuthRequired
+import net.taler.wallet.transactions.TransactionMinorState.KycInit
 import net.taler.wallet.transactions.TransactionMinorState.MergeKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.Repurchase
 import net.taler.wallet.transactions.TransactionsResult.Error
@@ -337,7 +337,6 @@ fun TransactionsHeader(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TransactionRow(
     tx: Transaction,
@@ -470,6 +469,7 @@ fun TransactionExtraInfo(tx: Transaction) {
 
         tx.txState.major == Pending -> when(tx.txState.minor) {
             BankConfirmTransfer -> Text(stringResource(R.string.withdraw_waiting_confirm))
+            KycInit,
             BalanceKycInit -> Text(stringResource(R.string.transaction_preparing_kyc))
             KycRequired,
             KycAuthRequired,

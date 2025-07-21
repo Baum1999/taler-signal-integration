@@ -94,6 +94,9 @@ enum class TransactionMinorState {
     @SerialName("kyc")
     KycRequired,
 
+    @SerialName("kyc-init")
+    KycInit,
+
     @SerialName("merge-kyc")
     MergeKycRequired,
 
