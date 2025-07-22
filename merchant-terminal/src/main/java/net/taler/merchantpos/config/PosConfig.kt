@@ -89,6 +89,8 @@ data class ConfigProduct(
     val id: String = UUID.randomUUID().toString(),
     @SerialName("product_id")
     override val productId: String? = null,
+    @SerialName("product_name")
+    override val productName: String? = null,
     override val description: String,
     @SerialName("description_i18n")
     override val descriptionI18n: Map<String, String>? = null,

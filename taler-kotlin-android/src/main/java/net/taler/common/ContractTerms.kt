@@ -155,8 +155,6 @@ sealed class ContractTerms {
         val tokenFamilies: Map<String, ContractTokenFamily>,
     ) : ContractTerms() {
         override val version: ContractVersion = ContractVersion.V1
-
-        fun getTokenFamily(slug: String) = tokenFamilies[slug]
     }
 }
 
@@ -194,6 +192,8 @@ data class Location(
 data class ContractProduct(
     @SerialName("product_id")
     override val productId: String? = null,
+    @SerialName("product_name")
+    override val productName: String? = null,
     override val description: String,
     @SerialName("description_i18n")
     override val descriptionI18n: Map<String, String>? = null,

@@ -16,7 +16,6 @@
 
 package net.taler.common
 
-import android.os.Build
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.taler.common.TalerUtils.getLocalizedString
@@ -47,6 +46,7 @@ data class Order(
 @Serializable
 abstract class OrderProduct {
     abstract val productId: String?
+    abstract val productName: String?
     abstract val description: String
     abstract val descriptionI18n: Map<String, String>?
     abstract val price: Amount?
