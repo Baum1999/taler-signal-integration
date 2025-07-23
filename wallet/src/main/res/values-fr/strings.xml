@@ -133,7 +133,7 @@
 \n
 \nAjoutez-en un manuellement ou retirez de l\'argent électronique !</string>
     <string name="exchange_add_url">Entrez l\'adresse du prestataire</string>
-    <string name="settings_version_protocol_merchant">Versions des commerçants compatibles</string>
+    <string name="settings_version_protocol_merchant">Versions de Taler Merchant compatibles</string>
     <string name="settings_version_core">Version Wallet Core</string>
     <string name="settings_version_protocol_exchange">Versions des prestataires compatibles</string>
     <string name="transaction_action_kyc">Compléter le KYC</string>
