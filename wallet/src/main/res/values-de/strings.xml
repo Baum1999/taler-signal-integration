@@ -143,11 +143,11 @@
     <string name="withdraw_manual_ready_iban">IBAN</string>
     <string name="withdraw_manual_ready_title">Der Zahlungsdienstleister ist für den Abhebevorgang bereit!</string>
     <string name="withdraw_manual_ready_intro">Sie müssen an den Zahlungsdienst %1$s von Ihrem normalen Bankkonto überweisen, damit diese elektronische Geldbörse %2$s als digitales Bargeld beziehen kann.</string>
-    <string name="withdraw_manual_ready_details_intro">Anleitung für Überweisungen</string>
+    <string name="withdraw_manual_ready_details_intro">Überweisungsanleitung</string>
     <string name="withdraw_manual_ready_subject">Buchungsvermerk</string>
     <string name="withdraw_manual_ready_bank_button">In Banking-App öffnen</string>
     <string name="withdraw_manual_ready_cancel">Abhebevorgang abbrechen</string>
-    <string name="withdraw_manual_ready_warning">Dies ist verpflichtend, da Ihr Geld sonst nicht in im Taler-Wallet ankommt.</string>
+    <string name="withdraw_manual_ready_warning">Dies ist obligatorisch, da Ihr Geld sonst nicht im Taler-Wallet ankommt.</string>
     <string name="reset">Zurücksetzen</string>
     <string name="payment_prompt_title">Zahlung überprüfen</string>
     <string name="send_deposit_iban_error">Die IBAN ist unvollständig oder ungültig</string>
@@ -287,7 +287,7 @@
     <string name="send_peer_expiration_days">Tage</string>
     <string name="withdraw_manual_bitcoin_intro">Führen Sie nun eine Mehrfachbuchung mit den folgenden drei Ausgabewerten durch.</string>
     <string name="loss_reason">Grund</string>
-    <string name="loss_reason_unoffered">Der Zahlungsdienstleister bietet nicht mehr die Stückelung für das Guthaben an</string>
+    <string name="loss_reason_unoffered">Der Zahlungsdienstleister bietet nicht mehr die Währung oder die Stückelung der Währung Ihres Guthabens an</string>
     <string name="observability_hide_json">JSON ausblenden</string>
     <string name="observability_show_json">JSON anzeigen</string>
     <string name="observability_title">Internes Ereignisprotokoll</string>
@@ -392,4 +392,12 @@
     <string name="currency_via">über</string>
     <string name="transaction_action_kyc">KYC vervollständigen</string>
     <string name="transaction_state_pending_kyc_auth">Sie müssen nachweisen, dass Sie die Kontrolle über das Bankkonto für die Auszahlung haben. Für weitere Schritte folgen Sie den unten angegebenen Anweisungen.</string>
+    <string name="send_deposit_postal_code">Postleitzahl (optional)</string>
+    <string name="send_deposit_town">Stadt (optional)</string>
+    <string name="withdraw_manual_ready_town">Stadt</string>
+    <string name="settings_lock_auth">Zugriff auf Taler Wallet sperren</string>
+    <string name="settings_lock_auth_summary">Fingerabdruck oder Passwort für den Zugriff auf Taler Wallet erforderlich</string>
+    <string name="biometric_prompt_title">Taler Wallet entsperren</string>
+    <string name="biometric_unlock_label">Zum Entsperren tippen</string>
+    <string name="withdraw_manual_ready_postal_code">Postleitzahl</string>
 </resources>
