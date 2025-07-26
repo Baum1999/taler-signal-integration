@@ -79,4 +79,13 @@
     <string name="config_old_deprecation">Cette méthode de configuration est obsolète, veuillez utiliser la nouvelle configuration de l\'API marchande.</string>
     <string name="toast_reloading">Rechargement de l\'inventaire</string>
     <string name="host_apdu_service_desc">Paiements NFC Taler Merchant</string>
+    <string name="forever">Toujours</string>
+    <string name="custom_duration">Durée personnalisée</string>
+    <string name="duration">Durée</string>
+    <string name="token_validity_deadline">Date limite de validité du jeton :</string>
+    <string name="expires_on">Expire le …</string>
+    <string name="no_deadline_set">Aucune date limite</string>
+    <string name="pick_date">Choisir la date</string>
+    <string name="pick_time">Choisir l\'heure</string>
+    <string name="session_expired_toast">La session a expiré – veuillez saisir à nouveau vos informations d\'identification</string>
 </resources>
