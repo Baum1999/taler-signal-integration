@@ -402,4 +402,13 @@
     <string name="withdraw_manual_qr_intro">Si votre logiciel bancaire fonctionne sur un autre appareil, vous pouvez scanner l\'un de ces codes QR :</string>
     <string name="withdraw_manual_step_finish">Terminez le virement bancaire de %1$s dans votre application bancaire ou sur votre site web, puis ce retrait se fera automatiquement. Selon votre banque, le transfert peut prendre de quelques minutes à deux jours ouvrables, soyez patient.</string>
     <string name="withdraw_manual_step_iban">Si vous ne l\'avez pas déjà dans votre liste de favoris bancaires, copiez et collez le destinataire et l\'IBAN dans les champs destinataire/IBAN de votre application ou site web bancaire (et sauvegardez-le en tant que favori pour la prochaine fois) :</string>
+    <string name="send_deposit_postal_code">Code postal (facultatif)</string>
+    <string name="send_deposit_town">Ville (facultatif)</string>
+    <string name="withdraw_manual_ready_postal_code">Code postal</string>
+    <string name="withdraw_manual_ready_town">Ville</string>
+    <string name="biometric_auth_failed">Echec de l\'authentification</string>
+    <string name="biometric_unlock_label">Appuyez pour déverrouiller</string>
+    <string name="biometric_auth_error">Erreur d\'authentification : %1$s</string>
+    <string name="biometric_auth_unavailable">Aucune méthode d\'authentification n\'est disponible.</string>
+    <string name="settings_lock_auth_summary">Nécessite une empreinte digitale ou un mot de passe pour accéder au portefeuille</string>
 </resources>
