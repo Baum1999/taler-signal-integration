@@ -38,7 +38,7 @@ fun Banner(
 ) {
     Card(
         modifier = modifier
-            .padding(horizontal = 9.dp)
+            .safeHorizontalPadding()
             .fillMaxWidth(),
         colors = colors,
         shape = ShapeDefaults.ExtraSmall,

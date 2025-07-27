@@ -16,6 +16,7 @@
 
 package net.taler.wallet.compose
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -25,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.flowWithLifecycle
@@ -56,6 +58,12 @@ fun <T : R, R> Flow<T>.collectAsStateLifecycleAware(
 fun <T> StateFlow<T>.collectAsStateLifecycleAware(
     context: CoroutineContext = EmptyCoroutineContext,
 ): State<T> = collectAsStateLifecycleAware(initial = value, context = context)
+
+fun Modifier.safeHorizontalPadding(): Modifier =
+    then(Modifier.padding(horizontal = 14.dp))
+
+fun Modifier.cardPaddings(): Modifier =
+    then(Modifier.padding(horizontal = 14.dp, vertical = 7.dp))
 
 @Composable
 fun TalerSurface(content: @Composable () -> Unit) {

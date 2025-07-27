@@ -58,6 +58,7 @@ import net.taler.wallet.balances.ScopeInfo.Global
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.compose.cardPaddings
 import net.taler.wallet.transactions.Transaction
 import net.taler.wallet.transactions.TransactionStateFilter
 import net.taler.wallet.transactions.TransactionsComposable
@@ -133,13 +134,7 @@ fun BalanceRow(
     onClick: () -> Unit,
     onPendingClick: () -> Unit,
 ) {
-    OutlinedCard(
-        modifier = Modifier
-            .padding(
-                horizontal = 9.dp,
-                vertical = 6.dp,
-            )
-    ) {
+    OutlinedCard(Modifier.cardPaddings()) {
         Column {
             ListItem(
                 modifier = Modifier

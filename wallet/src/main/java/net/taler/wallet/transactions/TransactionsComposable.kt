@@ -81,6 +81,7 @@ import net.taler.wallet.compose.Banner
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.SelectionModeTopAppBar
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.compose.cardPaddings
 import net.taler.wallet.transactions.AmountType.Negative
 import net.taler.wallet.transactions.AmountType.Neutral
 import net.taler.wallet.transactions.AmountType.Positive
@@ -292,7 +293,7 @@ fun TransactionsHeader(
         OutlinedCard(
             Modifier
                 .weight(1f)
-                .padding(8.dp)
+                .cardPaddings()
                 .clickable { onShowBalancesClicked() },
         ) {
             ListItem(
