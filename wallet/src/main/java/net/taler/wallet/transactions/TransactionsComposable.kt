@@ -438,7 +438,10 @@ fun TransactionAmountInfo(
         }
 
         if (tx.txState.major == Pending || tx.txState.major == Dialog) {
-            Badge(Modifier.padding(top = 3.dp)) {
+            Badge(
+                Modifier.padding(top = 3.dp),
+                containerColor = MaterialTheme.colorScheme.secondary,
+            ) {
                 Text(stringResource(R.string.transaction_pending))
             }
         }
@@ -475,10 +478,10 @@ fun TransactionExtraInfo(tx: Transaction) {
             KycAuthRequired,
             BalanceKycRequired,
             MergeKycRequired -> Text(stringResource(R.string.transactions_required_kyc))
-            else -> Text(stringResource(R.string.transaction_pending))
+            else -> {}
         }
 
-        tx.txState.major == Dialog -> Text(stringResource(R.string.transaction_pending))
+        tx.txState.major == Dialog -> {}
 
         tx is TransactionWithdrawal && !tx.confirmed -> Text(stringResource(R.string.withdraw_waiting_confirm))
         tx is TransactionPeerPushCredit && tx.info.summary != null -> Text(tx.info.summary)
