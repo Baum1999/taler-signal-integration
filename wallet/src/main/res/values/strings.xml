@@ -23,7 +23,8 @@
 
     <string name="google_play_title" tools:keep="@string/google_play_title">Taler Wallet (experimental)</string>
     <string name="google_play_short_desc" tools:keep="@string/google_play_short_desc">GNU Taler makes privacy-friendly online transactions fast and easy.</string>
-    <string name="google_play_full_desc" tools:keep="@string/google_play_full_desc">This app is a wallet for GNU Taler.
+    <string name="google_play_full_desc" tools:keep="@string/google_play_full_desc"><![CDATA[
+This app is a wallet for GNU Taler.
 
 GNU Taler is a privacy-preserving payment system. Customers can remain anonymous, but merchants cannot hide their income from payments made with GNU Taler. This helps to prevent tax evasion and money laundering.
 
@@ -31,9 +32,10 @@ The primary use case of GNU Taler is payments; it is not intended as a store of 
 
 Payments are made after converting existing money into electronic money (e-cash) with the help of an Exchange service, i.e. a payment service provider for Taler.
 
-To make a payment, customers simply need a Taler wallet with sufficient e-cash. A merchant (seller) can accept payments without customers having to register on the seller's website.
+To make a payment, customers simply need a Taler wallet with sufficient e-cash. A merchant (seller) can accept payments without customers having to register on the seller\'s website.
 
-GNU Taler is immune to many types of fraud such as credit card data theft, phishing, or chargeback fraud. In the event of loss or theft, only the limited amount of e-cash still in the wallet may be lost.</string>
+GNU Taler is immune to many types of fraud such as credit card data theft, phishing, or chargeback fraud. In the event of loss or theft, only the limited amount of e-cash still in the wallet may be lost.
+]]></string>
 
     <!-- Navigation  -->
 
