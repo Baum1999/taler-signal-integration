@@ -61,6 +61,7 @@ class PaymentResponsesTest {
               "name": "BFH Department Technik und Informatik",
               "instance": "department"
             },
+            "merchant_base_url": "https://backend.bfh.taler.net/",
             "exchanges": [],
             "auditors": [],
             "merchant_pub": "ZMVDPGGAESGYNMZTE4VHDE5QA5BMT7C9A6GR688KGBPMPATF4MKG",
