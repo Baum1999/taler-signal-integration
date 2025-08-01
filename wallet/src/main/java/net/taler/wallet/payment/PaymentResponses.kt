@@ -87,6 +87,7 @@ data class GetChoicesForPaymentResponse(
     val contractData: ContractTerms,
     val defaultChoiceIndex: Int? = null,
     val automaticExecution: Boolean? = null,
+    val automaticExecutableIndex: Int? = null,
 ) {
     @Serializable
     @OptIn(ExperimentalSerializationApi::class)
@@ -94,6 +95,8 @@ data class GetChoicesForPaymentResponse(
     sealed class ChoiceSelectionDetail {
         abstract val amountRaw: Amount
         abstract val tokenDetails: PaymentTokenAvailabilityDetails?
+        abstract val description: String?
+        abstract val descriptionI18n: Map<String, String>?
 
         @Serializable
         @SerialName("payment-possible")
@@ -101,6 +104,8 @@ data class GetChoicesForPaymentResponse(
             override val amountRaw: Amount,
             val amountEffective: Amount,
             override val tokenDetails: PaymentTokenAvailabilityDetails? = null,
+            override val description: String? = null,
+            override val descriptionI18n: Map<String, String>? = null,
         ) : ChoiceSelectionDetail()
 
         @Serializable
@@ -109,6 +114,8 @@ data class GetChoicesForPaymentResponse(
             override val amountRaw: Amount,
             val balanceDetails: PaymentInsufficientBalanceDetails? = null,
             override val tokenDetails: PaymentTokenAvailabilityDetails? = null,
+            override val description: String? = null,
+            override val descriptionI18n: Map<String, String>? = null,
         ) : ChoiceSelectionDetail()
     }
 }

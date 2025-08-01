@@ -223,6 +223,9 @@ data class Tax(
 @Serializable
 data class ContractChoice(
     val amount: Amount,
+    val description: String? = null,
+    @SerialName("description_i18n")
+    val descriptionI18n: Map<String, String>? = null,
     val inputs: List<ContractInput>,
     val outputs: List<ContractOutput>,
     @SerialName("max_fee")

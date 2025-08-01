@@ -28,11 +28,11 @@ import net.taler.common.Amount
 import net.taler.common.ContractInput
 import net.taler.common.ContractOutput
 import net.taler.common.ContractTerms
+import net.taler.common.TalerUtils.getLocalizedString
 import net.taler.wallet.TAG
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
-import net.taler.wallet.balances.BalanceManager
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.exchanges.ExchangeManager
 import net.taler.wallet.payment.PayStatus.AlreadyPaid
@@ -42,6 +42,7 @@ import net.taler.wallet.payment.PreparePayResponse.InsufficientBalanceResponse
 import net.taler.wallet.payment.PreparePayResponse.PaymentPossibleResponse
 import org.json.JSONObject
 import net.taler.wallet.payment.GetChoicesForPaymentResponse.ChoiceSelectionDetail
+import net.taler.wallet.payment.GetChoicesForPaymentResponse.ChoiceSelectionDetail.PaymentPossible
 
 sealed class PayStatus {
     data object None : PayStatus()
@@ -87,10 +88,17 @@ sealed class PayStatus {
 data class PayChoiceDetails(
     val choiceIndex: Int,
     val amountRaw: Amount,
+    val description: String? = null,
+    val descriptionI18n: Map<String, String>? = null,
     val inputs: List<ContractInput>,
     val outputs: List<ContractOutput>,
     val details: ChoiceSelectionDetail,
-)
+) {
+    val localizedDescription: String?
+        get() = description?.let {
+            getLocalizedString(descriptionI18n, it)
+        }
+}
 
 @Serializable
 data class CheckPayTemplateResponse(
@@ -139,8 +147,8 @@ class PaymentManager(
         api.request("getChoicesForPayment", GetChoicesForPaymentResponse.serializer()) {
             put("transactionId", transactionId)
         }.onSuccess { res ->
-            if (res.automaticExecution == true && res.defaultChoiceIndex != null) {
-                confirmPay(transactionId, res.defaultChoiceIndex, automaticExecution = true)
+            if (res.automaticExecution == true && res.automaticExecutableIndex != null) {
+                confirmPay(transactionId, res.automaticExecutableIndex, automaticExecution = true)
                 return@onSuccess
             }
 
@@ -157,7 +165,7 @@ class PaymentManager(
                     ) ?: exchangeManager.getSpecForCurrency(choice.amountRaw.currency)
 
                     when (choice) {
-                        is ChoiceSelectionDetail.PaymentPossible -> {
+                        is PaymentPossible -> {
                             choice.copy(
                                 amountRaw = choice.amountRaw.withSpec(spec),
                                 amountEffective = choice.amountEffective.withSpec(spec),
@@ -171,6 +179,8 @@ class PaymentManager(
                 }.mapIndexed { i, choice ->
                     PayChoiceDetails(
                         choiceIndex = i,
+                        description = choice.description,
+                        descriptionI18n = choice.descriptionI18n,
                         amountRaw = choice.amountRaw,
                         inputs = (res.contractData as? ContractTerms.V1)
                             ?.choices?.get(i)?.inputs ?: listOf(),
@@ -178,7 +188,18 @@ class PaymentManager(
                             ?.choices?.get(i)?.outputs ?: listOf(),
                         details = choice,
                     )
-                },
+                }.filter {
+                    // Hide auto executable choice
+                    res.automaticExecutableIndex != it.choiceIndex
+                }.sortedWith(
+                    compareByDescending<PayChoiceDetails> {
+                        it.choiceIndex == res.defaultChoiceIndex
+                    }.thenByDescending {
+                        it.details is PaymentPossible
+                    }.thenByDescending {
+                        it.amountRaw
+                    },
+                ),
             )
 
             onSuccess()

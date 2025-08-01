@@ -92,6 +92,7 @@ import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.BottomButtonBox
 import net.taler.wallet.compose.ExpandableSection
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.compose.cardPaddings
 import net.taler.wallet.payment.GetChoicesForPaymentResponse.ChoiceSelectionDetail.InsufficientBalance
 import net.taler.wallet.payment.GetChoicesForPaymentResponse.ChoiceSelectionDetail.PaymentPossible
 import net.taler.wallet.payment.TokenAvailabilityHint.MerchantUnexpected
@@ -437,15 +438,7 @@ fun ChoicesSection(
 
     // CHOICES
     // TODO: LazyColumn would be better, but can't be nested
-    status.choices.sortedWith(
-        compareByDescending<PayChoiceDetails> {
-            it.choiceIndex == status.defaultChoiceIndex
-        }.thenByDescending {
-            it.details is PaymentPossible
-        }.thenByDescending {
-            it.amountRaw
-        }
-    ).forEach { choice ->
+    status.choices.forEach { choice ->
         PaymentChoice(
             choice,
             tokenFamilies,
@@ -468,10 +461,8 @@ fun PaymentChoice(
 ) {
     OutlinedCard(
         modifier =  Modifier
-            .padding(
-                horizontal = 9.dp,
-                vertical = 6.dp,
-            ).fillMaxWidth()
+            .cardPaddings()
+            .fillMaxWidth()
             .animateContentSize()
             .clickable { onSelect() },
         border = if (selected) {
@@ -496,6 +487,14 @@ fun PaymentChoice(
                     PaymentFeeLabel(
                         amountRaw = choice.details.amountRaw,
                         amountEffective = choice.details.amountEffective,
+                    )
+                }
+
+                choice.localizedDescription?.let {
+                    Text(
+                        text = it,
+                        modifier = Modifier.padding(top = 9.dp),
+                        style = MaterialTheme.typography.bodyLarge,
                     )
                 }
 
@@ -810,6 +809,7 @@ private val contractTermsV1 = ContractTerms.V1(
     choices = listOf(
         ContractChoice(
             amount = Amount.fromJSONString("KUDOS:10"),
+            description = "Movie pass discount",
             maxFee = Amount.fromJSONString("KUDOS:0"),
             inputs = listOf(
                 ContractInput.Token(tokenFamilySlug = "half-tax", count = 2),
@@ -822,6 +822,7 @@ private val contractTermsV1 = ContractTerms.V1(
 
         ContractChoice(
             amount = Amount.fromJSONString("KUDOS:200"),
+            description = "Movie pass access renewal",
             maxFee = Amount.fromJSONString("KUDOS:0"),
             inputs = listOf(
                 ContractInput.Token(tokenFamilySlug = "movie-pass"),
@@ -833,6 +834,7 @@ private val contractTermsV1 = ContractTerms.V1(
 
         ContractChoice(
             amount = Amount.fromJSONString("KUDOS:0"),
+            description = "Movie pass access renewal",
             maxFee = Amount.fromJSONString("KUDOS:0"),
             inputs = listOf(
                 ContractInput.Token(tokenFamilySlug = "movie-pass"),
@@ -895,6 +897,7 @@ fun PromptPaymentV1Preview() {
                 PayChoiceDetails(
                     choiceIndex = 0,
                     amountRaw = contractTermsV1.choices[0].amount,
+                    description = "Movie pass discount",
                     inputs = contractTermsV1.choices[0].inputs,
                     outputs = contractTermsV1.choices[0].outputs,
                     details = PaymentPossible(
@@ -928,6 +931,7 @@ fun PromptPaymentV1Preview() {
                 PayChoiceDetails(
                     choiceIndex = 1,
                     amountRaw = contractTermsV1.choices[1].amount,
+                    description = "Movie pass access renewal",
                     inputs = contractTermsV1.choices[1].inputs,
                     outputs = contractTermsV1.choices[1].outputs,
                     details = InsufficientBalance(
@@ -937,6 +941,7 @@ fun PromptPaymentV1Preview() {
                 PayChoiceDetails(
                     choiceIndex = 2,
                     amountRaw = contractTermsV1.choices[2].amount,
+                    description = "Movie pass access renewal",
                     inputs = contractTermsV1.choices[2].inputs,
                     outputs = contractTermsV1.choices[2].outputs,
                     details = PaymentPossible(

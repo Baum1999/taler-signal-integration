@@ -108,7 +108,7 @@ fun ExpandableCard(
         }
     } else {
         OutlinedCard(
-            modifier = modifier.padding(8.dp),
+            modifier = modifier.cardPaddings(),
             onClick = { setExpanded(!expanded) }
         ) {
             body()
