@@ -36,6 +36,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat.startActivity
 import kotlinx.coroutines.launch
 import net.taler.common.shareAsQrCode
+import net.taler.wallet.BuildConfig
 import net.taler.wallet.R
 
 @Composable
@@ -53,7 +54,10 @@ fun ShareButton(
         colors = colors,
         onClick = {
             if (shareAsQrCode) {
-                scope.launch { content.shareAsQrCode(context, "net.taler.wallet.fileprovider") }
+                scope.launch { content.shareAsQrCode(
+                    context,
+                    "${BuildConfig.APPLICATION_ID}.fileprovider",
+                ) }
             } else {
                 val sendIntent: Intent = Intent().apply {
                     action = ACTION_SEND
