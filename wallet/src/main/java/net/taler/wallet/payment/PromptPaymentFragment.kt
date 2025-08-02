@@ -1,6 +1,6 @@
 /*
  * This file is part of GNU Taler
- * (C) 2020 Taler Systems S.A.
+ * (C) 2025 Taler Systems S.A.
  *
  * GNU Taler is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -21,204 +21,116 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.GONE
 import android.view.ViewGroup
-import android.view.ViewGroup.MarginLayoutParams
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updateLayoutParams
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG
 import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.snackbar.Snackbar.LENGTH_LONG
 import kotlinx.coroutines.launch
-import net.taler.common.Amount
-import net.taler.common.ContractTerms
-import net.taler.common.fadeIn
-import net.taler.common.fadeOut
 import net.taler.common.showError
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.TAG
-import net.taler.wallet.databinding.FragmentPromptPaymentBinding
+import net.taler.wallet.compose.LoadingScreen
+import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.showError
 
-/**
- * Show a payment and ask the user to accept/decline.
- */
-/*
-class PromptPaymentFragment2 : Fragment(), ProductImageClickListener {
+// TODO:
 
+class PromptPaymentFragment: Fragment(), ProductImageClickListener {
     private val model: MainViewModel by activityViewModels()
     private val paymentManager by lazy { model.paymentManager }
     private val transactionManager by lazy { model.transactionManager }
 
-    private lateinit var ui: FragmentPromptPaymentBinding
-    private val adapter = ProductAdapter(this)
-
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View {
-        ui = FragmentPromptPaymentBinding.inflate(inflater, container, false)
-        return ui.root
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? = ComposeView(requireContext()).apply {
+        setContent {
+            TalerSurface {
+                val payStatus by paymentManager.payStatus.observeAsState(PayStatus.None)
+                when(val status = payStatus) {
+                    is PayStatus.None,
+                    is PayStatus.Loading,
+                    is PayStatus.Prepared -> LoadingScreen()
+                    is PayStatus.Checked -> {} // does not apply, only used for templates
+                    is PayStatus.Choices -> {
+                        PromptPaymentComposable(status,
+                            onConfirm = { index ->
+                                paymentManager.confirmPay(status.transactionId, index)
+                            },
+                            onCancel = {
+                                transactionManager.abortTransaction(
+                                    status.transactionId,
+                                    onSuccess = {
+                                        Snackbar.make(
+                                            requireView(),
+                                            getString(R.string.payment_aborted),
+                                            LENGTH_LONG
+                                        ).show()
+                                        findNavController().popBackStack()
+                                    },
+                                    onError = { error ->
+                                        Log.e(TAG, "Error abortTransaction $error")
+                                        if (model.devMode.value == false) {
+                                            showError(error.userFacingMsg)
+                                        } else {
+                                            showError(error)
+                                        }
+                                    }
+                                )
+                            },
+                            onClickImage = { bitmap ->
+                                onImageClick(bitmap)
+                            }
+                        )
+                    }
+
+                    else -> {}
+                }
+            }
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        setupInsets()
-        paymentManager.payStatus.observe(viewLifecycleOwner, ::onPaymentStatusChanged)
-
-        ui.details.productsList.apply {
-            adapter = this@PromptPaymentFragment.adapter
-            layoutManager = LinearLayoutManager(requireContext())
-        }
-    }
-
-    private fun setupInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(ui.bottom.bottomLayout) { v, windowInsets ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updateLayoutParams<MarginLayoutParams> {
-                bottomMargin = insets.bottom
-            }
-            WindowInsetsCompat.CONSUMED
-        }
-    }
-
-    private fun showLoading(show: Boolean) {
-        model.showProgressBar.value = show
-        if (show) {
-            ui.details.progressBar.fadeIn()
-        } else {
-            ui.details.progressBar.fadeOut()
-        }
-    }
-
-    private fun onPaymentStatusChanged(payStatus: PayStatus?) {
-        var transactionId: String? = null
-        when (payStatus) {
-            null -> {}
-            is PayStatus.Checked -> {} // does not apply, only used for templates
-            is PayStatus.Prepared -> {
-                transactionId = payStatus.transactionId
-                showLoading(false)
-                val fees = payStatus.amountEffective - payStatus.amountRaw
-                showOrder(payStatus.contractTerms, payStatus.amountRaw, fees)
-                ui.bottom.confirmButton.isEnabled = true
-                ui.bottom.confirmButton.setOnClickListener {
-                    model.showProgressBar.value = true
-                    paymentManager.confirmPay(
-                        transactionId = payStatus.transactionId,
-                        currency = payStatus.contractTerms.amount.currency,
-                    )
-                    ui.bottom.confirmButton.fadeOut()
-                    ui.bottom.cancelButton.fadeOut()
-                    ui.bottom.confirmProgressBar.fadeIn()
-                }
-            }
-            is PayStatus.InsufficientBalance -> {
-                transactionId = payStatus.transactionId
-                showLoading(false)
-                showOrder(payStatus.contractTerms, payStatus.amountRaw)
-                ui.details.errorView.text = getString(
-                    R.string.payment_balance_insufficient_max,
-                    payStatus.balanceDetails.maxEffectiveSpendAmount.toString(),
-                )
-                ui.details.errorView.fadeIn()
-                payStatus.balanceDetails.causeHint?.stringResId()?.let {
-                    ui.details.errorHintView.setText(it)
-                    ui.details.errorHintView.fadeIn()
-                }
-            }
-            is PayStatus.Success -> {
-                showLoading(false)
-                paymentManager.resetPayStatus()
-                navigateToTransaction(payStatus.transactionId)
-            }
-            is PayStatus.AlreadyPaid -> {
-                showLoading(false)
-                paymentManager.resetPayStatus()
-                navigateToTransaction(payStatus.transactionId)
-                Snackbar.make(requireView(), R.string.payment_already_paid, LENGTH_LONG).show()
-            }
-            is PayStatus.Pending -> {
-                showLoading(false)
-                paymentManager.resetPayStatus()
-                navigateToTransaction(payStatus.transactionId)
-                if (payStatus.error != null) {
-                    if (model.devMode.value == true) {
-                        showError(payStatus.error)
-                    } else {
-                        showError(payStatus.error.userFacingMsg)
+        super.onViewCreated(view, savedInstanceState)
+        paymentManager.payStatus.observe(viewLifecycleOwner) { status ->
+            when (status) {
+                is PayStatus.Success -> {
+                    paymentManager.resetPayStatus()
+                    navigateToTransaction(status.transactionId)
+                    if (status.automaticExecution) {
+                        Snackbar.make(requireView(), R.string.payment_automatic_execution, LENGTH_LONG).show()
                     }
                 }
-            }
-            is PayStatus.None -> {
-                // No payment active.
-                showLoading(false)
-            }
-            is PayStatus.Loading -> {
-                // Wait until loaded ...
-                showLoading(true)
-            }
-        }
 
-        ui.bottom.cancelButton.isEnabled = transactionId != null
-        if (transactionId != null) {
-            ui.bottom.cancelButton.setOnClickListener {
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle(R.string.payment_cancel_dialog_title)
-                    .setMessage(R.string.payment_cancel_dialog_message)
-                    .setNeutralButton(R.string.button_back) { dialog, _ -> dialog.dismiss() }
-                    .setNegativeButton(R.string.payment_cancel_dialog_title) { _, _ ->
-                        transactionManager.abortTransaction(
-                            transactionId,
-                            onSuccess = {
-                                Snackbar.make(
-                                    requireView(),
-                                    getString(R.string.payment_aborted),
-                                    LENGTH_LONG
-                                ).show()
-                                findNavController().popBackStack()
-                            },
-                            onError = { error ->
-                                Log.e(TAG, "Error abortTransaction $error")
-                                if (model.devMode.value == false) {
-                                    showError(error.userFacingMsg)
-                                } else {
-                                    showError(error)
-                                }
-                            }
-                        )
-                    }.show()
+                is PayStatus.AlreadyPaid -> {
+                    paymentManager.resetPayStatus()
+                    navigateToTransaction(status.transactionId)
+                    Snackbar.make(requireView(), R.string.payment_already_paid, LENGTH_LONG).show()
+                }
+
+                is PayStatus.Pending -> {
+                    paymentManager.resetPayStatus()
+                    navigateToTransaction(status.transactionId)
+                    if (status.error != null) {
+                        if (model.devMode.value == true) {
+                            showError(status.error)
+                        } else {
+                            showError(status.error.userFacingMsg)
+                        }
+                    }
+                }
+
+                else -> {}
             }
         }
-    }
-
-    private fun showOrder(
-        contractTerms: ContractTerms,
-        amount: Amount,
-        totalFees: Amount? = null,
-    ) {
-        ui.details.orderView.text = contractTerms.summary
-        adapter.update(contractTerms.products ?: emptyList())
-        ui.details.productsList.fadeIn()
-        ui.bottom.totalView.text = amount.toString()
-
-        if (totalFees != null && !totalFees.isZero()) {
-            ui.bottom.feeView.text = getString(R.string.payment_fee, totalFees)
-            ui.bottom.feeView.fadeIn()
-        } else {
-            ui.bottom.feeView.visibility = GONE
-        }
-
-        ui.details.orderLabelView.fadeIn()
-        ui.details.orderView.fadeIn()
-        ui.bottom.totalLabelView.fadeIn()
-        ui.bottom.totalView.fadeIn()
     }
 
     override fun onImageClick(image: Bitmap) {
@@ -236,4 +148,4 @@ class PromptPaymentFragment2 : Fragment(), ProductImageClickListener {
         }
     }
 }
-*/
+
