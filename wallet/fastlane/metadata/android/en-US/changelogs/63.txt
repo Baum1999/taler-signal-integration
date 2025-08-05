@@ -1,0 +1,4 @@
+- Banking QR can now be shared with banking apps.
+- Lock app using PIN or fingerprint.
+- v1 contract support.
+- KYC improvements.
