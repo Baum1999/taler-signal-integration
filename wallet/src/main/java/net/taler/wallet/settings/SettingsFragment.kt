@@ -17,10 +17,14 @@
 package net.taler.wallet.settings
 
 import android.app.Activity.RESULT_OK
+import android.app.KeyguardManager
+import android.content.Context.KEYGUARD_SERVICE
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings.ACTION_BIOMETRIC_ENROLL
+import android.provider.Settings.ACTION_FINGERPRINT_ENROLL
+import android.provider.Settings.ACTION_SECURITY_SETTINGS
 import android.provider.Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED
 import android.view.View
 import android.widget.Toast
@@ -137,10 +141,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
         model.exchangeVersion?.let { prefVersionExchange.summary = it }
         model.merchantVersion?.let { prefVersionMerchant.summary = it }
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-            prefBiometricLock.isVisible = false
-        }
-
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 settingsManager.getBiometricLockEnabled(requireContext()).collect { enabled ->
@@ -227,39 +227,72 @@ class SettingsFragment : PreferenceFragmentCompat() {
     }
 
     private fun enableBiometrics(prompt: Boolean): Boolean {
-        when (biometricManager.canAuthenticate(BIOMETRIC_STRONG or DEVICE_CREDENTIAL)) {
-            BIOMETRIC_SUCCESS -> {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            when (biometricManager.canAuthenticate(BIOMETRIC_STRONG or DEVICE_CREDENTIAL)) {
+                BIOMETRIC_SUCCESS -> {
+                    settingsManager.setBiometricLockEnabled(requireContext(), true)
+                    return true
+                }
+
+                BIOMETRIC_ERROR_NONE_ENROLLED -> {
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.biometric_auth_unavailable),
+                        Toast.LENGTH_SHORT,
+                    ).show()
+
+                    if (prompt) {
+                        promptAuthEnrollment()
+                    }
+                }
+
+                else -> Toast.makeText(
+                    requireContext(),
+                    getString(R.string.biometric_auth_unavailable),
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
+        } else {
+            val keyguardManager = requireContext()
+                .getSystemService(KEYGUARD_SERVICE) as KeyguardManager
+            if (keyguardManager.isDeviceSecure) {
                 settingsManager.setBiometricLockEnabled(requireContext(), true)
                 return true
-            }
-
-            BIOMETRIC_ERROR_NONE_ENROLLED -> {
+            } else {
                 Toast.makeText(
                     requireContext(),
                     getString(R.string.biometric_auth_unavailable),
                     Toast.LENGTH_SHORT,
                 ).show()
 
-                // Prompt the user to enroll valid credentials
-                if (prompt && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    val intent = Intent(ACTION_BIOMETRIC_ENROLL).apply {
-                        putExtra(
-                            EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
-                            BIOMETRIC_STRONG or DEVICE_CREDENTIAL
-                        )
-                    }
-                    biometricEnrollLauncher.launch(intent)
+                if (prompt) {
+                promptAuthEnrollment()
                 }
             }
-
-            else -> Toast.makeText(
-                requireContext(),
-                getString(R.string.biometric_auth_unavailable),
-                Toast.LENGTH_SHORT,
-            ).show()
         }
 
         return false
+    }
+
+    /**
+     * Prompt the user to enroll valid credentials
+     */
+    private fun promptAuthEnrollment() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val intent = Intent(ACTION_BIOMETRIC_ENROLL).apply {
+                putExtra(
+                    EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
+                    BIOMETRIC_STRONG or DEVICE_CREDENTIAL
+                )
+            }
+            biometricEnrollLauncher.launch(intent)
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val intent = Intent(ACTION_FINGERPRINT_ENROLL)
+            biometricEnrollLauncher.launch(intent)
+        } else {
+            val intent = Intent(ACTION_SECURITY_SETTINGS)
+            biometricEnrollLauncher.launch(intent)
+        }
     }
 
     private fun disableBiometrics() {

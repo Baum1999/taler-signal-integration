@@ -36,6 +36,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
+import androidx.biometric.BiometricPrompt.ERROR_NO_BIOMETRICS
+import androidx.biometric.BiometricPrompt.ERROR_NO_DEVICE_CREDENTIAL
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -216,13 +219,15 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
             biometricPrompt.authenticate(promptInfo)
         }
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return
         biometricPrompt = BiometricPrompt(
             this,
-            mainExecutor,
+            ContextCompat.getMainExecutor(this),
             object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                     super.onAuthenticationError(errorCode, errString)
+                    if (errorCode == ERROR_NO_BIOMETRICS || errorCode == ERROR_NO_DEVICE_CREDENTIAL) {
+                        model.unlockWallet()
+                    }
                     Toast.makeText(this@MainActivity, getString(R.string.biometric_auth_error, errString), LENGTH_SHORT).show()
                 }
 
@@ -238,11 +243,19 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
             },
         )
 
-        promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle(getString(R.string.biometric_prompt_title))
-            .setAllowedAuthenticators(BIOMETRIC_STRONG or DEVICE_CREDENTIAL)
-            .setConfirmationRequired(true)
-            .build()
+        promptInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            BiometricPrompt.PromptInfo.Builder()
+                .setTitle(getString(R.string.biometric_prompt_title))
+                .setAllowedAuthenticators(BIOMETRIC_STRONG or DEVICE_CREDENTIAL)
+                .setConfirmationRequired(true)
+                .build()
+        } else {
+            BiometricPrompt.PromptInfo.Builder()
+                .setTitle(getString(R.string.biometric_prompt_title))
+                .setDeviceCredentialAllowed(true)
+                .setConfirmationRequired(true)
+                .build()
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
