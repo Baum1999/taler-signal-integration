@@ -1,0 +1,1 @@
+Bump merchant API version to 20:0:8
