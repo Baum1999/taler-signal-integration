@@ -1,0 +1,1 @@
+Fixed crash on older Android versions due to unsupported app lock methods.
