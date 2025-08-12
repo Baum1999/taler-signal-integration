@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This file is part of GNU Taler
+  ~ (C) 2020 Taler Systems S.A.
+  ~
+  ~ GNU Taler is free software; you can redistribute it and/or modify it under the
+  ~ terms of the GNU General Public License as published by the Free Software
+  ~ Foundation; either version 3, or (at your option) any later version.
+  ~
+  ~ GNU Taler is distributed in the hope that it will be useful, but WITHOUT ANY
+  ~ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+  ~ A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License along with
+  ~ GNU Taler; see the file COPYING.  If not, see <http://www.gnu.org/licenses/>
+  --><!-- NOTE: please organize strings in alphabetic order! --><resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name"></string>
+    <!-- Google Play Store -->
+
+    <string name="google_play_title" tools:keep="@string/google_play_title"></string>
+    <string name="google_play_short_desc" tools:keep="@string/google_play_short_desc"></string>
+    <string name="google_play_full_desc" tools:keep="@string/google_play_full_desc"></string>
+    <!-- Navigation  -->
+
+    <string name="nav_error"></string>
+    <string name="nav_exchange_fees"></string>
+    <string name="nav_exchange_tos"></string>
+    <string name="nav_prompt_withdraw"></string>
+    <string name="nav_prompt_withdraw_currency"></string>
+    <!-- General -->
+
+    <string name="actions"></string>
+    <string name="button_back"></string>
+    <string name="button_scan_qr_code"></string>
+    <string name="button_scan_qr_code_label"></string>
+    <string name="cancel"></string>
+    <!-- The count should be mirrored in RTL languages -->
+    <string name="char_count"></string>
+    <string name="copy" tools:override="true"></string>
+    <string name="currency"></string>
+    <!-- Currency name (provider) -->
+    <string name="currency_url"></string>
+    <string name="currency_via"></string>
+    <string name="edit"></string>
+    <string name="enter_uri"></string>
+    <string name="enter_uri_label"></string>
+    <string name="error"></string>
+    <string name="import_db"></string>
+    <string name="loading"></string>
+    <string name="menu"></string>
+    <string name="offline"></string>
+    <string name="offline_banner"></string>
+    <string name="ok"></string>
+    <string name="open"></string>
+    <string name="paste"></string>
+    <string name="paste_invalid"></string>
+    <string name="reset"></string>
+    <string name="share_payment"></string>
+    <string name="uri_invalid"></string>
+    <string name="warning"></string>
+    <!-- Biometric lock -->
+    <string name="biometric_auth_error"></string>
+    <string name="biometric_auth_failed"></string>
+    <string name="biometric_auth_unavailable"></string>
+    <string name="biometric_prompt_title"></string>
+    <string name="biometric_unlock_label"></string>
+    <!-- QR code handling -->
+
+    <string name="qr_scan_context_title"></string>
+    <string name="qr_scan_context_receive_message"></string>
+    <string name="qr_scan_context_send_message"></string>
+    <string name="qr_scan_offline"></string>
+    <!-- Errors -->
+
+    <string name="error_no_uri"></string>
+    <string name="error_broken_uri"></string>
+    <string name="error_unsupported_uri"></string>
+    <!-- Amounts -->
+
+    <string name="amount_available_transfer"></string>
+    <string name="amount_available_transfer_fees"></string>
+    <string name="amount_chosen"></string>
+    <string name="amount_conversion"></string>
+    <string name="amount_deposit"></string>
+    <string name="amount_effective"></string>
+    <string name="amount_fee"></string>
+    <string name="amount_invalid"></string>
+    <string name="amount_invoiced"></string>
+    <string name="amount_lost"></string>
+    <string name="amount_negative"></string>
+    <string name="amount_max"></string>
+    <string name="amount_excess"></string>
+    <string name="amount_positive"></string>
+    <string name="amount_receive"></string>
+    <string name="amount_received"></string>
+    <string name="amount_send"></string>
+    <string name="amount_sent"></string>
+    <string name="amount_total"></string>
+    <string name="amount_total_label"></string>
+    <string name="amount_transfer"></string>
+    <string name="amount_withdraw"></string>
+    <!-- Balances -->
+
+    <string name="balance_scope_auditor"></string>
+    <string name="balance_scope_exchange"></string>
+    <string name="balances_empty_state"></string>
+    <string name="balances_empty_demo_url"></string>
+    <string name="balances_empty_get_money"></string>
+    <string name="balances_inbound_amount"></string>
+    <string name="balances_outbound_amount"></string>
+    <string name="balances_title"></string>
+    <!-- Transactions -->
+
+    <string name="transaction_action_kyc"></string>
+    <string name="transaction_denom_loss"></string>
+    <string name="transaction_deposit"></string>
+    <string name="transaction_deposit_to"></string>
+    <string name="transaction_dummy_title"></string>
+    <string name="transaction_order"></string>
+    <string name="transaction_order_id"></string>
+    <string name="transaction_order_total"></string>
+    <string name="transaction_paid"></string>
+    <string name="transaction_peer_pull_credit"></string>
+    <string name="transaction_peer_pull_debit"></string>
+    <string name="transaction_peer_pull_debit_pending"></string>
+    <string name="transaction_peer_push_credit"></string>
+    <string name="transaction_peer_push_credit_pending"></string>
+    <string name="transaction_peer_push_debit"></string>
+    <string name="transaction_peer_push_debit_pending"></string>
+    <string name="transaction_pending"></string>
+    <string name="transaction_preparing_kyc"></string>
+    <string name="transaction_refresh"></string>
+    <string name="transaction_refund"></string>
+    <string name="transaction_state_aborted"></string>
+    <string name="transaction_state_aborted_manual"></string>
+    <string name="transaction_state_aborting"></string>
+    <string name="transaction_state_done"></string>
+    <string name="transaction_state_expired"></string>
+    <string name="transaction_state_failed"></string>
+    <string name="transaction_state_finalizing"></string>
+    <string name="transaction_state_pending"></string>
+    <string name="transaction_state_pending_bank"></string>
+    <string name="transaction_state_pending_kyc_bank"></string>
+    <string name="transaction_state_pending_kyc_auth"></string>
+    <string name="transaction_state_suspended"></string>
+    <string name="transactions_abort"></string>
+    <string name="transactions_abort_dialog_message"></string>
+    <string name="transactions_abort_dialog_title"></string>
+    <string name="transactions_balance"></string>
+    <!-- Currency name (symbol) -->
+    <string name="transactions_currency"></string>
+    <string name="transactions_delete"></string>
+    <string name="transactions_delete_dialog_message"></string>
+    <string name="transactions_delete_dialog_title"></string>
+    <string name="transactions_delete_selected_dialog_message"></string>
+    <string name="transactions_delete_selected_dialog_title"></string>
+    <string name="transactions_detail_title"></string>
+    <string name="transactions_empty"></string>
+    <string name="transactions_empty_search"></string>
+    <string name="transactions_error"></string>
+    <string name="transactions_fail"></string>
+    <string name="transactions_fail_dialog_message"></string>
+    <string name="transactions_fail_dialog_title"></string>
+    <string name="transactions_filter_nonfinal"></string>
+    <string name="transactions_receive_funds"></string>
+    <string name="transactions_resume"></string>
+    <string name="transactions_retry"></string>
+    <string name="transactions_required_kyc"></string>
+    <string name="transactions_select_all"></string>
+    <string name="transactions_send_funds"></string>
+    <string name="transactions_suspend"></string>
+    <string name="transactions_title"></string>
+    <!-- Payments -->
+
+    <string name="payment_aborted"></string>
+    <string name="payment_aborting"></string>
+    <string name="payment_already_paid"></string>
+    <string name="payment_amount_total"></string>
+    <string name="payment_automatic_execution"></string>
+    <string name="payment_balance_insufficient"></string>
+    <string name="payment_balance_insufficient_hint_age_restricted"></string>
+    <string name="payment_balance_insufficient_hint_exchange_missing_global_fees"></string>
+    <string name="payment_balance_insufficient_hint_fees_not_covered"></string>
+    <string name="payment_balance_insufficient_hint_merchant_accept_insufficient"></string>
+    <string name="payment_balance_insufficient_hint_merchant_deposit_insufficient"></string>
+    <string name="payment_balance_insufficient_hint_wallet_balance_material_insufficient"></string>
+    <string name="payment_balance_insufficient_max"></string>
+    <string name="payment_button_cancel"></string>
+    <string name="payment_button_confirm"></string>
+    <string name="payment_button_confirm_amount"></string>
+    <string name="payment_button_confirm_tokens"></string>
+    <string name="payment_cancel_dialog_message"></string>
+    <string name="payment_cancel_dialog_title"></string>
+    <string name="payment_choice_inputs"></string>
+    <string name="payment_choice_outputs"></string>
+    <string name="payment_confirmation_code"></string>
+    <string name="payment_create_order"></string>
+    <string name="payment_error"></string>
+    <string name="payment_failed"></string>
+    <string name="payment_fee"></string>
+    <string name="payment_initiated"></string>
+    <string name="payment_label_order_summary"></string>
+    <string name="payment_pay_template_title"></string>
+    <string name="payment_pending"></string>
+    <!-- <quantity> × <price> -->
+    <string name="payment_product_price_quantity"></string>
+    <string name="payment_prompt_title"></string>
+    <string name="payment_repurchase"></string>
+    <string name="payment_section_choices"></string>
+    <string name="payment_section_review"></string>
+    <!-- including <amount> <tax name> -->
+    <string name="payment_tax"></string>
+    <!-- <quantity> × <token name> -->
+    <string name="payment_token_name_quantity"></string>
+    <string name="payment_token_discount"></string>
+    <string name="payment_token_subscription"></string>
+    <string name="payment_tokens_insufficient"></string>
+    <string name="payment_tokens_unexpected"></string>
+    <string name="payment_tokens_untrusted"></string>
+    <string name="payment_template_error"></string>
+    <string name="payment_title"></string>
+    <!-- P2P receive -->
+
+    <string name="receive_peer"></string>
+    <string name="receive_peer_create_button"></string>
+    <string name="receive_peer_invoice_uri"></string>
+    <string name="receive_peer_payment_instruction"></string>
+    <string name="receive_peer_payment_intro"></string>
+    <string name="receive_peer_payment_title"></string>
+    <string name="receive_peer_review_terms"></string>
+    <string name="receive_peer_title"></string>
+    <!-- P2P send -->
+
+    <string name="pay_peer_intro"></string>
+    <string name="pay_peer_title"></string>
+    <string name="send_deposit_account"></string>
+    <string name="send_deposit_account_add"></string>
+    <string name="send_deposit_account_edit"></string>
+    <string name="send_deposit_account_error"></string>
+    <string name="send_deposit_account_forget_dialog_message"></string>
+    <string name="send_deposit_account_forget_dialog_title"></string>
+    <string name="send_deposit_account_note"></string>
+    <string name="send_deposit_account_manage"></string>
+    <string name="send_deposit_account_warning"></string>
+    <string name="send_deposit_bitcoin"></string>
+    <string name="send_deposit_bitcoin_address"></string>
+    <string name="send_deposit_bitcoin_create_button"></string>
+    <string name="send_deposit_button_label"></string>
+    <string name="send_deposit_check_fees_button"></string>
+    <string name="send_deposit_create_button"></string>
+    <string name="send_deposit_host"></string>
+    <string name="send_deposit_iban"></string>
+    <string name="send_deposit_iban_error"></string>
+    <string name="send_deposit_known_bank_accounts"></string>
+    <string name="send_deposit_known_bank_account_delete"></string>
+    <string name="send_deposit_known_bank_accounts_empty"></string>
+    <string name="send_deposit_kyc_auth_intro_bank"></string>
+    <string name="send_deposit_kyc_auth_step_finish"></string>
+    <string name="send_deposit_kyc_auth_warning_account"></string>
+    <string name="send_deposit_kyc_auth_warning_subject"></string>
+    <string name="send_deposit_name"></string>
+    <string name="send_deposit_no_methods_error"></string>
+    <string name="send_deposit_postal_code"></string>
+    <string name="send_deposit_select_account_title"></string>
+    <string name="send_deposit_select_amount_title"></string>
+    <string name="send_deposit_taler"></string>
+    <string name="send_deposit_town"></string>
+    <string name="send_deposit_title"></string>
+    <string name="send_deposit_no_alias"></string>
+    <string name="send_peer_create_button"></string>
+    <string name="send_peer_expiration_1d"></string>
+    <string name="send_peer_expiration_30d"></string>
+    <string name="send_peer_expiration_7d"></string>
+    <string name="send_peer_expiration_custom"></string>
+    <string name="send_peer_expiration_days"></string>
+    <string name="send_peer_expiration_hours"></string>
+    <string name="send_peer_expiration_period"></string>
+    <string name="send_peer_payment_instruction"></string>
+    <string name="send_peer_purpose"></string>
+    <string name="send_peer_title"></string>
+    <!-- Withdrawals -->
+
+    <string name="withdraw_account"></string>
+    <string name="withdraw_account_currency"></string>
+    <string name="withdraw_amount_error"></string>
+    <string name="withdraw_button_confirm"></string>
+    <string name="withdraw_button_confirm_bank"></string>
+    <string name="withdraw_button_label"></string>
+    <string name="withdraw_button_tos"></string>
+    <string name="withdraw_cash_acceptor"></string>
+    <string name="withdraw_error_already_confirmed"></string>
+    <string name="withdraw_error_message"></string>
+    <string name="withdraw_error_test"></string>
+    <string name="withdraw_error_title"></string>
+    <string name="withdraw_exchange"></string>
+    <string name="withdraw_fee"></string>
+    <string name="withdraw_initiated"></string>
+    <string name="withdraw_manual_bitcoin_intro"></string>
+    <string name="withdraw_manual_qr_epc"></string>
+    <string name="withdraw_manual_qr_intro"></string>
+    <string name="withdraw_manual_qr_spc"></string>
+    <string name="withdraw_manual_ready_account"></string>
+    <string name="withdraw_manual_ready_bank_button"></string>
+    <string name="withdraw_manual_ready_details_intro"></string>
+    <string name="withdraw_manual_ready_details_qr"></string>
+    <string name="withdraw_manual_ready_iban"></string>
+    <string name="withdraw_manual_ready_intro"></string>
+    <string name="withdraw_manual_ready_postal_code"></string>
+    <string name="withdraw_manual_ready_receiver"></string>
+    <string name="withdraw_manual_ready_subject"></string>
+    <string name="withdraw_manual_ready_town"></string>
+    <string name="withdraw_manual_ready_warning"></string>
+    <string name="withdraw_manual_step"></string>
+    <string name="withdraw_manual_step_finish"></string>
+    <string name="withdraw_manual_step_iban"></string>
+    <string name="withdraw_manual_step_subject"></string>
+    <string name="withdraw_restrict_age"></string>
+    <string name="withdraw_restrict_age_unrestricted"></string>
+    <string name="withdraw_review_terms"></string>
+    <string name="withdraw_select_amount"></string>
+    <string name="withdraw_subtitle"></string>
+    <string name="withdraw_title"></string>
+    <string name="withdraw_waiting_confirm"></string>
+    <!-- Exchanges -->
+
+    <string name="exchange_add_error"></string>
+    <string name="exchange_add_url"></string>
+    <string name="exchange_delete"></string>
+    <string name="exchange_delete_force"></string>
+    <plurals name="exchange_fee_coin">
+        <item quantity="one"></item>
+        <item quantity="few"></item>
+        <item quantity="other"></item>
+    </plurals>
+    <string name="exchange_fee_coin_expiration_label"></string>
+    <string name="exchange_fee_coin_fees_label"></string>
+    <string name="exchange_fee_deposit_fee"></string>
+    <string name="exchange_fee_overhead_label"></string>
+    <string name="exchange_fee_refresh_fee"></string>
+    <string name="exchange_fee_refund_fee"></string>
+    <string name="exchange_fee_wire_fee_closing_fee"></string>
+    <string name="exchange_fee_wire_fee_timespan"></string>
+    <string name="exchange_fee_wire_fee_wire_fee"></string>
+    <string name="exchange_fee_wire_fees_label"></string>
+    <string name="exchange_fee_withdraw_fee"></string>
+    <string name="exchange_fee_withdrawal_fee_label"></string>
+    <string name="exchange_global_add"></string>
+    <string name="exchange_global_add_success"></string>
+    <string name="exchange_global_delete"></string>
+    <string name="exchange_global_delete_success"></string>
+    <string name="exchange_list_add"></string>
+    <string name="exchange_list_add_dev"></string>
+    <string name="exchange_list_currency"></string>
+    <string name="exchange_list_empty"></string>
+    <string name="exchange_list_error"></string>
+    <string name="exchange_list_select"></string>
+    <string name="exchange_list_title"></string>
+    <string name="exchange_menu_manual_withdraw"></string>
+    <string name="exchange_not_contacted"></string>
+    <string name="exchange_reload"></string>
+    <string name="exchange_settings_summary"></string>
+    <string name="exchange_settings_title"></string>
+    <string name="exchange_tos_accept"></string>
+    <string name="exchange_tos_forget"></string>
+    <string name="exchange_tos_view"></string>
+    <string name="exchange_tos_error"></string>
+    <!-- Losses -->
+
+    <string name="loss_reason"></string>
+    <string name="loss_reason_expired"></string>
+    <string name="loss_reason_unoffered"></string>
+    <string name="loss_reason_vanished"></string>
+    <!-- Observability -->
+
+    <string name="observability_hide_json"></string>
+    <string name="observability_show_json"></string>
+    <string name="observability_title"></string>
+    <string name="show_logs"></string>
+    <!-- Settings -->
+
+    <string name="menu_settings"></string>
+    <string name="settings_alert_import_canceled"></string>
+    <string name="settings_alert_reset_canceled"></string>
+    <string name="settings_alert_reset_done"></string>
+    <string name="settings_db_clear_error"></string>
+    <string name="settings_db_export"></string>
+    <string name="settings_db_export_error"></string>
+    <string name="settings_db_export_message"></string>
+    <string name="settings_db_export_success"></string>
+    <string name="settings_db_export_summary"></string>
+    <string name="settings_db_import"></string>
+    <string name="settings_db_import_error"></string>
+    <string name="settings_db_import_message"></string>
+    <string name="settings_db_import_success"></string>
+    <string name="settings_db_import_summary"></string>
+    <string name="settings_dev_mode"></string>
+    <string name="settings_dev_mode_summary"></string>
+    <string name="settings_dialog_import_message"></string>
+    <string name="settings_dialog_reset_message"></string>
+    <string name="settings_lock_auth"></string>
+    <string name="settings_lock_auth_summary"></string>
+    <string name="settings_logcat"></string>
+    <string name="settings_logcat_error"></string>
+    <string name="settings_logcat_success"></string>
+    <string name="settings_logcat_summary"></string>
+    <string name="settings_reset"></string>
+    <string name="settings_reset_summary"></string>
+    <string name="settings_test"></string>
+    <string name="settings_test_running"></string>
+    <string name="settings_test_summary"></string>
+    <string name="settings_test_withdrawal"></string>
+    <string name="settings_version_app"></string>
+    <string name="settings_version_core"></string>
+    <string name="settings_version_protocol_exchange"></string>
+    <string name="settings_version_protocol_merchant"></string>
+    <string name="settings_version_unknown"></string>
+    <string name="settings_withdraw_testkudos"></string>
+    <string name="settings_withdraw_testkudos_summary"></string>
+    <!-- Refunds -->
+
+    <string name="refund_error"></string>
+    <string name="refund_success"></string>
+    <string name="refund_title"></string>
+    <!-- Miscellaneous -->
+
+    <string name="host_apdu_service_desc"></string>
+    <string name="wifi_connect_error"></string>
+    <string name="wifi_disabled_error"></string>
+</resources>
