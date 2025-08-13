@@ -1,3 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="config_username">שם משתמש</string>
+    <string name="config_password">סיסמה</string>
+    <string name="config_button_save">שמירה</string>
+    <string name="config_bank_url_error">הכתבת אינה תקפה.</string>
+    <string name="config_error">שגיאה באחזור התצורה</string>
+    <string name="config_error_auth">שם המשתמש או הסיסמה אינם תקפים!</string>
+    <string name="balance_current_label">יתרה נוכחית</string>
+    <string name="balance_error">שגיאה: %s</string>
+    <string name="balance_offline">מצב לא מקוון. נא להתחבר לאינטרנט.</string>\
+    <string name="balance_debit_threshold">חוב מרבי: %1$s</string>
+    <string name="ok">בסדר</string>
+    <string name="action_reconfigure">הגדרה מחדש</string>
+    <string name="action_lock">נעילה</string>
+    <string name="action_about">על אודות</string>
+    <string name="withdraw_input_amount">כמות</string>
+    <string name="withdraw_into">כמה e-cach (מזומן אלקטרוני) יש למשוך?</string>
+    <string name="withdraw_error_zero">יש להזין ערך חיובי!</string>
+    <string name="withdraw_error_insufficient_balance">היתרה אינה מספיקה</string>
+    <string name="withdraw_error_fetch">שגיאה בתקשורת עם הבנק: %s</string>
+    <string name="withdraw_error_timeout">אף ארנק לא ניסה למשוך כסף. נא לנסות שנית.</string>
+    <string name="withdraw_button_confirm">משיכה</string>
+    <string name="transaction_intro">יש לסרוק את הקוד בעזרת יישומון ארנק Taler כדי למשוך:</string>
+    <string name="transaction_intro_nfc">יש לסרוק את הקוד או להשתמש ב־NFC בעזרת יישומון ארנק Taler כדי למשוך:</string>
+    <string name="transaction_intro_scanned">נא לאשר את ההעברה!</string>
+    <string name="transaction_confirm">אישור</string>
+    <string name="transaction_abort">ביטול</string>
+    <string name="transaction_aborted">ההעברה בוטלה</string>
+    <string name="transaction_button_back">חזרה</string>
+    <string name="transaction_last_success">ההעברה האחרונה: נמשכו %s</string>
+    <string name="transaction_last_aborted">ההעברה האחרונה: בוטלה</string>
+    <string name="transaction_last_error">ההעברה האחרונה: נכשלה</string>
+    <string name="about_version">גרסה: %s</string>
+    <string name="about_license">רישיון: %s</string>
+    <string name="about_copyright">זכויות יוצרים: %s</string>
+    <string name="about_supported_bank_api">גרסת ה־API של הבנק: %s</string>
+    <string name="config_bank_url">כתובת ה־API של הבנק</string>
+    <string name="config_username_error">נא להכניס את שם המשתמש!</string>
+    <string name="config_demo_hint">לבדיקה ניתן <![CDATA[<a href="%s">ליצור משתמש בדיקה בבנק המדומה</a>]]>.</string>
+    <string name="withdraw_error_currency_mismatch">שגיאה: הבנק דיווח על מטבע אחר</string>
 </resources>
