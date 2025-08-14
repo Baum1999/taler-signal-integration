@@ -21,8 +21,8 @@
     <string name="withdraw_error_fetch">שגיאה בתקשורת עם הבנק: %s</string>
     <string name="withdraw_error_timeout">אף ארנק לא ניסה למשוך כסף. נא לנסות שנית.</string>
     <string name="withdraw_button_confirm">משיכה</string>
-    <string name="transaction_intro">יש לסרוק את הקוד בעזרת יישומון ארנק Taler כדי למשוך:</string>
-    <string name="transaction_intro_nfc">יש לסרוק את הקוד או להשתמש ב־NFC בעזרת יישומון ארנק Taler כדי למשוך:</string>
+    <string name="transaction_intro">יש לסרוק את הקוד בעזרת יישומון ארנק טאלר כדי למשוך:</string>
+    <string name="transaction_intro_nfc">יש לסרוק את הקוד או להשתמש ב־NFC בעזרת יישומון ארנק טאלר כדי למשוך:</string>
     <string name="transaction_intro_scanned">נא לאשר את ההעברה!</string>
     <string name="transaction_confirm">אישור</string>
     <string name="transaction_abort">ביטול</string>
