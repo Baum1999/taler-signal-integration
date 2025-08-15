@@ -189,17 +189,17 @@
     <string name="payment_button_confirm">אישור התשלום</string>
     <string name="payment_button_confirm_amount">לשלם %1$s</string>
     <string name="payment_button_confirm_tokens">תשלום באמצעות אסימונים</string>
-    <string name="payment_cancel_dialog_message"/>
-    <string name="payment_cancel_dialog_title"/>
+    <string name="payment_cancel_dialog_message">האם ביטול התשלום סופי? לא ניתן יהיה לסיים אותו מאוחר יותר. לחלופין ניתן לצאת ממסך זה ולחזור אליו מאוחר יותר.</string>
+    <string name="payment_cancel_dialog_title">סגירת התשלום</string>
     <string name="payment_choice_inputs"/>
     <string name="payment_choice_outputs"/>
-    <string name="payment_confirmation_code"/>
-    <string name="payment_create_order"/>
-    <string name="payment_error"/>
-    <string name="payment_failed"/>
-    <string name="payment_fee"/>
+    <string name="payment_confirmation_code">קוד אישור</string>
+    <string name="payment_create_order">יצירת הזמנה</string>
+    <string name="payment_error">שגיאה: %s</string>
+    <string name="payment_failed">נכשל</string>
+    <string name="payment_fee">+%s עמלת תשלום</string>
     <string name="payment_initiated"/>
-    <string name="payment_label_order_summary"/>
+    <string name="payment_label_order_summary">רכישה</string>
     <string name="payment_pay_template_title"/>
     <string name="payment_pending"/>
     <!-- <quantity> × <price> -->
