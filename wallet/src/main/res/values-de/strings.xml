@@ -400,4 +400,7 @@
     <string name="biometric_prompt_title">Taler Wallet entsperren</string>
     <string name="biometric_unlock_label">Zum Entsperren tippen</string>
     <string name="withdraw_manual_ready_postal_code">Postleitzahl</string>
+    <string name="biometric_auth_error">Berechtigungsfehler: %1$s</string>
+    <string name="error">Fehler</string>
+    <string name="warning">Warnung</string>
 </resources>
