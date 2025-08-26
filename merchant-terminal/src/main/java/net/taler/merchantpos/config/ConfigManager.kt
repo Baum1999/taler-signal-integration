@@ -90,7 +90,7 @@ internal const val OLD_CONFIG_PASSWORD_DEMO = ""
 private const val SETTINGS_MERCHANT_URL = "merchantUrl"
 private const val SETTINGS_ACCESS_TOKEN = "accessToken"
 
-internal const val NEW_CONFIG_URL_DEMO = "https://backend.demo.taler.net/instances/sandbox"
+internal const val NEW_CONFIG_URL_DEMO = "https://backend.demo.taler.net"
 
 private val VERSION = Version.parse(BuildConfig.BACKEND_API_VERSION)!!
 
