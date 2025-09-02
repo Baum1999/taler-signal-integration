@@ -126,7 +126,27 @@ fun WithdrawalShowInfo(
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            if (status.isCashAcceptor) {
+            if (editableScope) AmountScopeField(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
+                amount = selectedAmount.copy(
+                    amount = selectedAmount.amount.withSpec(spec)
+                ),
+                scopes = scopes,
+                editableScope = true,
+                enabledAmount = false,
+                showShortcuts = false,
+                onAmountChanged = { amount ->
+                    selectedAmount = amount
+                },
+            )
+
+            if (status.status == Error && status.error != null) {
+                WithdrawalError(status.error)
+                return
+            } else if (status.isCashAcceptor) {
                 WarningLabel(
                     label = stringResource(R.string.withdraw_cash_acceptor),
                     modifier = Modifier
@@ -143,7 +163,7 @@ fun WithdrawalShowInfo(
                     amount = selectedAmount.copy(
                         amount = selectedAmount.amount.withSpec(spec)),
                     scopes = scopes,
-                    editableScope = editableScope,
+                    editableScope = false,
                     enabledAmount = status.status != TosReviewRequired,
                     onAmountChanged = { amount ->
                         selectedAmount = if (amount.scope != status.scopeInfo) {
@@ -190,11 +210,6 @@ fun WithdrawalShowInfo(
                         AmountType.Neutral
                     },
                 )
-            }
-
-            if (status.status == Error && status.error != null) {
-                WithdrawalError(status.error)
-                return
             }
 
             if (status.status != TosReviewRequired && !wireFee.isZero()) {
