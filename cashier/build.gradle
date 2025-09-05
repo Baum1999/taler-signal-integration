@@ -33,7 +33,7 @@ android {
         versionName "1.0.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "BACKEND_API_VERSION", "\"8:1:6\"")
+        buildConfigField("String", "BACKEND_API_VERSION", "\"9:0:4\"")
     }
 
     buildTypes {
