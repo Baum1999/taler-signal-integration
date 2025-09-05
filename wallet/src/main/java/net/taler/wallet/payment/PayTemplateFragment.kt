@@ -74,7 +74,9 @@ class PayTemplateFragment : Fragment() {
         model.paymentManager.payStatus.observe(viewLifecycleOwner) { payStatus ->
             when (payStatus) {
                 is PayStatus.Prepared -> {
-                    findNavController().navigate(R.id.action_promptPayTemplate_to_promptPayment)
+                    model.paymentManager.preparePay(payStatus.transactionId) {
+                        findNavController().navigate(R.id.action_global_promptPayment)
+                    }
                 }
 
                 is PayStatus.Pending -> if (payStatus.error != null && model.devMode.value == true) {
