@@ -331,6 +331,7 @@
         <item quantity="one"/>
         <item quantity="few"/>
         <item quantity="other"/>
+        <item quantity="many"/>
     </plurals>
     <string name="exchange_fee_coin_expiration_label"/>
     <string name="exchange_fee_coin_fees_label"/>
