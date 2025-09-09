@@ -25,6 +25,7 @@ ENV SCP_SSH_KEY  /inputs/wallet.taler.net
 ENV SCP_SSH_HOST files@gnunet.org
 ENV SCP_SSH_PATH ~
 
-RUN ln -s $ANDROID_HOME/build-tools/32.0.0/apksigner /usr/bin/
+RUN echo y | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;35.0.0"
+RUN ln -s $ANDROID_HOME/build-tools/35.0.0/apksigner /usr/bin/
 
 WORKDIR /workdir
