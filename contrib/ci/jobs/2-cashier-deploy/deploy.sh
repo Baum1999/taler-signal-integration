@@ -65,10 +65,10 @@ function deploy_fdroid {
     echo "Deploying APK to F-droid nightly ..."
 
     # Copy keystore where SDK can find it
-    cp "${NIGHTLY_KEYSTORE}" /root/.android/debug.keystore
+    cp "${NIGHTLY_KEYSTORE_PATH}" /root/.android/debug.keystore
 
     # Rename APK, so fdroid nightly accepts it (looks for *-debug.apk)
-    cp "${APK_PATH}"/*.apk cashier-debug.apk
+    cp "${APK_PATH}" cashier-debug.apk
 
     fdroid --version
 
@@ -85,7 +85,6 @@ function deploy_fdroid {
 
     fdroid nightly -v --archive-older 6
 }
-
 
 build_apk
 deploy_apk
