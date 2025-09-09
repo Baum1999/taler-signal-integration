@@ -89,4 +89,4 @@ function deploy_fdroid {
 
 build_apk
 deploy_apk
-# deploy_fdroid
+deploy_fdroid

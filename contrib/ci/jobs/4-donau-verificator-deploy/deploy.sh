@@ -58,7 +58,7 @@ function deploy_fdroid {
     cp "${NIGHTLY_KEYSTORE_PATH}" /root/.android/debug.keystore
 
     # Rename APK, so fdroid nightly accepts it (looks for *-debug.apk)
-    cp "${APK_PATH}"/*.apk donau-verificator-debug.apk
+    cp "${APK_PATH}" donau-verificator-debug.apk
 
     fdroid --version
 
@@ -79,4 +79,4 @@ function deploy_fdroid {
 
 build_apk
 deploy_apk
-# deploy_fdroid
+deploy_fdroid
