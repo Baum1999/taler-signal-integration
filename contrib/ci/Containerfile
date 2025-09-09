@@ -2,11 +2,15 @@ FROM docker.io/briar/ci-image-android:latest
 
 # Install fdroidserver and other tools
 RUN apt update && apt-get -qy install --no-install-recommends \
+    pipx \
     python3-pip \
+    python3-wheel \
+    python3-setuptools \
     openssh-client \
     rsync
-RUN python3 -m pip install --upgrade pip wheel setuptools
-RUN python3 -m pip install git+https://gitlab.com/fdroid/fdroidserver.git
+RUN pipx install git+https://gitlab.com/fdroid/fdroidserver.git
+
+ENV PATH="${PATH}:${HOME}/.local/bin"
 
 ENV JAVA_HOME /usr/lib/jvm/java-17-openjdk-amd64
 
