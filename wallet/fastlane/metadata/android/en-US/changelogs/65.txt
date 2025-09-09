@@ -1,0 +1,2 @@
+* Bug fixes ahead of Datenspuren
+* Update wallet-core to 1.0.33
