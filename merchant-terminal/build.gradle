@@ -7,12 +7,12 @@ plugins {
 
 android {
     namespace 'net.taler.merchantpos'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "net.taler.merchantpos"
         minSdkVersion 21
-        targetSdkVersion 34
+        targetSdkVersion 35
         versionCode 15
         versionName "1.0.3"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

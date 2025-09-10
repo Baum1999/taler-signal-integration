@@ -23,12 +23,12 @@ plugins {
 
 android {
     namespace 'net.taler.cashier'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "net.taler.cashier"
         minSdkVersion 23
-        targetSdkVersion 34
+        targetSdkVersion 35
         versionCode 8
         versionName "1.0.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
