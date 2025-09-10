@@ -215,9 +215,9 @@ class WithdrawManager(
             "${config.bankUrl}/accounts/${config.username}/withdrawals/${withdrawalId}/abort"
         Log.d(TAG, "Aborting withdrawal at $url")
         makeJsonPostRequest(url, JSONObject(), config)
-        mWithdrawResult.value = null
-        mWithdrawStatus.value = null
-        mWithdrawAmount.value = null
+        mWithdrawResult.postValue(null)
+        mWithdrawStatus.postValue(null)
+        mWithdrawAmount.postValue(null)
     }
 
     @UiThread
