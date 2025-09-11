@@ -37,6 +37,6 @@
     <string name="about_supported_bank_api">גרסת ה־API של הבנק: %s</string>
     <string name="config_bank_url">כתובת ה־API של הבנק</string>
     <string name="config_username_error">נא להכניס את שם המשתמש!</string>
-    <string name="config_demo_hint">לבדיקה ניתן <![CDATA[<a href="%s">ליצור משתמש בדיקה בבנק המדומה</a>]]>.</string>
+    <string name="config_demo_hint">לבדיקה ניתן <a href="%s">ליצור משתמש בדיקה בבנק המדומה</a>.</string>
     <string name="withdraw_error_currency_mismatch">שגיאה: הבנק דיווח על מטבע אחר</string>
 </resources>
