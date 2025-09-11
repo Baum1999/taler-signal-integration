@@ -154,12 +154,12 @@ class PaymentManager(
 
             mPayStatus.value = PayStatus.Choices(
                 transactionId = transactionId,
-                contractTerms = res.contractData,
+                contractTerms = res.contractTerms,
                 defaultChoiceIndex = res.defaultChoiceIndex,
                 choices = res.choices.map { choice ->
                     val spec = exchangeManager.getSpecForCurrency(
                         choice.amountRaw.currency,
-                        res.contractData.exchanges.map {
+                        res.contractTerms.exchanges.map {
                             ScopeInfo.Exchange(choice.amountRaw.currency, it.url)
                         },
                     ) ?: exchangeManager.getSpecForCurrency(choice.amountRaw.currency)
@@ -182,9 +182,9 @@ class PaymentManager(
                         description = choice.description,
                         descriptionI18n = choice.descriptionI18n,
                         amountRaw = choice.amountRaw,
-                        inputs = (res.contractData as? ContractTerms.V1)
+                        inputs = (res.contractTerms as? ContractTerms.V1)
                             ?.choices?.get(i)?.inputs ?: listOf(),
-                        outputs = (res.contractData as? ContractTerms.V1)
+                        outputs = (res.contractTerms as? ContractTerms.V1)
                             ?.choices?.get(i)?.outputs ?: listOf(),
                         details = choice,
                     )

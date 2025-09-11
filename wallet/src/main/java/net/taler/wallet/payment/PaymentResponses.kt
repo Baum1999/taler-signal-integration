@@ -84,7 +84,7 @@ sealed class PreparePayResponse {
 @Serializable
 data class GetChoicesForPaymentResponse(
     val choices: List<ChoiceSelectionDetail>,
-    val contractData: ContractTerms,
+    val contractTerms: ContractTerms,
     val defaultChoiceIndex: Int? = null,
     val automaticExecution: Boolean? = null,
     val automaticExecutableIndex: Int? = null,
