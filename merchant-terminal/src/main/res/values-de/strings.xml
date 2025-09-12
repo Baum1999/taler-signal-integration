@@ -84,7 +84,7 @@
     <string name="config_qr_label">QR-Code-Konfiguration</string>
     <string name="scan_qr_hint">Scannen Sie den QR-Code, den das Taler Merchant Backoffice erzeugt hat</string>
     <string name="duration">Gültigkeitszeitraum</string>
-    <string name="token_validity_deadline">Gültigkeitszeitraum des Token:</string>
+    <string name="token_validity_deadline">Gültigkeitszeitraum des Passworts:</string>
     <string name="expires_on">Gültig bis…</string>
     <string name="never_expires">Unbegrenzte Gültigkeit</string>
     <string name="no_deadline_set">Es wurde keine Verfallsfrist festgelegt</string>
