@@ -22,7 +22,7 @@
     <string name="config_url">URL конфігурації</string>
     <string name="config_password">Пароль</string>
     <string name="config_merchant_url">URL продавця</string>
-    <string name="config_token">Токен доступу</string>
+    <string name="config_token">пароль</string>
     <string name="config_ok">Отримати конфігурацію</string>
     <string name="config_error_network">Помилка: не вдалося підключитися до сервера конфігурації</string>
     <string name="config_error_malformed">Помилка: конфігураційний JSON некоректний</string>
