@@ -74,6 +74,6 @@
     <string name="config_old_label">JSON dosyası (eski)</string>
     <string name="config_setup_password">Satıcı (yeni)</string>
     <string name="config_merchant_url">Satıcı URL\'si</string>
-    <string name="config_token">Erişim jetonu</string>
+    <string name="config_token">Şifre</string>
     <string name="config_old_deprecation">Bu yapılandırma yöntemi kullanımdan kaldırıldı. Lütfen yeni satıcı API yapılandırmasını kullanın.</string>
 </resources>
