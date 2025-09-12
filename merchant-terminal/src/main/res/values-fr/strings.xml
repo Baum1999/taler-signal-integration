@@ -71,7 +71,7 @@
     <string name="product_category_uncategorized">Sans catégorie</string>
     <string name="config_old_label">Fichier JSON (ancien)</string>
     <string name="config_merchant_url">URL du commerçant</string>
-    <string name="config_token">Jeton d\'accès</string>
+    <string name="config_token">Mot de passe</string>
     <string name="order_custom">Ajouter un produit personnalisé</string>
     <string name="order_custom_product">Nom de produit personnalisé</string>
     <string name="order_custom_product_default">Conseil</string>
