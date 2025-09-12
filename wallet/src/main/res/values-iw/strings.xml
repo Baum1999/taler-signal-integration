@@ -411,7 +411,7 @@
     <string name="settings_test_withdrawal">מושך כרגע KUDOS</string>
     <string name="settings_version_app">גרסת היישומון</string>
     <string name="settings_version_core">גרסת ליבת הארנק</string>
-    <string name="settings_version_protocol_exchange">גרסאות העברה (Exchang) נתמכות</string>
+    <string name="settings_version_protocol_exchange">גרסאות העברה (Exchange) נתמכות</string>
     <string name="settings_version_protocol_merchant">גרסאות מוכר (Merchant) נתמכות</string>
     <string name="settings_version_unknown">בלתי ידוע</string>
     <string name="settings_withdraw_testkudos">משיכת KUDOS מדומים</string>
