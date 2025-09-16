@@ -15,7 +15,7 @@
     <string name="action_lock">נעילה</string>
     <string name="action_about">על אודות</string>
     <string name="withdraw_input_amount">כמות</string>
-    <string name="withdraw_into">כמה e-cach (מזומן אלקטרוני) יש למשוך?</string>
+    <string name="withdraw_into">כמה כסף אלקטרוני למשוך?</string>
     <string name="withdraw_error_zero">יש להזין ערך חיובי!</string>
     <string name="withdraw_error_insufficient_balance">היתרה אינה מספיקה</string>
     <string name="withdraw_error_fetch">שגיאה בתקשורת עם הבנק: %s</string>
@@ -39,4 +39,7 @@
     <string name="config_username_error">נא להכניס את שם המשתמש!</string>
     <string name="config_demo_hint">לבדיקה ניתן <a href="%s">ליצור משתמש בדיקה בבנק המדומה</a>.</string>
     <string name="withdraw_error_currency_mismatch">שגיאה: הבנק דיווח על מטבע אחר</string>
+    <string name="app_name">קופת טאלר</string>
+    <string name="about_title">קופת טאלר של גנו</string>
+    <string name="host_apdu_service_desc">תשלומי NFC של קופת טאלר</string>
 </resources>
