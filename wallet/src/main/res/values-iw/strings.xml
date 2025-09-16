@@ -103,7 +103,7 @@
 
     <string name="balance_scope_auditor">רואה חשבון: %1$s</string>
     <string name="balance_scope_exchange">מאת %1$s</string>
-    <string name="balances_empty_state">אין מזומן דיגיטלי בארנק.\n\nניתן להשיג כסף מדומה מהבנק המדומה:\n\nhttps://bank.demo.taler.net</string>
+    <string name="balances_empty_state">אין כסף דיגיטלי בארנק.\n\nניתן להשיג כסף מדומה מהבנק המדומה:\n\nhttps://bank.demo.taler.net</string>
     <string name="balances_empty_demo_url">https://bank.demo.taler.net</string>
     <string name="balances_empty_get_money">קבלת כסף מדומה</string>
     <string name="balances_inbound_amount">+%1$s נכנסים</string>
@@ -112,7 +112,7 @@
     <!-- Transactions -->
 
     <string name="transaction_action_kyc">KYC שלם</string>
-    <string name="transaction_denom_loss"/>
+    <string name="transaction_denom_loss">איבוד כספים</string>
     <string name="transaction_deposit">הפקדה</string>
     <string name="transaction_deposit_to">הפקדה ל־%1$s</string>
     <string name="transaction_dummy_title">העברה בלתי ידועה</string>
@@ -180,9 +180,9 @@
     <string name="payment_balance_insufficient">היתרה לא מספיקה</string>
     <string name="payment_balance_insufficient_hint_age_restricted">הרכישה לא אפשרית בגלל מגבלות גיל</string>
     <string name="payment_balance_insufficient_hint_exchange_missing_global_fees"/>
-    <string name="payment_balance_insufficient_hint_fees_not_covered"/>
-    <string name="payment_balance_insufficient_hint_merchant_accept_insufficient">המוכר אינו מקבל כסף מלפחות ספק אחד בארנק זה</string>
-    <string name="payment_balance_insufficient_hint_merchant_deposit_insufficient"/>
+    <string name="payment_balance_insufficient_hint_fees_not_covered">אין מספיק כספים כדי לשלם את עמלות הספק שלא שילם הסוחר</string>
+    <string name="payment_balance_insufficient_hint_merchant_accept_insufficient">הסוחר אינו מקבל כסף מספק אחד לפחות בארנק זה</string>
+    <string name="payment_balance_insufficient_hint_merchant_deposit_insufficient">הסוחר אינו מאשר את שיטת ההעברה הבנקאית של הספק. זה כנראה מעיד על תצורה לקויה.</string>
     <string name="payment_balance_insufficient_hint_wallet_balance_material_insufficient">כמה מהמטבעות הדרושים לקנייה זו אינם זמינים כעת</string>
     <string name="payment_balance_insufficient_max">היתרה אינה מספיקה! המקסימום הוא %1$s</string>
     <string name="payment_button_cancel">סגירה</string>
@@ -216,7 +216,7 @@
     <string name="payment_token_subscription">הרשמה</string>
     <string name="payment_tokens_insufficient">האסימונים אינם מספיקים</string>
     <string name="payment_tokens_unexpected">הסוחר %1$s אינו צפוי. האסימון שלך עלול להיגנב.</string>
-    <string name="payment_tokens_untrusted">המוכר %1$s אינו מהימן. אי אפשר להוציא את האסימון.</string>
+    <string name="payment_tokens_untrusted">הסוחר %1$s אינו מהימן. אי אפשר להוציא את האסימון.</string>
     <string name="payment_template_error">שגיאה ביצירת ההזמנה</string>
     <string name="payment_title">תשלום</string>
     <!-- P2P receive -->
@@ -227,7 +227,7 @@
     <string name="receive_peer_payment_instruction">סריקת קוד ה־QR הבא כדי לשלם %1$s</string>
     <string name="receive_peer_payment_intro">האם לקבל תשלום זה?</string>
     <string name="receive_peer_payment_title">קבלת התשלום</string>
-    <string name="receive_peer_review_terms">תחילה יש לקבל את התנאים של שירות התשלום בטרם בקשת המזומן האלקטרוני.</string>
+    <string name="receive_peer_review_terms">תחילה יש לקבל את התנאים של שירות התשלום בטרם בקשת הכסף האלקטרוני.</string>
     <string name="receive_peer_title">בקשת כסף</string>
     <!-- P2P send -->
 
@@ -255,11 +255,11 @@
     <string name="send_deposit_known_bank_account_delete">מחיקה</string>
     <string name="send_deposit_known_bank_accounts_empty">אף חשבון בנק אינו שמור בארנק</string>
     <string name="send_deposit_kyc_auth_intro_bank">יש להעביר %1$s מחשבון הבנק %2$s לשירותי התשלום כדי להוכיח בעלות עליו.</string>
-    <string name="send_deposit_kyc_auth_step_finish"/>
+    <string name="send_deposit_kyc_auth_step_finish">יש לסיים את ההעברה הבנקאית של %1$s ביישומון הבנק או באתר שלו כדי להוכיח בעלות על חשבון הבנק %2$s. ההעברה יכולה להתבצע בתוך דקות עד יומיים בהתאם לבנק. נא להתאזר בסבלנות.</string>
     <string name="send_deposit_kyc_auth_warning_account">אין להשתמש בחשבון בנק אחר להפקדה אחרת ייכשל האימות.</string>
     <string name="send_deposit_kyc_auth_warning_subject">זו חובה, אחרת ייכשל האימות.</string>
     <string name="send_deposit_name">בעל החשבון</string>
-    <string name="send_deposit_no_methods_error"/>
+    <string name="send_deposit_no_methods_error">אין שיטות העברה נתמכות</string>
     <string name="send_deposit_postal_code">מיקוד (רשות)</string>
     <string name="send_deposit_select_account_title">בחירת חשבון הבנק</string>
     <string name="send_deposit_select_amount_title">בחירת הסכום שיש להפקיד</string>
@@ -267,7 +267,7 @@
     <string name="send_deposit_town">יישוב (רשות)</string>
     <string name="send_deposit_title">הפקדה לחשבון בנק</string>
     <string name="send_deposit_no_alias"/>
-    <string name="send_peer_create_button"/>
+    <string name="send_peer_create_button">שליחת כספים כעת</string>
     <string name="send_peer_expiration_1d">יום אחד</string>
     <string name="send_peer_expiration_30d">30 ימים</string>
     <string name="send_peer_expiration_7d">שבוע אחד</string>
@@ -287,7 +287,7 @@
     <string name="withdraw_button_confirm_bank">אימות בבנק</string>
     <string name="withdraw_button_label">משיכה</string>
     <string name="withdraw_button_tos">תנאי השירות</string>
-    <string name="withdraw_cash_acceptor">הסכום שיש למשוך ייקבע על פי מקבל המזומן</string>
+    <string name="withdraw_cash_acceptor">הסכום שיש למשוך ייקבע על פי מקבל הכסף</string>
     <string name="withdraw_error_already_confirmed">המשיכה כבר אושרה</string>
     <string name="withdraw_error_message">משיכה אינה אפשרית כרגע. נא לנסות שנית מאוחר יותר!</string>
     <string name="withdraw_error_test">שגיאה במשיכת KUDOS</string>
@@ -296,7 +296,7 @@
     <string name="withdraw_fee">+%1$s עמלות משיכה</string>
     <string name="withdraw_initiated">נוצרה משיכה</string>
     <string name="withdraw_manual_bitcoin_intro">עכשיו יש לבצע העברה מפוצלת בעזרת שלושת הפלטים הבאים.</string>
-    <string name="withdraw_manual_qr_epc"/>
+    <string name="withdraw_manual_qr_epc">קוד QR של המועצה האירופית לתשלומים (EPC QR)</string>
     <string name="withdraw_manual_qr_intro">אם תוכנת הבנק רצה במכשיר אחר, ניתן לסרוק את אחד מקודי ה־QR הבאים:</string>
     <string name="withdraw_manual_qr_spc">חיוב QR שוויצרי</string>
     <string name="withdraw_manual_ready_account">חשבון</string>
@@ -304,19 +304,19 @@
     <string name="withdraw_manual_ready_details_intro">הוראות ההעברה הבנקאית</string>
     <string name="withdraw_manual_ready_details_qr">קודי ה־QR של ההעברה הבנקאית</string>
     <string name="withdraw_manual_ready_iban">מספר הזה״ב</string>
-    <string name="withdraw_manual_ready_intro">יש להעביר %1$s מחשבון הבנק הרגיל לשירות התשלומים כדי לקבל %2$s כמזומן אלקטרוני בארנק זה.</string>
+    <string name="withdraw_manual_ready_intro">יש להעביר %1$s מחשבון הבנק הרגיל לשירות התשלומים כדי לקבל %2$s ככסף אלקטרוני בארנק זה.</string>
     <string name="withdraw_manual_ready_postal_code">מיקוד</string>
     <string name="withdraw_manual_ready_receiver">נמען</string>
     <string name="withdraw_manual_ready_subject">נושא</string>
     <string name="withdraw_manual_ready_town">יישוב</string>
     <string name="withdraw_manual_ready_warning">זו חובה, אחרת הכסף לא יגיע לארנק זה.</string>
     <string name="withdraw_manual_step"><b>שלב %1$s:</b> %2$s</string>
-    <string name="withdraw_manual_step_finish"/>
-    <string name="withdraw_manual_step_iban"/>
+    <string name="withdraw_manual_step_finish">יש לסיים את ההעברה הבנקאית של %1$s ביישומון הבנק או באתר. לאחר מכן, המשיכה תמשיך באופן אוטומטי. ההעברה יכולה להתבצע בתוך דקות עד יומיים בהתאם לבנק. נא להתאזר בסבלנות.</string>
+    <string name="withdraw_manual_step_iban">אם הוא לא קיים עדיין ברשימת המועדפים של הבנק, יש להעתיק את הנמען ואת מספר הזה״ב שלו ולהדביק אותם בשדות הנמען ומספר הזה״ב ביישומון הבנק או באתר שלו (ולשמור אותו כמועדף לפעם הבאה):</string>
     <string name="withdraw_manual_step_subject">יש להעתיק קוד זה ולהדביק בשדה הנושא/המטרה ביישומון הבנק או באתר הבנק:</string>
     <string name="withdraw_restrict_age">הגבלת השימוש לפי גיל</string>
     <string name="withdraw_restrict_age_unrestricted">ללא הגבלה</string>
-    <string name="withdraw_review_terms">תחילה יש לאשר את תנאי התשלום של תנאי השימוש לפני שניתן יהיה למשוך מזומן אלקטרוני מהארנק.</string>
+    <string name="withdraw_review_terms">תחילה יש לאשר את תנאי התשלום של תנאי השימוש לפני שניתן יהיה למשוך כסף אלקטרוני מהארנק.</string>
     <string name="withdraw_select_amount">בחירת כמות</string>
     <string name="withdraw_subtitle">בחירת חשבון הבנק לנמען</string>
     <string name="withdraw_title">משיכה</string>
@@ -339,15 +339,15 @@
     <string name="exchange_fee_refresh_fee">עמלת המרה: %1$s</string>
     <string name="exchange_fee_refund_fee">עמלת החזר: %1$s</string>
     <string name="exchange_fee_wire_fee_closing_fee">עמלת סגירה: %1$s</string>
-    <string name="exchange_fee_wire_fee_timespan"/>
-    <string name="exchange_fee_wire_fee_wire_fee"/>
-    <string name="exchange_fee_wire_fees_label"/>
+    <string name="exchange_fee_wire_fee_timespan">משך זמן: %1$s – %2$s</string>
+    <string name="exchange_fee_wire_fee_wire_fee">עמלת העברה בנקאית: %1$s</string>
+    <string name="exchange_fee_wire_fees_label">עמלות העברה בנקאית</string>
     <string name="exchange_fee_withdraw_fee">עמלת משיכה: %1$s</string>
     <string name="exchange_fee_withdrawal_fee_label">עמלת משיכה:</string>
-    <string name="exchange_global_add"/>
-    <string name="exchange_global_add_success"/>
-    <string name="exchange_global_delete"/>
-    <string name="exchange_global_delete_success"/>
+    <string name="exchange_global_add">לטפל ככללי</string>
+    <string name="exchange_global_add_success">הספק מטופל כעת ככללי</string>
+    <string name="exchange_global_delete">להפסיק לטפל ככללי</string>
+    <string name="exchange_global_delete_success">הספק אינו מטופל יותר ככללי</string>
     <string name="exchange_list_add">הוספת ספק</string>
     <string name="exchange_list_add_dev">הוספת ספקי פיתוח</string>
     <string name="exchange_list_currency">מטבע: %1$s</string>
@@ -356,7 +356,7 @@
     <string name="exchange_list_select">בחירת ספק</string>
     <string name="exchange_list_title">ספקים</string>
     <string name="exchange_menu_manual_withdraw">משיכה</string>
-    <string name="exchange_not_contacted"/>
+    <string name="exchange_not_contacted">לא נוצר קשר עם הספק</string>
     <string name="exchange_reload">טעינת המידע מחדש</string>
     <string name="exchange_settings_summary">ניהול רשימת הספקים המוכרים לארנק זה</string>
     <string name="exchange_settings_title">ספקים</string>
@@ -367,15 +367,15 @@
     <!-- Losses -->
 
     <string name="loss_reason">סיבה</string>
-    <string name="loss_reason_expired"/>
+    <string name="loss_reason_expired">הכספים לא חודשו כי הארנק לא נפתח זה זמן רב</string>
     <string name="loss_reason_unoffered"/>
-    <string name="loss_reason_vanished"/>
+    <string name="loss_reason_vanished">ספק התשלום איבד את המעקב אחר הכספים</string>
     <!-- Observability -->
 
     <string name="observability_hide_json">הסתרת ה־JSON</string>
     <string name="observability_show_json">הצגת ה־JSON</string>
-    <string name="observability_title"/>
-    <string name="show_logs"/>
+    <string name="observability_title">יומן האירועים הפנימיים</string>
+    <string name="show_logs">הצגת יומן הפעולות</string>
     <!-- Settings -->
 
     <string name="menu_settings">הגדרות</string>
@@ -399,26 +399,26 @@
     <string name="settings_dialog_reset_message">האם באמת לאפס את הארנק ולאבד את כל המטבעות וכל הרכישות?</string>
     <string name="settings_lock_auth">הגנה על הגישה לארנק</string>
     <string name="settings_lock_auth_summary">יש להשתמש בטביעת אצבע או בסיסמה כדי לגשת לארנק</string>
-    <string name="settings_logcat"/>
-    <string name="settings_logcat_error"/>
-    <string name="settings_logcat_success"/>
-    <string name="settings_logcat_summary"/>
+    <string name="settings_logcat">יומן פעולות ניפוי התקלים</string>
+    <string name="settings_logcat_error">שגיאה בייצוא יומן הפעולות</string>
+    <string name="settings_logcat_success">יומן הפעולות יוצא לקובץ</string>
+    <string name="settings_logcat_summary">שמירת יומן הפעולות הפנימיות</string>
     <string name="settings_reset">איפוס הארנק (מסוכן!)</string>
     <string name="settings_reset_summary">זורק את הכסף שלך</string>
-    <string name="settings_test"/>
-    <string name="settings_test_running"/>
+    <string name="settings_test">הרצת בדיקת התכלול (אינטגרציה)</string>
+    <string name="settings_test_running">בדיקת התכלול מתבצעת כעת</string>
     <string name="settings_test_summary">מבצע בדיקת העברות בתצורת הדמיה</string>
     <string name="settings_test_withdrawal">מושך כרגע KUDOS</string>
     <string name="settings_version_app">גרסת היישומון</string>
     <string name="settings_version_core">גרסת ליבת הארנק</string>
     <string name="settings_version_protocol_exchange">גרסאות העברה (Exchange) נתמכות</string>
-    <string name="settings_version_protocol_merchant">גרסאות מוכר (Merchant) נתמכות</string>
+    <string name="settings_version_protocol_merchant">גרסאות סוחר (Merchant) נתמכות</string>
     <string name="settings_version_unknown">בלתי ידוע</string>
     <string name="settings_withdraw_testkudos">משיכת KUDOS מדומים</string>
     <string name="settings_withdraw_testkudos_summary">קבלת כסף לבדיקה</string>
     <!-- Refunds -->
 
-    <string name="refund_error"/>
+    <string name="refund_error">שגיאה בעיבוד ההחזר</string>
     <string name="refund_success">התקבל החזר!</string>
     <string name="refund_title">החזר</string>
     <!-- Miscellaneous -->
