@@ -32,7 +32,7 @@
     <string name="payment_label_amount_total">Gesamtbetrag:</string>
     <string name="payment_label_order_summary">Einkauf</string>
     <string name="payment_error">Fehler: %s</string>
-    <string name="payment_balance_insufficient">Guthaben unzureichend!</string>
+    <string name="payment_balance_insufficient">Guthaben unzureichend</string>
     <string name="payment_aborted">Abgebrochen</string>
     <string name="payment_failed">Fehlgeschlagen</string>
     <string name="payment_initiated">Zahlung eingeleitet</string>
@@ -403,4 +403,19 @@
     <string name="biometric_auth_error">Berechtigungsfehler: %1$s</string>
     <string name="error">Fehler</string>
     <string name="warning">Warnung</string>
+    <string name="biometric_auth_failed">Die Anmeldung ist fehlgeschlagen</string>
+    <string name="biometric_auth_unavailable">Es sind keine Anmeldeverfahren verfügbar.</string>
+    <string name="payment_amount_total">Summe: %1$s</string>
+    <string name="payment_automatic_execution">Diese Zahlung wurde automatisch bestätigt</string>
+    <string name="payment_button_confirm_amount">%1$s bezahlen</string>
+    <string name="payment_button_confirm_tokens">Bezahlen mit Gutscheinen</string>
+    <string name="payment_choice_inputs">Jetzt ausgeben</string>
+    <string name="payment_choice_outputs">Sie erhalten mit dem Kauf</string>
+    <string name="payment_section_choices">Zahlungsoption auswählen</string>
+    <string name="payment_token_discount">Nachlass/Rabatt</string>
+    <string name="payment_token_subscription">Abonnement</string>
+    <string name="payment_tokens_insufficient">Gutschein(e) nicht ausreichend</string>
+    <string name="payment_tokens_untrusted">Der Verkäufer %1$s ist nicht vertrauenswürdig, daher wird dieser Gutschein nicht eingelöst.</string>
+    <string name="payment_section_review">Bestellung überprüfen</string>
+    <string name="payment_tokens_unexpected">Nicht vertrauenswürdiger Verkäufer %1$s - Ihr Gutschein ist in Gefahr, von diesem gestohlen zu werden.</string>
 </resources>
