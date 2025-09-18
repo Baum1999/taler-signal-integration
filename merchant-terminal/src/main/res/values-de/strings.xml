@@ -74,7 +74,7 @@
     <string name="order_custom">Benutzerdefinierten Artikel hinzufügen</string>
     <string name="menu_reload">Erneut laden</string>
     <string name="order_custom_product">Bezeichnung des Artikels</string>
-    <string name="host_apdu_service_desc">NFC-Zahlungen mit Taler Merchant Backend</string>
+    <string name="host_apdu_service_desc">NFC-Zahlungen mit Taler Merchant</string>
     <string name="toast_reloading">Inventar wird neu geladen</string>
     <string name="config_old_deprecation">Diese Konfigurationsmethode ist unterdrückt, bitte benutzen Sie die neue Schnittstellenkonfiguration.</string>
     <string name="product_image">Abbildung des Artikels</string>
