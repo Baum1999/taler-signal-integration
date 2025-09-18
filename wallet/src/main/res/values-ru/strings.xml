@@ -319,7 +319,7 @@
     <string name="settings_db_export_summary"/>
     <string name="settings_db_import_success"/>
     <string name="button_scan_qr_code_label"/>
-    <string name="copy" tools:override="true"/>
+    <string name="copy" tools:override="true">копировать</string>
     <string name="currency"/>
     <string name="import_db"/>
     <string name="offline_banner"/>
