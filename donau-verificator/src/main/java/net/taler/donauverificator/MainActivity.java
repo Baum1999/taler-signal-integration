@@ -39,6 +39,8 @@ import androidx.core.content.ContextCompat;
 import net.taler.donauverificator.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String DEBUG_DONATION_STATEMENT =
+            "donau://example.com/megacharity/1234/2024/7560001010000/1234?total=EUR:15&sig=ED25519:SAAM5BA1F9H4VT6T78CFC3X63HAMY2TXB597XBVZ0EMXEZ90QPJ3000BXDBJ3ECHGB8AEX9FFQ5BAXVSF6X6NXM98PY353F2R99PP1R&pub=E24CDJHGSPZG20ZSSTMTBREGCCP495WKETQYCYA9C93EPMZN4FEG";
     private int PERMISSIONS_REQUEST_CAMERA = 0;
     private ActivityMainBinding binding;
     private CodeScanner mCodeScanner;
@@ -69,8 +71,8 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
-        //temporary for debugging
-        sendRequestDialog("donau://2024/EUR:15/7560001010000/1234/SAAM5BA1F9H4VT6T78CFC3X63HAMY2TXB597XBVZ0EMXEZ90QPJ3000BXDBJ3ECHGB8AEX9FFQ5BAXVSF6X6NXM98PY353F2R99PP1R/E24CDJHGSPZG20ZSSTMTBREGCCP495WKETQYCYA9C93EPMZN4FEG");
+        //temporary for debugging (valid donation statement from sample QR code)
+        sendRequestDialog(DEBUG_DONATION_STATEMENT);
 
     }
 

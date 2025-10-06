@@ -27,17 +27,17 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.List;
+import java.util.Locale;
 
 public class Results extends AppCompatActivity {
     static {
         System.loadLibrary("verification");
     }
 
-    // QR-string : YEAR/TOTALAMOUNT/TAXID/TAXIDSALT/ED25519SIGNATURE/PUBKEY
+    // lsd0013 format: donau://host/year/taxid/salt?total=...&sig=ED25519:...
     // CrockfordBase32 encoded: SIGNATURE, PUBLICKEY
     // TODO: Salt and taxId should maybe also be encoded
 
-    private final int NUMBER_OF_ARGUMENTS = 6;
     private String year;
     private String totalAmount;
     private String taxId;
@@ -71,41 +71,22 @@ public class Results extends AppCompatActivity {
         tableLayout.setVisibility(View.INVISIBLE);
 
         Intent intent = getIntent();
-        String scheme[];
-        // handle URI scheme
-        if (null != intent.getData()) {
-            scheme = new String[2];
-            Uri uri = intent.getData();
-            List<String> pathSegments = uri.getPathSegments();
-            StringBuilder fullPath = new StringBuilder();
-            fullPath.append(uri.getHost());
-            for (String segment : pathSegments) {
-                fullPath.append("/").append(segment);
-            }
-            scheme[1] = fullPath.toString();
-        // handle self scanned QR code
-        } else {
-            scheme = intent.getStringExtra("QR-String").split("//");
-            if (scheme == null || scheme.length != 2 || !scheme[0].equals("donau:")) {
-                statusHandling(SignatureStatus.INVALID_SCHEME);
-                return;
-            }
-        }
-        String[] parts = scheme[1].split("/");
-        if (parts == null || parts.length != NUMBER_OF_ARGUMENTS) {
-            statusHandling(SignatureStatus.INVALID_NUMBER_OF_ARGUMENTS);
+        Uri uri = resolveUri(intent);
+        if (uri == null) {
+            statusHandling(SignatureStatus.INVALID_SCHEME);
             return;
         }
 
-        try {
-            year = parts[0];
-            totalAmount = parts[1];
-            taxId = parts[2];
-            salt = parts[3];
-            eddsaSignature = parts[4];
-            publicKey = parts[5];
-        } catch (Exception e) {
-            statusHandling(SignatureStatus.MALFORMED_ARGUMENT);
+        String scheme = uri.getScheme();
+        if (!isSupportedScheme(scheme)) {
+            statusHandling(SignatureStatus.INVALID_SCHEME);
+            return;
+        }
+
+        resetParsedFields();
+        SignatureStatus parseStatus = parseDonauUri(uri);
+        if (parseStatus != null) {
+            statusHandling(parseStatus);
             return;
         }
 
@@ -162,5 +143,168 @@ public class Results extends AppCompatActivity {
     public native int ed25519_verify(String year, String totalAmount,
                                      String taxId, String salt,
                                      String eddsaSignature, String publicKey);
-}
 
+    private Uri resolveUri(Intent intent) {
+        Uri data = intent.getData();
+        if (data != null) {
+            return data;
+        }
+        String raw = intent.getStringExtra("QR-String");
+        if (raw == null) {
+            return null;
+        }
+        return Uri.parse(raw);
+    }
+
+    private boolean isSupportedScheme(String scheme) {
+        if (scheme == null) {
+            return false;
+        }
+        String lowered = scheme.toLowerCase(Locale.ROOT);
+        return "donau".equals(lowered) || "donau+http".equals(lowered);
+    }
+
+    private void resetParsedFields() {
+        year = null;
+        totalAmount = null;
+        taxId = null;
+        salt = null;
+        eddsaSignature = null;
+        publicKey = null;
+    }
+
+    private SignatureStatus parseDonauUri(Uri uri) {
+        String host = uri.getHost();
+        if (isEmpty(host)) {
+            return SignatureStatus.MALFORMED_ARGUMENT;
+        }
+
+        List<String> segments = uri.getPathSegments();
+        if (segments == null) {
+            return SignatureStatus.INVALID_NUMBER_OF_ARGUMENTS;
+        }
+
+        if (segments.size() < 3) {
+            return SignatureStatus.INVALID_NUMBER_OF_ARGUMENTS;
+        }
+
+        int lastIndex = segments.size() - 1;
+        String saltCandidate = segments.get(lastIndex);
+        String taxIdCandidate = segments.get(lastIndex - 1);
+        String yearCandidate = segments.get(lastIndex - 2);
+
+        if (yearCandidate != null) {
+            yearCandidate = yearCandidate.trim();
+        }
+        if (!isFourDigitYear(yearCandidate)) {
+            return SignatureStatus.MALFORMED_ARGUMENT;
+        }
+
+        year = yearCandidate;
+
+        if (taxIdCandidate != null) {
+            taxIdCandidate = taxIdCandidate.trim();
+        }
+        if (!isValidTaxId(taxIdCandidate)) {
+            return SignatureStatus.MALFORMED_ARGUMENT;
+        }
+        taxId = taxIdCandidate;
+
+        if (saltCandidate != null) {
+            saltCandidate = saltCandidate.trim();
+        }
+        if (!isDigitsOnly(saltCandidate)) {
+            return SignatureStatus.MALFORMED_ARGUMENT;
+        }
+        salt = saltCandidate;
+
+        String totalParam = uri.getQueryParameter("total");
+        if (isEmpty(totalParam)) {
+            return SignatureStatus.MALFORMED_ARGUMENT;
+        }
+        totalAmount = totalParam.trim();
+
+        String sigParam = uri.getQueryParameter("sig");
+        if (isEmpty(sigParam)) {
+            return SignatureStatus.MALFORMED_ARGUMENT;
+        }
+        eddsaSignature = extractEd25519Signature(sigParam);
+        if (isEmpty(eddsaSignature)) {
+            return SignatureStatus.MALFORMED_ARGUMENT;
+        }
+
+        //TODO: Remove to follow the lsd0013
+        // we can do it, when we have a donau instance in open web
+        String publicKeyParam = uri.getQueryParameter("pub");
+        if (isEmpty(publicKeyParam)) {
+            return SignatureStatus.MALFORMED_ARGUMENT;
+        }
+        publicKey = publicKeyParam.trim();
+
+        return null;
+    }
+
+    private boolean isFourDigitYear(String value) {
+        if (value == null || value.length() != 4) {
+            return false;
+        }
+        for (int i = 0; i < value.length(); i++) {
+            if (!Character.isDigit(value.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isEmpty(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
+    private String extractEd25519Signature(String raw) {
+        if (raw == null) {
+            return null;
+        }
+        String trimmed = raw.trim();
+        int separatorIndex = trimmed.indexOf(':');
+        if (separatorIndex < 0) {
+            separatorIndex = trimmed.indexOf('=');
+        }
+        if (separatorIndex <= 0 || separatorIndex >= trimmed.length() - 1) {
+            return null;
+        }
+        String algorithm = trimmed.substring(0, separatorIndex).trim();
+        if (!"ED25519".equalsIgnoreCase(algorithm)) {
+            return null;
+        }
+        String signature = trimmed.substring(separatorIndex + 1).trim();
+        if (signature.isEmpty()) {
+            return null;
+        }
+        return signature;
+    }
+
+    private boolean isDigitsOnly(String value) {
+        if (isEmpty(value)) {
+            return false;
+        }
+        for (int i = 0; i < value.length(); i++) {
+            if (!Character.isDigit(value.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isValidTaxId(String value) {
+        if (isEmpty(value)) {
+            return false;
+        }
+        for (int i = 0; i < value.length(); i++) {
+            char ch = value.charAt(i);
+            if (!(Character.isLetterOrDigit(ch) || ch == '-' || ch == '.')) {
+                return false;
+            }
+        }
+        return true;
+    }
+}

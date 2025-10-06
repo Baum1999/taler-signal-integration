@@ -7,4 +7,5 @@
     <string name="invalid_signature">Donation statement signature is invalid!</string>
     <string name="valid_signature">Donation statement signature is valid!</string>
     <string name="invalid_scheme">Invalid scheme!</string>
+    <string name="content_description_validation_icon">Validation status indicator</string>
 </resources>

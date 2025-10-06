@@ -9,4 +9,10 @@
     <color name="white">#FFFFFFFF</color>
     <color name="red">#870C0C</color>
     <color name="green">#045F06</color>
+    <color name="validation_surface_error">#FFF3E0</color>
+    <color name="validation_surface_success">#E8F5E9</color>
+    <color name="validation_surface_info">#E3F2FD</color>
+    <color name="validation_surface_neutral">#F5F5F5</color>
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#616161</color>
 </resources>
