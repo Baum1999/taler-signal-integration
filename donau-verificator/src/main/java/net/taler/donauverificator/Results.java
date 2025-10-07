@@ -24,7 +24,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-
 import androidx.annotation.ColorRes;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
@@ -35,22 +34,21 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import net.taler.donauverificator.network.CrockfordBase32;
+import net.taler.donauverificator.network.DonauNetworkClient;
+import net.taler.donauverificator.network.DonauNetworkClient.DonationStatement;
+import net.taler.donauverificator.network.DonauNetworkClient.HttpStatusException;
 
-import java.io.BufferedReader;
+import org.json.JSONException;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.InflaterInputStream;
 
 public class Results extends AppCompatActivity {
     static {
@@ -61,7 +59,6 @@ public class Results extends AppCompatActivity {
 
     // lsd0013 format: donau://host/year/taxid/salt?total=...&sig=ED25519:...
     // CrockfordBase32 encoded: SIGNATURE, PUBLICKEY
-    // TODO: Salt and taxId should maybe also be encoded
 
     private String uriScheme;
     private String host;
@@ -74,6 +71,7 @@ public class Results extends AppCompatActivity {
     private String salt;
     private String eddsaSignature;
     private String publicKey;
+    private DonauNetworkClient networkClient;
     TextView sigStatusView;
     View summaryContainer;
     TextView hostLabelView;
@@ -95,6 +93,9 @@ public class Results extends AppCompatActivity {
         INSECURE_HTTP_DISABLED,
         KEY_DOWNLOAD_FAILED,
         KEY_NOT_FOUND,
+        DONATION_STATEMENT_DOWNLOAD_FAILED,
+        DONATION_STATEMENT_NOT_FOUND,
+        DONATION_STATEMENT_INVALID,
         SIGNATURE_INVALID,
         SIGNATURE_VALID;
     }
@@ -164,13 +165,17 @@ public class Results extends AppCompatActivity {
 
     private void startVerificationAsync() {
         new Thread(() -> {
-            SignatureStatus status = ensurePublicKeyAvailable();
+            SignatureStatus statusResult = ensurePublicKeyAvailable();
+            if (statusResult == null) {
+                statusResult = ensureDonationStatementAvailable();
+            }
+            SignatureStatus finalStatus = statusResult;
             runOnUiThread(() -> {
                 if (isFinishing() || isDestroyed()) {
                     return;
                 }
-                if (status != null) {
-                    statusHandling(status);
+                if (finalStatus != null) {
+                    statusHandling(finalStatus);
                     return;
                 }
                 try {
@@ -205,6 +210,15 @@ public class Results extends AppCompatActivity {
                 break;
             case KEY_NOT_FOUND:
                 updateStatusCard(R.string.status_key_not_found, R.color.validation_surface_info, R.color.colorSecondary, false);
+                break;
+            case DONATION_STATEMENT_DOWNLOAD_FAILED:
+                updateStatusCard(R.string.status_donation_statement_download_failed, R.color.validation_surface_error, R.color.red, false);
+                break;
+            case DONATION_STATEMENT_NOT_FOUND:
+                updateStatusCard(R.string.status_donation_statement_not_found, R.color.validation_surface_info, R.color.colorSecondary, false);
+                break;
+            case DONATION_STATEMENT_INVALID:
+                updateStatusCard(R.string.status_donation_statement_invalid, R.color.validation_surface_error, R.color.red, false);
                 break;
             case SIGNATURE_INVALID:
                 updateStatusCard(R.string.invalid_signature, R.color.validation_surface_error, R.color.red, false);
@@ -297,13 +311,15 @@ public class Results extends AppCompatActivity {
     }
 
     private void showSignatureDialog() {
+        String lineBreak = "\n";
+        String message = getString(R.string.signature_info_salt, valueOrUnknown(salt))
+                + lineBreak
+                + getString(R.string.signature_info_signature, valueOrUnknown(eddsaSignature))
+                + lineBreak
+                + getString(R.string.signature_info_public_key, valueOrUnknown(publicKey));
         new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.signature_info_title)
-                .setMessage(getString(
-                        R.string.signature_info_message,
-                        valueOrUnknown(salt),
-                        valueOrUnknown(eddsaSignature),
-                        valueOrUnknown(publicKey)))
+                .setMessage(message)
                 .setPositiveButton(android.R.string.ok, null)
                 .show();
     }
@@ -345,6 +361,7 @@ public class Results extends AppCompatActivity {
         salt = null;
         eddsaSignature = null;
         publicKey = null;
+        networkClient = null;
     }
 
     private SignatureStatus parseDonauUri(Uri uri) {
@@ -407,22 +424,30 @@ public class Results extends AppCompatActivity {
         salt = saltCandidate;
 
         String totalParam = uri.getQueryParameter("total");
-        if (isEmpty(totalParam)) {
-            return SignatureStatus.MALFORMED_ARGUMENT;
+        if (totalParam != null) {
+            String trimmedTotal = totalParam.trim();
+            if (trimmedTotal.isEmpty()) {
+                return SignatureStatus.MALFORMED_ARGUMENT;
+            }
+            totalAmount = trimmedTotal;
+        } else {
+            totalAmount = null;
         }
-        totalAmount = totalParam.trim();
 
         String sigParam = uri.getQueryParameter("sig");
-        if (isEmpty(sigParam)) {
-            return SignatureStatus.MALFORMED_ARGUMENT;
-        }
-        eddsaSignature = extractEd25519Signature(sigParam);
-        if (isEmpty(eddsaSignature)) {
-            return SignatureStatus.MALFORMED_ARGUMENT;
+        if (sigParam != null) {
+            eddsaSignature = extractEd25519Signature(sigParam);
+            if (isEmpty(eddsaSignature)) {
+                return SignatureStatus.MALFORMED_ARGUMENT;
+            }
+        } else {
+            eddsaSignature = null;
         }
 
         String publicKeyParam = uri.getQueryParameter("pub");
         publicKey = isEmpty(publicKeyParam) ? null : publicKeyParam.trim();
+
+        networkClient = new DonauNetworkClient(isInsecureScheme(), host, port, authorityPathSegments);
 
         return null;
     }
@@ -447,16 +472,110 @@ public class Results extends AppCompatActivity {
         }
 
         try {
-            String fetchedKey = fetchSigningKey(insecureScheme);
+            DonauNetworkClient client = getNetworkClient();
+            int targetYear = parseYearOrDefault(year);
+            String fetchedKey = client.fetchSigningKey(targetYear);
             if (isEmpty(fetchedKey)) {
                 return SignatureStatus.KEY_NOT_FOUND;
             }
             publicKey = fetchedKey;
             return null;
+        } catch (HttpStatusException e) {
+            Log.e(TAG, "Failed to download Donau signing keys, HTTP " + e.getStatusCode(), e);
+            return SignatureStatus.KEY_DOWNLOAD_FAILED;
         } catch (IOException | JSONException e) {
             Log.e(TAG, "Failed to download Donau signing keys", e);
             return SignatureStatus.KEY_DOWNLOAD_FAILED;
         }
+    }
+
+    private SignatureStatus ensureDonationStatementAvailable() {
+        boolean needsTotal = isEmpty(totalAmount);
+        boolean needsSignature = isEmpty(eddsaSignature);
+        if (!needsTotal && !needsSignature) {
+            return null;
+        }
+        if (isEmpty(taxId) || isEmpty(salt) || isEmpty(year)) {
+            return SignatureStatus.MALFORMED_ARGUMENT;
+        }
+        try {
+            String donorHash = computeDonorHash(taxId, salt);
+            DonauNetworkClient client = getNetworkClient();
+            int donationYear = parseYearOrDefault(year);
+            DonationStatement statement = client.fetchDonationStatement(donationYear, donorHash);
+            String statementTotal = statement.getTotal();
+            String statementSignature = statement.getSignature();
+            String statementPublicKey = statement.getPublicKey();
+            if (isEmpty(statementTotal) || isEmpty(statementSignature) || isEmpty(statementPublicKey)) {
+                Log.e(TAG, "Donation statement response missing required fields");
+                return SignatureStatus.DONATION_STATEMENT_INVALID;
+            }
+            if (!needsTotal && totalAmount != null && !totalAmount.equals(statementTotal)) {
+                Log.e(TAG, "Donation statement total mismatch");
+                return SignatureStatus.DONATION_STATEMENT_INVALID;
+            }
+            if (!isEmpty(publicKey) && !publicKey.equals(statementPublicKey)) {
+                Log.e(TAG, "Donation statement public key mismatch");
+                return SignatureStatus.DONATION_STATEMENT_INVALID;
+            }
+            String extractedSignature = extractEd25519Signature(statementSignature);
+            String normalizedSignature;
+            if (extractedSignature != null) {
+                normalizedSignature = extractedSignature;
+            } else {
+                if (statementSignature.contains(":") || statementSignature.contains("=")) {
+                    Log.e(TAG, "Donation statement signature format invalid");
+                    return SignatureStatus.DONATION_STATEMENT_INVALID;
+                }
+                normalizedSignature = statementSignature.trim();
+            }
+            if (!needsSignature && eddsaSignature != null && !eddsaSignature.equals(normalizedSignature)) {
+                Log.e(TAG, "Donation statement signature mismatch");
+                return SignatureStatus.DONATION_STATEMENT_INVALID;
+            }
+            totalAmount = statementTotal;
+            eddsaSignature = normalizedSignature;
+            publicKey = statementPublicKey;
+            return null;
+        } catch (HttpStatusException e) {
+            if (e.getStatusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+                return SignatureStatus.DONATION_STATEMENT_NOT_FOUND;
+            }
+            Log.e(TAG, "Donation statement download failed, HTTP " + e.getStatusCode(), e);
+            return SignatureStatus.DONATION_STATEMENT_DOWNLOAD_FAILED;
+        } catch (IOException | JSONException e) {
+            Log.e(TAG, "Donation statement download failed", e);
+            return SignatureStatus.DONATION_STATEMENT_DOWNLOAD_FAILED;
+        } catch (NoSuchAlgorithmException e) {
+            Log.e(TAG, "Unable to hash donor identifier", e);
+            return SignatureStatus.DONATION_STATEMENT_INVALID;
+        }
+    }
+
+    private DonauNetworkClient getNetworkClient() {
+        if (networkClient == null) {
+            networkClient = new DonauNetworkClient(isInsecureScheme(), host, port, authorityPathSegments);
+        }
+        return networkClient;
+    }
+
+    private int parseYearOrDefault(String value) {
+        if (isEmpty(value)) {
+            return Integer.MIN_VALUE;
+        }
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return Integer.MIN_VALUE;
+        }
+    }
+
+    private String computeDonorHash(String taxIdValue, String saltValue) throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        digest.update(taxIdValue.getBytes(StandardCharsets.UTF_8));
+        digest.update(saltValue.getBytes(StandardCharsets.UTF_8));
+        byte[] hash = digest.digest();
+        return CrockfordBase32.encode(hash);
     }
 
     private String buildHostDisplay() {
@@ -475,90 +594,6 @@ public class Results extends AppCompatActivity {
         return builder.toString();
     }
 
-    private String fetchSigningKey(boolean insecure) throws IOException, JSONException {
-        URL keysUrl = buildKeysUrl(insecure);
-        if (keysUrl == null) {
-            return null;
-        }
-        HttpURLConnection connection = (HttpURLConnection) keysUrl.openConnection();
-        connection.setRequestMethod("GET");
-        connection.setConnectTimeout(5000);
-        connection.setReadTimeout(5000);
-        connection.setInstanceFollowRedirects(false);
-        connection.setRequestProperty("Accept", "application/json");
-        connection.setRequestProperty("Accept-Encoding", "gzip, deflate");
-        try {
-            int status = connection.getResponseCode();
-            if (status != HttpURLConnection.HTTP_OK) {
-                throw new IOException("HTTP " + status);
-            }
-            InputStream input = connection.getInputStream();
-            String encoding = connection.getHeaderField("Content-Encoding");
-            if (encoding != null) {
-                if ("gzip".equalsIgnoreCase(encoding)) {
-                    input = new GZIPInputStream(input);
-                } else if ("deflate".equalsIgnoreCase(encoding)) {
-                    input = new InflaterInputStream(input);
-                }
-            }
-            String body;
-            try {
-                body = readStream(input);
-            } finally {
-                input.close();
-            }
-            JSONObject json = new JSONObject(body);
-            JSONArray signkeys = json.optJSONArray("signkeys");
-            if (signkeys == null) {
-                return null;
-            }
-            for (int i = 0; i < signkeys.length(); i++) {
-                JSONObject entry = signkeys.optJSONObject(i);
-                if (entry != null) {
-                    String keyCandidate = entry.optString("key", null);
-                    if (isEmpty(keyCandidate) && entry.has("key")) {
-                        JSONObject keyObj = entry.optJSONObject("key");
-                        if (keyObj != null) {
-                            keyCandidate = keyObj.optString("eddsa_pub", null);
-                        }
-                    }
-                    if (!isEmpty(keyCandidate)) {
-                        return keyCandidate.trim();
-                    }
-                } else {
-                    String keyCandidate = signkeys.optString(i, null);
-                    if (!isEmpty(keyCandidate)) {
-                        return keyCandidate.trim();
-                    }
-                }
-            }
-            return null;
-        } finally {
-            connection.disconnect();
-        }
-    }
-
-    private URL buildKeysUrl(boolean insecure) {
-        if (isEmpty(host)) {
-            return null;
-        }
-        try {
-            Uri.Builder builder = new Uri.Builder()
-                    .scheme(insecure ? "http" : "https")
-                    .encodedAuthority(port != -1 ? host + ":" + port : host);
-            for (String segment : authorityPathSegments) {
-                if (!isEmpty(segment)) {
-                    builder.appendPath(segment.trim());
-                }
-            }
-            builder.appendPath("keys");
-            return new URL(builder.build().toString());
-        } catch (MalformedURLException | IllegalArgumentException e) {
-            Log.e(TAG, "Invalid /keys URL", e);
-            return null;
-        }
-    }
-
     private boolean isInsecureScheme() {
         return uriScheme != null && "donau+http".equalsIgnoreCase(uriScheme);
     }
@@ -574,16 +609,6 @@ public class Results extends AppCompatActivity {
 
     private boolean isTestingHost() {
         return host != null && host.equalsIgnoreCase("example.com");
-    }
-
-    private String readStream(InputStream input) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(input, java.nio.charset.StandardCharsets.UTF_8));
-        StringBuilder builder = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            builder.append(line);
-        }
-        return builder.toString();
     }
 
     private boolean isFourDigitYear(String value) {

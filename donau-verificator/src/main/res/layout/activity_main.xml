@@ -11,7 +11,7 @@
         android:id="@+id/appTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="@string/title_donau_verifier"
+        android:text="@string/app_name"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
         android:textColor="@color/text_primary"
         app:layout_constraintHorizontal_chainStyle="packed"

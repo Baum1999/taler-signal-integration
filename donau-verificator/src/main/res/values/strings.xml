@@ -16,6 +16,9 @@
     <string name="status_insecure_http_unsupported">This build does not support insecure Donau URIs.</string>
     <string name="status_key_download_failed">Unable to fetch Donau signing keys.</string>
     <string name="status_key_not_found">Signing key for this donation statement not found.</string>
+    <string name="status_donation_statement_download_failed">Unable to fetch donation statement.</string>
+    <string name="status_donation_statement_not_found">Donation statement not found for this taxpayer and year.</string>
+    <string name="status_donation_statement_invalid">Donation statement response was invalid.</string>
     <string name="label_host">Host</string>
     <string name="label_year">Year</string>
     <string name="label_tax_id">Tax ID</string>
@@ -23,9 +26,9 @@
     <string name="action_back">Back</string>
     <string name="action_signature_info">Signature info</string>
     <string name="signature_info_title">Signature details</string>
-    <string name="signature_info_message">Salt: %1$s
-Signature: %2$s
-Public key: %3$s</string>
+    <string name="signature_info_salt">Salt: %1$s</string>
+    <string name="signature_info_signature">Signature: %1$s</string>
+    <string name="signature_info_public_key">Public key: %1$s</string>
     <string name="value_unknown">Unknown</string>
     <string name="title_donau_verifier">Donau Verifier</string>
 </resources>
