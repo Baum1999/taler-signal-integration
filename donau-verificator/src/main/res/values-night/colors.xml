@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#B4C5FF</color>
+    <color name="colorPrimaryVariant">#0042B3</color>
+    <color name="colorOnPrimary">#002A78</color>
+    <color name="colorSecondary">#A4C9FF</color>
+    <color name="colorSecondaryVariant">#72A3E5</color>
+    <color name="colorOnSecondary">#00315D</color>
+    <color name="colorBackground">#11131A</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="red">#FFB4AA</color>
+    <color name="green">#81C784</color>
+    <color name="validation_surface_error">#5B1A1F</color>
+    <color name="validation_surface_success">#173227</color>
+    <color name="validation_surface_info">#0F274F</color>
+    <color name="validation_surface_neutral">#1E2029</color>
+    <color name="text_primary">#E2E2EB</color>
+    <color name="text_secondary">#C6C6CB</color>
+</resources>

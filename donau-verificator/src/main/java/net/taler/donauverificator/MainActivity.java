@@ -24,6 +24,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.budiyev.android.codescanner.CodeScanner;
@@ -73,6 +76,11 @@ public class MainActivity extends AppCompatActivity {
         });
         //temporary for debugging (valid donation statement from sample QR code)
         sendRequestDialog(DEBUG_DONATION_STATEMENT);
+
+        binding.settingsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+        });
 
     }
 
@@ -155,6 +163,23 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Toast.makeText(this, "Permission already granted", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.action_settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
 }

@@ -26,6 +26,10 @@ android {
         versionCode 1
         versionName "1.0"
 
+        buildConfigField "boolean", "ENABLE_DEVELOPER_MODE", "true"
+        buildConfigField "boolean", "ALLOW_INSECURE_HTTP", "true"
+        manifestPlaceholders = [usesCleartextTraffic: "true"]
+
         archivesBaseName = "donau-verificator"
         externalNativeBuild {
             cmake {
@@ -38,6 +42,9 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            // inherit defaults; specific behavior controlled via product flavors
         }
     }
 
@@ -64,6 +71,7 @@ android {
     buildFeatures {
         viewBinding true
         prefab true
+        buildConfig true
     }
 
     packagingOptions {
@@ -110,14 +118,16 @@ android {
 dependencies {
     // TODO: do not vendor pre-built libsodium
     implementation fileTree(dir: 'src/main/libs/', include: ['libsodium-1.0.19.0.aar'])
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.10.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.6.2'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2'
-    implementation 'androidx.navigation:navigation-fragment:2.7.5'
-    implementation 'androidx.navigation:navigation-ui:2.7.5'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'com.google.android.material:material:1.13.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.9.4'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4'
+    implementation 'androidx.navigation:navigation-fragment:2.9.5'
+    implementation 'androidx.navigation:navigation-ui:2.9.5'
     implementation 'com.github.yuriy-budiyev:code-scanner:2.3.2'
     // https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on
     implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.70'
+    implementation 'androidx.preference:preference-ktx:1.2.1'
+    implementation 'androidx.preference:preference:1.2.1'
 }

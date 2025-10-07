@@ -17,43 +17,84 @@
 package net.taler.donauverificator;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
-import android.widget.TableLayout;
 import android.widget.TextView;
 
 
+import androidx.annotation.ColorRes;
+import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
 
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.InflaterInputStream;
 
 public class Results extends AppCompatActivity {
     static {
         System.loadLibrary("verification");
     }
 
+    private static final String TAG = "Results";
+
     // lsd0013 format: donau://host/year/taxid/salt?total=...&sig=ED25519:...
     // CrockfordBase32 encoded: SIGNATURE, PUBLICKEY
     // TODO: Salt and taxId should maybe also be encoded
 
+    private String uriScheme;
+    private String host;
+    private int port = -1;
+    private final List<String> authorityPathSegments = new ArrayList<>();
     private String year;
     private String totalAmount;
     private String taxId;
+    private String hostDisplay;
     private String salt;
     private String eddsaSignature;
     private String publicKey;
     TextView sigStatusView;
-    TextView yearView;
-    TextView taxidView;
-    TextView totalView;
-    TableLayout tableLayout;
+    View summaryContainer;
+    TextView hostLabelView;
+    TextView hostValueView;
+    TextView yearLabelView;
+    TextView yearValueView;
+    TextView taxLabelView;
+    TextView taxValueView;
+    TextView amountLabelView;
+    TextView amountValueView;
+    MaterialCardView statusCard;
+    MaterialButton signatureButton;
 
     public enum SignatureStatus {
         INVALID_SCHEME,
         INVALID_NUMBER_OF_ARGUMENTS,
         MALFORMED_ARGUMENT,
+        INSECURE_HTTP_UNSUPPORTED,
+        INSECURE_HTTP_DISABLED,
+        KEY_DOWNLOAD_FAILED,
+        KEY_NOT_FOUND,
         SIGNATURE_INVALID,
         SIGNATURE_VALID;
     }
@@ -64,11 +105,28 @@ public class Results extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fragment_results);
         sigStatusView = findViewById(R.id.sigStatus);
-        yearView = findViewById(R.id.year);
-        taxidView = findViewById(R.id.taxid);
-        totalView = findViewById(R.id.total);
-        tableLayout = findViewById(R.id.tableLayout);
-        tableLayout.setVisibility(View.INVISIBLE);
+        statusCard = findViewById(R.id.statusCard);
+        summaryContainer = findViewById(R.id.summaryContainer);
+        hostLabelView = findViewById(R.id.hostLabel);
+        hostValueView = findViewById(R.id.hostValue);
+        yearLabelView = findViewById(R.id.yearLabel);
+        yearValueView = findViewById(R.id.yearValue);
+        taxLabelView = findViewById(R.id.taxLabel);
+        taxValueView = findViewById(R.id.taxValue);
+        amountLabelView = findViewById(R.id.amountLabel);
+        amountValueView = findViewById(R.id.amountValue);
+        signatureButton = findViewById(R.id.signatureButton);
+        if (signatureButton != null) {
+            signatureButton.setVisibility(View.GONE);
+            signatureButton.setEnabled(false);
+            signatureButton.setOnClickListener(v -> showSignatureDialog());
+        }
+        if (statusCard != null) {
+            statusCard.setCardBackgroundColor(ContextCompat.getColor(this, R.color.validation_surface_neutral));
+        }
+        sigStatusView.setTextColor(ContextCompat.getColor(this, R.color.text_primary));
+        setSummaryLabels();
+        setupBackNavigation();
 
         Intent intent = getIntent();
         Uri uri = resolveUri(intent);
@@ -77,8 +135,8 @@ public class Results extends AppCompatActivity {
             return;
         }
 
-        String scheme = uri.getScheme();
-        if (!isSupportedScheme(scheme)) {
+        uriScheme = uri.getScheme();
+        if (!isSupportedScheme(uriScheme)) {
             statusHandling(SignatureStatus.INVALID_SCHEME);
             return;
         }
@@ -89,13 +147,7 @@ public class Results extends AppCompatActivity {
             statusHandling(parseStatus);
             return;
         }
-
-        try {
-            checkSignature();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
+        startVerificationAsync();
     }
 
     private void checkSignature() throws Exception{
@@ -110,34 +162,154 @@ public class Results extends AppCompatActivity {
         }
     }
 
+    private void startVerificationAsync() {
+        new Thread(() -> {
+            SignatureStatus status = ensurePublicKeyAvailable();
+            runOnUiThread(() -> {
+                if (isFinishing() || isDestroyed()) {
+                    return;
+                }
+                if (status != null) {
+                    statusHandling(status);
+                    return;
+                }
+                try {
+                    checkSignature();
+                } catch (Exception e) {
+                    Log.e(TAG, "Signature verification failed", e);
+                    statusHandling(SignatureStatus.SIGNATURE_INVALID);
+                }
+            });
+        }).start();
+    }
+
     private void statusHandling(SignatureStatus es) {
-        View rootView = findViewById(R.id.root_view);
         switch (es) {
             case INVALID_SCHEME:
-                sigStatusView.setText(R.string.invalid_scheme);
-                rootView.setBackgroundResource(R.color.red);
+                updateStatusCard(R.string.invalid_scheme, R.color.validation_surface_error, R.color.red, false);
                 break;
             case INVALID_NUMBER_OF_ARGUMENTS:
-                sigStatusView.setText(R.string.invalid_number_of_arguments);
-                rootView.setBackgroundResource(R.color.red);
+                updateStatusCard(R.string.invalid_number_of_arguments, R.color.validation_surface_error, R.color.red, false);
                 break;
             case MALFORMED_ARGUMENT:
-                sigStatusView.setText(R.string.malformed_argument);
-                rootView.setBackgroundResource(R.color.red);
+                updateStatusCard(R.string.malformed_argument, R.color.validation_surface_error, R.color.red, false);
+                break;
+            case INSECURE_HTTP_UNSUPPORTED:
+                updateStatusCard(R.string.status_insecure_http_unsupported, R.color.validation_surface_neutral, R.color.text_primary, false);
+                break;
+            case INSECURE_HTTP_DISABLED:
+                updateStatusCard(R.string.status_insecure_http_disabled, R.color.validation_surface_neutral, R.color.text_primary, false);
+                break;
+            case KEY_DOWNLOAD_FAILED:
+                updateStatusCard(R.string.status_key_download_failed, R.color.validation_surface_error, R.color.red, false);
+                break;
+            case KEY_NOT_FOUND:
+                updateStatusCard(R.string.status_key_not_found, R.color.validation_surface_info, R.color.colorSecondary, false);
                 break;
             case SIGNATURE_INVALID:
-                sigStatusView.setText(R.string.invalid_signature);
-                rootView.setBackgroundResource(R.color.red);
+                updateStatusCard(R.string.invalid_signature, R.color.validation_surface_error, R.color.red, false);
                 break;
             case SIGNATURE_VALID:
-                tableLayout.setVisibility(View.VISIBLE);
-                sigStatusView.setText(R.string.valid_signature);
-                yearView.setText(year);
-                taxidView.setText(taxId);
-                totalView.setText(totalAmount);
-                rootView.setBackgroundResource(R.color.green);
+                updateStatusCard(R.string.valid_signature, R.color.validation_surface_success, R.color.green, true);
+                setSummaryValues(year, taxId, totalAmount);
                 break;
         }
+    }
+
+    private void updateStatusCard(@StringRes int messageRes,
+                                  @ColorRes int backgroundColorRes,
+                                  @ColorRes int textColorRes,
+                                  boolean showDetails) {
+        sigStatusView.setText(messageRes);
+        if (statusCard != null) {
+            statusCard.setCardBackgroundColor(ContextCompat.getColor(this, backgroundColorRes));
+        }
+        sigStatusView.setTextColor(ContextCompat.getColor(this, textColorRes));
+        if (summaryContainer != null) {
+            summaryContainer.setVisibility(showDetails ? View.VISIBLE : View.GONE);
+        }
+        if (signatureButton != null) {
+            signatureButton.setVisibility(showDetails ? View.VISIBLE : View.GONE);
+            signatureButton.setEnabled(showDetails);
+        }
+        if (showDetails) {
+            setSummaryValues(year, taxId, totalAmount);
+        } else {
+            clearSummaryValues();
+        }
+    }
+
+    private void setSummaryLabels() {
+        if (hostLabelView != null) {
+            hostLabelView.setText(R.string.label_host);
+            hostLabelView.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+        }
+        if (yearLabelView != null) {
+            yearLabelView.setText(R.string.label_year);
+            yearLabelView.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+        }
+        if (taxLabelView != null) {
+            taxLabelView.setText(R.string.label_tax_id);
+            taxLabelView.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+        }
+        if (amountLabelView != null) {
+            amountLabelView.setText(R.string.label_amount);
+            amountLabelView.setTextColor(ContextCompat.getColor(this, R.color.text_secondary));
+        }
+        clearSummaryValues();
+    }
+
+    private void clearSummaryValues() {
+        if (hostValueView != null) {
+            hostValueView.setText("");
+        }
+        if (yearValueView != null) {
+            yearValueView.setText("");
+        }
+        if (taxValueView != null) {
+            taxValueView.setText("");
+        }
+        if (amountValueView != null) {
+            amountValueView.setText("");
+        }
+    }
+
+    private void setSummaryValues(String yearValue, String taxValue, String amountValue) {
+        if (hostValueView != null) {
+            hostValueView.setText(valueOrUnknown(hostDisplay));
+        }
+        if (yearValueView != null) {
+            yearValueView.setText(valueOrUnknown(yearValue));
+        }
+        if (taxValueView != null) {
+            taxValueView.setText(valueOrUnknown(taxValue));
+        }
+        if (amountValueView != null) {
+            amountValueView.setText(valueOrUnknown(amountValue));
+        }
+    }
+
+    private void setupBackNavigation() {
+        View backButton = findViewById(R.id.backButton);
+        if (backButton != null) {
+            backButton.setOnClickListener(v -> finish());
+        }
+    }
+
+    private void showSignatureDialog() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.signature_info_title)
+                .setMessage(getString(
+                        R.string.signature_info_message,
+                        valueOrUnknown(salt),
+                        valueOrUnknown(eddsaSignature),
+                        valueOrUnknown(publicKey)))
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
+    }
+
+    private String valueOrUnknown(String candidate) {
+        return isEmpty(candidate) ? getString(R.string.value_unknown) : candidate;
     }
 
     public native int ed25519_verify(String year, String totalAmount,
@@ -165,16 +337,19 @@ public class Results extends AppCompatActivity {
     }
 
     private void resetParsedFields() {
+        authorityPathSegments.clear();
         year = null;
         totalAmount = null;
         taxId = null;
+        hostDisplay = null;
         salt = null;
         eddsaSignature = null;
         publicKey = null;
     }
 
     private SignatureStatus parseDonauUri(Uri uri) {
-        String host = uri.getHost();
+        host = uri.getHost();
+        port = uri.getPort();
         if (isEmpty(host)) {
             return SignatureStatus.MALFORMED_ARGUMENT;
         }
@@ -184,15 +359,26 @@ public class Results extends AppCompatActivity {
             return SignatureStatus.INVALID_NUMBER_OF_ARGUMENTS;
         }
 
+        authorityPathSegments.clear();
+
         if (segments.size() < 3) {
             return SignatureStatus.INVALID_NUMBER_OF_ARGUMENTS;
         }
 
-        int lastIndex = segments.size() - 1;
-        String saltCandidate = segments.get(lastIndex);
-        String taxIdCandidate = segments.get(lastIndex - 1);
-        String yearCandidate = segments.get(lastIndex - 2);
+        int yearIndex = segments.size() - 3;
+        for (int i = 0; i < yearIndex; i++) {
+            String segment = segments.get(i);
+            String trimmed = segment != null ? segment.trim() : null;
+            if (!isEmpty(trimmed)) {
+                authorityPathSegments.add(trimmed);
+            }
+        }
 
+        hostDisplay = buildHostDisplay();
+
+        hostDisplay = buildHostDisplay();
+
+        String yearCandidate = segments.get(yearIndex);
         if (yearCandidate != null) {
             yearCandidate = yearCandidate.trim();
         }
@@ -202,6 +388,7 @@ public class Results extends AppCompatActivity {
 
         year = yearCandidate;
 
+        String taxIdCandidate = segments.get(yearIndex + 1);
         if (taxIdCandidate != null) {
             taxIdCandidate = taxIdCandidate.trim();
         }
@@ -210,6 +397,7 @@ public class Results extends AppCompatActivity {
         }
         taxId = taxIdCandidate;
 
+        String saltCandidate = segments.get(yearIndex + 2);
         if (saltCandidate != null) {
             saltCandidate = saltCandidate.trim();
         }
@@ -233,15 +421,169 @@ public class Results extends AppCompatActivity {
             return SignatureStatus.MALFORMED_ARGUMENT;
         }
 
-        //TODO: Remove to follow the lsd0013
-        // we can do it, when we have a donau instance in open web
         String publicKeyParam = uri.getQueryParameter("pub");
-        if (isEmpty(publicKeyParam)) {
-            return SignatureStatus.MALFORMED_ARGUMENT;
-        }
-        publicKey = publicKeyParam.trim();
+        publicKey = isEmpty(publicKeyParam) ? null : publicKeyParam.trim();
 
         return null;
+    }
+
+    private SignatureStatus ensurePublicKeyAvailable() {
+        boolean insecureScheme = isInsecureScheme();
+        boolean hasEmbeddedPub = !isEmpty(publicKey);
+        if (insecureScheme) {
+            if (!BuildConfig.ALLOW_INSECURE_HTTP) {
+                return SignatureStatus.INSECURE_HTTP_UNSUPPORTED;
+            }
+            if (!isDeveloperModeEnabled()) {
+                return SignatureStatus.INSECURE_HTTP_DISABLED;
+            }
+            if (hasEmbeddedPub && isTestingHost()) {
+                return null;
+            }
+        }
+
+        if (!insecureScheme && hasEmbeddedPub) {
+            return null;
+        }
+
+        try {
+            String fetchedKey = fetchSigningKey(insecureScheme);
+            if (isEmpty(fetchedKey)) {
+                return SignatureStatus.KEY_NOT_FOUND;
+            }
+            publicKey = fetchedKey;
+            return null;
+        } catch (IOException | JSONException e) {
+            Log.e(TAG, "Failed to download Donau signing keys", e);
+            return SignatureStatus.KEY_DOWNLOAD_FAILED;
+        }
+    }
+
+    private String buildHostDisplay() {
+        if (isEmpty(host)) {
+            return null;
+        }
+        StringBuilder builder = new StringBuilder(host);
+        if (port != -1) {
+            builder.append(":").append(port);
+        }
+        for (String segment : authorityPathSegments) {
+            if (!isEmpty(segment)) {
+                builder.append("/").append(segment);
+            }
+        }
+        return builder.toString();
+    }
+
+    private String fetchSigningKey(boolean insecure) throws IOException, JSONException {
+        URL keysUrl = buildKeysUrl(insecure);
+        if (keysUrl == null) {
+            return null;
+        }
+        HttpURLConnection connection = (HttpURLConnection) keysUrl.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setConnectTimeout(5000);
+        connection.setReadTimeout(5000);
+        connection.setInstanceFollowRedirects(false);
+        connection.setRequestProperty("Accept", "application/json");
+        connection.setRequestProperty("Accept-Encoding", "gzip, deflate");
+        try {
+            int status = connection.getResponseCode();
+            if (status != HttpURLConnection.HTTP_OK) {
+                throw new IOException("HTTP " + status);
+            }
+            InputStream input = connection.getInputStream();
+            String encoding = connection.getHeaderField("Content-Encoding");
+            if (encoding != null) {
+                if ("gzip".equalsIgnoreCase(encoding)) {
+                    input = new GZIPInputStream(input);
+                } else if ("deflate".equalsIgnoreCase(encoding)) {
+                    input = new InflaterInputStream(input);
+                }
+            }
+            String body;
+            try {
+                body = readStream(input);
+            } finally {
+                input.close();
+            }
+            JSONObject json = new JSONObject(body);
+            JSONArray signkeys = json.optJSONArray("signkeys");
+            if (signkeys == null) {
+                return null;
+            }
+            for (int i = 0; i < signkeys.length(); i++) {
+                JSONObject entry = signkeys.optJSONObject(i);
+                if (entry != null) {
+                    String keyCandidate = entry.optString("key", null);
+                    if (isEmpty(keyCandidate) && entry.has("key")) {
+                        JSONObject keyObj = entry.optJSONObject("key");
+                        if (keyObj != null) {
+                            keyCandidate = keyObj.optString("eddsa_pub", null);
+                        }
+                    }
+                    if (!isEmpty(keyCandidate)) {
+                        return keyCandidate.trim();
+                    }
+                } else {
+                    String keyCandidate = signkeys.optString(i, null);
+                    if (!isEmpty(keyCandidate)) {
+                        return keyCandidate.trim();
+                    }
+                }
+            }
+            return null;
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    private URL buildKeysUrl(boolean insecure) {
+        if (isEmpty(host)) {
+            return null;
+        }
+        try {
+            Uri.Builder builder = new Uri.Builder()
+                    .scheme(insecure ? "http" : "https")
+                    .encodedAuthority(port != -1 ? host + ":" + port : host);
+            for (String segment : authorityPathSegments) {
+                if (!isEmpty(segment)) {
+                    builder.appendPath(segment.trim());
+                }
+            }
+            builder.appendPath("keys");
+            return new URL(builder.build().toString());
+        } catch (MalformedURLException | IllegalArgumentException e) {
+            Log.e(TAG, "Invalid /keys URL", e);
+            return null;
+        }
+    }
+
+    private boolean isInsecureScheme() {
+        return uriScheme != null && "donau+http".equalsIgnoreCase(uriScheme);
+    }
+
+    private boolean isDeveloperModeEnabled() {
+        if (!BuildConfig.ENABLE_DEVELOPER_MODE) {
+            return false;
+        }
+        SharedPreferences prefs =
+                PreferenceManager.getDefaultSharedPreferences(this);
+        return prefs.getBoolean(SettingsActivity.KEY_DEVELOPER_MODE, false);
+    }
+
+    private boolean isTestingHost() {
+        return host != null && host.equalsIgnoreCase("example.com");
+    }
+
+    private String readStream(InputStream input) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(input, java.nio.charset.StandardCharsets.UTF_8));
+        StringBuilder builder = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            builder.append(line);
+        }
+        return builder.toString();
     }
 
     private boolean isFourDigitYear(String value) {
