@@ -57,7 +57,7 @@ public class Results extends AppCompatActivity {
 
     private static final String TAG = "Results";
 
-    // lsd0013 format: donau://host/year/taxid/salt?total=...&sig=ED25519:...
+    // Format: donau://base/year/taxid-enc/salt?total=...&sig=ED25519:...
     // CrockfordBase32 encoded: SIGNATURE, PUBLICKEY
 
     private String uriScheme;
@@ -393,8 +393,6 @@ public class Results extends AppCompatActivity {
 
         hostDisplay = buildHostDisplay();
 
-        hostDisplay = buildHostDisplay();
-
         String yearCandidate = segments.get(yearIndex);
         if (yearCandidate != null) {
             yearCandidate = yearCandidate.trim();
@@ -405,11 +403,9 @@ public class Results extends AppCompatActivity {
 
         year = yearCandidate;
 
+        // Tax ID: use exact UTF-8 bytes from percent-decoded segment without trimming
         String taxIdCandidate = segments.get(yearIndex + 1);
-        if (taxIdCandidate != null) {
-            taxIdCandidate = taxIdCandidate.trim();
-        }
-        if (!isValidTaxId(taxIdCandidate)) {
+        if (isEmpty(taxIdCandidate)) {
             return SignatureStatus.MALFORMED_ARGUMENT;
         }
         taxId = taxIdCandidate;
@@ -418,7 +414,7 @@ public class Results extends AppCompatActivity {
         if (saltCandidate != null) {
             saltCandidate = saltCandidate.trim();
         }
-        if (!isDigitsOnly(saltCandidate)) {
+        if (isEmpty(saltCandidate)) {
             return SignatureStatus.MALFORMED_ARGUMENT;
         }
         salt = saltCandidate;
@@ -571,9 +567,12 @@ public class Results extends AppCompatActivity {
     }
 
     private String computeDonorHash(String taxIdValue, String saltValue) throws NoSuchAlgorithmException {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        MessageDigest digest = MessageDigest.getInstance("SHA-512");
+        // H = SHA-512( UTF-8(taxId) || 0x00 || UTF-8(salt) || 0x00 )
         digest.update(taxIdValue.getBytes(StandardCharsets.UTF_8));
+        digest.update(new byte[]{0});
         digest.update(saltValue.getBytes(StandardCharsets.UTF_8));
+        digest.update(new byte[]{0});
         byte[] hash = digest.digest();
         return CrockfordBase32.encode(hash);
     }
@@ -656,19 +655,6 @@ public class Results extends AppCompatActivity {
         }
         for (int i = 0; i < value.length(); i++) {
             if (!Character.isDigit(value.charAt(i))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private boolean isValidTaxId(String value) {
-        if (isEmpty(value)) {
-            return false;
-        }
-        for (int i = 0; i < value.length(); i++) {
-            char ch = value.charAt(i);
-            if (!(Character.isLetterOrDigit(ch) || ch == '-' || ch == '.')) {
                 return false;
             }
         }
