@@ -23,6 +23,7 @@
 
 // needed for libsodium
 #include <sodium/crypto_sign.h>
+#include <sodium/crypto_hash_sha256.h>
 
 /**
  * Maximum legal 'value' for an amount, based on IEEE double (for JavaScript compatibility).
@@ -379,19 +380,11 @@ TALER_string_to_amount_nbo (const char *str,
 }
 
 /**
- * @brief A 512-bit hashcode.  These are the default length for GNUnet, using SHA-512.
- */
-struct GNUNET_HashCode
-{
-    uint32_t bits[512 / 8 / sizeof(uint32_t)];  /* = 16 */
-};
-
-/**
   * Donor's hashed and salted unique donation identifier.
   */
 struct DONAU_HashDonorTaxId
 {
-    unsigned char hash[512/8];
+    unsigned char hash[256 / 8];
 };
 
 
@@ -585,18 +578,18 @@ Java_net_taler_donauverificator_Results_ed25519_1verify(
     struct DONAU_DonauSignatureP sig;
     struct DONAU_HashDonorTaxId h_donor_tax_id;
 
-    crypto_hash_sha512_state state;
-    crypto_hash_sha512_init(&state);
+    crypto_hash_sha256_state state;
+    crypto_hash_sha256_init(&state);
 
     unsigned int tax_length;
     for (tax_length = 0; tax_id[tax_length]!= '\0'; ++tax_length);
     unsigned int salt_length;
     for (salt_length = 0; salt[salt_length]!= '\0'; ++salt_length);
 
-    crypto_hash_sha512_update(&state, tax_id, tax_length);
-    crypto_hash_sha512_update(&state, salt, salt_length);
+    crypto_hash_sha256_update(&state, tax_id, tax_length);
+    crypto_hash_sha256_update(&state, salt, salt_length);
 
-    crypto_hash_sha512_final(&state, h_donor_tax_id.hash);
+    crypto_hash_sha256_final(&state, h_donor_tax_id.hash);
 
     struct DONAU_DonationStatementConfirmationPS confirm = {
             .purpose.purpose = htonl (1500),

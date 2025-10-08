@@ -503,9 +503,9 @@ public class Results extends AppCompatActivity {
             DonauNetworkClient client = getNetworkClient();
             int donationYear = parseYearOrDefault(year);
             DonationStatement statement = client.fetchDonationStatement(donationYear, donorHash);
-            String statementTotal = statement.getTotal();
-            String statementSignature = statement.getSignature();
-            String statementPublicKey = statement.getPublicKey();
+            String statementTotal = statement.total();
+            String statementSignature = statement.signature();
+            String statementPublicKey = statement.publicKey();
             if (isEmpty(statementTotal) || isEmpty(statementSignature) || isEmpty(statementPublicKey)) {
                 Log.e(TAG, "Donation statement response missing required fields");
                 return SignatureStatus.DONATION_STATEMENT_INVALID;

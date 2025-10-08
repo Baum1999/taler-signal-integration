@@ -208,28 +208,7 @@ public final class DonauNetworkClient {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
-    public static final class DonationStatement {
-        private final String total;
-        private final String signature;
-        private final String publicKey;
-
-        public DonationStatement(String total, String signature, String publicKey) {
-            this.total = total;
-            this.signature = signature;
-            this.publicKey = publicKey;
-        }
-
-        public String getTotal() {
-            return total;
-        }
-
-        public String getSignature() {
-            return signature;
-        }
-
-        public String getPublicKey() {
-            return publicKey;
-        }
+    public record DonationStatement(String total, String signature, String publicKey) {
     }
 
     public static final class HttpStatusException extends IOException {
