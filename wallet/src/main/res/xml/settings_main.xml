@@ -24,6 +24,13 @@
         app:summary="@string/exchange_settings_summary"
         app:title="@string/exchange_settings_title" />
 
+    <Preference
+        app:fragment="net.taler.wallet.donau.SetDonauFragment"
+        app:icon="@drawable/ic_donau"
+        app:key="pref_donau"
+        app:summary="@string/settings_donau_summary"
+        app:title="@string/settings_donau" />
+
     <SwitchPreference
         app:icon="@drawable/ic_shield"
         app:key="pref_biometric_lock"

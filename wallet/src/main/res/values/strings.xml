@@ -73,6 +73,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="paste">Paste</string>
     <string name="paste_invalid">Clipboard contains an invalid data type</string>
     <string name="reset">Reset</string>
+    <string name="save">Save</string>
     <string name="share_payment">Share payment link</string>
     <string name="uri_invalid">Not a valid Taler URI</string>
     <string name="warning">Warning</string>
@@ -122,6 +123,12 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="amount_transfer">Transfer</string>
     <string name="amount_withdraw">Amount to withdraw from bank</string>
 
+    <!-- Assets -->
+
+    <string name="assets_section_balances">Balances</string>
+    <string name="assets_section_statements">Donations</string>
+    <string name="assets_title">Assets</string>
+
     <!-- Balances -->
 
     <string name="balance_scope_auditor">Auditor: %1$s</string>
@@ -131,7 +138,6 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="balances_empty_get_money">Get demo money</string>
     <string name="balances_inbound_amount">+%1$s incoming</string>
     <string name="balances_outbound_amount">-%1$s outgoing</string>
-    <string name="balances_title">Balances</string>
 
     <!-- Transactions -->
 
@@ -194,6 +200,25 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="transactions_send_funds">Send</string>
     <string name="transactions_suspend">Suspend</string>
     <string name="transactions_title">Transactions</string>
+
+    <!-- Donau -->
+
+    <string name="donau_id">Donor tax ID</string>
+    <string name="donau_ready">Donations have been configured successfully</string>
+    <string name="donau_select_button">Select tax authority</string>
+    <string name="donau_selector_confirm">Setup tax payer ID</string>
+    <string name="donau_selector_title">Select tax authority</string>
+    <string name="donau_statement_instruction">Show this QR code to your tax authority to verify this donation statement</string>
+    <string name="donau_statement_legal_domain">Legal domain</string>
+    <string name="donau_statement_tax_authority">Tax authority</string>
+    <string name="donau_statement_title">Donation statement</string>
+    <string name="donau_statement_title_year">Donations %1$d</string>
+    <string name="donau_statement_year">Year</string>
+    <string name="donau_title">Tax-deductible donations</string>
+    <string name="donau_toggle_label">Receive tax-deductible donation receipt</string>
+    <string name="donau_url">Donation authority URL</string>
+    <string name="donau_warning_mismatch">Your configured tax authority (%1$s) is not available for this option. If you moved, please select the tax authority that applies to your new jurisdiction.</string>
+    <string name="donau_warning_unset">No tax authority is configured in this wallet, please select one that applies to your jurisdiction.</string>
 
     <!-- Payments -->
 
@@ -428,6 +453,8 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="settings_dev_mode_summary">Shows more information intended for debugging</string>
     <string name="settings_dialog_import_message">This operation will overwrite your existing database. Do you want to continue?</string>
     <string name="settings_dialog_reset_message">Do you really want to reset the wallet and lose all coins and purchases?</string>
+    <string name="settings_donau">Tax-deductible donations</string>
+    <string name="settings_donau_summary">Set donation authority and donor tax ID</string>
     <string name="settings_lock_auth">Protect access to wallet</string>
     <string name="settings_lock_auth_summary">Require fingerprint or password to access the wallet</string>
     <string name="settings_logcat">Debug log</string>

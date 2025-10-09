@@ -29,11 +29,11 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import net.taler.wallet.R
+import net.taler.wallet.main.ViewMode
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.backend.WalletResponse.Error
 import net.taler.wallet.backend.WalletResponse.Success
 import net.taler.wallet.balances.BalanceManager
-import net.taler.wallet.balances.ScopeInfo
 import org.json.JSONObject
 
 class SettingsManager(
@@ -42,23 +42,23 @@ class SettingsManager(
     private val scope: CoroutineScope,
     private val balanceManager: BalanceManager,
 ) {
-    fun getSelectedScope(c: Context) = c.userPreferencesDataStore.data.map { prefs ->
-        if (prefs.hasSelectedScope()) {
-            ScopeInfo.fromPrefs(prefs.selectedScope)
+    fun getViewMode(c: Context) = c.userPreferencesDataStore.data.map { prefs ->
+        if (prefs.hasViewMode()) {
+            ViewMode.fromPrefs(prefs.viewMode)
         } else {
             null
         }
     }
 
-    fun saveSelectedScope(c: Context, scopeInfo: ScopeInfo?) = scope.launch {
+    fun saveViewMode(c: Context, viewMode: ViewMode?) = scope.launch {
         c.userPreferencesDataStore.updateData { current ->
-            if (scopeInfo != null) {
+            if (viewMode != null) {
                 current.toBuilder()
-                    .setSelectedScope(scopeInfo.toPrefs())
+                    .setViewMode(viewMode.toPrefs())
                     .build()
             } else {
                 current.toBuilder()
-                    .clearSelectedScope()
+                    .clearViewMode()
                     .build()
             }
         }
@@ -197,7 +197,7 @@ class SettingsManager(
                         is Success -> {
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(context, R.string.settings_db_import_success, LENGTH_LONG).show()
-                                balanceManager.loadBalances()
+                                balanceManager.loadAssets(true)
                             }
                         }
                         is Error -> {

@@ -15,9 +15,31 @@ message PrefsScopeInfo {
   optional string url = 3;
 }
 
+enum PrefsStateFilter {
+  NONE = 0;
+  FINAL = 1;
+  NONFINAL = 2;
+  DONE = 3;
+}
+
+enum ViewModeType {
+  ASSETS = 0;
+  TRANSACTIONS = 1;
+}
+
+message PrefsViewMode {
+  ViewModeType type = 1;
+
+  // TRANSACTIONS
+  optional PrefsScopeInfo selectedScope = 2;
+  optional string searchQuery = 3;
+  optional PrefsStateFilter stateFilter = 4;
+}
+
 message UserPreferences {
   optional PrefsScopeInfo selectedScope = 1;
   optional bool actionButtonUsed = 2;
   optional bool devModeEnabled = 3;
   optional bool biometricLockEnabled = 4;
+  optional PrefsViewMode viewMode = 5;
 }

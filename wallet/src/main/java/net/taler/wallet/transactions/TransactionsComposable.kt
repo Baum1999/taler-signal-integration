@@ -82,6 +82,7 @@ import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.SelectionModeTopAppBar
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.cardPaddings
+import net.taler.wallet.main.ViewMode
 import net.taler.wallet.transactions.AmountType.Negative
 import net.taler.wallet.transactions.AmountType.Neutral
 import net.taler.wallet.transactions.AmountType.Positive
@@ -110,10 +111,9 @@ import net.taler.wallet.transactions.TransactionStateFilter.*
 @Composable
 fun TransactionsComposable(
     innerPadding: PaddingValues,
+    viewMode: ViewMode.Transactions,
     balance: BalanceItem,
-    currencySpec: CurrencySpecification?,
     txResult: TransactionsResult,
-    txStateFilter: TransactionStateFilter?,
     onTransactionClick: (tx: Transaction) -> Unit,
     onTransactionsDelete: (txIds: List<String>) -> Unit,
     onShowBalancesClicked: () -> Unit,
@@ -181,12 +181,11 @@ fun TransactionsComposable(
             item {
                 TransactionsHeader(
                     balance = balance,
-                    spec = currencySpec,
                     onShowBalancesClicked = onShowBalancesClicked,
                 )
             }
 
-            when (txStateFilter) {
+            when (viewMode.stateFilter) {
                 Nonfinal -> item {
                     Banner(Modifier.padding(bottom = 6.dp)) {
                         Text(
@@ -212,7 +211,7 @@ fun TransactionsComposable(
                         val isSelected = selectedItems.contains(tx.transactionId)
 
                         TransactionRow(
-                            tx, currencySpec,
+                            tx, balance.available.spec,
                             isSelected = isSelected,
                             selectionMode = selectionMode,
                             onTransactionClick = {
@@ -283,7 +282,6 @@ fun ErrorTransactionsComposable(error: TalerErrorInfo) {
 @Composable
 fun TransactionsHeader(
     balance: BalanceItem,
-    spec: CurrencySpecification?,
     onShowBalancesClicked: () -> Unit,
 ) {
     Row(
@@ -300,7 +298,7 @@ fun TransactionsHeader(
                 modifier = Modifier.animateContentSize(),
                 headlineContent = {
                     Text(
-                        getHeaderCurrency(balance, spec),
+                        getHeaderCurrency(balance, balance.available.spec),
                         style = MaterialTheme.typography.titleMedium,
                     )
                 },
@@ -330,7 +328,7 @@ fun TransactionsHeader(
             )
 
             Text(
-                balance.available.withSpec(spec).toString(showSymbol = false),
+                balance.available.toString(showSymbol = false),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
             )
@@ -538,9 +536,8 @@ fun TransactionsComposableDonePreview() {
         TransactionsComposable(
             innerPadding = PaddingValues(0.dp),
             balance = previewBalance,
-            currencySpec = null,
+            viewMode = ViewMode.Transactions(previewBalance.scopeInfo),
             txResult = Success(transactions),
-            txStateFilter = null,
             onTransactionClick = {},
             onTransactionsDelete = {},
             onShowBalancesClicked = {},
@@ -573,9 +570,8 @@ fun TransactionsComposablePendingPreview() {
         TransactionsComposable(
             innerPadding = PaddingValues(0.dp),
             balance = previewBalance,
-            currencySpec = null,
+            viewMode = ViewMode.Transactions(previewBalance.scopeInfo),
             txResult = Success(transactions),
-            txStateFilter = Nonfinal,
             onTransactionClick = {},
             onTransactionsDelete = {},
             onShowBalancesClicked = {},
@@ -590,9 +586,8 @@ fun TransactionsComposableEmptyPreview() {
         TransactionsComposable(
             innerPadding = PaddingValues(0.dp),
             balance = previewBalance,
-            currencySpec = null,
+            viewMode = ViewMode.Transactions(previewBalance.scopeInfo),
             txResult = Success(listOf()),
-            txStateFilter = null,
             onTransactionClick = {},
             onTransactionsDelete = {},
             onShowBalancesClicked = {},
@@ -607,9 +602,8 @@ fun TransactionsComposableLoadingPreview() {
         TransactionsComposable(
             innerPadding = PaddingValues(0.dp),
             balance = previewBalance,
-            currencySpec = null,
+            viewMode = ViewMode.Transactions(previewBalance.scopeInfo),
             txResult = None,
-            txStateFilter = null,
             onTransactionClick = {},
             onTransactionsDelete = {},
             onShowBalancesClicked = {},

@@ -1,6 +1,6 @@
 /*
  * This file is part of GNU Taler
- * (C) 2024 Taler Systems S.A.
+ * (C) 2025 Taler Systems S.A.
  *
  * GNU Taler is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -18,13 +18,16 @@ package net.taler.wallet.balances
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -41,7 +44,6 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
@@ -50,7 +52,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
-import net.taler.common.CurrencySpecification
 import net.taler.wallet.R
 import net.taler.wallet.balances.ScopeInfo.Auditor
 import net.taler.wallet.balances.ScopeInfo.Exchange
@@ -59,64 +60,51 @@ import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.cardPaddings
-import net.taler.wallet.transactions.Transaction
-import net.taler.wallet.transactions.TransactionStateFilter
-import net.taler.wallet.transactions.TransactionsComposable
-import net.taler.wallet.transactions.TransactionsResult
+import net.taler.wallet.donau.DonauStatement
 import net.taler.wallet.withdraw.WithdrawalError
 
+// TODO: rename to AssetsComposable
 @Composable
 fun BalancesComposable(
     innerPadding: PaddingValues,
     state: BalanceState,
-    txResult: TransactionsResult,
-    txStateFilter: TransactionStateFilter?,
-    selectedScope: ScopeInfo?,
-    selectedCurrencySpec: CurrencySpecification?,
     onGetDemoMoneyClicked: () -> Unit,
     onBalanceClicked: (balance: BalanceItem) -> Unit,
     onPendingClicked: (balance: BalanceItem) -> Unit,
-    onTransactionClicked: (tx: Transaction) -> Unit,
-    onTransactionsDelete: (txIds: List<String>) -> Unit,
-    onShowBalancesClicked: () -> Unit,
+    onStatementClicked: (sig: String) -> Unit,
 ) {
     when (state) {
         is BalanceState.None -> {}
         is BalanceState.Loading -> LoadingScreen()
         is BalanceState.Error -> WithdrawalError(state.error)
         is BalanceState.Success -> if (state.balances.isNotEmpty()) {
-            if (selectedScope == null) {
-                LazyColumn(
-                    Modifier
-                        .consumeWindowInsets(innerPadding)
-                        .fillMaxSize(),
-                    contentPadding = innerPadding,
-                ) {
-                    items(state.balances, key = { it.scopeInfo.hashCode() }) { balance ->
-                        BalanceRow(balance,
-                            onClick = { onBalanceClicked(balance) },
-                            onPendingClick = { onPendingClicked(balance) },
-                        )
-                    }
-                }
-            } else {
-                val balance = remember(state.balances, selectedScope) {
-                    state.balances.find { it.scopeInfo == selectedScope }
+            LazyColumn(
+                Modifier
+                    .consumeWindowInsets(innerPadding)
+                    .fillMaxSize(),
+                contentPadding = innerPadding,
+            ) {
+                if (state.balances.isNotEmpty()) stickyHeader {
+                    SectionHeader { Text(stringResource(R.string.assets_section_balances)) }
                 }
 
-                balance?.let {
-                    TransactionsComposable(
-                        innerPadding = innerPadding,
-                        balance = it,
-                        currencySpec = selectedCurrencySpec,
-                        txResult = txResult,
-                        txStateFilter = txStateFilter,
-                        onTransactionClick = onTransactionClicked,
-                        onTransactionsDelete = onTransactionsDelete,
-                        onShowBalancesClicked = onShowBalancesClicked,
+                items(state.balances, key = { it.scopeInfo.hashCode() }) { balance ->
+                    BalanceRow(
+                        balance,
+                        onClick = { onBalanceClicked(balance) },
+                        onPendingClick = { onPendingClicked(balance) },
                     )
-                } ?: run {
-                    onShowBalancesClicked()
+                }
+
+                if (state.statements.isNotEmpty()) stickyHeader {
+                    SectionHeader { Text(stringResource(R.string.assets_section_statements)) }
+                }
+
+                items(state.statements, key = { it.year }) { statement ->
+                    StatementRow(
+                        statement,
+                        onClick = { onStatementClicked(statement.donationStatementSig) },
+                    )
                 }
             }
         } else {
@@ -124,6 +112,22 @@ fun BalancesComposable(
                 innerPadding = innerPadding,
                 onGetDemoMoneyClicked,
             )
+        }
+    }
+}
+
+@Composable
+fun SectionHeader(
+    label: @Composable () -> Unit,
+) {
+    Box(Modifier
+        .fillMaxWidth()
+        .background(MaterialTheme.colorScheme.background)) {
+        Box(Modifier.cardPaddings()) {
+            ProvideTextStyle(MaterialTheme.typography.titleMedium
+                .copy(color = MaterialTheme.colorScheme.onBackground)) {
+                label()
+            }
         }
     }
 }
@@ -174,6 +178,35 @@ fun BalanceRow(
                 HorizontalDivider()
                 PendingComposable(balance, onPendingClick)
             }
+        }
+    }
+}
+
+@Composable
+fun StatementRow(
+    statement: DonauStatement,
+    onClick: () -> Unit,
+) {
+    OutlinedCard(Modifier.cardPaddings()) {
+        Column {
+            ListItem(
+                modifier = Modifier
+                    .animateContentSize()
+                    .clickable { onClick() }
+                    .padding(vertical = 6.dp),
+                headlineContent = {
+                    Text(
+                        "${statement.year}",
+                        style = MaterialTheme.typography.displaySmall,
+                    )
+                },
+                overlineContent = {
+                    val host = statement.host
+                    if (host != null) ProvideTextStyle(MaterialTheme.typography.bodySmall) {
+                        Text(stringResource(R.string.balance_scope_exchange, host))
+                    }
+                }
+            )
         }
     }
 }
@@ -277,17 +310,11 @@ fun BalancesComposablePreview() {
     TalerSurface {
         BalancesComposable(
             innerPadding = PaddingValues(0.dp),
-            state = BalanceState.Success(balances),
-            txResult = TransactionsResult.Success(listOf()),
-            txStateFilter = null,
-            selectedScope = null,
-            selectedCurrencySpec = null,
+            state = BalanceState.Success(balances, listOf()),
             onGetDemoMoneyClicked = {},
             onBalanceClicked = {},
-            onTransactionClicked = {},
-            onTransactionsDelete = {},
-            onShowBalancesClicked = {},
             onPendingClicked = {},
+            onStatementClicked = {},
         )
     }
 }
@@ -296,19 +323,13 @@ fun BalancesComposablePreview() {
 @Composable
 fun BalancesComposableEmptyPreview() {
     TalerSurface {
-        BalancesComposable(
+        BalancesComposable (
             innerPadding = PaddingValues(0.dp),
-            state = BalanceState.Success(listOf()),
-            txResult = TransactionsResult.Success(listOf()),
-            txStateFilter = null,
-            selectedScope = null,
-            selectedCurrencySpec = null,
+            state = BalanceState.Success(listOf(), listOf()),
             onGetDemoMoneyClicked = {},
             onBalanceClicked = {},
-            onTransactionClicked = {},
-            onTransactionsDelete = {},
-            onShowBalancesClicked = {},
             onPendingClicked = {},
+            onStatementClicked = {},
         )
     }
 }

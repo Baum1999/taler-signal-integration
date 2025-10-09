@@ -23,17 +23,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.distinctUntilChanged
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.wallet.TAG
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
+import net.taler.wallet.donau.DonauStatement
+import net.taler.wallet.donau.GetDonauStatementsResponse
 import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.exchanges.ExchangeManager
-import org.json.JSONObject
 
 @Serializable
 data class BalanceResponse(
@@ -45,12 +45,14 @@ data class GetCurrencySpecificationResponse(
     val currencySpecification: CurrencySpecification,
 )
 
+// TODO: rename to AssetsState
 sealed class BalanceState {
     data object None: BalanceState()
     data object Loading: BalanceState()
 
     data class Success(
         val balances: List<BalanceItem>,
+        val statements: List<DonauStatement>,
     ): BalanceState()
 
     data class Error(
@@ -58,6 +60,7 @@ sealed class BalanceState {
     ): BalanceState()
 }
 
+// TODO: rename to AssetsManager
 class BalanceManager(
     private val api: WalletBackendApi,
     private val scope: CoroutineScope,
@@ -69,54 +72,58 @@ class BalanceManager(
     private val mState = MutableLiveData<BalanceState>(BalanceState.None)
     val state: LiveData<BalanceState> = mState.distinctUntilChanged()
 
-    @UiThread
-    fun loadBalances() {
-        if (mState.value == BalanceState.None) {
-            mState.value = BalanceState.Loading
-        }
+    fun loadAssets(loading: Boolean = false) = scope.launch {
+        if (loading) mState.postValue(BalanceState.Loading)
+        loadBalances()?.let { balancesList ->
+            mState.postValue(BalanceState.Success(
+                balances = balancesList,
+                statements = emptyList(),
+            ))
 
-        scope.launch {
-            val response = api.request("getBalances", BalanceResponse.serializer())
-            response.onError {
-                Log.e(TAG, "Error retrieving balances: $it")
-                mState.postValue(BalanceState.Error(it))
-            }
-            response.onSuccess {
-                mBalances.postValue(it.balances)
-                scope.launch {
-                    // Fetch missing currency specs for all balances
-                    it.balances.forEach { balance ->
-                        exchangeManager.getCurrencySpecification(balance.scopeInfo)
-                    }
-
-                    mState.postValue(
-                        BalanceState.Success(it.balances.map { balance ->
-                            val spec = exchangeManager.getCurrencySpecification(balance.scopeInfo)
-                            balance.copy(
-                                available = balance.available.withSpec(spec),
-                                pendingIncoming = balance.pendingIncoming.withSpec(spec),
-                                pendingOutgoing = balance.pendingOutgoing.withSpec(spec),
-                            )
-                        }),
-                    )
-                }
+            // TODO: load lists together when getDonationStatements stops relying on network
+            loadDonauStatements()?.let { statementsList ->
+                mState.postValue(BalanceState.Success(
+                    balances = balancesList,
+                    statements = statementsList,
+                ))
             }
         }
     }
 
-    private suspend fun getCurrencySpecification(scopeInfo: ScopeInfo): CurrencySpecification? {
-        var spec: CurrencySpecification? = null
-        api.request("getCurrencySpecification", GetCurrencySpecificationResponse.serializer()) {
-            val json = Json.encodeToString(scopeInfo)
-            Log.d(TAG, "BalanceManager: $json")
-            put("scope", JSONObject(json))
-        }.onSuccess {
-            spec = it.currencySpecification
-        }.onError {
-            Log.e(TAG, "Error getting currency spec for scope $scopeInfo: $it")
-        }
+    private suspend fun loadBalances(): List<BalanceItem>? {
+        var res: List<BalanceItem>? = null
+        api.request("getBalances", BalanceResponse.serializer())
+            .onError {
+                Log.e(TAG, "Error retrieving balances: $it")
+                mState.postValue(BalanceState.Error(it))
+            }.onSuccess {
+                it.balances.map { balance ->
+                    val spec = runBlocking { exchangeManager
+                        .getCurrencySpecification(balance.scopeInfo) }
+                    balance.copy(
+                        available = balance.available.withSpec(spec),
+                        pendingIncoming = balance.pendingIncoming.withSpec(spec),
+                        pendingOutgoing = balance.pendingOutgoing.withSpec(spec),
+                    )
+                }.let { balances ->
+                    res = balances
+                    mBalances.postValue(balances)
+                }
+            }
+        return res
+    }
 
-        return spec
+    private suspend fun loadDonauStatements(): List<DonauStatement>? {
+        var res: List<DonauStatement>? = null
+        api.request("getDonauStatements", GetDonauStatementsResponse.serializer())
+            .onError {
+                Log.e(TAG, "Error retrieving donau statements: $it")
+                // TODO: throw error when getDonationStatements stop relying on network
+                // mState.postValue(BalanceState.Error(it))
+            }.onSuccess {
+                res = it.statements
+            }
+        return res
     }
 
     @UiThread

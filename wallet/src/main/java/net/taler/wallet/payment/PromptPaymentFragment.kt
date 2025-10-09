@@ -25,6 +25,7 @@ import android.view.ViewGroup
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
@@ -39,8 +40,6 @@ import net.taler.wallet.TAG
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.showError
-
-// TODO:
 
 class PromptPaymentFragment: Fragment(), ProductImageClickListener {
     private val model: MainViewModel by activityViewModels()
@@ -62,8 +61,12 @@ class PromptPaymentFragment: Fragment(), ProductImageClickListener {
                     is PayStatus.Checked -> {} // does not apply, only used for templates
                     is PayStatus.Choices -> {
                         PromptPaymentComposable(status,
-                            onConfirm = { index ->
-                                paymentManager.confirmPay(status.transactionId, index)
+                            onConfirm = { index, useDonau ->
+                                paymentManager.confirmPay(
+                                    transactionId = status.transactionId,
+                                    choiceIndex = index,
+                                    useDonau = useDonau,
+                                )
                             },
                             onCancel = {
                                 transactionManager.abortTransaction(
@@ -88,7 +91,19 @@ class PromptPaymentFragment: Fragment(), ProductImageClickListener {
                             },
                             onClickImage = { bitmap ->
                                 onImageClick(bitmap)
-                            }
+                            },
+                            checkDonauStatus = { index ->
+                                paymentManager.checkDonauForChoice(status.choices[index])
+                            },
+                            onSetupDonau = { donauBaseUrl ->
+                                findNavController().navigate(
+                                    R.id.nav_settings_donau,
+                                    bundleOf(
+                                        "donauBaseUrl" to donauBaseUrl,
+                                        "saveShouldExit" to true,
+                                    ),
+                                )
+                            },
                         )
                     }
 

@@ -1,6 +1,6 @@
 /*
  * This file is part of GNU Taler
- * (C) 2020 Taler Systems S.A.
+ * (C) 2025 Taler Systems S.A.
  *
  * GNU Taler is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -56,6 +56,8 @@ import net.taler.wallet.transactions.TransactionManager
 import net.taler.wallet.transactions.TransactionStateFilter
 import net.taler.wallet.withdraw.WithdrawManager
 import androidx.core.net.toUri
+import net.taler.wallet.donau.DonauManager
+import net.taler.wallet.main.ViewMode
 
 const val TAG = "taler-wallet"
 const val OBSERVABILITY_LIMIT = 100
@@ -121,6 +123,7 @@ class MainViewModel(
     val settingsManager: SettingsManager = SettingsManager(app.applicationContext, api, viewModelScope, balanceManager)
     val accountManager: AccountManager = AccountManager(api, viewModelScope)
     val depositManager: DepositManager = DepositManager(api, viewModelScope, balanceManager)
+    val donauManager: DonauManager = DonauManager(api, viewModelScope)
 
     private val mAuthenticated = MutableStateFlow(false)
     val authenticated: StateFlow<Boolean> = mAuthenticated
@@ -133,6 +136,9 @@ class MainViewModel(
 
     private val mScanCodeEvent = MutableLiveData<Event<Boolean>>()
     val scanCodeEvent: LiveData<Event<Boolean>> = mScanCodeEvent
+
+    private val mViewMode = MutableStateFlow<ViewMode>(ViewMode.Assets)
+    val viewMode: StateFlow<ViewMode> = mViewMode
 
     @set:Synchronized
     private var scanQrContext = ScanQrContext.Unknown
@@ -160,7 +166,7 @@ class MainViewModel(
 
         // Only update balances when we're told they changed
         if (payload.type == "balance-change") viewModelScope.launch(Dispatchers.Main) {
-            balanceManager.loadBalances()
+            balanceManager.loadAssets()
         }
 
         if (payload.type in observabilityNotifications && payload.event != null) {
@@ -179,8 +185,9 @@ class MainViewModel(
                 // update currently selected transaction list
                 if (payload.type == "transaction-state-transition") {
                     transactionManager.getTransactionById(id)?.let { tx ->
-                        if (transactionManager.selectedScope.value in tx.scopes) {
-                            transactionManager.loadTransactions()
+                        val v = viewMode.value
+                        if (v is ViewMode.Transactions && v.selectedScope in tx.scopes) {
+                            transactionManager.loadTransactions(v.selectedScope)
                         }
                     }
                 }
@@ -198,13 +205,37 @@ class MainViewModel(
         mAuthenticated.value = true
     }
 
+    fun setViewMode(v: ViewMode?) = viewModelScope.launch {
+        mViewMode.value = when(v) {
+            null -> ViewMode.Assets
+            is ViewMode.Transactions -> v.copy(
+                // fill-in currency spec from DB
+                selectedSpec = exchangeManager.getCurrencySpecification(v.selectedScope),
+            )
+            else -> v
+        }
+    }
+
+    fun selectScope(scopeInfo: ScopeInfo?) {
+        if (scopeInfo != null) {
+            setViewMode(ViewMode.Transactions(scopeInfo))
+        } else {
+            setViewMode(ViewMode.Assets)
+        }
+    }
+
+    fun showAssets() {
+        if (viewMode.value != ViewMode.Assets) {
+            selectScope(null)
+        }
+    }
+
     /**
      * Navigates to the given scope info's transaction list, when [MainFragment] is shown.
      */
     @UiThread
     fun showTransactions(scopeInfo: ScopeInfo, stateFilter: TransactionStateFilter? = null) {
-        Log.d(TAG, "selectedScope should change to $scopeInfo")
-        transactionManager.selectScope(scopeInfo, stateFilter)
+        mViewMode.value = ViewMode.Transactions(scopeInfo, stateFilter = stateFilter)
     }
 
     @UiThread

@@ -1,6 +1,6 @@
 /*
  * This file is part of GNU Taler
- * (C) 2020 Taler Systems S.A.
+ * (C) 2025 Taler Systems S.A.
  *
  * GNU Taler is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -148,8 +148,8 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                model.transactionManager.selectedScope.collect { tx ->
-                    model.settingsManager.saveSelectedScope(this@MainActivity, tx)
+                model.viewMode.collect { tx ->
+                    model.settingsManager.saveViewMode(this@MainActivity, tx)
                 }
             }
         }
@@ -337,6 +337,7 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
     ): Boolean {
         when (pref.key) {
             "pref_exchanges" -> nav.navigate(R.id.nav_settings_exchanges)
+            "pref_donau" -> nav.navigate(R.id.nav_settings_donau)
         }
         return true
     }

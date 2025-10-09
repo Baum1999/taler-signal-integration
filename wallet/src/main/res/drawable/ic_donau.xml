@@ -1,0 +1,29 @@
+<!--
+  ~ This file is part of GNU Taler
+  ~ (C) 2025 Taler Systems S.A.
+  ~
+  ~ GNU Taler is free software; you can redistribute it and/or modify it under the
+  ~ terms of the GNU General Public License as published by the Free Software
+  ~ Foundation; either version 3, or (at your option) any later version.
+  ~
+  ~ GNU Taler is distributed in the hope that it will be useful, but WITHOUT ANY
+  ~ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+  ~ A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License along with
+  ~ GNU Taler; see the file COPYING.  If not, see <http://www.gnu.org/licenses/>
+  -->
+
+<vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:height="24dp"
+    android:tint="?attr/colorControlNormal"
+    android:viewportHeight="960"
+    android:viewportWidth="960"
+    android:width="24dp">
+      
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M557,442L387,272L444,216L557,329L784,103L840,159L557,442ZM320,740L598,816L836,742Q831,733 821.5,726.5Q812,720 800,720L598,720Q571,720 555,718Q539,716 522,710L429,679L451,601L532,628Q549,633 572,636Q595,639 640,640L640,640Q640,640 640,640Q640,640 640,640Q640,629 633.5,619Q627,609 618,606L384,520Q384,520 384,520Q384,520 384,520L320,520L320,740ZM80,880L80,440L384,440Q391,440 398,441.5Q405,443 411,445L646,532Q679,544 699.5,574Q720,604 720,640L800,640Q850,640 885,673Q920,706 920,760L920,800L600,900L320,822L320,822L320,880L80,880ZM160,800L240,800L240,520L160,520L160,800Z"/>
+    
+</vector>

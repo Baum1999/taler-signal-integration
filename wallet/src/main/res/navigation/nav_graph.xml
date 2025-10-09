@@ -23,7 +23,7 @@
     <fragment
         android:id="@+id/nav_main"
         android:name="net.taler.wallet.MainFragment"
-        android:label="@string/balances_title">
+        android:label="@string/assets_title">
         <action
             android:id="@+id/action_nav_main_to_nav_uri_input"
             app:destination="@id/nav_uri_input" />
@@ -99,6 +99,21 @@
         android:id="@+id/nav_settings_exchanges"
         android:name="net.taler.wallet.exchanges.ExchangeListFragment"
         android:label="@string/exchange_list_title" />
+
+    <fragment
+        android:id="@+id/nav_settings_donau"
+        android:name="net.taler.wallet.donau.SetDonauFragment"
+        android:label="@string/donau_title" />
+
+    <fragment
+        android:id="@+id/nav_donau_statement"
+        android:name="net.taler.wallet.donau.DonauStatementFragment"
+        android:label="@string/donau_statement_title">
+        <argument
+            android:name="donationStatementSig"
+            app:argType="string"
+            app:nullable="false" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_wire_transfer_details"

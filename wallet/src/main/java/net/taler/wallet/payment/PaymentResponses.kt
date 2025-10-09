@@ -25,6 +25,7 @@ import net.taler.common.Amount
 import net.taler.common.ContractTerms
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.donau.DonauInfo
 import net.taler.wallet.payment.InsufficientBalanceHint.AgeRestricted
 import net.taler.wallet.payment.InsufficientBalanceHint.ExchangeMissingGlobalFees
 import net.taler.wallet.payment.InsufficientBalanceHint.FeesNotCovered
@@ -326,6 +327,16 @@ enum class TokenAvailabilityHint {
 
     @SerialName("merchant-untrusted")
     MerchantUntrusted,
+}
+
+sealed class DonauStatus {
+    data object Unavailable: DonauStatus()
+    data object Available: DonauStatus()
+    data class Unset(val donauUrls: List<String>): DonauStatus()
+    data class Mismatch(
+        val donauInfo: DonauInfo,
+        val donauUrls: List<String>
+    ): DonauStatus()
 }
 
 @Serializable

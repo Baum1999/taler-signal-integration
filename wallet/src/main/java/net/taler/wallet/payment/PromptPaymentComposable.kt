@@ -30,6 +30,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -58,6 +60,7 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -93,6 +96,9 @@ import net.taler.wallet.compose.BottomButtonBox
 import net.taler.wallet.compose.ExpandableSection
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.cardPaddings
+import net.taler.wallet.donau.DonauInfo
+import net.taler.wallet.donau.DonauSelector
+import net.taler.wallet.donau.DonauToggle
 import net.taler.wallet.payment.GetChoicesForPaymentResponse.ChoiceSelectionDetail.InsufficientBalance
 import net.taler.wallet.payment.GetChoicesForPaymentResponse.ChoiceSelectionDetail.PaymentPossible
 import net.taler.wallet.payment.TokenAvailabilityHint.MerchantUnexpected
@@ -106,9 +112,11 @@ import net.taler.wallet.systemBarsPaddingBottom
 @Composable
 fun PromptPaymentComposable(
     status: PayStatus.Choices,
-    onConfirm: (choiceIndex: Int?) -> Unit,
+    onConfirm: (choiceIndex: Int?, useDonau: Boolean) -> Unit,
     onCancel: () -> Unit,
     onClickImage: (Bitmap) -> Unit,
+    onSetupDonau: (donauBaseUrl: String) -> Unit,
+    checkDonauStatus: suspend (choiceIndex: Int) -> DonauStatus,
 ) {
     val contractTerms = status.contractTerms
     var showCancelDialog by rememberSaveable { mutableStateOf(false) }
@@ -149,19 +157,26 @@ fun PromptPaymentComposable(
             if (contractTerms is ContractTerms.V1) {
                 var choicesExpanded by rememberSaveable { mutableStateOf(true) }
                 var selectedIndex by rememberSaveable { mutableIntStateOf(status.defaultChoiceIndex ?: 0) }
+                var donauStatus: DonauStatus by remember { mutableStateOf(DonauStatus.Unavailable) }
                 ExpandableSection(
                     expanded = choicesExpanded,
                     setExpanded = { choicesExpanded = it },
                     header = { Text(stringResource(R.string.payment_section_choices)) },
                 ) {
                     ChoicesSection(
-                        status,
-                        contractTerms.tokenFamilies,
-                        selectedIndex,
-                        contractTerms.merchantBaseUrl,
+                        status = status,
+                        tokenFamilies = contractTerms.tokenFamilies,
+                        selectedIndex = selectedIndex,
+                        merchantBaseUrl =contractTerms.merchantBaseUrl,
                         onSelect = { index -> selectedIndex = index },
-                        onConfirm = { index -> onConfirm(index) },
+                        onConfirm = onConfirm,
+                        donauStatus = donauStatus,
+                        onSetupDonau = onSetupDonau,
                     )
+                }
+
+                LaunchedEffect(selectedIndex) {
+                    donauStatus = checkDonauStatus(selectedIndex)
                 }
             }
         }
@@ -211,7 +226,7 @@ fun PromptPaymentComposable(
                     Button(
                         modifier = Modifier.systemBarsPaddingBottom(),
                         enabled = choice.details is PaymentPossible,
-                        onClick = { onConfirm(null) },
+                        onClick = { onConfirm(null, false) },
                     ) {
                         if (choice.details is PaymentPossible) {
                             Text(stringResource(
@@ -239,7 +254,9 @@ fun MerchantSection(
     val merchant = contractTerms.merchant
 
     Column(
-        modifier = Modifier.padding(16.dp).fillMaxWidth(),
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxWidth(),
         horizontalAlignment = CenterHorizontally,
     ) {
         // MERCHANT LOGO
@@ -432,7 +449,9 @@ fun ChoicesSection(
     selectedIndex: Int,
     merchantBaseUrl: String,
     onSelect: (choiceIndex: Int) -> Unit,
-    onConfirm: (choiceIndex: Int) -> Unit,
+    onConfirm: (choiceIndex: Int, useDonau: Boolean) -> Unit,
+    donauStatus: DonauStatus,
+    onSetupDonau: (donauBaseUrl: String) -> Unit,
 ) {
     // TODO: CURRENCIES
 
@@ -440,12 +459,14 @@ fun ChoicesSection(
     // TODO: LazyColumn would be better, but can't be nested
     status.choices.forEach { choice ->
         PaymentChoice(
-            choice,
-            tokenFamilies,
-            merchantBaseUrl,
-            selectedIndex == choice.choiceIndex,
+            choice = choice,
+            tokenFamilies = tokenFamilies,
+            merchantBaseUrl = merchantBaseUrl,
+            selected = selectedIndex == choice.choiceIndex,
             onSelect = { onSelect(choice.choiceIndex) },
-            onConfirm = { onConfirm(choice.choiceIndex) },
+            donauStatus = donauStatus,
+            onSetupDonau = onSetupDonau,
+            onConfirm = { useDonau -> onConfirm(choice.choiceIndex, useDonau) },
         )
     }
 }
@@ -457,13 +478,25 @@ fun PaymentChoice(
     merchantBaseUrl: String,
     selected: Boolean,
     onSelect: () -> Unit,
-    onConfirm: () -> Unit,
+    onConfirm: (useDonau: Boolean) -> Unit,
+    donauStatus: DonauStatus,
+    onSetupDonau: (donauBaseUrl: String) -> Unit,
 ) {
+    val bringIntoViewRequester = remember { BringIntoViewRequester() }
+    val coroutineScope = rememberCoroutineScope()
+
     OutlinedCard(
-        modifier =  Modifier
+        modifier = Modifier
             .cardPaddings()
             .fillMaxWidth()
-            .animateContentSize()
+            .bringIntoViewRequester(bringIntoViewRequester)
+            .animateContentSize { _, _ ->
+                if (selected) {
+                    coroutineScope.launch {
+                        bringIntoViewRequester.bringIntoView()
+                    }
+                }
+            }
             .clickable { onSelect() },
         border = if (selected) {
             BorderStroke(2.5.dp, MaterialTheme.colorScheme.primary)
@@ -528,18 +561,48 @@ fun PaymentChoice(
                     }
                 }
 
+                // DONAU TOGGLE/SELECTOR
+                var useDonau by rememberSaveable { mutableStateOf(false) }
+                var showSelector by remember { mutableStateOf(false) }
+                if (choice.details is PaymentPossible) {
+                    if (selected) DonauToggle(
+                        donauStatus = donauStatus,
+                        useDonau = useDonau,
+                        onToggleDonau = { useDonau = it },
+                    )
+
+                    DonauSelector(
+                        donauStatus = donauStatus,
+                        showDialog = showSelector,
+                        onSetup = { onSetupDonau(it) },
+                        onDismiss = { showSelector = false },
+                    )
+                }
+
+                val shouldSetDonau = choice.details is PaymentPossible
+                        && useDonau
+                        && donauStatus !is DonauStatus.Available
+
                 // CONFIRM BUTTON
                 if (selected) Button(
                     modifier = Modifier
                         .padding(top = 9.dp)
                         .fillMaxWidth(),
-                    onClick = onConfirm,
+                    onClick = {
+                        if (shouldSetDonau) {
+                            showSelector = true
+                        } else {
+                            onConfirm(useDonau)
+                        }
+                    },
                     enabled = choice.details is PaymentPossible,
                 ) {
                     val tokenDetails = choice.details.tokenDetails
                     Text(
                         if (choice.details is PaymentPossible) {
-                            if (choice.details.amountEffective.isZero()) {
+                            if (shouldSetDonau) {
+                                stringResource(R.string.donau_select_button)
+                            } else if (choice.details.amountEffective.isZero()) {
                                 stringResource(R.string.payment_button_confirm_tokens)
                             } else {
                                 stringResource(
@@ -621,6 +684,10 @@ fun PaymentOutput(
                 merchantBaseUrl = merchantBaseUrl,
             )
         }
+
+        // TODO: ContractOutput.TaxReceipt
+
+        else -> {}
     }
 }
 
@@ -635,8 +702,8 @@ fun TokenCard(
 ) {
     Card (
         modifier = Modifier
-            .padding(vertical = 5.dp,
-            ).fillMaxWidth(),
+            .padding(vertical = 5.dp)
+            .fillMaxWidth(),
     ) {
         Row(
             modifier = Modifier.padding(vertical = 8.dp),
@@ -809,7 +876,7 @@ private val contractTermsV1 = ContractTerms.V1(
     choices = listOf(
         ContractChoice(
             amount = Amount.fromJSONString("KUDOS:10"),
-            description = "Movie pass discount",
+            description = "Tax-deductible movie pass discount",
             maxFee = Amount.fromJSONString("KUDOS:0"),
             inputs = listOf(
                 ContractInput.Token(tokenFamilySlug = "half-tax", count = 2),
@@ -817,6 +884,10 @@ private val contractTermsV1 = ContractTerms.V1(
             ),
             outputs = listOf(
                 ContractOutput.Token(tokenFamilySlug = "movie-pass"),
+                ContractOutput.TaxReceipt(
+                    amount = Amount.fromJSONString("KUDOS:10"),
+                    donauUrls = listOf("https://donau.test.taler.net/"),
+                )
             ),
         ),
 
@@ -881,7 +952,7 @@ fun PromptPaymentV0Preview() {
                     ),
                 )
             )
-        ), {}, {}, {})
+        ), { _, _ -> }, {}, {}, {}, { DonauStatus.Unavailable })
     }
 }
 
@@ -897,7 +968,7 @@ fun PromptPaymentV1Preview() {
                 PayChoiceDetails(
                     choiceIndex = 0,
                     amountRaw = contractTermsV1.choices[0].amount,
-                    description = "Movie pass discount",
+                    description = "Tax-deductible movie pass discount",
                     inputs = contractTermsV1.choices[0].inputs,
                     outputs = contractTermsV1.choices[0].outputs,
                     details = PaymentPossible(
@@ -950,6 +1021,14 @@ fun PromptPaymentV1Preview() {
                     ),
                 ),
             )
-        ), {}, {}, {})
+        ), { _, _ -> }, {}, {}, {}, {
+            DonauStatus.Mismatch(
+                donauInfo = DonauInfo("https://donau.test.taler.net/", "123"),
+                donauUrls = listOf(
+                    "https://donau.demo.taler.net/",
+                    "https://donau.head.taler.net/",
+                ),
+            )
+        })
     }
 }

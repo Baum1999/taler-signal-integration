@@ -34,6 +34,8 @@ import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.balances.ScopeInfo
+import net.taler.wallet.donau.DonauInfo
+import net.taler.wallet.donau.GetDonauResponse
 import net.taler.wallet.exchanges.ExchangeManager
 import net.taler.wallet.payment.PayStatus.AlreadyPaid
 import net.taler.wallet.payment.PayStatus.InsufficientBalance
@@ -212,11 +214,13 @@ class PaymentManager(
         transactionId: String,
         choiceIndex: Int? = null,
         automaticExecution: Boolean = false,
+        useDonau: Boolean = false,
     ) = scope.launch {
         mPayStatus.postValue(PayStatus.Loading)
         api.request("confirmPay", ConfirmPayResult.serializer()) {
             choiceIndex?.let { put("choiceIndex", it) }
             put("transactionId", transactionId)
+            put("useDonau", useDonau)
         }.onError {
             handleError("confirmPay", it)
         }.onSuccess { response ->
@@ -230,6 +234,33 @@ class PaymentManager(
                     error = response.lastError,
                 )
             })
+        }
+    }
+
+    suspend fun checkDonauForChoice(
+        choiceDetails: PayChoiceDetails
+    ): DonauStatus {
+        val taxReceipt = (choiceDetails.outputs)
+            .find { it is ContractOutput.TaxReceipt }
+                as ContractOutput.TaxReceipt?
+
+        return if (taxReceipt != null) {
+            var donauInfo: DonauInfo? = null
+            api.request("getDonau", GetDonauResponse.serializer())
+                .onSuccess { donauInfo = it.currentDonauInfo }
+
+            if (donauInfo == null) {
+                DonauStatus.Unset(taxReceipt.donauUrls.distinct())
+            } else if (taxReceipt.donauUrls.contains(donauInfo!!.donauBaseUrl)) {
+                DonauStatus.Available
+            } else {
+                DonauStatus.Mismatch(
+                    donauInfo = donauInfo!!,
+                    donauUrls = taxReceipt.donauUrls.distinct(),
+                )
+            }
+        } else {
+            DonauStatus.Unavailable
         }
     }
 

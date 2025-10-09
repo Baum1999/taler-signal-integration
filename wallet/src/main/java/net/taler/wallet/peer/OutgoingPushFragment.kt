@@ -22,6 +22,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -33,6 +34,7 @@ import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
+import net.taler.wallet.main.ViewMode
 import net.taler.wallet.compose.AmountScope
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
@@ -65,13 +67,16 @@ class OutgoingPushFragment : Fragment() {
             setContent {
                 TalerSurface {
                     val state = peerManager.pushState.collectAsStateLifecycleAware().value
-                    val selectedScope by transactionManager.selectedScope.collectAsStateLifecycleAware()
+                    val viewMode by model.viewMode.collectAsStateLifecycleAware()
                     OutgoingPushComposable(
                         state = state,
-                        defaultScope = selectedScope,
+                        defaultScope = remember { (viewMode as? ViewMode.Transactions)?.selectedScope },
                         scopes = balanceManager.getScopes(),
                         getCurrencySpec = exchangeManager::getSpecForScopeInfo,
-                        getFees = { peerManager.checkPeerPushFees(it.amount, restrictScope = it.scope) },
+                        getFees = {
+                            model.selectScope(it.scope)
+                            peerManager.checkPeerPushFees(it.amount, restrictScope = it.scope)
+                        },
                         onSend = this@OutgoingPushFragment::onSend,
                         onClose = {
                             findNavController().navigate(R.id.action_nav_peer_push_to_nav_main)

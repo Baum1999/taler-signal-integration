@@ -50,6 +50,7 @@ import net.taler.common.Amount
 import net.taler.common.EventObserver
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
+import net.taler.wallet.main.ViewMode
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo
@@ -90,7 +91,9 @@ class PromptWithdrawFragment: Fragment() {
         val withdrawExchangeUri = arguments?.getString("withdrawExchangeUri")
         val exchangeBaseUrl = arguments?.getString("exchangeBaseUrl")
         val amount = arguments?.getString("amount")?.let { Amount.fromJSONString(it) }
-        val scope: ScopeInfo? = arguments?.getString("scopeInfo")?.let { BackendManager.json.decodeFromString(it) }
+        val scope: ScopeInfo? = arguments?.getString("scopeInfo")?.let {
+            BackendManager.json.decodeFromString(it)
+        } ?: (model.viewMode.value as? ViewMode.Transactions)?.selectedScope
         editableCurrency = arguments?.getBoolean("editableCurrency") ?: true
         val scopes = balanceManager.getScopes()
 
@@ -106,7 +109,6 @@ class PromptWithdrawFragment: Fragment() {
 
             val defaultScope = scope
                 ?: status.scopeInfo
-                ?: transactionManager.selectedScope.value
                 ?: scopes.firstOrNull()
 
             LaunchedEffect(status.status) {
@@ -183,7 +185,7 @@ class PromptWithdrawFragment: Fragment() {
                                     findNavController().navigate(R.id.action_global_reviewExchangeTos, args)
                                 },
                                 onConfirm = { age ->
-                                    exchange?.scopeInfo?.let { model.transactionManager.selectScope(it) }
+                                    exchange?.scopeInfo?.let { model.selectScope(it) }
                                     withdrawManager.acceptWithdrawal(age)
                                 },
                             )
@@ -224,7 +226,7 @@ class PromptWithdrawFragment: Fragment() {
                                 } else return@let
 
                                 if (transactionManager.selectTransaction(it)) {
-                                    status.amountInfo?.scopeInfo?.let { s -> transactionManager.selectScope(s) }
+                                    status.amountInfo?.scopeInfo?.let { s -> model.selectScope(s) }
                                     findNavController().navigate(R.id.action_promptWithdraw_to_nav_transactions_detail_withdrawal)
                                 } else {
                                     findNavController().navigate(R.id.action_promptWithdraw_to_nav_main)
@@ -243,7 +245,7 @@ class PromptWithdrawFragment: Fragment() {
                 withdrawManager.withdrawStatus.collect { status ->
                     when (status.status) {
                         TosReviewRequired -> {
-                            if (!acceptingTos && transactionManager.selectedScope.value != null) {
+                            if (!acceptingTos && model.viewMode.value is ViewMode.Transactions) {
                                 acceptingTos = true
                                 val args = bundleOf("exchangeBaseUrl" to status.exchangeBaseUrl)
                                 findNavController().navigate(R.id.action_global_reviewExchangeTos, args)

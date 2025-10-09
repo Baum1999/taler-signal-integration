@@ -33,6 +33,7 @@ import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
+import net.taler.wallet.main.ViewMode
 import net.taler.wallet.compose.AmountScope
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
@@ -54,17 +55,17 @@ class OutgoingPullFragment : Fragment() {
             setContent {
                 TalerSurface {
                     val state by peerManager.pullState.collectAsStateLifecycleAware()
-                    val selectedScope by transactionManager.selectedScope.collectAsStateLifecycleAware()
+                    val viewMode by model.viewMode.collectAsStateLifecycleAware()
                     OutgoingPullComposable(
                         state = state,
                         onCreateInvoice = this@OutgoingPullFragment::onCreateInvoice,
                         onTosAccept = this@OutgoingPullFragment::onTosAccept,
-                        defaultScope = remember { selectedScope },
+                        defaultScope = remember { (viewMode as? ViewMode.Transactions)?.selectedScope },
                         scopes = balanceManager.getScopes(),
                         getCurrencySpec = exchangeManager::getSpecForScopeInfo,
                         checkPeerPullCredit = { amount, loading ->
-                            transactionManager.selectScope(amount.scope)
-                             peerManager.checkPeerPullCredit(amount.amount,
+                            model.selectScope(amount.scope)
+                            peerManager.checkPeerPullCredit(amount.amount,
                                 scopeInfo = amount.scope,
                                 loading = loading,
                             )

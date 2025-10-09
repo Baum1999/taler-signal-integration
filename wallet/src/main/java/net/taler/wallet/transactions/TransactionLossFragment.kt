@@ -58,7 +58,6 @@ import net.taler.wallet.transactions.TransactionAction.Suspend
 import net.taler.wallet.transactions.TransactionMajorState.Pending
 
 class TransactionLossFragment: TransactionDetailFragment() {
-    val scope get() = transactionManager.selectedScope.value
 
     override fun onCreateView(
         inflater: LayoutInflater,

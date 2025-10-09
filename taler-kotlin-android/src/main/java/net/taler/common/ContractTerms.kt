@@ -233,45 +233,37 @@ data class ContractChoice(
 )
 
 @Serializable
-enum class ContractInputType {
-    @SerialName("token")
-    Token,
-}
-
-@Serializable
+@OptIn(ExperimentalSerializationApi::class)
+@JsonClassDiscriminator("type")
 sealed class ContractInput {
-    abstract val type: ContractInputType
-
     @Serializable
     @SerialName("token")
     data class Token(
         @SerialName("token_family_slug")
         val tokenFamilySlug: String,
         val count: Int = 1,
-    ): ContractInput() {
-        override val type: ContractInputType = ContractInputType.Token
-    }
+    ): ContractInput()
 }
 
 @Serializable
-enum class ContractOutputType {
-    @SerialName("token")
-    Token,
-}
-
-@Serializable
+@OptIn(ExperimentalSerializationApi::class)
+@JsonClassDiscriminator("type")
 sealed class ContractOutput {
-    abstract val type: ContractOutputType
-
     @Serializable
     @SerialName("token")
     data class Token(
         @SerialName("token_family_slug")
         val tokenFamilySlug: String,
         val count: Int = 1,
-    ): ContractOutput() {
-        override val type: ContractOutputType = ContractOutputType.Token
-    }
+    ): ContractOutput()
+
+    @Serializable
+    @SerialName("tax-receipt")
+    data class TaxReceipt(
+        val amount: Amount,
+        @SerialName("donau_urls")
+        val donauUrls: List<String>,
+    ): ContractOutput()
 }
 
 @Serializable

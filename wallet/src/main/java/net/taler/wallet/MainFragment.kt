@@ -1,6 +1,6 @@
 /*
  * This file is part of GNU Taler
- * (C) 2024 Taler Systems S.A.
+ * (C) 2025 Taler Systems S.A.
  *
  * GNU Taler is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -70,6 +70,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.compose.AndroidFragment
@@ -81,13 +82,13 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import net.taler.wallet.balances.BalanceState
-import net.taler.wallet.balances.BalancesComposable
-import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.DemandAttention
 import net.taler.wallet.compose.GridMenu
 import net.taler.wallet.compose.GridMenuItem
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
+import net.taler.wallet.main.MainComposable
+import net.taler.wallet.main.ViewMode
 import net.taler.wallet.settings.SettingsFragment
 import net.taler.wallet.transactions.Transaction
 import net.taler.wallet.transactions.TransactionMajorState
@@ -98,7 +99,7 @@ import kotlin.math.roundToInt
 
 class MainFragment: Fragment() {
 
-    enum class Tab { BALANCES, SETTINGS }
+    enum class Tab { ASSETS, SETTINGS }
 
     private val model: MainViewModel by activityViewModels()
 
@@ -110,7 +111,7 @@ class MainFragment: Fragment() {
     ): View = ComposeView(requireContext()).apply {
         setContent {
             TalerSurface {
-                var tab by rememberSaveable { mutableStateOf(Tab.BALANCES) }
+                var tab by rememberSaveable { mutableStateOf(Tab.ASSETS) }
                 var showSheet by remember { mutableStateOf(false) }
                 val sheetState = rememberModalBottomSheetState()
 
@@ -119,10 +120,11 @@ class MainFragment: Fragment() {
                 val context = LocalContext.current
                 val online by model.networkManager.networkStatus.observeAsState(false)
                 val balanceState by model.balanceManager.state.observeAsState(BalanceState.None)
-                val selectedScope by model.transactionManager.selectedScope.collectAsStateLifecycleAware()
-                val txStateFilter by model.transactionManager.stateFilter.collectAsStateLifecycleAware()
-                val txResult by remember(selectedScope, txStateFilter) { model.transactionManager.transactionsFlow(selectedScope, stateFilter = txStateFilter) }.collectAsStateLifecycleAware()
-                val selectedSpec = remember(selectedScope) { selectedScope?.let { model.exchangeManager.getSpecForScopeInfo(it) } }
+                val viewMode by model.viewMode.collectAsStateLifecycleAware()
+                val txResult by remember(viewMode) {
+                    val v = viewMode as? ViewMode.Transactions
+                    model.transactionManager.transactionsFlow(v?.selectedScope, stateFilter = v?.stateFilter)
+                }.collectAsStateLifecycleAware()
                 val actionButtonUsed by remember { model.settingsManager.getActionButtonUsed(context) }.collectAsStateLifecycleAware(true)
 
                 Scaffold(
@@ -130,13 +132,12 @@ class MainFragment: Fragment() {
                         NavigationBar {
                             NavigationBarItem(
                                 icon = { Icon(Icons.Default.BarChart, contentDescription = null) },
-                                label = { Text(stringResource(R.string.balances_title)) },
-                                selected = tab == Tab.BALANCES,
+                                label = { Text(stringResource(R.string.assets_title)) },
+                                selected = tab == Tab.ASSETS,
                                 onClick = {
-                                    tab = Tab.BALANCES
-                                    if (selectedScope != null) {
-                                        model.transactionManager.selectScope(null)
-                                    }
+                                    tab = Tab.ASSETS
+                                    if (viewMode !is ViewMode.Assets)
+                                        model.showAssets()
                                 }
                             )
 
@@ -165,32 +166,31 @@ class MainFragment: Fragment() {
                     )
                 ) { innerPadding ->
                     LaunchedEffect(Unit) {
-                        if (selectedScope == null) {
-                            model.transactionManager.selectScope(
-                                model.settingsManager.getSelectedScope(context).first()
-                            )
-                        }
+                        val viewMode = model.settingsManager.getViewMode(context).first()
+                        model.setViewMode(viewMode)
                     }
 
-                    LaunchedEffect(tab, selectedScope) {
-                        setTitle(tab, selectedScope)
+                    LaunchedEffect(tab, viewMode) {
+                        setTitle(tab, viewMode)
                     }
 
-                    BackHandler(selectedScope != null) {
-                        model.transactionManager.selectScope(null)
+                    BackHandler(viewMode !is ViewMode.Assets) {
+                        model.showAssets()
                     }
 
                     when (tab) {
-                        Tab.BALANCES -> BalancesComposable(
+                        Tab.ASSETS -> MainComposable(
                             innerPadding = innerPadding,
                             state = balanceState,
                             txResult = txResult,
-                            txStateFilter = txStateFilter,
-                            selectedScope = selectedScope,
-                            selectedCurrencySpec = selectedSpec,
+                            viewMode = viewMode,
                             onGetDemoMoneyClicked = {
                                 model.withdrawManager.withdrawTestBalance()
-                                Snackbar.make(requireView(), getString(R.string.settings_test_withdrawal), LENGTH_LONG).show()
+                                Snackbar.make(
+                                    requireView(),
+                                    getString(R.string.settings_test_withdrawal),
+                                    LENGTH_LONG
+                                ).show()
                             },
                             onBalanceClicked = {
                                 model.showTransactions(it.scopeInfo)
@@ -203,14 +203,19 @@ class MainFragment: Fragment() {
                             },
                             onTransactionsDelete = { txIds ->
                                 model.transactionManager.deleteTransactions(txIds) { error ->
-                                    Toast.makeText(context, error.userFacingMsg, Toast.LENGTH_LONG).show()
+                                    Toast.makeText(context, error.userFacingMsg, Toast.LENGTH_LONG)
+                                        .show()
                                 }
                             },
                             onShowBalancesClicked = {
-                                if (model.transactionManager.selectedScope.value != null) {
-                                    model.transactionManager.selectScope(null)
-                                }
+                                model.showAssets()
                             },
+                            onStatementClicked = {
+                                findNavController().navigate(
+                                    R.id.nav_donau_statement,
+                                    bundleOf("donationStatementSig" to it),
+                                )
+                            }
                         )
                         Tab.SETTINGS -> SettingsView(
                             innerPadding = innerPadding,
@@ -265,24 +270,16 @@ class MainFragment: Fragment() {
 
     override fun onStart() {
         super.onStart()
-        model.balanceManager.loadBalances()
-        model.balanceManager.state.observe(viewLifecycleOwner) { res ->
-            if (res is BalanceState.Success) {
-                if (res.balances.size == 1) {
-                    // pre-select on startup if it's the only one
-                    model.transactionManager.selectScope(res.balances.first().scopeInfo)
-                }
-            }
-        }
+        model.balanceManager.loadAssets(model.viewMode.value is ViewMode.Assets)
     }
 
-    private fun setTitle(tab: Tab, scope: ScopeInfo?) {
+    private fun setTitle(tab: Tab, viewMode: ViewMode?) {
         (requireActivity() as AppCompatActivity).apply {
             supportActionBar?.title = when (tab) {
-                Tab.BALANCES -> if (scope != null) {
-                    getString(R.string.transactions_title)
-                } else {
-                    getString(R.string.balances_title)
+                Tab.ASSETS -> when(viewMode) {
+                    is ViewMode.Assets -> getString(R.string.assets_title)
+                    is ViewMode.Transactions -> getString(R.string.transactions_title)
+                    null -> getString(R.string.loading)
                 }
 
                 Tab.SETTINGS -> getString(R.string.menu_settings)

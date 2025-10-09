@@ -28,6 +28,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonPrimitive
+import net.taler.wallet.PrefsStateFilter
 import net.taler.wallet.TAG
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
@@ -51,7 +52,23 @@ enum class TransactionStateFilter {
     Nonfinal,
 
     @SerialName("done")
-    Done,
+    Done;
+
+    fun toPrefs(): PrefsStateFilter = when(this) {
+        Done -> PrefsStateFilter.DONE
+        Final -> PrefsStateFilter.FINAL
+        Nonfinal -> PrefsStateFilter.NONFINAL
+    }
+
+    companion object {
+        fun fromPrefs(prefs: PrefsStateFilter): TransactionStateFilter? = when(prefs) {
+            PrefsStateFilter.DONE -> Done
+            PrefsStateFilter.FINAL -> Final
+            PrefsStateFilter.NONFINAL -> Nonfinal
+            PrefsStateFilter.NONE,
+            PrefsStateFilter.UNRECOGNIZED -> null
+        }
+    }
 }
 
 class TransactionManager(
@@ -61,14 +78,8 @@ class TransactionManager(
     private val allTransactions = HashMap<ScopeInfo, List<Transaction>>()
     private val mTransactions = HashMap<ScopeInfo, MutableStateFlow<TransactionsResult>>()
     private val mSelectedTransaction = MutableStateFlow<Transaction?>(null)
-    private val mSelectedScope = MutableStateFlow<ScopeInfo?>(null)
-    private val mSearchQuery = MutableStateFlow<String?>(null)
-    private val mStateFilter = MutableStateFlow<TransactionStateFilter?>(null)
 
     val selectedTransaction = mSelectedTransaction.asStateFlow()
-    val selectedScope = mSelectedScope.asStateFlow()
-    val searchQuery = mSearchQuery.asStateFlow()
-    val stateFilter = mStateFilter.asStateFlow()
 
     // This function must be called ONLY when scopeInfo / searchQuery change!
     // Use remember() {} in Compose to prevent multiple calls during recomposition
@@ -77,7 +88,6 @@ class TransactionManager(
         searchQuery: String? = null,
         stateFilter: TransactionStateFilter? = null,
     ): StateFlow<TransactionsResult> {
-        loadTransactions()
         return if (scopeInfo != null) {
             loadTransactions(scopeInfo, searchQuery, stateFilter)
             mTransactions[scopeInfo]?.asStateFlow()
@@ -94,7 +104,7 @@ class TransactionManager(
         stateFilter: TransactionStateFilter? = null,
     ) {
         Log.d(TAG, "loadTransactions($scopeInfo, $searchQuery, $stateFilter)")
-        val s = scopeInfo ?: mSelectedScope.value ?: run {
+        val s = scopeInfo ?: run {
             MutableStateFlow(TransactionsResult.None)
             return
         }
@@ -195,18 +205,6 @@ class TransactionManager(
         mSelectedTransaction.value = tx
     }
 
-    fun selectScope(
-        scopeInfo: ScopeInfo?,
-        stateFilter: TransactionStateFilter? = null,
-    ) {
-        mSelectedScope.value = scopeInfo
-        mStateFilter.value = stateFilter
-    }
-
-    fun setSearchQuery(searchQuery: String?) = scope.launch {
-        mSearchQuery.value = searchQuery
-    }
-
     fun deleteTransaction(transactionId: String, onError: (it: TalerErrorInfo) -> Unit) =
         scope.launch {
             api.request<Unit>("deleteTransaction") {
@@ -280,9 +278,9 @@ class TransactionManager(
         }
 
     fun deleteTransactions(transactionIds: List<String>, onError: (it: TalerErrorInfo) -> Unit) {
-        allTransactions[selectedScope.value]?.filter { transaction ->
+        allTransactions.values.flatten().filter { transaction ->
             transaction.transactionId in transactionIds
-        }?.forEach { toBeDeletedTx ->
+        }.forEach { toBeDeletedTx ->
             if (Delete in toBeDeletedTx.txActions) {
                 deleteTransaction(toBeDeletedTx.transactionId) {
                     onError(it)
