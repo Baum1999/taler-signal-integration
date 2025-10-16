@@ -42,7 +42,7 @@ public final class DonauNetworkClient {
         }
     }
 
-    public String fetchSigningKey(int targetYear) throws IOException, JSONException {
+    public List<String> fetchSigningKeys() throws IOException, JSONException {
         URL url = buildUrl("keys");
         HttpURLConnection connection = openGetConnection(url);
         connection.setRequestProperty("Accept", "application/json");
@@ -55,24 +55,17 @@ public final class DonauNetworkClient {
             JSONObject json = new JSONObject(body);
             JSONArray signkeys = json.optJSONArray("signkeys");
             if (signkeys == null) {
-                return null;
+                return Collections.emptyList();
             }
-            String fallback = null;
+            List<String> result = new ArrayList<>();
             for (int i = 0; i < signkeys.length(); i++) {
                 Object entry = signkeys.get(i);
                 String keyCandidate = extractSigningKey(entry);
-                if (keyCandidate == null) {
-                    continue;
-                }
-                int yearCandidate = extractYear(entry);
-                if (targetYear != Integer.MIN_VALUE && yearCandidate == targetYear) {
-                    return keyCandidate;
-                }
-                if (fallback == null) {
-                    fallback = keyCandidate;
+                if (keyCandidate != null) {
+                    result.add(keyCandidate);
                 }
             }
-            return fallback;
+            return result;
         } finally {
             connection.disconnect();
         }

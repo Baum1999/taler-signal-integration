@@ -2,6 +2,15 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <androidx.preference.SwitchPreferenceCompat
+        android:key="pref_auto_open_donau"
+        android:title="@string/pref_auto_open_donau_title"
+        android:summaryOn="@string/pref_auto_open_donau_summary_on"
+        android:summaryOff="@string/pref_auto_open_donau_summary_off"
+        android:defaultValue="true"
+        android:icon="@drawable/ic_info"
+        app:iconSpaceReserved="true"
+        app:isPreferenceVisible="true" />
+    <androidx.preference.SwitchPreferenceCompat
         android:key="pref_developer_mode"
         android:title="@string/pref_developer_mode_title"
         android:summaryOn="@string/pref_developer_mode_summary_on"

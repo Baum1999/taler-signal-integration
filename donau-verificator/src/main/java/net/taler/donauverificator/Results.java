@@ -71,6 +71,7 @@ public class Results extends AppCompatActivity {
     private String salt;
     private String eddsaSignature;
     private String publicKey;
+    private final List<String> publicKeys = new ArrayList<>();
     private DonauNetworkClient networkClient;
     TextView sigStatusView;
     View summaryContainer;
@@ -152,15 +153,31 @@ public class Results extends AppCompatActivity {
     }
 
     private void checkSignature() throws Exception{
-
-        int res = ed25519_verify(year, totalAmount, taxId,
-                salt, eddsaSignature, publicKey);
-        System.out.println("Result: " + res);
-        if (res == 0) {
-            statusHandling(SignatureStatus.SIGNATURE_VALID);
-        } else {
-            statusHandling(SignatureStatus.SIGNATURE_INVALID);
+        if (!isEmpty(publicKey)) {
+            int res = ed25519_verify(year, totalAmount, taxId, salt, eddsaSignature, publicKey);
+            if (res == 0) {
+                statusHandling(SignatureStatus.SIGNATURE_VALID);
+            } else {
+                statusHandling(SignatureStatus.SIGNATURE_INVALID);
+            }
+            return;
         }
+
+        if (publicKeys.isEmpty()) {
+            statusHandling(SignatureStatus.SIGNATURE_INVALID);
+            return;
+        }
+
+        for (String candidate : publicKeys) {
+            if (isEmpty(candidate)) continue;
+            int res = ed25519_verify(year, totalAmount, taxId, salt, eddsaSignature, candidate);
+            if (res == 0) {
+                publicKey = candidate; // remember the matching key for UI/details
+                statusHandling(SignatureStatus.SIGNATURE_VALID);
+                return;
+            }
+        }
+        statusHandling(SignatureStatus.SIGNATURE_INVALID);
     }
 
     private void startVerificationAsync() {
@@ -361,6 +378,7 @@ public class Results extends AppCompatActivity {
         salt = null;
         eddsaSignature = null;
         publicKey = null;
+        publicKeys.clear();
         networkClient = null;
     }
 
@@ -469,12 +487,12 @@ public class Results extends AppCompatActivity {
 
         try {
             DonauNetworkClient client = getNetworkClient();
-            int targetYear = parseYearOrDefault(year);
-            String fetchedKey = client.fetchSigningKey(targetYear);
-            if (isEmpty(fetchedKey)) {
+            List<String> fetched = client.fetchSigningKeys();
+            if (fetched == null || fetched.isEmpty()) {
                 return SignatureStatus.KEY_NOT_FOUND;
             }
-            publicKey = fetchedKey;
+            publicKeys.clear();
+            publicKeys.addAll(fetched);
             return null;
         } catch (HttpStatusException e) {
             Log.e(TAG, "Failed to download Donau signing keys, HTTP " + e.getStatusCode(), e);

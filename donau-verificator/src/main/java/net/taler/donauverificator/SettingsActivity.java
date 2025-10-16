@@ -28,6 +28,7 @@ import androidx.preference.PreferenceFragmentCompat;
 public class SettingsActivity extends AppCompatActivity {
 
     public static final String KEY_DEVELOPER_MODE = "pref_developer_mode";
+    public static final String KEY_AUTO_OPEN_DONAU = "pref_auto_open_donau";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

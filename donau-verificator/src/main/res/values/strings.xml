@@ -12,6 +12,9 @@
     <string name="pref_developer_mode_title">Developer mode</string>
     <string name="pref_developer_mode_summary_on">Developer features enabled; insecure Donau URIs allowed.</string>
     <string name="pref_developer_mode_summary_off">Developer features disabled.</string>
+    <string name="pref_auto_open_donau_title">Auto-open Donau links</string>
+    <string name="pref_auto_open_donau_summary_on">Valid Donau QR codes open the Results screen automatically.</string>
+    <string name="pref_auto_open_donau_summary_off">Ask for confirmation before opening Donau links.</string>
     <string name="status_insecure_http_disabled">Insecure Donau URI not allowed. Enable developer mode to proceed.</string>
     <string name="status_insecure_http_unsupported">This build does not support insecure Donau URIs.</string>
     <string name="status_key_download_failed">Unable to fetch Donau signing keys.</string>
@@ -31,4 +34,12 @@
     <string name="signature_info_public_key">Public key: %1$s</string>
     <string name="value_unknown">Unknown</string>
     <string name="title_donau_verifier">Donau Verifier</string>
+    <string name="permission_camera_title">Camera permission required</string>
+    <string name="permission_camera_message">To scan donation QR codes, the app needs access to your camera. Images are used only for scanning and are not saved.</string>
+    <string name="permission_camera_denied_title">Enable camera in Settings</string>
+    <string name="permission_camera_denied_message">Camera access is necessary to scan QR codes. Please enable the Camera permission for Donau Verify in your device settings.</string>
+    <string name="permission_open_settings">Open Settings</string>
+    <string name="permission_continue">Continue</string>
+    <string name="permission_granted">Permission granted</string>
+    <string name="scan_not_donau_link">Scanned code is not a valid Donau link</string>
 </resources>
