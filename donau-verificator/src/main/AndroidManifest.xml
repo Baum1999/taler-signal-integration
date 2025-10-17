@@ -42,6 +42,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="donau"/>
+                <data android:scheme="donau+http"/>
             </intent-filter>
         </activity>
     </application>
