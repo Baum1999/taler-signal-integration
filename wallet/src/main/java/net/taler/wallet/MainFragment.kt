@@ -213,7 +213,7 @@ class MainFragment: Fragment() {
                             onStatementClicked = {
                                 findNavController().navigate(
                                     R.id.nav_donau_statement,
-                                    bundleOf("donationStatementSig" to it),
+                                    bundleOf("host" to it),
                                 )
                             }
                         )

@@ -18,6 +18,7 @@ package net.taler.wallet.balances
 
 import android.util.Log
 import androidx.annotation.UiThread
+import androidx.compose.ui.util.fastDistinctBy
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.distinctUntilChanged
@@ -114,16 +115,25 @@ class BalanceManager(
     }
 
     private suspend fun loadDonauStatements(): List<DonauStatement>? {
-        var res: List<DonauStatement>? = null
+        var list: List<DonauStatement>? = null
         api.request("getDonauStatements", GetDonauStatementsResponse.serializer())
             .onError {
                 Log.e(TAG, "Error retrieving donau statements: $it")
                 // TODO: throw error when getDonationStatements stop relying on network
                 // mState.postValue(BalanceState.Error(it))
-            }.onSuccess {
-                res = it.statements
+            }.onSuccess { res ->
+                // only return last year for each authority
+                list = res.statements.map { statement ->
+                    val spec = runBlocking { exchangeManager
+                        .getSpecForCurrency(statement.total.currency) }
+                    statement.copy(total = statement.total.withSpec(spec))
+                }.sortedByDescending {
+                    it.year
+                }.fastDistinctBy {
+                    it.host
+                }
             }
-        return res
+        return list
     }
 
     @UiThread

@@ -35,7 +35,7 @@ fun MainComposable(
     onGetDemoMoneyClicked: () -> Unit,
     onBalanceClicked: (balance: BalanceItem) -> Unit,
     onPendingClicked: (balance: BalanceItem) -> Unit,
-    onStatementClicked: (sig: String) -> Unit,
+    onStatementClicked: (host: String) -> Unit,
     onTransactionClicked: (tx: Transaction) -> Unit,
     onTransactionsDelete: (txIds: List<String>) -> Unit,
     onShowBalancesClicked: () -> Unit,

@@ -110,7 +110,7 @@
         android:name="net.taler.wallet.donau.DonauStatementFragment"
         android:label="@string/donau_statement_title">
         <argument
-            android:name="donationStatementSig"
+            android:name="host"
             app:argType="string"
             app:nullable="false" />
     </fragment>

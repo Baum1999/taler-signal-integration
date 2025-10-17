@@ -126,7 +126,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <!-- Assets -->
 
     <string name="assets_section_balances">Balances</string>
-    <string name="assets_section_statements">Donations</string>
+    <string name="assets_section_statements">Donation statements</string>
     <string name="assets_title">Assets</string>
 
     <!-- Balances -->

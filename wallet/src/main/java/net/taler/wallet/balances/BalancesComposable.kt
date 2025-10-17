@@ -34,6 +34,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -71,13 +72,15 @@ fun BalancesComposable(
     onGetDemoMoneyClicked: () -> Unit,
     onBalanceClicked: (balance: BalanceItem) -> Unit,
     onPendingClicked: (balance: BalanceItem) -> Unit,
-    onStatementClicked: (sig: String) -> Unit,
+    onStatementClicked: (host: String) -> Unit,
 ) {
     when (state) {
         is BalanceState.None -> {}
         is BalanceState.Loading -> LoadingScreen()
         is BalanceState.Error -> WithdrawalError(state.error)
-        is BalanceState.Success -> if (state.balances.isNotEmpty()) {
+        is BalanceState.Success -> if (
+            state.balances.isNotEmpty()
+            || state.statements.isNotEmpty()) {
             LazyColumn(
                 Modifier
                     .consumeWindowInsets(innerPadding)
@@ -103,7 +106,9 @@ fun BalancesComposable(
                 items(state.statements, key = { it.year }) { statement ->
                     StatementRow(
                         statement,
-                        onClick = { onStatementClicked(statement.donationStatementSig) },
+                        onClick = { statement.host?.let {
+                            onStatementClicked(it)
+                        } },
                     )
                 }
             }
@@ -196,16 +201,27 @@ fun StatementRow(
                     .padding(vertical = 6.dp),
                 headlineContent = {
                     Text(
-                        "${statement.year}",
+                        statement.total.toString(),
                         style = MaterialTheme.typography.displaySmall,
                     )
                 },
                 overlineContent = {
-                    val host = statement.host
-                    if (host != null) ProvideTextStyle(MaterialTheme.typography.bodySmall) {
-                        Text(stringResource(R.string.balance_scope_exchange, host))
+                    ProvideTextStyle(value = MaterialTheme.typography.bodySmall) {
+                        Text(stringResource(R.string.balance_scope_exchange, statement.legalDomain))
                     }
-                }
+                },
+                trailingContent = {
+                    Badge(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ) {
+                        Text(
+                            "${statement.year}",
+                            modifier = Modifier.padding(6.dp),
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                    }
+                },
             )
         }
     }
@@ -307,10 +323,21 @@ fun BalancesComposablePreview() {
         ),
     )
 
+    val statements = listOf(
+        DonauStatement(
+            total = Amount.fromJSONString("KUDOS:0.1"),
+            year = 2025,
+            legalDomain = "Gnuland",
+            uri = "donau://donau.test.taler.net/...",
+            donationStatementSig = "1234567890",
+            donauPub = "1234567890"
+        )
+    )
+
     TalerSurface {
         BalancesComposable(
             innerPadding = PaddingValues(0.dp),
-            state = BalanceState.Success(balances, listOf()),
+            state = BalanceState.Success(balances, statements),
             onGetDemoMoneyClicked = {},
             onBalanceClicked = {},
             onPendingClicked = {},
