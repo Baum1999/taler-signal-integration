@@ -23,27 +23,25 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import kotlinx.coroutines.flow.MutableStateFlow
-import net.taler.common.showError
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
-import net.taler.wallet.balances.BalanceState
+import net.taler.wallet.compose.EmptyComposable
+import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
-import net.taler.wallet.showError
 
 class DonauStatementFragment: Fragment() {
     private val model: MainViewModel by activityViewModels()
 
     private lateinit var host: String
-    private val mStatements = MutableStateFlow<List<DonauStatement>>(emptyList())
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,49 +56,42 @@ class DonauStatementFragment: Fragment() {
 
         setContent {
             TalerSurface {
-                val statements by mStatements.collectAsStateLifecycleAware()
-                if (statements.isEmpty()) {
-                    LoadingScreen()
-                } else {
-                    var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
-                    DonauStatementComposable(statements, selectedIndex) { index ->
-                        selectedIndex = index
-                    }
+                val status by model.donauManager.donauStatementsStatus.collectAsStateLifecycleAware()
+                val devMode by model.devMode.observeAsState()
+                when (val s = status) {
+                    is GetDonauStatementsStatus.None,
+                    is GetDonauStatementsStatus.Loading -> LoadingScreen()
 
-                    LaunchedEffect(selectedIndex) {
-                        supportActionBar?.title =
-                            getString(
+                    is GetDonauStatementsStatus.Error -> ErrorComposable(
+                        error = s.error,
+                        devMode = devMode == true,
+                    )
+
+                    is GetDonauStatementsStatus.Success -> if (s.statements.isEmpty()) {
+                        EmptyComposable()
+                    } else {
+                        var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
+                        DonauStatementComposable(
+                            statements = s.statements,
+                            selectedIndex = selectedIndex,
+                        ) { index ->
+                            selectedIndex = index
+                        }
+
+                        LaunchedEffect(selectedIndex) {
+                            supportActionBar?.title = getString(
                                 R.string.donau_statement_title_year,
-                                statements[selectedIndex].year,
+                                s.statements[selectedIndex].year,
                             )
+                        }
                     }
                 }
             }
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-        model.balanceManager.state.observe(viewLifecycleOwner) { state ->
-            when (state) {
-                is BalanceState.Error -> {
-                    if (model.devMode.value == true) {
-                        showError(state.error)
-                    } else {
-                        showError(state.error.userFacingMsg)
-                    }
-                }
-
-                is BalanceState.Success -> {
-                    state.statements.filter {
-                        it.host == host
-                    }.let {
-                        mStatements.value = it
-                    }
-                }
-
-                else -> {}
-            }
-        }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        model.donauManager.getDonauStatements(host)
     }
 }

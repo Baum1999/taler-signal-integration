@@ -61,7 +61,7 @@ import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.cardPaddings
-import net.taler.wallet.donau.DonauStatement
+import net.taler.wallet.donau.DonauSummaryItem
 import net.taler.wallet.withdraw.WithdrawalError
 
 // TODO: rename to AssetsComposable
@@ -80,7 +80,7 @@ fun BalancesComposable(
         is BalanceState.Error -> WithdrawalError(state.error)
         is BalanceState.Success -> if (
             state.balances.isNotEmpty()
-            || state.statements.isNotEmpty()) {
+            || state.donauSummary.isNotEmpty()) {
             LazyColumn(
                 Modifier
                     .consumeWindowInsets(innerPadding)
@@ -99,16 +99,14 @@ fun BalancesComposable(
                     )
                 }
 
-                if (state.statements.isNotEmpty()) stickyHeader {
+                if (state.donauSummary.isNotEmpty()) stickyHeader {
                     SectionHeader { Text(stringResource(R.string.assets_section_statements)) }
                 }
 
-                items(state.statements, key = { it.year }) { statement ->
+                items(state.donauSummary, key = { it.year }) { statement ->
                     StatementRow(
                         statement,
-                        onClick = { statement.host?.let {
-                            onStatementClicked(it)
-                        } },
+                        onClick = { onStatementClicked(statement.donauBaseUrl) },
                     )
                 }
             }
@@ -189,7 +187,7 @@ fun BalanceRow(
 
 @Composable
 fun StatementRow(
-    statement: DonauStatement,
+    summaryItem: DonauSummaryItem,
     onClick: () -> Unit,
 ) {
     OutlinedCard(Modifier.cardPaddings()) {
@@ -201,13 +199,16 @@ fun StatementRow(
                     .padding(vertical = 6.dp),
                 headlineContent = {
                     Text(
-                        statement.total.toString(),
+                        summaryItem.amountReceiptsAvailable.toString(),
                         style = MaterialTheme.typography.displaySmall,
                     )
                 },
                 overlineContent = {
                     ProvideTextStyle(value = MaterialTheme.typography.bodySmall) {
-                        Text(stringResource(R.string.balance_scope_exchange, statement.legalDomain))
+                        // FIXME: security risk, faking donauBaseUrl!
+                        Text(stringResource(R.string.balance_scope_exchange,
+                            summaryItem.legalDomain
+                                ?: cleanExchange(summaryItem.donauBaseUrl)))
                     }
                 },
                 trailingContent = {
@@ -216,7 +217,7 @@ fun StatementRow(
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     ) {
                         Text(
-                            "${statement.year}",
+                            "${summaryItem.year}",
                             modifier = Modifier.padding(6.dp),
                             style = MaterialTheme.typography.titleMedium,
                         )
@@ -323,21 +324,21 @@ fun BalancesComposablePreview() {
         ),
     )
 
-    val statements = listOf(
-        DonauStatement(
-            total = Amount.fromJSONString("KUDOS:0.1"),
-            year = 2025,
+    val donauSummary = listOf(
+        DonauSummaryItem(
+            donauBaseUrl = "https://donau.test.taler.net/",
             legalDomain = "Gnuland",
-            uri = "donau://donau.test.taler.net/...",
-            donationStatementSig = "1234567890",
-            donauPub = "1234567890"
+            year = 2025,
+            amountReceiptsSubmitted = Amount.fromJSONString("KUDOS:10"),
+            amountReceiptsAvailable = Amount.fromJSONString("KUDOS:10"),
+
         )
     )
 
     TalerSurface {
         BalancesComposable(
             innerPadding = PaddingValues(0.dp),
-            state = BalanceState.Success(balances, statements),
+            state = BalanceState.Success(balances, donauSummary),
             onGetDemoMoneyClicked = {},
             onBalanceClicked = {},
             onPendingClicked = {},

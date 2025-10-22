@@ -55,6 +55,36 @@ data class DonauStatement(
 }
 
 @Serializable
+data class DonauSummaryItem(
+    /** Base URL of the donau service. */
+    val donauBaseUrl: String,
+
+    /** Legal domain of the donau service (if available). */
+    val legalDomain: String? = null,
+
+    /** Year of the donation(s). */
+    val year: Int,
+
+    /**
+     * Sum of donation receipts we received from merchants in the
+     * applicable year.
+     */
+    val amountReceiptsAvailable: Amount,
+
+    /**
+     * Sum of donation receipts that were already submitted
+     * to the donau in the applicable year.
+     */
+    val amountReceiptsSubmitted: Amount,
+
+    /**
+     * Amount of the latest available statement. Missing if no statement
+     * was requested yet.
+     */
+    val amountStatement: Amount? = null,
+)
+
+@Serializable
 data class GetDonauStatementsResponse(
     val statements: List<DonauStatement>,
 )

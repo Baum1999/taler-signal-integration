@@ -60,6 +60,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="currency_url">%1$s (%2$s)</string>
     <string name="currency_via">via</string>
     <string name="edit">Edit</string>
+    <string name="empty">No items were found</string>
     <string name="enter_uri">Enter taler:// URI</string>
     <string name="enter_uri_label">Enter URI</string>
     <string name="error">Error</string>

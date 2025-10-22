@@ -21,16 +21,23 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import net.taler.wallet.TAG
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
+import net.taler.wallet.exchanges.ExchangeManager
 
 class DonauManager(
     private val api: WalletBackendApi,
     private val scope: CoroutineScope,
+    private val exchangeManager: ExchangeManager,
 ) {
     private val mDonauStatus = MutableStateFlow<GetDonauStatus>(GetDonauStatus.None)
     val donauStatus = mDonauStatus.asStateFlow()
+
+    private val mDonauStatementsStatus =
+        MutableStateFlow<GetDonauStatementsStatus>(GetDonauStatementsStatus.None)
+    val donauStatementsStatus = mDonauStatementsStatus.asStateFlow()
 
     fun setDonau(
         info: DonauInfo,
@@ -58,5 +65,32 @@ class DonauManager(
             }.onSuccess { res ->
                 mDonauStatus.value = GetDonauStatus.Success(res.currentDonauInfo)
             }
+    }
+
+    fun getDonauStatements(
+        donauBaseUrl: String? = null,
+    ) = scope.launch {
+        mDonauStatementsStatus.value = GetDonauStatementsStatus.Loading
+        api.request("getDonauStatements", GetDonauStatementsResponse.serializer()) {
+            donauBaseUrl?.let { put("donauBaseUrl", it) }
+            this
+        }.onError { error ->
+            Log.e(TAG, "Error retrieving donau statements: $error")
+            mDonauStatementsStatus.value = GetDonauStatementsStatus.Error(error)
+        }.onSuccess { res ->
+            val statements = res.statements.map { statement ->
+                val spec = runBlocking { exchangeManager
+                    .getSpecForCurrency(statement.total.currency) }
+                statement.copy(
+                    total = statement.total.withSpec(spec)
+                )
+            }.sortedByDescending {
+                it.year
+            }
+
+            mDonauStatementsStatus.value = GetDonauStatementsStatus.Success(
+                statements = statements,
+            )
+        }
     }
 }

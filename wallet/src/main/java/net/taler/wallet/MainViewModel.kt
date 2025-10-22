@@ -123,7 +123,7 @@ class MainViewModel(
     val settingsManager: SettingsManager = SettingsManager(app.applicationContext, api, viewModelScope, balanceManager)
     val accountManager: AccountManager = AccountManager(api, viewModelScope)
     val depositManager: DepositManager = DepositManager(api, viewModelScope, balanceManager)
-    val donauManager: DonauManager = DonauManager(api, viewModelScope)
+    val donauManager: DonauManager = DonauManager(api, viewModelScope, exchangeManager)
 
     private val mAuthenticated = MutableStateFlow(false)
     val authenticated: StateFlow<Boolean> = mAuthenticated

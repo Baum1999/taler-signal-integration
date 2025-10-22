@@ -18,7 +18,6 @@ package net.taler.wallet.balances
 
 import android.util.Log
 import androidx.annotation.UiThread
-import androidx.compose.ui.util.fastDistinctBy
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.distinctUntilChanged
@@ -31,14 +30,14 @@ import net.taler.common.CurrencySpecification
 import net.taler.wallet.TAG
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
-import net.taler.wallet.donau.DonauStatement
-import net.taler.wallet.donau.GetDonauStatementsResponse
+import net.taler.wallet.donau.DonauSummaryItem
 import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.exchanges.ExchangeManager
 
 @Serializable
 data class BalanceResponse(
-    val balances: List<BalanceItem>
+    val balances: List<BalanceItem>,
+    val donauSummary: List<DonauSummaryItem>? = null,
 )
 
 @Serializable
@@ -53,7 +52,7 @@ sealed class BalanceState {
 
     data class Success(
         val balances: List<BalanceItem>,
-        val statements: List<DonauStatement>,
+        val donauSummary: List<DonauSummaryItem>,
     ): BalanceState()
 
     data class Error(
@@ -75,65 +74,37 @@ class BalanceManager(
 
     fun loadAssets(loading: Boolean = false) = scope.launch {
         if (loading) mState.postValue(BalanceState.Loading)
-        loadBalances()?.let { balancesList ->
-            mState.postValue(BalanceState.Success(
-                balances = balancesList,
-                statements = emptyList(),
-            ))
-
-            // TODO: load lists together when getDonationStatements stops relying on network
-            loadDonauStatements()?.let { statementsList ->
-                mState.postValue(BalanceState.Success(
-                    balances = balancesList,
-                    statements = statementsList,
-                ))
-            }
-        }
-    }
-
-    private suspend fun loadBalances(): List<BalanceItem>? {
-        var res: List<BalanceItem>? = null
         api.request("getBalances", BalanceResponse.serializer())
             .onError {
                 Log.e(TAG, "Error retrieving balances: $it")
                 mState.postValue(BalanceState.Error(it))
-            }.onSuccess {
-                it.balances.map { balance ->
+            }.onSuccess { res ->
+                val balances = res.balances.map { balance ->
                     val spec = runBlocking { exchangeManager
                         .getCurrencySpecification(balance.scopeInfo) }
                     balance.copy(
                         available = balance.available.withSpec(spec),
-                        pendingIncoming = balance.pendingIncoming.withSpec(spec),
-                        pendingOutgoing = balance.pendingOutgoing.withSpec(spec),
+                        pendingIncoming = balance.available.withSpec(spec),
+                        pendingOutgoing = balance.available.withSpec(spec),
                     )
-                }.let { balances ->
-                    res = balances
-                    mBalances.postValue(balances)
                 }
-            }
-        return res
-    }
 
-    private suspend fun loadDonauStatements(): List<DonauStatement>? {
-        var list: List<DonauStatement>? = null
-        api.request("getDonauStatements", GetDonauStatementsResponse.serializer())
-            .onError {
-                Log.e(TAG, "Error retrieving donau statements: $it")
-                // TODO: throw error when getDonationStatements stop relying on network
-                // mState.postValue(BalanceState.Error(it))
-            }.onSuccess { res ->
-                // only return last year for each authority
-                list = res.statements.map { statement ->
+                val donauSummary = res.donauSummary?.map { item ->
                     val spec = runBlocking { exchangeManager
-                        .getSpecForCurrency(statement.total.currency) }
-                    statement.copy(total = statement.total.withSpec(spec))
-                }.sortedByDescending {
-                    it.year
-                }.fastDistinctBy {
-                    it.host
-                }
+                        .getSpecForCurrency(item.amountReceiptsAvailable.currency) }
+                    item.copy(
+                        amountReceiptsAvailable = item.amountReceiptsAvailable.withSpec(spec),
+                        amountReceiptsSubmitted = item.amountReceiptsSubmitted.withSpec(spec),
+                        amountStatement = item.amountStatement?.withSpec(spec),
+                    )
+                } ?: emptyList()
+
+                mBalances.postValue(balances)
+                mState.postValue(BalanceState.Success(
+                    balances = balances,
+                    donauSummary = donauSummary,
+                ))
             }
-        return list
     }
 
     @UiThread

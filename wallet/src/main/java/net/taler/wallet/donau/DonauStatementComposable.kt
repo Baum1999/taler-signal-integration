@@ -62,7 +62,8 @@ fun DonauStatementComposable(
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = CenterHorizontally,
     ) {
-        ScrollableTabRow(
+        // only show tab row if more than one year
+        if (statements.size > 1) ScrollableTabRow(
             selectedTabIndex = selectedIndex,
             edgePadding = 8.dp,
         ) {
@@ -90,7 +91,6 @@ fun DonauStatementComposable(
             buttonText = stringResource(id = R.string.copy),
             shareAsQrCode = true,
         )
-
 
         TransactionAmountComposable(
             label = stringResource(id = R.string.amount_total),
