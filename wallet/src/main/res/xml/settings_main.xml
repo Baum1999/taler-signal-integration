@@ -15,14 +15,22 @@
   -->
 
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <Preference
         app:fragment="net.taler.wallet.exchanges.ExchangeListFragment"
-        app:icon="@drawable/ic_account_balance"
+        app:icon="@drawable/ic_account_balance_wallet"
         app:key="pref_exchanges"
         app:summary="@string/exchange_settings_summary"
         app:title="@string/exchange_settings_title" />
+
+    <Preference
+        android:fragment="net.taler.wallet.accounts.BankAccountsFragment"
+        android:icon="@drawable/ic_account_balance"
+        android:key="pref_accounts"
+        android:summary="@string/settings_bank_accounts_summary"
+        android:title="@string/settings_bank_accounts" />
 
     <Preference
         app:fragment="net.taler.wallet.donau.SetDonauFragment"

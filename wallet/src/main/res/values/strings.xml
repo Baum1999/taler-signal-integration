@@ -412,7 +412,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="exchange_menu_manual_withdraw">Withdraw</string>
     <string name="exchange_not_contacted">Provider not contacted</string>
     <string name="exchange_reload">Reload information</string>
-    <string name="exchange_settings_summary">Manage list of providers known to this wallet</string>
+    <string name="exchange_settings_summary">Manage the providers known to this wallet</string>
     <string name="exchange_settings_title">Providers</string>
     <string name="exchange_tos_accept">Accept terms of service</string>
     <string name="exchange_tos_forget">Reject terms of service</string>
@@ -439,6 +439,8 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="settings_alert_import_canceled">Import cancelled</string>
     <string name="settings_alert_reset_canceled">Reset cancelled</string>
     <string name="settings_alert_reset_done">Wallet has been reset</string>
+    <string name="settings_bank_accounts">Bank accounts</string>
+    <string name="settings_bank_accounts_summary">Manage your bank accounts for deposits</string>
     <string name="settings_db_clear_error">Error cleaning database</string>
     <string name="settings_db_export">Export database</string>
     <string name="settings_db_export_error">Error exporting database</string>

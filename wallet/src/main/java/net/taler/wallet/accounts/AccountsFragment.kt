@@ -19,6 +19,7 @@ package net.taler.wallet.accounts
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -59,7 +60,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -235,15 +238,25 @@ fun BankAccountRow(
         ),
         leadingContent = {
             Avatar {
-                Icon(
-                    when(paytoUri) {
-                        is PaytoUriTalerBank -> Icons.Default.Dns
-                        is PaytoUriBitcoin -> Icons.Default.CurrencyBitcoin
-                        else -> Icons.Default.AccountBalance
-                    },
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    contentDescription = null,
-                )
+                when(paytoUri) {
+                    is PaytoUriTalerBank -> Image(
+                        painterResource(R.drawable.ic_actions),
+                        contentDescription = null,
+                        colorFilter = ColorFilter.tint(
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        )
+                    )
+                    is PaytoUriBitcoin -> Icon(
+                        Icons.Default.CurrencyBitcoin,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    )
+                    else -> Icon(
+                        Icons.Default.AccountBalance,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    )
+                }
             }
         },
         overlineContent = {

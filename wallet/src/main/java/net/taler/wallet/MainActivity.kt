@@ -337,6 +337,7 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
     ): Boolean {
         when (pref.key) {
             "pref_exchanges" -> nav.navigate(R.id.nav_settings_exchanges)
+            "pref_accounts" -> nav.navigate(R.id.bankAccountsFragment)
             "pref_donau" -> nav.navigate(R.id.nav_settings_donau)
         }
         return true
