@@ -20,7 +20,7 @@
 
     <Preference
         app:fragment="net.taler.wallet.exchanges.ExchangeListFragment"
-        app:icon="@drawable/ic_account_balance_wallet"
+        app:icon="@drawable/ic_server"
         app:key="pref_exchanges"
         app:summary="@string/exchange_settings_summary"
         app:title="@string/exchange_settings_title" />

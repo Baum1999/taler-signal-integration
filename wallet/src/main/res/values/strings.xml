@@ -204,7 +204,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
 
     <!-- Donau -->
 
-    <string name="donau_id">Donor tax ID</string>
+    <string name="donau_id">Donor tax payer ID</string>
     <string name="donau_ready">Donations have been configured successfully</string>
     <string name="donau_select_button">Select tax authority</string>
     <string name="donau_selector_confirm">Setup tax payer ID</string>
@@ -412,7 +412,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="exchange_menu_manual_withdraw">Withdraw</string>
     <string name="exchange_not_contacted">Provider not contacted</string>
     <string name="exchange_reload">Reload information</string>
-    <string name="exchange_settings_summary">Manage the providers known to this wallet</string>
+    <string name="exchange_settings_summary">Manage the payment service providers known to this wallet</string>
     <string name="exchange_settings_title">Providers</string>
     <string name="exchange_tos_accept">Accept terms of service</string>
     <string name="exchange_tos_forget">Reject terms of service</string>
@@ -457,7 +457,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="settings_dialog_import_message">This operation will overwrite your existing database. Do you want to continue?</string>
     <string name="settings_dialog_reset_message">Do you really want to reset the wallet and lose all coins and purchases?</string>
     <string name="settings_donau">Tax-deductible donations</string>
-    <string name="settings_donau_summary">Set donation authority and donor tax ID</string>
+    <string name="settings_donau_summary">Set donation authority and tax payer ID</string>
     <string name="settings_lock_auth">Protect access to wallet</string>
     <string name="settings_lock_auth_summary">Require fingerprint or password to access the wallet</string>
     <string name="settings_logcat">Debug log</string>
