@@ -1,0 +1,1 @@
+As a tax authority running GNU Taler Donau, the Donau Verificator app makes verifying annual statements for tax-deductible donations as simple and easy as scanning a QR code.

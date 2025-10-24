@@ -1,0 +1,1 @@
+Verify GNU Taler donation statements easily by scanning their QR code
