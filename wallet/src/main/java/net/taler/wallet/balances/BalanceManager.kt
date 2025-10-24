@@ -84,8 +84,8 @@ class BalanceManager(
                         .getCurrencySpecification(balance.scopeInfo) }
                     balance.copy(
                         available = balance.available.withSpec(spec),
-                        pendingIncoming = balance.available.withSpec(spec),
-                        pendingOutgoing = balance.available.withSpec(spec),
+                        pendingIncoming = balance.pendingIncoming.withSpec(spec),
+                        pendingOutgoing = balance.pendingOutgoing.withSpec(spec),
                     )
                 }
 
