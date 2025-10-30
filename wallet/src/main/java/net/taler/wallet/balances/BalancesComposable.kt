@@ -103,7 +103,7 @@ fun BalancesComposable(
                     SectionHeader { Text(stringResource(R.string.assets_section_statements)) }
                 }
 
-                items(state.donauSummary, key = { it.year }) { statement ->
+                items(state.donauSummary) { statement ->
                     StatementRow(
                         statement,
                         onClick = { onStatementClicked(statement.donauBaseUrl) },
