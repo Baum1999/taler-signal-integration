@@ -8,6 +8,7 @@
     android:layout_height="match_parent"
     android:padding="16dp"
     android:background="@color/colorBackground"
+    android:fitsSystemWindows="true"
     tools:context=".Results">
 
     <com.google.android.material.button.MaterialButton

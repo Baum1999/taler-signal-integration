@@ -23,6 +23,7 @@ import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import net.taler.cashier.databinding.ActivityMainBinding
@@ -38,6 +39,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.enableEdgeToEdge(window)
         ui = ActivityMainBinding.inflate(layoutInflater)
         setContentView(ui.root)
         setSupportActionBar(ui.toolbar)

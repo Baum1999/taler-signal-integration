@@ -22,7 +22,7 @@ plugins {
 
 android {
     namespace 'net.taler.common'
-    compileSdk 34
+    compileSdkVersion 36
 
     defaultConfig {
         minSdkVersion 21
@@ -59,9 +59,10 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.7.0'
-    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
+    implementation 'androidx.core:core-ktx:1.17.0'
     implementation "androidx.constraintlayout:constraintlayout:$constraintlayout_version"
+    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
 
     // Navigation
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
@@ -71,12 +72,12 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
 
     // QR codes
-    implementation 'com.google.zxing:core:3.5.0'  // needs minSdkVersion 24+ or desugar
+    implementation 'com.google.zxing:core:3.5.3'  // needs minSdkVersion 24+ or desugar
 
     // JSON parsing and serialization
-    api 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2'
+    api 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0'
     testImplementation "junit:junit:$junit_version"
-    testImplementation 'org.json:json:20220320'
+    testImplementation 'org.json:json:20250517'
 
     // Networking
     api "io.ktor:ktor-client:$ktor_version"

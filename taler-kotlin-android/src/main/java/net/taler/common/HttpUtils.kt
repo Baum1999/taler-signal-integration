@@ -20,6 +20,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpRedirect
 import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.HttpTimeoutConfig.Companion.INFINITE_TIMEOUT_MS
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.ANDROID
 import io.ktor.client.plugins.logging.LogLevel
@@ -54,11 +55,11 @@ fun getDefaultHttpClient(
         requestTimeoutMillis = if (timeoutMs != null && timeoutMs > 0) {
             timeoutMs
         } else {
-            HttpTimeout.INFINITE_TIMEOUT_MS
+            INFINITE_TIMEOUT_MS
         }
 
-        socketTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
-        connectTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
+        socketTimeoutMillis = INFINITE_TIMEOUT_MS
+        connectTimeoutMillis = INFINITE_TIMEOUT_MS
     }
     install(HttpRedirect) {
         checkHttpMethod = !followRedirect

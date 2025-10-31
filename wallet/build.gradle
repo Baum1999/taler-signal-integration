@@ -20,7 +20,7 @@ plugins {
     id "com.android.application"
     id "kotlin-android"
     id "kotlinx-serialization"
-    id "com.google.protobuf" version "0.9.4"
+    id "com.google.protobuf" version "0.9.5"
     id "org.jetbrains.kotlin.plugin.compose" version "$kotlin_version"
 }
 
@@ -40,12 +40,12 @@ def gitCommit = { ->
 
 android {
     namespace 'net.taler.wallet'
-    compileSdk 35
+    compileSdkVersion 36
 
     defaultConfig {
         applicationId "net.taler.wallet"
         minSdkVersion 24
-        targetSdkVersion 35
+        targetSdkVersion 36
         versionCode 67
         versionName "1.0.11"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -129,25 +129,25 @@ dependencies {
     implementation 'androidx.preference:preference-ktx:1.2.1'
     implementation "com.google.android.material:material:$material_version"
     implementation "androidx.constraintlayout:constraintlayout:$constraintlayout_version"
-    implementation "androidx.browser:browser:1.8.0"
+    implementation "androidx.browser:browser:1.9.0"
     implementation "androidx.biometric:biometric-ktx:1.4.0-alpha02"
 
     // Compose
-    implementation platform('androidx.compose:compose-bom:2025.05.00')
+    implementation platform('androidx.compose:compose-bom:2025.05.01')
     implementation 'androidx.compose.material3:material3'
     implementation 'androidx.compose.material:material-icons-extended'
     implementation "androidx.compose.runtime:runtime-livedata"
     implementation "androidx.lifecycle:lifecycle-viewmodel-compose"
-    implementation "com.google.accompanist:accompanist-themeadapter-material3:0.28.0"
-    implementation 'androidx.activity:activity-compose:1.10.1'
+    implementation "com.google.accompanist:accompanist-themeadapter-material3:0.36.0"
+    implementation 'androidx.activity:activity-compose:1.11.0'
     implementation 'androidx.compose.ui:ui-tooling-preview'
     implementation 'androidx.compose.ui:ui-viewbinding'
-    implementation "androidx.fragment:fragment-compose:1.8.6"
+    implementation "androidx.fragment:fragment-compose:1.8.9"
     debugImplementation 'androidx.compose.ui:ui-tooling'
 
     // Lists and Selection
     implementation "androidx.recyclerview:recyclerview:1.4.0"
-    implementation "androidx.recyclerview:recyclerview-selection:1.1.0"
+    implementation "androidx.recyclerview:recyclerview-selection:1.2.0"
 
     // Navigation Library
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
@@ -178,7 +178,7 @@ dependencies {
     implementation  "com.google.protobuf:protobuf-javalite:3.18.0"
 
     testImplementation "junit:junit:$junit_version"
-    testImplementation 'org.json:json:20220320'
+    testImplementation 'org.json:json:20250517'
 }
 
 tasks.withType(KotlinCompile).configureEach {

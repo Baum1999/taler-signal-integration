@@ -20,6 +20,5 @@
         <item name="colorOnPrimary">@color/colorOnPrimary</item>
         <item name="colorPrimaryDark">@color/colorInversePrimary</item>
         <item name="colorAccent">@color/colorTertiary</item>
-        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
     </style>
 </resources>

@@ -17,12 +17,12 @@ def gitCommit = { ->
 
 android {
     namespace 'net.taler.donauverificator'
-    compileSdk 34
+    compileSdkVersion 36
 
     defaultConfig {
         applicationId "net.taler.donauverificator"
         minSdk 30
-        targetSdk 34
+        targetSdk 36
         versionCode 1
         versionName "1.0"
 

@@ -11,6 +11,7 @@
         <item name="colorOnSecondary">@color/colorOnSecondary</item>
         <!-- System bar colors. -->
         <item name="android:statusBarColor">@color/colorPrimary</item>
+        <item name="statusBarBackground">@color/colorPrimary</item>
         <item name="android:navigationBarColor">@color/colorBackground</item>
         <item name="colorControlActivated">@color/colorPrimary</item>
         <item name="android:colorControlActivated">@color/colorPrimary</item>
