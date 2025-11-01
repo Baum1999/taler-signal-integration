@@ -1,0 +1,4 @@
+- Update wallet-core to 1.1.0
+- Target Android API 36
+- Support for tax-deductible donations
+- Bug fixes and performance improvements
