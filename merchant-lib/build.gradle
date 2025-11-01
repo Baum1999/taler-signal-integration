@@ -24,7 +24,7 @@ plugins {
 
 android {
     namespace 'net.taler.merchantlib'
-    compileSdk 34
+    compileSdkVersion 36
 
     defaultConfig {
         minSdkVersion 21
