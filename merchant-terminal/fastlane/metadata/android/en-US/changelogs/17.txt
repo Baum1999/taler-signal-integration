@@ -1,0 +1,2 @@
+- Target Android API 36
+- Updated translations
