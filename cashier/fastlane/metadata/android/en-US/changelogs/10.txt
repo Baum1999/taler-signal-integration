@@ -1,0 +1,2 @@
+- Target Android SDK 36
+- Updated Hebrew translations
