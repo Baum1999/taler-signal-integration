@@ -38,7 +38,13 @@
         android:roundIcon="@mipmap/ic_taler_logo_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        tools:ignore="GoogleAppIndexingWarning">
+        android:enableOnBackInvokedCallback="false"
+        tools:ignore="GoogleAppIndexingWarning,UnusedAttribute">
+
+        <property
+            android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY"
+            android:value="true" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
