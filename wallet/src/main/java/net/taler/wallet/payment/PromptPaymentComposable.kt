@@ -167,7 +167,7 @@ fun PromptPaymentComposable(
                         status = status,
                         tokenFamilies = contractTerms.tokenFamilies,
                         selectedIndex = selectedIndex,
-                        merchantBaseUrl =contractTerms.merchantBaseUrl,
+                        merchantBaseUrl = contractTerms.merchantBaseUrl,
                         onSelect = { index -> selectedIndex = index },
                         onConfirm = onConfirm,
                         donauStatus = donauStatus,

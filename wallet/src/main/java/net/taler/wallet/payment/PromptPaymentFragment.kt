@@ -93,7 +93,9 @@ class PromptPaymentFragment: Fragment(), ProductImageClickListener {
                                 onImageClick(bitmap)
                             },
                             checkDonauStatus = { index ->
-                                paymentManager.checkDonauForChoice(status.choices[index])
+                                status.choices.find { it.choiceIndex == index }?.let { choice ->
+                                    paymentManager.checkDonauForChoice(choice)
+                                } ?: DonauStatus.Unavailable
                             },
                             onSetupDonau = { donauBaseUrl ->
                                 findNavController().navigate(
