@@ -23,7 +23,6 @@ import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import net.taler.common.Amount
 import net.taler.common.ContractInput
 import net.taler.common.ContractOutput
@@ -199,7 +198,7 @@ class PaymentManager(
                     }.thenByDescending {
                         it.details is PaymentPossible
                     }.thenByDescending {
-                        it.amountRaw
+                        it.amountRaw.toString()
                     },
                 ),
             )
