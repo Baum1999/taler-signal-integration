@@ -18,7 +18,7 @@
     <!-- Google Play Store -->
 
     <string name="google_play_title" tools:keep="@string/google_play_title">Taler pénztárca (kísérleti)</string>
-    <string name="google_play_short_desc" tools:keep="@string/google_play_short_desc"/>
+    <string name="google_play_short_desc" tools:keep="@string/google_play_short_desc">A GNU Taler fizetési rendszer gyors és egyszerű pénzátutalásokat tesz lehetővé adatvédelem és magas technikai biztonság mellett.</string>
     <string name="google_play_full_desc" tools:keep="@string/google_play_full_desc"/>
     <!-- Navigation  -->
 
