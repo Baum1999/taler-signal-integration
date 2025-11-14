@@ -411,4 +411,9 @@
     <string name="biometric_auth_error">Erreur d\'authentification : %1$s</string>
     <string name="biometric_auth_unavailable">Aucune méthode d\'authentification n\'est disponible.</string>
     <string name="settings_lock_auth_summary">Nécessite une empreinte digitale ou un mot de passe pour accéder au portefeuille</string>
+    <string name="empty">Aucun objet n\'a été trouvé</string>
+    <string name="error">Erreur</string>
+    <string name="save">Sauvegarder</string>
+    <string name="warning">Avertissement</string>
+    <string name="biometric_prompt_title">Déverrouillez pour utiliser le portefeuille</string>
 </resources>
