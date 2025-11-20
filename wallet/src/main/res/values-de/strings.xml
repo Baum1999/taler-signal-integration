@@ -57,7 +57,7 @@
     <string name="withdraw_error_title">Fehler beim Abheben</string>
     <string name="withdraw_error_message">Ein Abheben ist derzeit nicht möglich. Bitte zu einem späteren Zeitpunkt erneut versuchen!</string>
     <string name="withdraw_error_test">Es kam zu einem Fehler beim Abheben von KUDOS</string>
-    <string name="exchange_settings_summary">Verwaltung der Zahlungsdienstleister, die diesem Wallet bekannt sind</string>
+    <string name="exchange_settings_summary">Verwaltung der Zahlungsdienste in dieser Wallet-App</string>
     <string name="payment_fee">+%s Zahlungsgebühr</string>
     <string name="exchange_list_title">Zahlungsdienstleister</string>
     <string name="exchange_list_empty">Keine Zahlungsdienstleister bekannt
@@ -106,7 +106,7 @@
     <string name="refund_error">Fehler bei der Verarbeitung der Rückerstattung</string>
     <string name="refund_success">Rückerstattung erhalten!</string>
     <string name="tip_title">Trinkgeld</string>
-    <string name="wifi_disabled_error">Schalten Sie Wi-Fi ein, um kostenloses Wi-Fi zu erhalten</string>
+    <string name="wifi_disabled_error">Schalten Sie den WLAN-Empfang an, um eine WLAN-Verbindung aufzubauen</string>
     <string name="wifi_connect_error">Es konnte keine Verbindung zu kostenlosem WLAN hergestellt werden: %1$s</string>
     <string name="google_play_full_desc" tools:keep="@string/google_play_full_desc">Diese App ist eine Geldbörse für GNU Taler (Wallet). GNU Taler ist ein Bezahlsystem mit Datenschutz für die Käufer. Die Käufer bleiben anonym, das Einkommen der Händler hingegen ist offengelegt. Dies vermindert systematisch die Möglichkeit von Steuerhinterziehung und Geldwäsche. Die Hauptfunktion von GNU Taler ist das Bezahlen; es versteht sich nicht als Mittel zur Wertaufbewahrung. Alle Zahlungen sind durch eine schon bestehende Währung gedeckt. Zahlungen werden mit Hilfe eines Zahlungsdiensts (Taler Exchange) durchgeführt, an den die Käufer Geld überweisen und dafür elektronische Zahlungsmittel (e-cash) in ihre Taler-Wallets abheben können. Um eine Zahlung durchzuführen, benötigen Käufer ausreichend e-cash im Wallet. Verkäufer können Zahlungen annehmen, ohne dass sich ihre Kunden auf Webseiten registrieren müssen. GNU Taler ist sicher vor vielen Betrugsarten wie z.B. Phishing von Kreditkartendaten oder Betrug durch Rückbuchungen. Im Fall des Verlusts oder Diebstahls eines Wallets verliert man höchstens die Menge an elektronischem Geld, das sich noch im Wallet befand.</string>
     <string name="nav_header_title">GNU Taler</string>
@@ -419,4 +419,27 @@
     <string name="payment_section_review">Bestellung überprüfen</string>
     <string name="payment_tokens_unexpected">Nicht vertrauenswürdiger Verkäufer %1$s - Ihr Gutschein ist in Gefahr, von diesem gestohlen zu werden.</string>
     <string name="save">Speichern</string>
+    <string name="donau_select_button">Finanzamt auswählen</string>
+    <string name="donau_selector_confirm">Steuernummer angeben</string>
+    <string name="donau_selector_title">Finanzamt auswählen</string>
+    <string name="donau_id">Steuernummer des Spendenden</string>
+    <string name="donau_ready">Die Spendenfunktion wurde korrekt eingerichtet</string>
+    <string name="donau_statement_instruction">Zeigen Sie diesen QR-Code Ihrem Finanzamt, wenn Sie diese Spendenbescheinigung zur Bestätigung vorlegen</string>
+    <string name="donau_statement_tax_authority">Finanzamt</string>
+    <string name="donau_statement_title">Spendenbescheinigung</string>
+    <string name="donau_statement_title_year">Spenden %1$d</string>
+    <string name="donau_statement_year">Fiskaljahr</string>
+    <string name="donau_title">Steuerlich absetzbare Spenden</string>
+    <string name="donau_toggle_label">Steuerlich absetzbare Spendenbescheinigung erhalten</string>
+    <string name="donau_warning_mismatch">Ihr für diese Anwendung gewähltes Finanzamt (%1$s) ist für diese Option nicht verfügbar. Wenn Sie umgezogen sind, wählen Sie bitte die für Sie am neuen Wohnort zuständige Steuerbehörde.</string>
+    <string name="donau_warning_unset">In dieser Wallet-App ist kein Finanzamt konfiguriert. Bitte wählen Sie eines aus, das für Ihren Wohnort zuständig ist.</string>
+    <string name="donau_url">URL der für Spendenbescheinigungen zuständigen Steuerbehörde</string>
+    <string name="donau_statement_legal_domain">Rechtsbereich</string>
+    <string name="empty">Es gibt nichts anzuzeigen</string>
+    <string name="assets_section_balances">Salden</string>
+    <string name="assets_section_statements">Spendenbescheinigungen</string>
+    <string name="settings_bank_accounts">Bankkonten</string>
+    <string name="settings_bank_accounts_summary">Verwalten Sie hier Ihre Bankkonten für Einzahlungen</string>
+    <string name="settings_donau">Steuerlich absetzbare Spenden</string>
+    <string name="settings_donau_summary">Finanzamt und Steuernummer festlegen</string>
 </resources>
