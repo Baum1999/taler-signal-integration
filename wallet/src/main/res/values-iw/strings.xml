@@ -182,7 +182,7 @@
     <string name="payment_balance_insufficient_hint_exchange_missing_global_fees"/>
     <string name="payment_balance_insufficient_hint_fees_not_covered">אין מספיק כספים כדי לשלם את עמלות הספק שלא שילם הסוחר</string>
     <string name="payment_balance_insufficient_hint_merchant_accept_insufficient">הסוחר אינו מקבל כסף מספק אחד לפחות בארנק זה</string>
-    <string name="payment_balance_insufficient_hint_merchant_deposit_insufficient">הסוחר אינו מאשר את שיטת ההעברה הבנקאית של הספק. זה כנראה מעיד על תצורה לקויה.</string>
+    <string name="payment_balance_insufficient_hint_merchant_deposit_insufficient">הסוחר אינו מאשר את שיטת ההעברה הבנקאית של הספק. זה כנראה מעיד על תצורה לקויה</string>
     <string name="payment_balance_insufficient_hint_wallet_balance_material_insufficient">כמה מהמטבעות הדרושים לקנייה זו אינם זמינים כעת</string>
     <string name="payment_balance_insufficient_max">היתרה אינה מספיקה! המקסימום הוא %1$s</string>
     <string name="payment_button_cancel">סגירה</string>
@@ -358,7 +358,7 @@
     <string name="exchange_menu_manual_withdraw">משיכה</string>
     <string name="exchange_not_contacted">לא נוצר קשר עם הספק</string>
     <string name="exchange_reload">טעינת המידע מחדש</string>
-    <string name="exchange_settings_summary">ניהול רשימת הספקים המוכרים לארנק זה</string>
+    <string name="exchange_settings_summary">ניהול ספקי שירותי התשלום המוכרים לארנק זה</string>
     <string name="exchange_settings_title">ספקים</string>
     <string name="exchange_tos_accept">אישור תנאי השירות</string>
     <string name="exchange_tos_forget">דחיית תנאי השירות</string>
@@ -426,4 +426,12 @@
     <string name="host_apdu_service_desc">תשלומי NFC של טאלר</string>
     <string name="wifi_connect_error">לא הצליח להתחבר ל־Wi-Fi חינמי: %1$s</string>
     <string name="wifi_disabled_error">יש להדליק את ה־Wi-Fi כדי לקבל Wi-Fi חינמי</string>
+    <string name="assets_section_balances">מאזנים</string>
+    <string name="assets_section_statements">הצהרות תרומה</string>
+    <string name="assets_title">נכסים</string>
+    <string name="settings_bank_accounts">חשבונות בנק</string>
+    <string name="settings_bank_accounts_summary">ניהול חשבונות הבנק להפקדות</string>
+    <string name="donau_statement_tax_authority">רשות המיסים</string>
+    <string name="donau_title">תרומות המוכרות לצורכי מס</string>
+    <string name="settings_donau">תרומות המוכרות לצורכי מס</string>
 </resources>
