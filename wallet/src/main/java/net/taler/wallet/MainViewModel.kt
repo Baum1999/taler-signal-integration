@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
 import net.taler.common.Amount
 import net.taler.common.AmountParserException
 import net.taler.common.Event
@@ -42,6 +41,7 @@ import net.taler.wallet.backend.VersionReceiver
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.backend.WalletCoreVersion
 import net.taler.wallet.backend.WalletRunConfig
+import net.taler.wallet.backend.WalletRunConfig.Features
 import net.taler.wallet.backend.WalletRunConfig.Testing
 import net.taler.wallet.balances.BalanceManager
 import net.taler.wallet.balances.ScopeInfo
@@ -106,6 +106,9 @@ class MainViewModel(
         testing = Testing(
             emitObservabilityEvents = true,
             devModeActive = devMode.value == true,
+        ),
+        features = Features(
+            enableV1Contracts = true,
         ),
         logLevel = if (devMode.value == true) "TRACE" else "INFO",
     )

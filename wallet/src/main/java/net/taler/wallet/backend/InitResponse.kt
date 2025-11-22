@@ -64,6 +64,7 @@ data class WalletRunConfig(
     @Serializable
     data class Features(
         val allowHttp: Boolean = false,
+        val enableV1Contracts: Boolean = false,
     )
 }
 
