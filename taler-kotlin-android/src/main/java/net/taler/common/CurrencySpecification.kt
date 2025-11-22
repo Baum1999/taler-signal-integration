@@ -30,6 +30,8 @@ data class CurrencySpecification(
     val numFractionalTrailingZeroDigits: Int,
     @SerialName("alt_unit_names")
     val altUnitNames: Map<Int, String>,
+    @SerialName("common_amounts")
+    val commonAmounts: List<Amount>? = null,
 ) {
     // TODO: add support for alt units
     val symbol: String? get() = altUnitNames[0]

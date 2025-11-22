@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -42,8 +43,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.JsonPrimitive
@@ -106,6 +112,9 @@ fun OutgoingPullComposable(
         return
     }
 
+    val focusManager = LocalFocusManager.current
+    val focusRequester = remember { FocusRequester() }
+
     Column(
         Modifier
             .fillMaxSize()
@@ -125,8 +134,15 @@ fun OutgoingPullComposable(
                 amount = amount.copy(amount = amount.amount.withSpec(selectedSpec)),
                 scopes = scopes,
                 readOnly = false,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 enabledAmount = !tosReview,
+                showShortcuts = true,
                 onAmountChanged = { amount = it },
+                onShortcutSelected = {
+                    amount = it
+                    focusManager.moveFocus(FocusDirection.Next)
+                    focusRequester.requestFocus()
+                },
                 isError = amount.amount.isZero(),
                 label = { Text(stringResource(R.string.amount_receive)) },
             )
@@ -145,7 +161,8 @@ fun OutgoingPullComposable(
                 OutlinedTextField(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester),
                     singleLine = true,
                     value = subject,
                     onValueChange = { input ->

@@ -16,19 +16,24 @@
 
 package net.taler.wallet.compose
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -37,9 +42,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
+import net.taler.common.CurrencySpecification
 import net.taler.wallet.R
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.cleanExchange
@@ -60,6 +69,8 @@ fun AmountScopeField(
     supportingText: @Composable (() -> Unit)? = null,
     isError: Boolean = false,
     readOnly: Boolean = false,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
     enabledAmount: Boolean = true,
     enabledScope: Boolean = true,
     showShortcuts: Boolean = false,
@@ -95,25 +106,25 @@ fun AmountScopeField(
                 isError = isError,
                 supportingText = supportingText,
                 readOnly = readOnly,
+                keyboardActions = keyboardActions,
+                keyboardOptions = keyboardOptions,
                 showSymbol = true,
             )
 
-            if (showShortcuts) {
-                val currency = amount.amount.currency
-                AmountInputShortcuts(
-                    // TODO: currency-appropriate presets
-                    amounts = listOf(
-                        Amount.fromString(currency, "50").withSpec(amount.amount.spec),
-                        Amount.fromString(currency, "25").withSpec(amount.amount.spec),
-                        Amount.fromString(currency, "10").withSpec(amount.amount.spec),
-                        Amount.fromString(currency, "5").withSpec(amount.amount.spec),
-                    ),
-                    onSelected = { shortcut ->
-                        onShortcutSelected?.let {
-                            it(amount.copy(amount = shortcut))
-                        }
-                    },
-                )
+            val commonAmounts = amount.amount.spec?.commonAmounts?.map {
+                it.withSpec(amount.amount.spec) }
+            AnimatedVisibility(showShortcuts && amount.amount.isZero() && commonAmounts != null) {
+                if (commonAmounts != null) {
+                    AmountInputShortcuts(
+                        modifier = Modifier.padding(top = 10.dp),
+                        amounts = commonAmounts,
+                        onSelected = { shortcut ->
+                            onShortcutSelected?.let {
+                                it(amount.copy(amount = shortcut))
+                            }
+                        },
+                    )
+                }
             }
         }
     }
@@ -137,27 +148,53 @@ fun ScopeDropdown(
             ?: initialScope
             ?: error("no scope available")
 
-        OutlinedTextField(
+        val value = when (scope) {
+            is ScopeInfo.Global -> scope.currency
+            is ScopeInfo.Exchange -> cleanExchange(scope.url)
+            is ScopeInfo.Auditor -> cleanExchange(scope.url)
+        }
+
+        val colors = OutlinedTextFieldDefaults.colors()
+        val singleLine = true
+        val enabled = false
+        val interactionSource = remember { MutableInteractionSource() }
+
+        BasicTextField(
+            value = value,
             modifier = Modifier
-                .clickable(onClick = { if (!readOnly) expanded = true })
+                .height(45.dp)
+                .clickable { if (!readOnly) expanded = true }
                 .fillMaxWidth(),
-            value = when (scope) {
-                is ScopeInfo.Global -> scope.currency
-                is ScopeInfo.Exchange -> cleanExchange(scope.url)
-                is ScopeInfo.Auditor -> cleanExchange(scope.url)
-            },
-            prefix = { Text(
-                modifier = Modifier.padding(end = 6.dp),
-                text = stringResource(R.string.currency_via)
-            ) },
             onValueChange = { },
+            enabled = enabled,
             readOnly = true,
-            enabled = false,
-            textStyle = LocalTextStyle.current.copy( // show text as if not disabled
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            ),
-            singleLine = true,
+            textStyle = TextStyle(color = colors.focusedTextColor),
+            interactionSource = interactionSource,
+            singleLine = singleLine,
+            decorationBox =
+                @Composable { innerTextField ->
+                    OutlinedTextFieldDefaults.DecorationBox(
+                        value = value,
+                        innerTextField = innerTextField,
+                        singleLine = singleLine,
+                        enabled = enabled,
+                        visualTransformation = VisualTransformation.None,
+                        interactionSource = interactionSource,
+                        prefix = {
+                            Text(
+                                modifier = Modifier.padding(end = 6.dp),
+                                text = stringResource(R.string.currency_via),
+                            )
+                        },
+                        contentPadding = OutlinedTextFieldDefaults.contentPadding(
+                            top = 0.dp,
+                            bottom = 0.dp,
+                        ),
+                        colors = TextFieldDefaults.colors(),
+                    )
+                },
         )
+
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
@@ -193,13 +230,13 @@ fun ScopeDropdown(
 
 @Composable
 private fun AmountInputShortcuts(
+    modifier: Modifier = Modifier,
     amounts: List<Amount>,
     onSelected: (amount: Amount) -> Unit,
 ) {
     FlowRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 16.dp),
+        modifier = modifier
+            .fillMaxWidth(),
         maxItemsInEachRow = 2,
         horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
@@ -220,7 +257,21 @@ fun AmountInputFieldPreview() {
     TalerSurface {
         var amount by remember {
             mutableStateOf(AmountScope(
-                amount = Amount.fromJSONString("KUDOS:10"),
+                amount = Amount.fromJSONString("KUDOS:10").withSpec(
+                    CurrencySpecification(
+                        name = "Kudos",
+                        numFractionalInputDigits = 2,
+                        numFractionalNormalDigits = 2,
+                        numFractionalTrailingZeroDigits = 2,
+                        altUnitNames = mapOf(),
+                        commonAmounts = listOf(
+                            Amount.fromJSONString("KUDOS:5"),
+                            Amount.fromJSONString("KUDOS:10"),
+                            Amount.fromJSONString("KUDOS:25"),
+                            Amount.fromJSONString("KUDOS:50"),
+                        ),
+                    ),
+                ),
                 scope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
             ))
         }

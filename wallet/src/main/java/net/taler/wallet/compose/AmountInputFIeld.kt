@@ -28,9 +28,14 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -44,12 +49,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.key.utf16CodePoint
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.InternalTextApi
@@ -84,6 +91,8 @@ fun AmountCurrencyField(
     supportingText: @Composable (() -> Unit)? = null,
     isError: Boolean = false,
     readOnly: Boolean = false,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
     enabled: Boolean = true,
     showShortcuts: Boolean = false,
     onShortcutSelected: ((amount: Amount) -> Unit)? = null,
@@ -101,8 +110,10 @@ fun AmountCurrencyField(
                 supportingText = supportingText,
                 readOnly = readOnly,
                 enabled = enabled,
+                keyboardActions = keyboardActions,
+                keyboardOptions = keyboardOptions,
                 showSymbol = !editableCurrency
-                        || amount.currency != amount.spec?.symbol
+                        || amount.currency != amount.spec?.symbol,
             )
 
             if (editableCurrency) {
@@ -219,9 +230,13 @@ internal fun AmountInputFieldBase(
     readOnly: Boolean = false,
     enabled: Boolean = true,
     showSymbol: Boolean = true,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
 ) {
     // TODO: use non-deprecated PlatformTextInputModifierNode instead
     val inputService = LocalTextInputService.current
+    val focusManager = LocalFocusManager.current
+
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused: Boolean by interactionSource.collectIsFocusedAsState()
     val isClicked: Boolean by interactionSource.collectIsPressedAsState()
@@ -244,15 +259,25 @@ internal fun AmountInputFieldBase(
     LaunchedEffect(isFocused, isClicked) {
         if (readOnly && !enabled) return@LaunchedEffect
         if (isFocused || isClicked) {
-            session = startSession(inputService) { commands ->
-                commands.forEach { cmd ->
-                    when (cmd) {
-                        is BackspaceCommand -> currentOnRemoveDigit()
-                        is DeleteSurroundingTextCommand -> currentOnRemoveDigit()
-                        is CommitTextCommand -> cmd.text.forEach { currentOnEnterDigit(it) }
+            session = startSession(
+                imeAction = keyboardOptions.imeAction,
+                textInputService = inputService,
+                onEditCommand = { commands ->
+                    commands.forEach { cmd ->
+                        when (cmd) {
+                            is BackspaceCommand -> currentOnRemoveDigit()
+                            is DeleteSurroundingTextCommand -> currentOnRemoveDigit()
+                            is CommitTextCommand -> cmd.text.forEach { currentOnEnterDigit(it) }
+                        }
+                    }
+                },
+                onImeActionPerformed = { action ->
+                    when (action) {
+                        ImeAction.Done -> focusManager.clearFocus()
+                        ImeAction.Next -> focusManager.moveFocus(FocusDirection.Next)
                     }
                 }
-            }
+            )
         } else if (session != null) {
             session?.let { inputService?.stopInput(it) }
             session = null
@@ -279,19 +304,32 @@ internal fun AmountInputFieldBase(
         isError = isError,
         keyboardOptions = KeyboardOptions.Default.copy(
             keyboardType = KeyboardType.NumberPassword,
-        ),
+        ).merge(keyboardOptions),
+        keyboardActions = keyboardActions,
         singleLine = true,
         maxLines = 1,
         interactionSource = interactionSource,
         enabled = enabled,
+        trailingIcon = {
+            if (!amount.isZero()) IconButton(onClick = {
+                onAmountChanged(amount.minus(amount))
+            }) {
+                Icon(
+                    Icons.AutoMirrored.Default.Backspace,
+                    contentDescription = stringResource(R.string.reset),
+                )
+            }
+        }
     )
 }
 
 @SuppressLint("RestrictedApi")
 @OptIn(InternalTextApi::class)
 fun startSession(
+    imeAction: ImeAction = ImeAction.Done,
     textInputService: TextInputService?,
     onEditCommand: (List<EditCommand>) -> Unit,
+    onImeActionPerformed: (ImeAction) -> Unit,
 ): TextInputSession? = textInputService?.let { service ->
     service.startInput(
         TextFieldValue(),
@@ -300,13 +338,12 @@ fun startSession(
             autoCorrect = false,
             capitalization = KeyboardCapitalization.None,
             keyboardType = KeyboardType.NumberPassword,
-            imeAction = ImeAction.Done,
+            imeAction = imeAction,
         ),
         onEditCommand = onEditCommand,
         onImeActionPerformed = { action ->
-            if (action == ImeAction.Done) {
-                service.stopInput()
-            }
+            service.stopInput()
+            onImeActionPerformed(action)
         }
     )
 }
