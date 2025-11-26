@@ -262,7 +262,7 @@ fun OutgoingPullComposable(
                 },
             ) {
                 if (checkResult != null && checkResult?.tosStatus != ExchangeTosStatus.Accepted) {
-                    Text(text = stringResource(R.string.exchange_tos_accept))
+                    Text(text = stringResource(R.string.exchange_tos_view))
                 } else {
                     Text(text = stringResource(R.string.receive_peer_create_button))
                 }
