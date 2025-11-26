@@ -21,6 +21,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.os.bundleOf
@@ -56,16 +57,19 @@ class OutgoingPullFragment : Fragment() {
                 TalerSurface {
                     val state by peerManager.pullState.collectAsStateLifecycleAware()
                     val viewMode by model.viewMode.collectAsStateLifecycleAware()
+                    val devMode by model.devMode.observeAsState()
                     OutgoingPullComposable(
                         state = state,
                         onCreateInvoice = this@OutgoingPullFragment::onCreateInvoice,
                         onTosAccept = this@OutgoingPullFragment::onTosAccept,
                         defaultScope = remember { (viewMode as? ViewMode.Transactions)?.selectedScope },
                         scopes = balanceManager.getScopes(),
+                        devMode = devMode == true,
                         getCurrencySpec = exchangeManager::getSpecForScopeInfo,
                         checkPeerPullCredit = { amount, loading ->
                             model.selectScope(amount.scope)
-                            peerManager.checkPeerPullCredit(amount.amount,
+                            peerManager.checkPeerPullCredit(
+                                amount.amount,
                                 scopeInfo = amount.scope,
                                 loading = loading,
                             )

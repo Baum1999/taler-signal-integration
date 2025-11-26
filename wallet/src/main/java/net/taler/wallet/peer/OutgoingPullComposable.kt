@@ -16,8 +16,7 @@
 
 package net.taler.wallet.peer
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,8 +26,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -40,14 +37,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
@@ -64,6 +58,8 @@ import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.AmountScope
 import net.taler.wallet.compose.AmountScopeField
 import net.taler.wallet.compose.BottomButtonBox
+import net.taler.wallet.compose.ErrorComposable
+import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.systemBarsPaddingBottom
@@ -76,6 +72,7 @@ fun OutgoingPullComposable(
     state: OutgoingState,
     defaultScope: ScopeInfo?,
     scopes: List<ScopeInfo>,
+    devMode: Boolean,
     getCurrencySpec: (scope: ScopeInfo) -> CurrencySpecification?,
     checkPeerPullCredit: suspend (amount: AmountScope, loading: Boolean) -> CheckPeerPullCreditResult?,
     onCreateInvoice: (amount: AmountScope, subject: String, hours: Long, exchangeBaseUrl: String) -> Unit,
@@ -98,22 +95,24 @@ fun OutgoingPullComposable(
     val tosReview = checkResult != null && checkResult?.tosStatus != ExchangeTosStatus.Accepted
 
     amount.amount.useDebounce {
-        checkResult = checkPeerPullCredit(amount, false)
-    }
-
-    LaunchedEffect(amount.scope) {
-        checkResult = checkPeerPullCredit(amount, true)
+        if (!amount.amount.isZero()) {
+            checkResult = checkPeerPullCredit(amount, false)
+        }
     }
 
     if (state is OutgoingChecking ||
         state is OutgoingCreating ||
         state is OutgoingResponse) {
-        PeerCreatingComposable()
+        LoadingScreen()
         return
     }
 
-    val focusManager = LocalFocusManager.current
-    val focusRequester = remember { FocusRequester() }
+    val amountFocusRequester = remember { FocusRequester() }
+    val subjectFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        amountFocusRequester.requestFocus()
+    }
 
     Column(
         Modifier
@@ -127,28 +126,32 @@ fun OutgoingPullComposable(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = CenterHorizontally,
         ) {
+            var shortcutSelected by remember { mutableStateOf(false) }
             AmountScopeField(
                 modifier = Modifier
                     .padding(16.dp)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .focusRequester(amountFocusRequester),
                 amount = amount.copy(amount = amount.amount.withSpec(selectedSpec)),
                 scopes = scopes,
                 readOnly = false,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 enabledAmount = !tosReview,
                 showShortcuts = true,
-                onAmountChanged = { amount = it },
+                onAmountChanged = {
+                    amount = it
+                    shortcutSelected = false
+                },
                 onShortcutSelected = {
                     amount = it
-                    focusManager.moveFocus(FocusDirection.Next)
-                    focusRequester.requestFocus()
+                    shortcutSelected = true
                 },
                 isError = amount.amount.isZero(),
                 label = { Text(stringResource(R.string.amount_receive)) },
             )
 
             if (state is OutgoingError) {
-                PeerErrorComposable(state, onClose)
+                ErrorComposable(state.info, devMode, onClose)
                 return@Column
             }
 
@@ -157,67 +160,74 @@ fun OutgoingPullComposable(
                     modifier = Modifier.padding(16.dp),
                     text = stringResource(R.string.receive_peer_review_terms)
                 )
-            } else {
-                OutlinedTextField(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                        .focusRequester(focusRequester),
-                    singleLine = true,
-                    value = subject,
-                    onValueChange = { input ->
-                        if (input.length <= MAX_LENGTH_SUBJECT)
-                            subject = input.replace('\n', ' ')
-                    },
-                    isError = subject.isBlank(),
-                    label = {
-                        Text(
-                            stringResource(R.string.send_peer_purpose),
-                            color = if (subject.isBlank()) {
-                                MaterialTheme.colorScheme.error
-                            } else Color.Unspecified,
-                        )
-                    },
-                    supportingText = {
-                        Text(
-                            stringResource(
-                                R.string.char_count,
-                                subject.length,
-                                MAX_LENGTH_SUBJECT
+            } else AnimatedVisibility(!amount.amount.isZero()) {
+                Column {
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .fillMaxWidth()
+                            .focusRequester(subjectFocusRequester),
+                        singleLine = true,
+                        value = subject,
+                        onValueChange = { input ->
+                            if (input.length <= MAX_LENGTH_SUBJECT)
+                                subject = input.replace('\n', ' ')
+                        },
+                        isError = subject.isBlank(),
+                        label = {
+                            Text(
+                                stringResource(R.string.send_peer_purpose),
+                                color = if (subject.isBlank()) {
+                                    MaterialTheme.colorScheme.error
+                                } else Color.Unspecified,
                             )
-                        )
-                    },
-                )
+                        },
+                        supportingText = {
+                            Text(
+                                stringResource(
+                                    R.string.char_count,
+                                    subject.length,
+                                    MAX_LENGTH_SUBJECT
+                                )
+                            )
+                        },
+                    )
 
-                if (res != null) {
-                    if (res.amountEffective > res.amountRaw) {
-                        val fee = res.amountEffective - res.amountRaw
-                        Text(
-                            modifier = Modifier.padding(vertical = 16.dp),
-                            text = stringResource(
-                                id = R.string.payment_fee,
-                                fee.withSpec(selectedSpec)
-                            ),
-                            softWrap = false,
-                            color = MaterialTheme.colorScheme.error,
-                        )
+                    if (res != null) {
+                        if (res.amountEffective > res.amountRaw) {
+                            val fee = res.amountEffective - res.amountRaw
+                            Text(
+                                modifier = Modifier.padding(vertical = 16.dp),
+                                text = stringResource(
+                                    id = R.string.payment_fee,
+                                    fee.withSpec(selectedSpec)
+                                ),
+                                softWrap = false,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
                     }
+
+                    Text(
+                        modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                        text = stringResource(R.string.send_peer_expiration_period),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+
+                    ExpirationComposable(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .padding(top = 8.dp, bottom = 16.dp),
+                        option = option,
+                        hours = hours,
+                        onOptionChange = { option = it }
+                    ) { hours = it }
                 }
 
-                Text(
-                    modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-                    text = stringResource(R.string.send_peer_expiration_period),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-
-                ExpirationComposable(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .padding(top = 8.dp, bottom = 16.dp),
-                    option = option,
-                    hours = hours,
-                    onOptionChange = { option = it }
-                ) { hours = it }
+                LaunchedEffect(Unit) {
+                    // do not steal focus when manually typing amount
+                    if (shortcutSelected) subjectFocusRequester.requestFocus()
+                }
             }
 
             // only show provider for global scope,
@@ -238,7 +248,7 @@ fun OutgoingPullComposable(
             Button(
                 modifier = Modifier
                     .systemBarsPaddingBottom(),
-                enabled = tosReview || (res != null && subject.isNotBlank()),
+                enabled = tosReview || (res != null && !amount.amount.isZero() && subject.isNotBlank()),
                 onClick = {
                     val ex = res?.exchangeBaseUrl ?: error("clickable without exchange")
                     if (res.tosStatus == ExchangeTosStatus.Accepted) {
@@ -260,51 +270,6 @@ fun OutgoingPullComposable(
         }
     }
 }
-
-@Composable
-fun PeerCreatingComposable() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize(),
-    ) {
-        CircularProgressIndicator(
-            modifier = Modifier
-                .padding(32.dp)
-                .align(Center),
-        )
-    }
-}
-
-@Composable
-fun PeerErrorComposable(state: OutgoingError, onClose: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxSize(),
-        horizontalAlignment = CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodyLarge,
-            text = state.info.userFacingMsg,
-        )
-
-        Button(
-            modifier = Modifier.padding(16.dp),
-            onClick = onClose,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error,
-                contentColor = MaterialTheme.colorScheme.onError,
-            ),
-        ) {
-            Text(text = stringResource(R.string.close))
-        }
-
-        BottomInsetsSpacer()
-    }
-}
-
 @Preview
 @Composable
 fun PeerPullComposableCreatingPreview() {
@@ -317,6 +282,7 @@ fun PeerPullComposableCreatingPreview() {
                 ScopeInfo.Exchange("TESTKUDOS", "https://exchange.test.taler.net/"),
                 ScopeInfo.Global("CHF"),
             ),
+            devMode = true,
             getCurrencySpec = { null },
             checkPeerPullCredit = { _, _ -> null },
             onCreateInvoice = { _, _, _, _ -> },
@@ -338,6 +304,7 @@ fun PeerPullComposableCheckingPreview() {
                 ScopeInfo.Exchange("TESTKUDOS", "https://exchange.test.taler.net/"),
                 ScopeInfo.Global("CHF"),
             ),
+            devMode = true,
             getCurrencySpec = { null },
             checkPeerPullCredit = { _, _ -> null },
             onCreateInvoice = { _, _, _, _ -> },
@@ -361,6 +328,7 @@ fun PeerPullComposableCheckedPreview() {
                 ScopeInfo.Exchange("TESTKUDOS", "https://exchange.test.taler.net/"),
                 ScopeInfo.Global("CHF"),
             ),
+            devMode = true,
             getCurrencySpec = { null },
             checkPeerPullCredit = { _, _ -> null },
             onCreateInvoice = { _, _, _, _ -> },
@@ -384,6 +352,7 @@ fun PeerPullComposableErrorPreview() {
                 ScopeInfo.Exchange("TESTKUDOS", "https://exchange.test.taler.net/"),
                 ScopeInfo.Global("CHF"),
             ),
+            devMode = true,
             getCurrencySpec = { null },
             checkPeerPullCredit = { _, _ -> null },
             onCreateInvoice = { _, _, _, _ -> },

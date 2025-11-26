@@ -39,11 +39,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
@@ -60,6 +58,8 @@ import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.AmountScope
 import net.taler.wallet.compose.AmountScopeField
 import net.taler.wallet.compose.BottomButtonBox
+import net.taler.wallet.compose.ErrorComposable
+import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.payment.stringResId
@@ -76,13 +76,14 @@ fun OutgoingPushComposable(
     state: OutgoingState,
     defaultScope: ScopeInfo?,
     scopes: List<ScopeInfo>,
+    devMode: Boolean,
     getCurrencySpec: (scope: ScopeInfo) -> CurrencySpecification?,
     getFees: suspend (amount: AmountScope) -> CheckFeeResult?,
     onSend: (amount: AmountScope, summary: String, hours: Long) -> Unit,
     onClose: () -> Unit,
 ) {
     when(state) {
-        is OutgoingChecking, is OutgoingCreating, is OutgoingResponse -> PeerCreatingComposable()
+        is OutgoingChecking, is OutgoingCreating, is OutgoingResponse -> LoadingScreen()
         is OutgoingIntro, is OutgoingChecked -> OutgoingPushIntroComposable(
             defaultScope = defaultScope,
             scopes = scopes,
@@ -90,7 +91,7 @@ fun OutgoingPushComposable(
             getFees = getFees,
             onSend = onSend,
         )
-        is OutgoingError -> PeerErrorComposable(state, onClose)
+        is OutgoingError -> ErrorComposable(state.info, devMode, onClose)
     }
 }
 
@@ -115,15 +116,17 @@ fun OutgoingPushIntroComposable(
     var hours by rememberSaveable { mutableLongStateOf(DEFAULT_EXPIRY.hours) }
 
     amount.useDebounce {
-        feeResult = getFees(it) ?: None()
+        if (!amount.amount.isZero()) {
+            feeResult = getFees(it) ?: None()
+        }
     }
+
+    val amountFocusRequester = remember { FocusRequester() }
+    val subjectFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
-        feeResult = getFees(amount) ?: None()
+        amountFocusRequester.requestFocus()
     }
-
-    val focusManager = LocalFocusManager.current
-    val focusRequester = remember { FocusRequester() }
 
     Column(
         Modifier
@@ -156,20 +159,24 @@ fun OutgoingPushIntroComposable(
                 }
             }
 
+            var shortcutSelected by remember { mutableStateOf(false) }
             AmountScopeField(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .focusRequester(amountFocusRequester),
                 amount = amount.copy(amount = amount.amount.withSpec(selectedSpec)),
                 scopes = scopes,
                 readOnly = false,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 showShortcuts = true,
-                onAmountChanged = { amount = it },
+                onAmountChanged = {
+                    amount = it
+                    shortcutSelected = false
+                },
                 onShortcutSelected = {
                     amount = it
-                    focusManager.moveFocus(FocusDirection.Next)
-                    focusRequester.requestFocus()
+                    shortcutSelected = true
                 },
                 label = { Text(stringResource(R.string.amount_send)) },
                 isError = amount.amount.isZero() || feeResult is InsufficientBalance,
@@ -201,60 +208,71 @@ fun OutgoingPushIntroComposable(
                 }
             )
 
-            OutlinedTextField(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester),
-                singleLine = true,
-                value = subject,
-                onValueChange = { input ->
-                    if (input.length <= MAX_LENGTH_SUBJECT)
-                        subject = input.replace('\n', ' ')
-                },
-                isError = subject.isBlank(),
-                label = {
-                    Text(
-                        stringResource(R.string.send_peer_purpose),
-                        color = if (subject.isBlank()) {
-                            MaterialTheme.colorScheme.error
-                        } else Color.Unspecified,
+            AnimatedVisibility(feeResult is Success && !amount.amount.isZero()) {
+                Column(
+                    modifier = Modifier.padding(bottom = 8.dp),
+                    horizontalAlignment = CenterHorizontally,
+                ) {
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .fillMaxWidth()
+                            .focusRequester(subjectFocusRequester),
+                        singleLine = true,
+                        value = subject,
+                        onValueChange = { input ->
+                            if (input.length <= MAX_LENGTH_SUBJECT)
+                                subject = input.replace('\n', ' ')
+                        },
+                        isError = subject.isBlank(),
+                        label = {
+                            Text(
+                                stringResource(R.string.send_peer_purpose),
+                                color = if (subject.isBlank()) {
+                                    MaterialTheme.colorScheme.error
+                                } else Color.Unspecified,
+                            )
+                        },
+                        supportingText = {
+                            Text(
+                                stringResource(
+                                    R.string.char_count,
+                                    subject.length,
+                                    MAX_LENGTH_SUBJECT
+                                )
+                            )
+                        },
                     )
-                },
-                supportingText = {
-                    Text(stringResource(R.string.char_count, subject.length, MAX_LENGTH_SUBJECT))
-                },
-            )
 
-            Text(
-                modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
-                text = stringResource(R.string.send_peer_expiration_period),
-                style = MaterialTheme.typography.bodyMedium,
-            )
+                    Text(
+                        modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
+                        text = stringResource(R.string.send_peer_expiration_period),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
 
-            ExpirationComposable(
-                modifier = Modifier.padding(
-                    vertical = 8.dp,
-                    horizontal = 16.dp,
-                ),
-                option = option,
-                hours = hours,
-                onOptionChange = { option = it }
-            ) { hours = it }
+                    ExpirationComposable(
+                        modifier = Modifier.padding(
+                            vertical = 8.dp,
+                            horizontal = 16.dp,
+                        ),
+                        option = option,
+                        hours = hours,
+                        onOptionChange = { option = it }
+                    ) { hours = it }
 
-            // only show provider for global scope,
-            // otherwise it's already in scope selector
-            AnimatedVisibility(feeResult is Success && amount.scope is ScopeInfo.Global) {
-                (feeResult as? Success)?.let {
-                    Column(
-                        modifier = Modifier.padding(bottom = 8.dp),
-                        horizontalAlignment = CenterHorizontally,
-                    ) {
-                        TransactionInfoComposable(
-                            label = stringResource(id = R.string.withdraw_exchange),
-                            info = cleanExchange(it.exchangeBaseUrl),
-                        )
+                    (feeResult as? Success)?.let {
+                        if (amount.scope is ScopeInfo.Global) {
+                            TransactionInfoComposable(
+                                label = stringResource(id = R.string.withdraw_exchange),
+                                info = cleanExchange(it.exchangeBaseUrl),
+                            )
+                        }
                     }
+                }
+
+                LaunchedEffect(Unit) {
+                    // do not steal focus when manually typing amount
+                    if (shortcutSelected) subjectFocusRequester.requestFocus()
                 }
             }
 
@@ -264,7 +282,7 @@ fun OutgoingPushIntroComposable(
         BottomButtonBox(Modifier.fillMaxWidth()) {
             Button(
                 modifier = Modifier.systemBarsPaddingBottom(),
-                enabled = feeResult is Success && subject.isNotBlank(),
+                enabled = feeResult is Success && !amount.amount.isZero() && subject.isNotBlank(),
                 onClick = { onSend(amount, subject, hours) },
             ) {
                 Text(text = stringResource(R.string.send_peer_create_button))
@@ -285,6 +303,7 @@ fun PeerPushComposableCreatingPreview() {
                 ScopeInfo.Exchange("TESTKUDOS", "https://exchange.test.taler.net/"),
                 ScopeInfo.Global("CHF"),
             ),
+            devMode = true,
             getCurrencySpec = { null },
             getFees = { Success(
                 amountEffective = Amount.fromJSONString("KUDOS:10"),
@@ -310,6 +329,7 @@ fun PeerPushComposableCheckingPreview() {
                 ScopeInfo.Exchange("TESTKUDOS", "https://exchange.test.taler.net/"),
                 ScopeInfo.Global("CHF"),
             ),
+            devMode = true,
             getCurrencySpec = { null },
             getFees = { Success(
                 amountEffective = Amount.fromJSONString("KUDOS:10"),
@@ -332,6 +352,7 @@ fun PeerPushComposableCheckedPreview() {
         val state = OutgoingChecked(amountRaw, amountEffective, "https://exchange.demo.taler.net", ExchangeTosStatus.Accepted)
         OutgoingPushComposable(
             state = state,
+            devMode = true,
             getCurrencySpec = { null },
             defaultScope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
             scopes = listOf(
@@ -365,6 +386,7 @@ fun PeerPushComposableErrorPreview() {
                 ScopeInfo.Exchange("TESTKUDOS", "https://exchange.test.taler.net/"),
                 ScopeInfo.Global("CHF"),
             ),
+            devMode = true,
             getCurrencySpec = { null },
             getFees = { Success(
                 amountEffective = Amount.fromJSONString("KUDOS:10"),

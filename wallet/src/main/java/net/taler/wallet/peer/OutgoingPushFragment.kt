@@ -22,6 +22,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
@@ -68,10 +69,12 @@ class OutgoingPushFragment : Fragment() {
                 TalerSurface {
                     val state = peerManager.pushState.collectAsStateLifecycleAware().value
                     val viewMode by model.viewMode.collectAsStateLifecycleAware()
+                    val devMode by model.devMode.observeAsState()
                     OutgoingPushComposable(
                         state = state,
                         defaultScope = remember { (viewMode as? ViewMode.Transactions)?.selectedScope },
                         scopes = balanceManager.getScopes(),
+                        devMode = devMode == true,
                         getCurrencySpec = exchangeManager::getSpecForScopeInfo,
                         getFees = {
                             model.selectScope(it.scope)

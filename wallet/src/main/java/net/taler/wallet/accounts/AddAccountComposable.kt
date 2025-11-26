@@ -57,9 +57,8 @@ import net.taler.wallet.accounts.PaytoUriIban
 import net.taler.wallet.accounts.PaytoUriTalerBank
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.WarningLabel
-import net.taler.wallet.peer.OutgoingError
-import net.taler.wallet.peer.PeerErrorComposable
 import net.taler.wallet.useDebounce
 
 @Composable
@@ -305,11 +304,12 @@ fun AddAccountErrorComposable(
     message: String,
     onClose: () -> Unit,
 ) {
-    PeerErrorComposable(
-        state = OutgoingError(info = TalerErrorInfo(
+    ErrorComposable(
+        error = TalerErrorInfo(
             message = message,
             code = TalerErrorCode.UNKNOWN,
-        )),
+        ),
+        devMode = false,
         onClose = onClose,
     )
 }
