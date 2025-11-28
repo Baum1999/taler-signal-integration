@@ -99,7 +99,8 @@ class ExchangeManager(
     fun add(exchangeUrl: String) = scope.launch {
         mProgress.value = true
         api.request<Unit>("addExchange") {
-            put("exchangeBaseUrl", exchangeUrl)
+            put("allowCompletion", true)
+            put("uri", exchangeUrl)
         }.onError {
             Log.e(TAG, "Error adding exchange: $it")
             mProgress.value = false
