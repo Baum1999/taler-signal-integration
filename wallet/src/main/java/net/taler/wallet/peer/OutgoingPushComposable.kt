@@ -116,9 +116,7 @@ fun OutgoingPushIntroComposable(
     var hours by rememberSaveable { mutableLongStateOf(DEFAULT_EXPIRY.hours) }
 
     amount.useDebounce {
-        if (!amount.amount.isZero()) {
-            feeResult = getFees(it) ?: None()
-        }
+        feeResult = getFees(it) ?: None()
     }
 
     val amountFocusRequester = remember { FocusRequester() }

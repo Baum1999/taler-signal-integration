@@ -43,6 +43,7 @@ import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
 import net.taler.wallet.withdraw.WithdrawStatus.Status.*
 import androidx.core.net.toUri
 import kotlinx.coroutines.runBlocking
+import net.taler.common.CurrencySpecification
 import net.taler.wallet.transactions.TransactionMajorState
 import net.taler.wallet.transactions.TransactionManager
 
@@ -63,10 +64,18 @@ data class WithdrawStatus(
     val error: TalerErrorInfo? = null,
 
     // received details
-    val currency: String? = null,
-    val scopeInfo: ScopeInfo? = null,
     val uriInfo: WithdrawalDetailsForUri? = null,
     val amountInfo: WithdrawalDetailsForAmount? = null,
+
+    // calculated input defaults (based on uriInfo or exchangeBaseUrl)
+    val defaultInputAmount: Amount? = null,
+    val defaultInputScope: ScopeInfo? = null,
+    val defaultInputSpec: CurrencySpecification? = null,
+
+    // calculated selections (based on amountInfo)
+    val selectedAmount: Amount? = null,
+    val selectedScope: ScopeInfo? = null,
+    val selectedSpec: CurrencySpecification? = null,
 
     // manual transfer
     val manualTransferResponse: AcceptManualWithdrawalResponse? = null,
@@ -309,18 +318,17 @@ class WithdrawManager(
             scope.launch {
                 val tx = transactionManager.getTransactionById(details.transactionId)
                     ?: error("transaction ${details.transactionId} not found")
+
                 val status = _withdrawStatus.updateAndGet { value ->
-                    value.copy(
+                    updateInputDefaults(value.copy(
                         status = if (tx.txState.major == TransactionMajorState.Dialog) {
                             InfoReceived
                         } else {
                             AlreadyConfirmed
                         },
                         uriInfo = details.info,
-                        currency = details.info.currency,
                         exchangeBaseUrl = details.info.defaultExchangeBaseUrl,
-                        transactionId = details.transactionId,
-                    )
+                    ))
                 }
 
                 // then extend with amount details (not for cash acceptor)
@@ -360,7 +368,7 @@ class WithdrawManager(
             //   => amount is updated
             //   => exchange URL is kept
             ex = status.exchangeBaseUrl?.let { exchangeManager.findExchangeByUrl(it) }
-                ?: status.scopeInfo?.let { exchangeManager.findExchange(it) }
+                ?: status.selectedScope?.let { exchangeManager.findExchange(it) }
                 ?: exchangeManager.findExchange(amount.currency)
                 ?: error("could not resolve exchange")
             am = amount
@@ -368,18 +376,23 @@ class WithdrawManager(
             // 3. caller only provides exchange URL
             ex = exchangeManager.findExchangeByUrl(exchangeBaseUrl)
                 ?: error("could not resolve exchange")
-            am = status.amountInfo?.amountRaw
+            am = status.selectedAmount
                 ?: ex.currency?.let { Amount.zero(ex.currency) }
                 ?: error("could not resolve currency")
         } else if (scopeInfo != null) {
             // 3. caller only provides scope
             ex = exchangeManager.findExchange(scopeInfo)
                 ?: error("could not resolve exchange")
-            am = status.amountInfo?.amountRaw
+            am = status.selectedAmount
                 ?: ex.currency?.let { Amount.zero(ex.currency) }
                 ?: error("could not resolve currency")
         } else {
             error("no parameters specified")
+        }
+
+        if (ex.tosStatus != ExchangeTosStatus.Accepted) {
+            _withdrawStatus.update { it.copy(status = TosReviewRequired) }
+            return@launch
         }
 
         api.request("getWithdrawalDetailsForAmount", WithdrawalDetailsForAmount.serializer()) {
@@ -390,20 +403,57 @@ class WithdrawManager(
         }.onSuccess { details ->
             scope.launch {
                 _withdrawStatus.update { value ->
-                    value.copy(
-                        status = if (ex.tosStatus != ExchangeTosStatus.Accepted) {
-                            TosReviewRequired
-                        } else {
-                            InfoReceived
-                        },
-                        exchangeBaseUrl = ex.exchangeBaseUrl,
+                    updateSelections(value.copy(
+                        status = InfoReceived,
                         amountInfo = details,
-                        currency = details.amountRaw.currency,
-                        scopeInfo = details.scopeInfo,
-                    )
+                        exchangeBaseUrl = ex.exchangeBaseUrl,
+                    ))
                 }
             }
         }
+    }
+
+
+    private fun updateSelections(
+        status: WithdrawStatus,
+    ): WithdrawStatus {
+        val selectedAmount = status.amountInfo?.amountRaw
+        val selectedScope = status.amountInfo?.scopeInfo
+        val selectedSpec = selectedScope?.let { scope ->
+            exchangeManager.getSpecForScopeInfo(scope)
+        } ?: selectedAmount?.currency?.let { currency ->
+            exchangeManager.getSpecForCurrency(currency)
+        }
+
+        return status.copy(
+            selectedAmount = selectedAmount,
+            selectedScope = selectedScope,
+            selectedSpec = selectedSpec,
+        )
+    }
+
+    private suspend fun updateInputDefaults(
+        status: WithdrawStatus,
+    ): WithdrawStatus {
+        val defaultAmount = status.uriInfo?.amount
+
+        val defaultScope = status.exchangeBaseUrl?.let { url ->
+            exchangeManager.findExchangeByUrl(url)?.scopeInfo
+        } ?: status.uriInfo?.defaultExchangeBaseUrl?.let { url ->
+            exchangeManager.findExchangeByUrl(url)?.scopeInfo
+        }
+
+        val defaultSpec = defaultScope?.let { scope ->
+            exchangeManager.getSpecForScopeInfo(scope)
+        } ?: defaultAmount?.currency?.let { currency ->
+            exchangeManager.getSpecForCurrency(currency)
+        }
+
+        return status.copy(
+            defaultInputAmount = defaultAmount,
+            defaultInputScope = defaultScope,
+            defaultInputSpec = defaultSpec,
+        )
     }
 
     @UiThread

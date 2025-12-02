@@ -95,8 +95,14 @@ fun OutgoingPullComposable(
     val tosReview = checkResult != null && checkResult?.tosStatus != ExchangeTosStatus.Accepted
 
     amount.amount.useDebounce {
-        if (!amount.amount.isZero()) {
+        if (amount.debounce) {
             checkResult = checkPeerPullCredit(amount, false)
+        }
+    }
+
+    LaunchedEffect(amount) {
+        if (!amount.debounce) {
+            checkResult = checkPeerPullCredit(amount, true)
         }
     }
 
@@ -109,10 +115,6 @@ fun OutgoingPullComposable(
 
     val amountFocusRequester = remember { FocusRequester() }
     val subjectFocusRequester = remember { FocusRequester() }
-
-    LaunchedEffect(Unit) {
-        amountFocusRequester.requestFocus()
-    }
 
     Column(
         Modifier
@@ -136,19 +138,23 @@ fun OutgoingPullComposable(
                 scopes = scopes,
                 readOnly = false,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                enabledAmount = !tosReview,
+                showAmount = !tosReview,
                 showShortcuts = true,
                 onAmountChanged = {
-                    amount = it
+                    amount = it.copy(debounce = amount.scope == it.scope)
                     shortcutSelected = false
                 },
                 onShortcutSelected = {
-                    amount = it
+                    amount = it.copy(debounce = true)
                     shortcutSelected = true
                 },
                 isError = amount.amount.isZero(),
                 label = { Text(stringResource(R.string.amount_receive)) },
             )
+
+            LaunchedEffect(tosReview) {
+                if (!tosReview) amountFocusRequester.requestFocus()
+            }
 
             if (state is OutgoingError) {
                 ErrorComposable(state.info, devMode, onClose)
@@ -193,7 +199,7 @@ fun OutgoingPullComposable(
                         },
                     )
 
-                    if (res != null) {
+                    if (res != null && res.amountRaw != null && res.amountEffective != null) {
                         if (res.amountEffective > res.amountRaw) {
                             val fee = res.amountEffective - res.amountRaw
                             Text(

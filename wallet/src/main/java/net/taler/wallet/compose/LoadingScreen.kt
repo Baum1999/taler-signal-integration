@@ -25,9 +25,11 @@ import androidx.compose.ui.Modifier
 import net.taler.wallet.systemBarsPaddingBottom
 
 @Composable
-fun LoadingScreen() {
+fun LoadingScreen(
+    modifier: Modifier = Modifier,
+) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .systemBarsPaddingBottom(),
         contentAlignment = Alignment.Center,

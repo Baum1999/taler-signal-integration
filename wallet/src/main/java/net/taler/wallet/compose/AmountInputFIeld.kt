@@ -311,7 +311,7 @@ internal fun AmountInputFieldBase(
         interactionSource = interactionSource,
         enabled = enabled,
         trailingIcon = {
-            if (!amount.isZero()) IconButton(onClick = {
+            if (!readOnly && !amount.isZero()) IconButton(onClick = {
                 onAmountChanged(amount.minus(amount))
             }) {
                 Icon(

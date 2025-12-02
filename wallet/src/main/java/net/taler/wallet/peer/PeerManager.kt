@@ -22,11 +22,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import net.taler.common.Amount
 import net.taler.common.Timestamp
@@ -110,6 +108,22 @@ class PeerManager(
             _outgoingPullState.value = OutgoingChecking
         }
 
+        if (exchangeItem.tosStatus != ExchangeTosStatus.Accepted) {
+            _outgoingPullState.value = OutgoingIntro
+            return CheckPeerPullCreditResult(
+                tosStatus = exchangeItem.tosStatus,
+                exchangeBaseUrl = exchangeItem.exchangeBaseUrl,
+            )
+        } else if (amount.isZero()) {
+            _outgoingPullState.value = OutgoingIntro
+            return CheckPeerPullCreditResult(
+                tosStatus = exchangeItem.tosStatus,
+                exchangeBaseUrl = exchangeItem.exchangeBaseUrl,
+                amountRaw = amount,
+                amountEffective = amount,
+            )
+        }
+
         api.request("checkPeerPullCredit", CheckPeerPullCreditResponse.serializer()) {
             put("restrictScope", JSONObject(BackendManager.json.encodeToString(scopeInfo)))
             put("amount", amount.toJSONString())
@@ -165,6 +179,17 @@ class PeerManager(
             maxDepositAmountEffective = max?.effectiveAmount,
             maxDepositAmountRaw = max?.rawAmount,
         )
+
+        if (amount.isZero() && exchangeBaseUrl != null) {
+            return CheckFeeResult.Success(
+                amountRaw = amount,
+                amountEffective = amount,
+                maxDepositAmountEffective = max?.effectiveAmount,
+                maxDepositAmountRaw = max?.rawAmount,
+                exchangeBaseUrl = exchangeBaseUrl,
+            )
+        }
+
         api.request("checkPeerPushDebitV2", CheckPeerPushDebitResponse.serializer()) {
             exchangeBaseUrl?.let { put("exchangeBaseUrl", it) }
             restrictScope?.let { put("restrictScope", JSONObject(BackendManager.json.encodeToString(it))) }

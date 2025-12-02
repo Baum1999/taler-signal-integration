@@ -49,13 +49,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
-import net.taler.common.CurrencySpecification
 import net.taler.wallet.R
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.AmountScope
 import net.taler.wallet.compose.AmountScopeField
 import net.taler.wallet.compose.BottomButtonBox
+import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.WarningLabel
 import net.taler.wallet.exchanges.ExchangeItem
@@ -74,49 +74,54 @@ import net.taler.wallet.withdraw.WithdrawalOperationStatusFlag.Pending
 fun WithdrawalShowInfo(
     status: WithdrawStatus,
     devMode: Boolean,
-    defaultScope: ScopeInfo,
+    initialAmountScope: AmountScope,
     editableScope: Boolean,
     scopes: List<ScopeInfo>,
-    spec: CurrencySpecification?,
     onSelectAmount: (amount: Amount, scope: ScopeInfo) -> Unit,
     onSelectExchange: () -> Unit,
     onTosReview: () -> Unit,
     onConfirm: (age: Int?) -> Unit,
 ) {
-    val defaultAmount = status.amountInfo?.amountRaw
-        ?: status.uriInfo?.amount
-        ?: Amount.zero(defaultScope.currency)
     val maxAmount = status.uriInfo?.maxAmount
     val editableAmount = status.uriInfo?.editableAmount ?: true
-    val wireFee = status.uriInfo?.wireFee ?: Amount.zero(defaultScope.currency)
+    val wireFee = status.uriInfo?.wireFee
     val exchange = status.exchangeBaseUrl
     val possibleExchanges = status.uriInfo?.possibleExchanges ?: emptyList()
     val ageRestrictionOptions = status.amountInfo?.ageRestrictionOptions ?: emptyList()
 
     val keyboardController = LocalSoftwareKeyboardController.current
-    var selectedAmount by remember { mutableStateOf(AmountScope(defaultAmount, defaultScope)) }
+    var selectedAmount by remember { mutableStateOf(initialAmountScope) }
     var selectedAge by remember { mutableStateOf<Int?>(null) }
     val scrollState = rememberScrollState()
     val insufficientBalance = remember(selectedAmount, maxAmount) {
-        maxAmount == null || selectedAmount.amount > maxAmount
-    }
-
-    var startup by remember { mutableStateOf(true) }
-    selectedAmount.useDebounce {
-        if (startup) { // do not fire at startup
-            startup = false
+        val amount = selectedAmount.amount
+        if (maxAmount != null && amount.currency == maxAmount.currency) {
+            amount > maxAmount
         } else {
-            onSelectAmount(
-                selectedAmount.amount,
-                selectedAmount.scope,
-            )
+            false
         }
     }
 
     val focusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+    LaunchedEffect(selectedAmount) {
+        val selected = selectedAmount
+        if (!selected.debounce) {
+            onSelectAmount(
+                selected.amount,
+                selected.scope,
+            )
+        }
+    }
+
+    selectedAmount.useDebounce {
+        val selected = selectedAmount
+        if (selected.debounce) {
+            onSelectAmount(
+                selected.amount,
+                selected.scope,
+            )
+        }
     }
 
     Column(
@@ -136,18 +141,25 @@ fun WithdrawalShowInfo(
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth(),
                 amount = selectedAmount.copy(
-                    amount = selectedAmount.amount.withSpec(spec)
+                    amount = selectedAmount.amount.withSpec(status.selectedSpec)
                 ),
                 scopes = scopes,
-                editableScope = true,
-                enabledAmount = false,
+                showAmount = false,
+                showScope = true,
                 showShortcuts = false,
+                readOnly = status.status == Updating,
                 onAmountChanged = { amount ->
-                    selectedAmount = amount
+                    selectedAmount = amount.copy(
+                        amount = Amount.zero(amount.amount.currency),
+                        debounce = false,
+                    )
                 },
             )
 
-            if (status.status == Error && status.error != null) {
+            if (status.status == WithdrawStatus.Status.Loading) {
+                LoadingScreen(Modifier.weight(1f))
+                return
+            } else if (status.status == Error && status.error != null) {
                 WithdrawalError(status.error)
                 return
             } else if (status.isCashAcceptor) {
@@ -165,22 +177,16 @@ fun WithdrawalShowInfo(
                         .fillMaxWidth()
                         .focusRequester(focusRequester),
                     amount = selectedAmount.copy(
-                        amount = selectedAmount.amount.withSpec(spec)),
+                        amount = selectedAmount.amount.withSpec(status.selectedSpec)),
                     scopes = scopes,
-                    editableScope = false,
-                    enabledAmount = status.status != TosReviewRequired,
+                    showScope = false,
+                    showAmount = status.status != TosReviewRequired,
+                    readOnly = status.status == Updating,
                     onAmountChanged = { amount ->
-                        selectedAmount = if (amount.scope != status.scopeInfo) {
-                            // if amount changes, reset to zero!
-                            amount.copy(amount = Amount.zero(amount.scope.currency))
-                        } else {
-                            amount
-                        }
+                        selectedAmount = amount.copy(debounce = true)
                     },
                     label = { Text(stringResource(R.string.amount_withdraw)) },
-                    isError = selectedAmount.amount.isZero()
-                            || maxAmount != null
-                            && selectedAmount.amount > maxAmount,
+                    isError = selectedAmount.amount.isZero() || insufficientBalance,
                     supportingText = {
                         if (insufficientBalance && maxAmount != null) {
                             Text(stringResource(R.string.amount_excess, maxAmount))
@@ -188,23 +194,27 @@ fun WithdrawalShowInfo(
                     },
                     showShortcuts = true,
                     onShortcutSelected = { amount ->
-                        selectedAmount = amount
+                        selectedAmount = amount.copy(debounce = false)
                     }
                 )
+
+                LaunchedEffect(Unit) {
+                    focusRequester.requestFocus()
+                }
 
                 if (status.status == TosReviewRequired) Text(
                     modifier = Modifier.padding(22.dp),
                     text = stringResource(R.string.withdraw_review_terms),
                 )
-            } else {
+            } else if (status.amountInfo != null) {
                 TransactionAmountComposable(
-                    label = if (wireFee.isZero()) {
+                    label = if (wireFee != null && wireFee.isZero()) {
                         stringResource(R.string.amount_total)
                     } else {
                         stringResource(R.string.amount_chosen)
                     },
-                    amount = selectedAmount.amount,
-                    amountType = if (wireFee.isZero()) {
+                    amount = status.amountInfo.amountRaw.withSpec(status.selectedSpec),
+                    amountType = if (wireFee != null && wireFee.isZero()) {
                         AmountType.Positive
                     } else {
                         AmountType.Neutral
@@ -212,16 +222,19 @@ fun WithdrawalShowInfo(
                 )
             }
 
-            if (status.status != TosReviewRequired && !wireFee.isZero()) {
+            if (status.status != TosReviewRequired
+                && status.amountInfo != null
+                && wireFee != null
+                && !wireFee.isZero()) {
                 TransactionAmountComposable(
                     label = stringResource(R.string.amount_fee),
-                    amount = wireFee,
+                    amount = wireFee.withSpec(status.selectedSpec),
                     amountType = AmountType.Negative,
                 )
 
                 TransactionAmountComposable(
                     label = stringResource(R.string.amount_total),
-                    amount = selectedAmount.amount + wireFee,
+                    amount = status.amountInfo.amountEffective.withSpec(status.selectedSpec) + wireFee,
                     amountType = AmountType.Positive,
                 )
             }
@@ -319,7 +332,6 @@ private fun buildPreviewWithdrawStatus(
 ) = WithdrawStatus(
     status = status,
     talerWithdrawUri = "taler://",
-    currency = "KUDOS",
     exchangeBaseUrl = "exchange.head.taler.net",
     transactionId = "tx:343434",
     error = null,
@@ -368,14 +380,16 @@ fun WithdrawalShowInfoUpdatingPreview() {
         WithdrawalShowInfo(
             status = buildPreviewWithdrawStatus(Updating),
             devMode = true,
-            defaultScope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+            initialAmountScope = AmountScope(
+                amount = Amount.fromJSONString("KUDOS:10.10"),
+                scope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+            ),
             editableScope = true,
             scopes = listOf(
                 ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
                 ScopeInfo.Exchange("TESTKUDOS", "https://exchange.test.taler.net/"),
                 ScopeInfo.Global("CHF"),
             ),
-            spec = null,
             onSelectExchange = {},
             onSelectAmount = { _, _ -> },
             onTosReview = {},
@@ -391,14 +405,17 @@ fun WithdrawalShowInfoTosReviewPreview() {
         WithdrawalShowInfo(
             status = buildPreviewWithdrawStatus(TosReviewRequired),
             devMode = true,
-            defaultScope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+//            defaultScope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+            initialAmountScope = AmountScope(
+                amount = Amount.fromJSONString("KUDOS:10.10"),
+                scope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+            ),
             editableScope = true,
             scopes = listOf(
                 ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
                 ScopeInfo.Exchange("TESTKUDOS", "https://exchange.test.taler.net/"),
                 ScopeInfo.Global("CHF"),
             ),
-            spec = null,
             onSelectExchange = {},
             onSelectAmount = { _, _ -> },
             onTosReview = {},

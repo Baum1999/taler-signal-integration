@@ -30,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -44,7 +43,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.snackbar.Snackbar.LENGTH_LONG
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import net.taler.common.Amount
 import net.taler.common.EventObserver
@@ -54,6 +52,7 @@ import net.taler.wallet.main.ViewMode
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo
+import net.taler.wallet.compose.AmountScope
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
@@ -78,9 +77,9 @@ class PromptWithdrawFragment: Fragment() {
 
     private val selectExchangeDialog = SelectExchangeDialogFragment()
 
+    private var startup: Boolean = true
     private var editableCurrency: Boolean = true
     private var navigating: Boolean = false
-    private var acceptingTos: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -101,16 +100,6 @@ class PromptWithdrawFragment: Fragment() {
             val status by withdrawManager.withdrawStatus.collectAsStateLifecycleAware()
             val devMode by model.devMode.observeAsState()
 
-            val exchange by remember(status.exchangeBaseUrl) {
-                status.exchangeBaseUrl
-                    ?.let { exchangeManager.findExchangeForBaseUrl(it) }
-                    ?: MutableStateFlow(null)
-            }.collectAsStateLifecycleAware(null)
-
-            val defaultScope = scope
-                ?: status.scopeInfo
-                ?: scopes.firstOrNull()
-
             LaunchedEffect(status.status) {
                 if (status.status == None) {
                     if (withdrawUri != null) {
@@ -119,29 +108,13 @@ class PromptWithdrawFragment: Fragment() {
                     } else if (withdrawExchangeUri != null) {
                         // get withdrawal details for taler://withdraw-exchange URI
                         withdrawManager.prepareManualWithdrawal(withdrawExchangeUri)
-                    } else if (defaultScope != null && !status.isCashAcceptor) {
-                        // get withdrawal details for available data
-                        withdrawManager.getWithdrawalDetails(
-                            amount = amount ?: Amount.zero(defaultScope.currency),
-                            scopeInfo = scope ?: defaultScope,
-                            exchangeBaseUrl = exchangeBaseUrl,
-                            loading = true,
-                        )
                     }
                 }
             }
 
-            val currencySpec = remember(exchange?.scopeInfo) {
-                exchange?.scopeInfo?.let { scopeInfo ->
-                    exchangeManager.getSpecForScopeInfo(scopeInfo)
-                } ?: status.currency?.let {
-                    exchangeManager.getSpecForCurrency(it)
-                }
-            }
-
-            LaunchedEffect(currencySpec, amount) {
+            LaunchedEffect(status.selectedSpec, amount) {
                 (requireActivity() as AppCompatActivity).apply {
-                    supportActionBar?.title = currencySpec?.symbol?.let { symbol ->
+                    supportActionBar?.title = status.selectedSpec?.symbol?.let { symbol ->
                         getString(R.string.nav_prompt_withdraw_currency, symbol)
                     } ?: amount?.currency?.let { currency ->
                         getString(R.string.nav_prompt_withdraw_currency, currency)
@@ -151,33 +124,41 @@ class PromptWithdrawFragment: Fragment() {
 
             TalerSurface {
                 status.let { s ->
-                    if (defaultScope == null) {
+                    if (scopes.isEmpty()) {
+                        LoadingScreen()
+                        return@let
+                    }
+
+                    if (withdrawUri != null && status.uriInfo == null) {
                         LoadingScreen()
                         return@let
                     }
 
                     when (s.status) {
-                        Loading, AlreadyConfirmed -> LoadingScreen()
+                        AlreadyConfirmed -> LoadingScreen()
 
-                        None, Error, InfoReceived, TosReviewRequired, Updating -> {
-                            // TODO: use scopeInfo instead of currency!
+                        None, Loading, Error, InfoReceived, TosReviewRequired, Updating -> {
+                            val initialScope = s.defaultInputScope ?: scope ?: scopes.first()
+                            val initialAmount = s.defaultInputAmount ?: Amount.zero(initialScope.currency)
                             WithdrawalShowInfo(
                                 status = s,
                                 devMode = devMode ?: false,
-                                defaultScope = defaultScope,
+                                initialAmountScope = AmountScope(
+                                    amount = initialAmount,
+                                    scope = initialScope,
+                                ),
                                 editableScope = editableCurrency,
                                 scopes = scopes,
-                                spec = currencySpec,
-                                onSelectExchange = {
-                                    selectExchange()
-                                },
+                                onSelectExchange = { selectExchange() },
                                 onSelectAmount = { amount, scope ->
                                     withdrawManager.getWithdrawalDetails(
                                         amount = amount,
                                         scopeInfo = scope,
+                                        exchangeBaseUrl = exchangeBaseUrl,
                                         // only show loading screen when switching currencies
-                                        loading = scope != status.scopeInfo,
+                                        loading = startup || (exchangeBaseUrl == null && scope != status.selectedScope),
                                     )
+                                    startup = false
                                 },
                                 onTosReview = {
                                     // TODO: rewrite ToS review screen in compose
@@ -185,7 +166,7 @@ class PromptWithdrawFragment: Fragment() {
                                     findNavController().navigate(R.id.action_global_reviewExchangeTos, args)
                                 },
                                 onConfirm = { age ->
-                                    exchange?.scopeInfo?.let { model.selectScope(it) }
+                                    status.selectedScope?.let { model.selectScope(it) }
                                     withdrawManager.acceptWithdrawal(age)
                                 },
                             )
@@ -240,24 +221,6 @@ class PromptWithdrawFragment: Fragment() {
             }
         }
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                withdrawManager.withdrawStatus.collect { status ->
-                    when (status.status) {
-                        TosReviewRequired -> {
-                            if (!acceptingTos && model.viewMode.value is ViewMode.Transactions) {
-                                acceptingTos = true
-                                val args = bundleOf("exchangeBaseUrl" to status.exchangeBaseUrl)
-                                findNavController().navigate(R.id.action_global_reviewExchangeTos, args)
-                            } else return@collect
-                        }
-
-                        else -> {}
-                    }
-                }
-            }
-        }
-
         selectExchangeDialog.exchangeSelection.observe(viewLifecycleOwner, EventObserver {
             onExchangeSelected(it)
         })
@@ -271,7 +234,9 @@ class PromptWithdrawFragment: Fragment() {
     private fun selectExchange() {
         val exchanges = withdrawManager.withdrawStatus.value.uriInfo?.possibleExchanges ?: return
         selectExchangeDialog.setExchanges(exchanges)
-        selectExchangeDialog.show(parentFragmentManager, "SELECT_EXCHANGE")
+        if (selectExchangeDialog.isAdded) {
+            selectExchangeDialog.show(parentFragmentManager, "SELECT_EXCHANGE")
+        }
     }
 
     private fun onExchangeSelected(exchange: ExchangeItem) {

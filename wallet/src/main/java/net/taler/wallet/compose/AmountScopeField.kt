@@ -29,11 +29,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.DropdownMenu
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -54,8 +59,9 @@ import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.cleanExchange
 
 data class AmountScope(
-    val amount: Amount,
+    val amount: Amount = Amount.zero(scope.currency),
     val scope: ScopeInfo,
+    val debounce: Boolean = false,
 )
 
 @Composable
@@ -71,13 +77,13 @@ fun AmountScopeField(
     readOnly: Boolean = false,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-    enabledAmount: Boolean = true,
-    enabledScope: Boolean = true,
+    showAmount: Boolean = true,
+    showScope: Boolean = true,
     showShortcuts: Boolean = false,
     onShortcutSelected: ((amount: AmountScope) -> Unit)? = null,
 ) {
     Column(modifier) {
-        if (editableScope) {
+        if (showScope) {
             ScopeDropdown(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -90,11 +96,11 @@ fun AmountScopeField(
                     ))
                 },
                 initialScope = amount.scope,
-                readOnly = readOnly || !enabledScope,
+                readOnly = readOnly || !editableScope,
             )
         }
 
-        if (enabledAmount) {
+        if (showAmount) {
             AmountInputFieldBase(
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -130,6 +136,7 @@ fun AmountScopeField(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScopeDropdown(
     scopes: List<ScopeInfo>,
@@ -159,70 +166,89 @@ fun ScopeDropdown(
         val enabled = false
         val interactionSource = remember { MutableInteractionSource() }
 
-        BasicTextField(
-            value = value,
-            modifier = Modifier
-                .height(45.dp)
-                .clickable { if (!readOnly) expanded = true }
-                .fillMaxWidth(),
-            onValueChange = { },
-            enabled = enabled,
-            readOnly = true,
-            textStyle = TextStyle(color = colors.focusedTextColor),
-            interactionSource = interactionSource,
-            singleLine = singleLine,
-            decorationBox =
-                @Composable { innerTextField ->
-                    OutlinedTextFieldDefaults.DecorationBox(
-                        value = value,
-                        innerTextField = innerTextField,
-                        singleLine = singleLine,
-                        enabled = enabled,
-                        visualTransformation = VisualTransformation.None,
-                        interactionSource = interactionSource,
-                        prefix = {
-                            Text(
-                                modifier = Modifier.padding(end = 6.dp),
-                                text = stringResource(R.string.currency_via),
-                            )
-                        },
-                        contentPadding = OutlinedTextFieldDefaults.contentPadding(
-                            top = 0.dp,
-                            bottom = 0.dp,
-                        ),
-                        colors = TextFieldDefaults.colors(),
-                    )
-                },
-        )
-
-        DropdownMenu(
+        ExposedDropdownMenuBox(
             expanded = expanded,
-            onDismissRequest = { expanded = false },
+            onExpandedChange = { expanded = it },
             modifier = Modifier,
         ) {
-            scopes.forEachIndexed { index, s ->
-                DropdownMenuItem(
-                    text = {
-                        Text(text = when (s) {
-                            is ScopeInfo.Global -> s.currency
-                            is ScopeInfo.Exchange -> stringResource(
-                                R.string.currency_url,
-                                s.currency,
-                                cleanExchange(s.url),
-                            )
-                            is ScopeInfo.Auditor -> stringResource(
-                                R.string.currency_url,
-                                s.currency,
-                                cleanExchange(s.url),
-                            )
-                        })
+            BasicTextField(
+                value = value,
+                modifier = Modifier
+                    .height(45.dp)
+                    .clickable { if (!readOnly) expanded = true }
+                    .fillMaxWidth(),
+                onValueChange = { },
+                enabled = enabled,
+                readOnly = true,
+                textStyle = TextStyle(color = colors.focusedTextColor),
+                interactionSource = interactionSource,
+                singleLine = singleLine,
+                decorationBox =
+                    @Composable { innerTextField ->
+                        OutlinedTextFieldDefaults.DecorationBox(
+                            value = value,
+                            innerTextField = innerTextField,
+                            singleLine = singleLine,
+                            enabled = enabled,
+                            visualTransformation = VisualTransformation.None,
+                            interactionSource = interactionSource,
+                            prefix = {
+                                Text(
+                                    modifier = Modifier.padding(end = 6.dp),
+                                    text = stringResource(R.string.currency_via),
+                                )
+                            },
+                            contentPadding = OutlinedTextFieldDefaults.contentPadding(
+                                top = 0.dp,
+                                bottom = 0.dp,
+                            ),
+                            colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                            trailingIcon = {
+                                ExposedDropdownMenuDefaults.TrailingIcon(expanded)
+                            }
+                        )
                     },
-                    onClick = {
-                        selectedIndex = index
-                        onScopeChanged(scopes[index])
-                        expanded = false
-                    }
-                )
+            )
+            
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                containerColor = MenuDefaults.containerColor,
+                shape = MenuDefaults.shape,
+            ) {
+                scopes.forEachIndexed { index, s ->
+                    DropdownMenuItem(
+                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                        leadingIcon = {
+                            if (selectedIndex == index) {
+                                Icon(Icons.Filled.Check, contentDescription = null)
+                            }
+                        },
+                        text = {
+                            Text(
+                                text = when (s) {
+                                    is ScopeInfo.Global -> s.currency
+                                    is ScopeInfo.Exchange -> stringResource(
+                                        R.string.currency_url,
+                                        s.currency,
+                                        cleanExchange(s.url),
+                                    )
+
+                                    is ScopeInfo.Auditor -> stringResource(
+                                        R.string.currency_url,
+                                        s.currency,
+                                        cleanExchange(s.url),
+                                    )
+                                }
+                            )
+                        },
+                        onClick = {
+                            selectedIndex = index
+                            onScopeChanged(scopes[index])
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }

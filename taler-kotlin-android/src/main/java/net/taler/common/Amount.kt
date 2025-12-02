@@ -280,6 +280,10 @@ data class Amount(
         }
     }
 
+    override fun equals(other: Any?): Boolean {
+        return other is Amount && (value == other.value && fraction == other.fraction)
+    }
+
     override fun compareTo(other: Amount): Int {
         check(currency == other.currency) { "Can only compare amounts with the same currency" }
         when {
