@@ -102,8 +102,8 @@ class PromptWithdrawFragment: Fragment() {
             val devMode by model.devMode.observeAsState()
 
             if (scopes.isEmpty()) EmptyComposable()
-            val initialScope = status.defaultInputScope ?: scope ?: scopes.first()
-            val initialAmount = status.defaultInputAmount ?: Amount.zero(initialScope.currency)
+            val initialScope = status.selectedScope ?: scope ?: scopes.first()
+            val initialAmount = status.selectedAmount ?: Amount.zero(initialScope.currency)
 
             LaunchedEffect(status.status) {
                 if (status.status == None) {
@@ -140,8 +140,6 @@ class PromptWithdrawFragment: Fragment() {
                         Confirming, AlreadyConfirmed -> LoadingScreen()
 
                         None, Loading, Error, InfoReceived, TosReviewRequired, Updating -> {
-                            val initialScope = s.defaultInputScope ?: scope ?: scopes.first()
-                            val initialAmount = s.defaultInputAmount ?: Amount.zero(initialScope.currency)
                             WithdrawalShowInfo(
                                 status = s,
                                 devMode = devMode ?: false,

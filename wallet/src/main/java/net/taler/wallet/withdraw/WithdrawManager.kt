@@ -18,12 +18,10 @@ package net.taler.wallet.withdraw
 
 import android.util.Log
 import androidx.annotation.UiThread
-import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
@@ -66,11 +64,6 @@ data class WithdrawStatus(
     // received details
     val uriInfo: WithdrawalDetailsForUri? = null,
     val amountInfo: WithdrawalDetailsForAmount? = null,
-
-    // calculated input defaults (based on uriInfo or exchangeBaseUrl)
-    val defaultInputAmount: Amount? = null,
-    val defaultInputScope: ScopeInfo? = null,
-    val defaultInputSpec: CurrencySpecification? = null,
 
     // calculated selections (based on amountInfo)
     val selectedAmount: Amount? = null,
@@ -311,7 +304,7 @@ class WithdrawManager(
                     ?: error("transaction ${details.transactionId} not found")
 
                 val status = _withdrawStatus.updateAndGet { value ->
-                    updateInputDefaults(
+                    updateSelections(
                         value.copy(
                             status = if (tx.txState.major == TransactionMajorState.Dialog) {
                                 InfoReceived
@@ -369,7 +362,7 @@ class WithdrawManager(
                 ?: exchange.currency?.let { Amount.zero(it)}
             if (amount != null) {
                 _withdrawStatus.update { value ->
-                    updateInputDefaults(value.copy(
+                    updateSelections(value.copy(
                         exchangeBaseUrl = exchangeBaseUrl))
                 }
 
@@ -418,35 +411,14 @@ class WithdrawManager(
         }
     }
 
-    private suspend fun updateInputDefaults(
+    private suspend fun updateSelections(
         status: WithdrawStatus,
     ): WithdrawStatus {
-        val defaultAmount = status.uriInfo?.amount
-
-        val defaultScope = status.exchangeBaseUrl?.let { url ->
-            exchangeManager.findExchangeByUrl(url)?.scopeInfo
-        } ?: status.uriInfo?.defaultExchangeBaseUrl?.let { url ->
-            exchangeManager.findExchangeByUrl(url)?.scopeInfo
-        }
-
-        val defaultSpec = defaultScope?.let { scope ->
-            exchangeManager.getSpecForScopeInfo(scope)
-        } ?: defaultAmount?.currency?.let { currency ->
-            exchangeManager.getSpecForCurrency(currency)
-        }
-
-        return status.copy(
-            defaultInputAmount = defaultAmount,
-            defaultInputScope = defaultScope,
-            defaultInputSpec = defaultSpec,
-        )
-    }
-
-    private fun updateSelections(
-        status: WithdrawStatus,
-    ): WithdrawStatus {
-        val selectedAmount = status.amountInfo?.amountRaw
+        val selectedAmount = status.amountInfo?.amountRaw ?: status.uriInfo?.amount
         val selectedScope = status.amountInfo?.scopeInfo
+            ?: status.uriInfo?.defaultExchangeBaseUrl?.let { url ->
+                exchangeManager.findExchangeByUrl(url)?.scopeInfo
+            }
         val selectedSpec = selectedScope?.let { scope ->
             exchangeManager.getSpecForScopeInfo(scope)
         } ?: selectedAmount?.currency?.let { currency ->
