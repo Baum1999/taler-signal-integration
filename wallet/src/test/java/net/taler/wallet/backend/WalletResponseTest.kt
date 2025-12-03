@@ -48,7 +48,8 @@ class WalletResponseTest {
                     "pendingIncoming": "TESTKUDOS:0",
                     "pendingOutgoing": "TESTKUDOS:0",
                     "hasPendingTransactions": false,
-                    "requiresUserInput": false
+                    "requiresUserInput": false,
+                    "disablePeerPayments": false
                   }
                 ]
               }
