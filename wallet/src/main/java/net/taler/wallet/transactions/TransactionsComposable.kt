@@ -509,6 +509,7 @@ private val previewBalance = BalanceItem(
     available = Amount.fromJSONString("MXN:5.50"),
     pendingIncoming = Amount.fromJSONString("MXN:1.40"),
     pendingOutgoing = Amount.fromJSONString("MXN:0"),
+    disablePeerPayments = false,
 )
 
 @Preview

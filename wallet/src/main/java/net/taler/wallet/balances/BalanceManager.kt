@@ -113,9 +113,9 @@ class BalanceManager(
     } ?: emptyList()
 
     @UiThread
-    fun getScopes() = balances.value?.map { balanceItem ->
-        balanceItem.scopeInfo
-    } ?: emptyList()
+    fun getScopes(forPeer: Boolean = false) = balances.value?.filter {
+        !forPeer || it.disablePeerPayments
+    }?.map { it.scopeInfo } ?: emptyList()
 
     @UiThread
     fun hasSufficientBalance(amount: Amount): Boolean {

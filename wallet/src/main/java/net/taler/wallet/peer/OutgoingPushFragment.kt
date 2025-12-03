@@ -73,7 +73,7 @@ class OutgoingPushFragment : Fragment() {
                     OutgoingPushComposable(
                         state = state,
                         defaultScope = remember { (viewMode as? ViewMode.Transactions)?.selectedScope },
-                        scopes = balanceManager.getScopes(),
+                        scopes = balanceManager.getScopes(true),
                         devMode = devMode == true,
                         getCurrencySpec = exchangeManager::getSpecForScopeInfo,
                         getFees = {

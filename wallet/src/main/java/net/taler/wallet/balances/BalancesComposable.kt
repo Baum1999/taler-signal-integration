@@ -309,18 +309,21 @@ fun BalancesComposablePreview() {
             available = Amount.fromJSONString("CHF:10.20"),
             pendingIncoming = Amount.fromJSONString("CHF:1.20"),
             pendingOutgoing = Amount.fromJSONString("CHF:0.40"),
+            disablePeerPayments = false,
         ),
         BalanceItem(
             scopeInfo = Exchange("KUDOS", "https://exchange.demo.taler.net"),
             available = Amount.fromJSONString("KUDOS:1407.37"),
             pendingIncoming = Amount.fromJSONString("KUDOS:0"),
             pendingOutgoing = Amount.fromJSONString("KUDOS:2.15"),
+            disablePeerPayments = false,
         ),
         BalanceItem(
             scopeInfo = Auditor("MXN", "https://auditor.taler.banxico.org.mx"),
             available = Amount.fromJSONString("MXN:5.50"),
             pendingIncoming = Amount.fromJSONString("MXN:1.40"),
             pendingOutgoing = Amount.fromJSONString("MXN:0"),
+            disablePeerPayments = false,
         ),
     )
 
@@ -331,7 +334,6 @@ fun BalancesComposablePreview() {
             year = 2025,
             amountReceiptsSubmitted = Amount.fromJSONString("KUDOS:10"),
             amountReceiptsAvailable = Amount.fromJSONString("KUDOS:10"),
-
         )
     )
 

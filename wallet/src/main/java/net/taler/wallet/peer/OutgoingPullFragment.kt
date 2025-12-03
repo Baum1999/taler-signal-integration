@@ -63,7 +63,7 @@ class OutgoingPullFragment : Fragment() {
                         onCreateInvoice = this@OutgoingPullFragment::onCreateInvoice,
                         onTosAccept = this@OutgoingPullFragment::onTosAccept,
                         defaultScope = remember { (viewMode as? ViewMode.Transactions)?.selectedScope },
-                        scopes = balanceManager.getScopes(),
+                        scopes = balanceManager.getScopes(true),
                         devMode = devMode == true,
                         getCurrencySpec = exchangeManager::getSpecForScopeInfo,
                         checkPeerPullCredit = { amount, loading ->

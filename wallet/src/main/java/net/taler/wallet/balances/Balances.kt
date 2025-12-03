@@ -28,6 +28,7 @@ data class BalanceItem(
     val available: Amount,
     val pendingIncoming: Amount,
     val pendingOutgoing: Amount,
+    val disablePeerPayments: Boolean,
 ) {
     val currency: String get() = available.currency
 }

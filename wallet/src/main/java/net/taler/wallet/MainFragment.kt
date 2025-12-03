@@ -228,11 +228,22 @@ class MainFragment: Fragment() {
                     !online || (balanceState as? BalanceState.Success)?.balances?.isEmpty() ?: true
                 }
 
+                val disablePeer = remember(balanceState, viewMode) {
+                    val selectedScope = (viewMode as? ViewMode.Transactions)?.selectedScope
+                    val balances = (balanceState as? BalanceState.Success)
+                        ?.balances
+                        ?.filter { !it.disablePeerPayments }
+                    (balances?.isEmpty() ?: true) || balances
+                        .find { it.scopeInfo == selectedScope }
+                        ?.disablePeerPayments ?: false
+                }
+
                 TalerActionsModal(
                     showSheet = showSheet,
                     sheetState = sheetState,
                     onDismiss = { showSheet = false },
                     disableActions = disableActions,
+                    disablePeer = disablePeer,
                     onSend = this@MainFragment::onSend,
                     onReceive = this@MainFragment::onReceive,
                     onScanQr = this@MainFragment::onScanQr,
@@ -395,6 +406,7 @@ fun TalerActionsModal(
     showSheet: Boolean,
     sheetState: SheetState,
     disableActions: Boolean,
+    disablePeer: Boolean,
     onDismiss: () -> Unit,
     onSend: () -> Unit,
     onReceive: () -> Unit,
@@ -420,7 +432,7 @@ fun TalerActionsModal(
             ) {
                 GridMenuItem(
                     icon = R.drawable.ic_link,
-                    title = R.string.enter_uri_label,
+                    title = R.string.enter_uri,
                     onClick = { onEnterUri(); onDismiss() },
                 )
 
@@ -441,7 +453,7 @@ fun TalerActionsModal(
                     icon = R.drawable.transaction_p2p_incoming,
                     title = R.string.transactions_receive_funds,
                     onClick = { onReceive(); onDismiss() },
-                    enabled = !disableActions,
+                    enabled = !disableActions && !disablePeer,
                 )
 
                 GridMenuItem(
@@ -455,7 +467,7 @@ fun TalerActionsModal(
                     icon = R.drawable.transaction_p2p_outgoing,
                     title = R.string.transactions_send_funds,
                     onClick = { onSend(); onDismiss() },
-                    enabled = !disableActions,
+                    enabled = !disableActions && !disablePeer,
                 )
             }
         }
