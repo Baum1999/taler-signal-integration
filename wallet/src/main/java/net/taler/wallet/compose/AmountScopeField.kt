@@ -61,7 +61,10 @@ import net.taler.wallet.cleanExchange
 data class AmountScope(
     val amount: Amount = Amount.zero(scope.currency),
     val scope: ScopeInfo,
+    // whether fee calculation should be debounced
     val debounce: Boolean = false,
+    // whether it originated from user input
+    val userInput: Boolean = false,
 )
 
 @Composable

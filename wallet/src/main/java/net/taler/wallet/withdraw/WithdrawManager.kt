@@ -85,6 +85,7 @@ data class WithdrawStatus(
         None,
         Loading,
         Updating,
+        Confirming,
         InfoReceived,
         AlreadyConfirmed,
         TosReviewRequired,
@@ -179,14 +180,6 @@ data class WithdrawalDetailsForUri(
 @Serializable
 data class WithdrawalDetailsForAmount(
     /**
-     * Did the user accept the current version of the exchange's
-     * terms of service?
-     *
-     * @deprecated the client should query the exchange entry instead
-     */
-    val tosAccepted: Boolean,
-
-    /**
      * Amount that the user will transfer to the exchange.
      */
     val amountRaw: Amount,
@@ -265,8 +258,6 @@ class WithdrawManager(
     private val _withdrawTestStatus = MutableStateFlow<TestWithdrawStatus>(TestWithdrawStatus.None)
     val withdrawTestStatus: StateFlow<TestWithdrawStatus> = _withdrawTestStatus.asStateFlow()
 
-    val qrCodes = MutableLiveData<List<QrCodeSpec>>()
-
     var exchangeFees: ExchangeFees? = null
         private set
 
@@ -320,22 +311,25 @@ class WithdrawManager(
                     ?: error("transaction ${details.transactionId} not found")
 
                 val status = _withdrawStatus.updateAndGet { value ->
-                    updateInputDefaults(value.copy(
-                        status = if (tx.txState.major == TransactionMajorState.Dialog) {
-                            InfoReceived
-                        } else {
-                            AlreadyConfirmed
-                        },
-                        uriInfo = details.info,
-                        exchangeBaseUrl = details.info.defaultExchangeBaseUrl,
-                    ))
+                    updateInputDefaults(
+                        value.copy(
+                            status = if (tx.txState.major == TransactionMajorState.Dialog) {
+                                InfoReceived
+                            } else {
+                                AlreadyConfirmed
+                            },
+                            uriInfo = details.info,
+                            exchangeBaseUrl = details.info.defaultExchangeBaseUrl,
+                        )
+                    )
                 }
 
                 // then extend with amount details (not for cash acceptor)
                 if (!status.isCashAcceptor) {
-                    getWithdrawalDetails(
-                        amount = details.info.amount,
-                        exchangeBaseUrl = details.info.defaultExchangeBaseUrl,
+                    getWithdrawalDetailsForAmount(
+                        amount = details.info.amount
+                            ?: Amount.zero(details.info.currency),
+                        defaultExchangeBaseUrl = details.info.defaultExchangeBaseUrl,
                         loading = loading,
                     )
                 }
@@ -343,93 +337,85 @@ class WithdrawManager(
         }
     }
 
-    fun getWithdrawalDetails(
-        amount: Amount? = null,
+    fun getWithdrawalDetailsForAmount(
+        amount: Amount,
         scopeInfo: ScopeInfo? = null,
-        exchangeBaseUrl: String? = null,
+        defaultExchangeBaseUrl: String? = null,
         loading: Boolean = true,
     ) = scope.launch {
-        val status = _withdrawStatus.getAndUpdate { value ->
-            value.copy(status = if (loading) Loading else Updating)
+        // complete exchangeBaseUrl if missing
+        val exchange = scopeInfo?.let { exchangeManager.findExchange(it) }
+            ?: defaultExchangeBaseUrl?.let { exchangeManager.findExchange(it) }
+            ?: exchangeManager.findExchange(amount.currency)
+        if (exchange != null) {
+            getWithdrawalDetails(
+                amount = amount,
+                exchange = exchange,
+                loading = loading,
+            )
         }
+    }
 
-        val ex: ExchangeItem
-        val am: Amount?
+    fun getWithdrawalDetailsForExchange(
+        exchangeBaseUrl: String,
+        amount: Amount? = null,
+        loading: Boolean = true,
+    ) = scope.launch {
+        // complete amount if missing
+        val exchange = exchangeManager
+            .findExchangeByUrl(exchangeBaseUrl)
+        if (exchange != null) {
+            val amount = amount
+                ?: exchange.currency?.let { Amount.zero(it)}
+            if (amount != null) {
+                _withdrawStatus.update { value ->
+                    updateInputDefaults(value.copy(
+                        exchangeBaseUrl = exchangeBaseUrl))
+                }
 
-        if (amount != null && (scopeInfo != null || exchangeBaseUrl != null)) {
-            // 1. caller sets both parameters
-            ex = exchangeBaseUrl?.let { exchangeManager.findExchangeByUrl(it) }
-                ?: scopeInfo?.let { exchangeManager.findExchange(it) }
-                ?: error("could not resolve exchange")
-            am = ex.currency?.let { amount.copy(currency = it) }
-                ?: error("could not resolve currency")
-        } else if (amount != null) {
-            // 2. caller only provides amount
-            //   => amount is updated
-            //   => exchange URL is kept
-            ex = status.exchangeBaseUrl?.let { exchangeManager.findExchangeByUrl(it) }
-                ?: status.selectedScope?.let { exchangeManager.findExchange(it) }
-                ?: exchangeManager.findExchange(amount.currency)
-                ?: error("could not resolve exchange")
-            am = amount
-        } else if (exchangeBaseUrl != null) {
-            // 3. caller only provides exchange URL
-            ex = exchangeManager.findExchangeByUrl(exchangeBaseUrl)
-                ?: error("could not resolve exchange")
-            am = status.selectedAmount
-                ?: ex.currency?.let { Amount.zero(ex.currency) }
-                ?: error("could not resolve currency")
-        } else if (scopeInfo != null) {
-            // 3. caller only provides scope
-            ex = exchangeManager.findExchange(scopeInfo)
-                ?: error("could not resolve exchange")
-            am = status.selectedAmount
-                ?: ex.currency?.let { Amount.zero(ex.currency) }
-                ?: error("could not resolve currency")
-        } else {
-            error("no parameters specified")
+                getWithdrawalDetails(
+                    amount = amount,
+                    exchange = exchange,
+                    loading = loading,
+                )
+            }
         }
+    }
 
-        if (ex.tosStatus != ExchangeTosStatus.Accepted) {
-            _withdrawStatus.update { it.copy(status = TosReviewRequired) }
+    fun getWithdrawalDetails(
+        amount: Amount,
+        exchange: ExchangeItem,
+        loading: Boolean = true,
+    ) = scope.launch {
+        // do not interrupt confirmation
+        if (_withdrawStatus.value.status == Confirming) {
             return@launch
         }
 
+        _withdrawStatus.update { status ->
+            status.copy(status = if (loading) Loading else Updating)
+        }
+
         api.request("getWithdrawalDetailsForAmount", WithdrawalDetailsForAmount.serializer()) {
-            put("exchangeBaseUrl", ex.exchangeBaseUrl)
-            put("amount", am.toJSONString())
+            put("exchangeBaseUrl", exchange.exchangeBaseUrl)
+            put("amount", amount.toJSONString())
         }.onError { error ->
             handleError("getWithdrawalDetailsForAmount", error)
         }.onSuccess { details ->
             scope.launch {
                 _withdrawStatus.update { value ->
                     updateSelections(value.copy(
-                        status = InfoReceived,
+                        status = if (exchange.tosStatus != ExchangeTosStatus.Accepted) {
+                            TosReviewRequired
+                        } else {
+                            InfoReceived
+                        },
                         amountInfo = details,
-                        exchangeBaseUrl = ex.exchangeBaseUrl,
+                        exchangeBaseUrl = exchange.exchangeBaseUrl,
                     ))
                 }
             }
         }
-    }
-
-
-    private fun updateSelections(
-        status: WithdrawStatus,
-    ): WithdrawStatus {
-        val selectedAmount = status.amountInfo?.amountRaw
-        val selectedScope = status.amountInfo?.scopeInfo
-        val selectedSpec = selectedScope?.let { scope ->
-            exchangeManager.getSpecForScopeInfo(scope)
-        } ?: selectedAmount?.currency?.let { currency ->
-            exchangeManager.getSpecForCurrency(currency)
-        }
-
-        return status.copy(
-            selectedAmount = selectedAmount,
-            selectedScope = selectedScope,
-            selectedSpec = selectedSpec,
-        )
     }
 
     private suspend fun updateInputDefaults(
@@ -456,6 +442,24 @@ class WithdrawManager(
         )
     }
 
+    private fun updateSelections(
+        status: WithdrawStatus,
+    ): WithdrawStatus {
+        val selectedAmount = status.amountInfo?.amountRaw
+        val selectedScope = status.amountInfo?.scopeInfo
+        val selectedSpec = selectedScope?.let { scope ->
+            exchangeManager.getSpecForScopeInfo(scope)
+        } ?: selectedAmount?.currency?.let { currency ->
+            exchangeManager.getSpecForCurrency(currency)
+        }
+
+        return status.copy(
+            selectedAmount = selectedAmount,
+            selectedScope = selectedScope,
+            selectedSpec = selectedSpec,
+        )
+    }
+
     @UiThread
     fun prepareManualWithdrawal(uri: String) = scope.launch {
         _withdrawStatus.value = WithdrawStatus(status = Loading)
@@ -464,9 +468,9 @@ class WithdrawManager(
         }.onError {
             handleError("prepareWithdrawExchange", it)
         }.onSuccess {
-            getWithdrawalDetails(
-                amount = it.amount,
+            getWithdrawalDetailsForExchange(
                 exchangeBaseUrl = it.exchangeBaseUrl,
+                amount = it.amount,
             )
         }
     }
@@ -491,7 +495,7 @@ class WithdrawManager(
     @UiThread
     fun acceptWithdrawal(restrictAge: Int? = null) = scope.launch {
         val status = _withdrawStatus.updateAndGet { value ->
-            value.copy(status = Loading)
+            value.copy(status = Confirming)
         }
 
         if (status.talerWithdrawUri == null) {

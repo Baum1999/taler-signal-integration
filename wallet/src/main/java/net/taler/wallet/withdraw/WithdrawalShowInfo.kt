@@ -90,7 +90,7 @@ fun WithdrawalShowInfo(
     val ageRestrictionOptions = status.amountInfo?.ageRestrictionOptions ?: emptyList()
 
     val keyboardController = LocalSoftwareKeyboardController.current
-    var selectedAmount by remember { mutableStateOf(initialAmountScope) }
+    var selectedAmount by remember(initialAmountScope) { mutableStateOf(initialAmountScope) }
     var selectedAge by remember { mutableStateOf<Int?>(null) }
     val scrollState = rememberScrollState()
     val insufficientBalance = remember(selectedAmount, maxAmount) {
@@ -106,7 +106,7 @@ fun WithdrawalShowInfo(
 
     LaunchedEffect(selectedAmount) {
         val selected = selectedAmount
-        if (!selected.debounce) {
+        if (!selected.debounce && selected.userInput) {
             onSelectAmount(
                 selected.amount,
                 selected.scope,
@@ -116,7 +116,7 @@ fun WithdrawalShowInfo(
 
     selectedAmount.useDebounce {
         val selected = selectedAmount
-        if (selected.debounce) {
+        if (selected.debounce && selected.userInput) {
             onSelectAmount(
                 selected.amount,
                 selected.scope,
@@ -152,11 +152,13 @@ fun WithdrawalShowInfo(
                     selectedAmount = amount.copy(
                         amount = Amount.zero(amount.amount.currency),
                         debounce = false,
+                        userInput = true,
                     )
                 },
             )
 
-            if (status.status == WithdrawStatus.Status.Loading) {
+            if (status.status == WithdrawStatus.Status.Loading
+                || status.status == WithdrawStatus.Status.None) {
                 LoadingScreen(Modifier.weight(1f))
                 return
             } else if (status.status == Error && status.error != null) {
@@ -183,7 +185,10 @@ fun WithdrawalShowInfo(
                     showAmount = status.status != TosReviewRequired,
                     readOnly = status.status == Updating,
                     onAmountChanged = { amount ->
-                        selectedAmount = amount.copy(debounce = true)
+                        selectedAmount = amount.copy(
+                            debounce = true,
+                            userInput = true,
+                        )
                     },
                     label = { Text(stringResource(R.string.amount_withdraw)) },
                     isError = selectedAmount.amount.isZero() || insufficientBalance,
@@ -194,7 +199,10 @@ fun WithdrawalShowInfo(
                     },
                     showShortcuts = true,
                     onShortcutSelected = { amount ->
-                        selectedAmount = amount.copy(debounce = false)
+                        selectedAmount = amount.copy(
+                            debounce = false,
+                            userInput = true,
+                        )
                     }
                 )
 
@@ -361,7 +369,6 @@ private fun buildPreviewWithdrawStatus(
         ),
     ),
     amountInfo = WithdrawalDetailsForAmount(
-        tosAccepted = true,
         amountRaw = Amount.fromJSONString("KUDOS:10.1"),
         amountEffective = Amount.fromJSONString("KUDOS:10.2"),
         withdrawalAccountsList = emptyList(),
