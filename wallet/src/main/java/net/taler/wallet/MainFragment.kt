@@ -230,12 +230,12 @@ class MainFragment: Fragment() {
 
                 val disablePeer = remember(balanceState, viewMode) {
                     val selectedScope = (viewMode as? ViewMode.Transactions)?.selectedScope
-                    val balances = (balanceState as? BalanceState.Success)
-                        ?.balances
+                    val balances = (balanceState as? BalanceState.Success)?.balances
                         ?.filter { !it.disablePeerPayments }
-                    (balances?.isEmpty() ?: true) || balances
-                        .find { it.scopeInfo == selectedScope }
-                        ?.disablePeerPayments ?: false
+                        ?: emptyList()
+                    selectedScope?.let {
+                        balances.find { it.scopeInfo == selectedScope } == null
+                    } ?: balances.isEmpty()
                 }
 
                 TalerActionsModal(

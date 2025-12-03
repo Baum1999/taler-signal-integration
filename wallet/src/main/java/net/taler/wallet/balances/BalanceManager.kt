@@ -114,7 +114,7 @@ class BalanceManager(
 
     @UiThread
     fun getScopes(forPeer: Boolean = false) = balances.value?.filter {
-        !forPeer || it.disablePeerPayments
+        !forPeer || !it.disablePeerPayments
     }?.map { it.scopeInfo } ?: emptyList()
 
     @UiThread
