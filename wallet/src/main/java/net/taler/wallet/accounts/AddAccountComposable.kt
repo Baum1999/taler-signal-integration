@@ -79,7 +79,9 @@ fun AddAccountComposable(
         return ErrorComposable(
             error = TalerErrorInfo.makeCustomError(
                 stringResource(R.string.send_deposit_no_methods_error)),
-            modifier = Modifier.verticalScroll(rememberScrollState()),
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
             devMode = false,
             onClose = onClose,
         )

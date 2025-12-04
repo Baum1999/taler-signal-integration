@@ -49,6 +49,7 @@ import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.compose.AmountCurrencyField
 import net.taler.wallet.compose.BottomButtonBox
 import net.taler.wallet.compose.ErrorComposable
+import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.systemBarsPaddingBottom
 import net.taler.wallet.transactions.AmountType.Negative
 import net.taler.wallet.transactions.AmountType.Positive
@@ -98,7 +99,7 @@ fun DepositAmountComposable(
                     // FIXME: i18n string
                     error = TalerErrorInfo.makeCustomError(
                         "It is not possible to deposit to this account, please select another one"),
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxSize(),
                     devMode = false,
                     onClose = onClose,
                 )
@@ -206,7 +207,7 @@ fun DepositAmountComposable(
 @Preview
 @Composable
 fun DepositAmountComposablePreview() {
-    Surface {
+    TalerSurface {
         val state = DepositState.AccountSelected(
             KnownBankAccountInfo(
                 bankAccountId = "acct:1234",
@@ -250,14 +251,14 @@ fun DepositAmountComposablePreview() {
 @Preview
 @Composable
 fun DepositAmountComposableErrorPreview() {
-    Surface {
+    TalerSurface {
         val state = DepositState.AccountSelected(
             KnownBankAccountInfo(
                 bankAccountId = "acct:1234",
                 paytoUri = "payto://",
                 kycCompleted = false,
-                currencies = listOf("KUDOS", "TESTKUDOS"),
-                label = "Test accoul "
+                currencies = listOf(),
+                label = "Test account"
             ),
             maxDepositable = mapOf(),
         )

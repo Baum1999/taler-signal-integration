@@ -166,7 +166,7 @@ fun WithdrawalShowInfo(
                 return
             } else if (status.status == Error && status.error != null) {
                 ErrorComposable(status.error,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxSize(),
                     devMode = devMode)
                 return
             } else if (status.isCashAcceptor) {
