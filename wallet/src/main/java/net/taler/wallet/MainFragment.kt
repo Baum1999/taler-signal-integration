@@ -121,6 +121,7 @@ class MainFragment: Fragment() {
                 val online by model.networkManager.networkStatus.observeAsState(false)
                 val balanceState by model.balanceManager.state.observeAsState(BalanceState.None)
                 val viewMode by model.viewMode.collectAsStateLifecycleAware()
+                val devMode by model.devMode.observeAsState(false)
                 val txResult by remember(viewMode) {
                     val v = viewMode as? ViewMode.Transactions
                     model.transactionManager.transactionsFlow(v?.selectedScope, stateFilter = v?.stateFilter)
@@ -184,6 +185,7 @@ class MainFragment: Fragment() {
                             state = balanceState,
                             txResult = txResult,
                             viewMode = viewMode,
+                            devMode = devMode,
                             onGetDemoMoneyClicked = {
                                 model.withdrawManager.withdrawTestBalance()
                                 Snackbar.make(

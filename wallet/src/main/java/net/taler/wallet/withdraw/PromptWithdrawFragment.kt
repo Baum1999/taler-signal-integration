@@ -21,19 +21,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.Alignment.Companion.Center
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -50,7 +41,6 @@ import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.main.ViewMode
 import net.taler.wallet.backend.BackendManager
-import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.AmountScope
 import net.taler.wallet.compose.EmptyComposable
@@ -242,24 +232,6 @@ class PromptWithdrawFragment: Fragment() {
     private fun onExchangeSelected(exchange: ExchangeItem) {
         withdrawManager.getWithdrawalDetailsForExchange(
             exchangeBaseUrl = exchange.exchangeBaseUrl,
-        )
-    }
-}
-
-@Composable
-fun WithdrawalError(
-    error: TalerErrorInfo,
-) {
-    Box(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxSize(),
-        contentAlignment = Center,
-    ) {
-        Text(
-            text = error.userFacingMsg,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.error,
         )
     }
 }

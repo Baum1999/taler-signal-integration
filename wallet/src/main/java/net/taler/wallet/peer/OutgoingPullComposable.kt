@@ -77,7 +77,6 @@ fun OutgoingPullComposable(
     checkPeerPullCredit: suspend (amount: AmountScope, loading: Boolean) -> CheckPeerPullCreditResult?,
     onCreateInvoice: (amount: AmountScope, subject: String, hours: Long, exchangeBaseUrl: String) -> Unit,
     onTosAccept: (exchangeBaseUrl: String) -> Unit,
-    onClose: () -> Unit,
 ) {
     var subject by rememberSaveable { mutableStateOf("") }
     var amount by remember {
@@ -138,7 +137,7 @@ fun OutgoingPullComposable(
                 scopes = scopes,
                 readOnly = false,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                showAmount = !tosReview,
+                showAmount = !tosReview && state !is OutgoingError,
                 showShortcuts = true,
                 onAmountChanged = {
                     amount = it.copy(
@@ -163,7 +162,9 @@ fun OutgoingPullComposable(
             }
 
             if (state is OutgoingError) {
-                ErrorComposable(state.info, devMode, onClose)
+                ErrorComposable(state.info,
+                    modifier = Modifier.weight(1f),
+                    devMode = devMode)
                 return@Column
             }
 
@@ -299,7 +300,6 @@ fun PeerPullComposableCreatingPreview() {
             checkPeerPullCredit = { _, _ -> null },
             onCreateInvoice = { _, _, _, _ -> },
             onTosAccept = {},
-            onClose = {},
         )
     }
 }
@@ -321,7 +321,6 @@ fun PeerPullComposableCheckingPreview() {
             checkPeerPullCredit = { _, _ -> null },
             onCreateInvoice = { _, _, _, _ -> },
             onTosAccept = {},
-            onClose = {},
         )
     }
 }
@@ -345,7 +344,6 @@ fun PeerPullComposableCheckedPreview() {
             checkPeerPullCredit = { _, _ -> null },
             onCreateInvoice = { _, _, _, _ -> },
             onTosAccept = {},
-            onClose = {},
         )
     }
 }
@@ -369,7 +367,6 @@ fun PeerPullComposableErrorPreview() {
             checkPeerPullCredit = { _, _ -> null },
             onCreateInvoice = { _, _, _, _ -> },
             onTosAccept = {},
-            onClose = {},
         )
     }
 }

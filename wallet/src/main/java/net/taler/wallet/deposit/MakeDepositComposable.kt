@@ -32,9 +32,6 @@ import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.accounts.BankAccountRow
 import net.taler.wallet.accounts.KnownBankAccountInfo
-import net.taler.wallet.backend.TalerErrorCode
-import net.taler.wallet.backend.TalerErrorInfo
-import net.taler.wallet.compose.ErrorComposable
 
 @Composable
 fun MakeDepositComposable(
@@ -77,19 +74,4 @@ fun MakeDepositComposable(
             BottomInsetsSpacer()
         }
     }
-}
-
-@Composable
-fun MakeDepositErrorComposable(
-    message: String,
-    onClose: () -> Unit,
-) {
-    ErrorComposable(
-        error = TalerErrorInfo(
-            message = message,
-            code = TalerErrorCode.UNKNOWN,
-        ),
-        devMode = false,
-        onClose = onClose,
-    )
 }

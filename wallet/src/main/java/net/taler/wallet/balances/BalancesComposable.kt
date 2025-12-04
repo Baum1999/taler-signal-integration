@@ -32,6 +32,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Badge
@@ -54,21 +56,23 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
 import net.taler.wallet.R
+import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo.Auditor
 import net.taler.wallet.balances.ScopeInfo.Exchange
 import net.taler.wallet.balances.ScopeInfo.Global
 import net.taler.wallet.cleanExchange
+import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.cardPaddings
 import net.taler.wallet.donau.DonauSummaryItem
-import net.taler.wallet.withdraw.WithdrawalError
 
 // TODO: rename to AssetsComposable
 @Composable
 fun BalancesComposable(
     innerPadding: PaddingValues,
     state: BalanceState,
+    devMode: Boolean,
     onGetDemoMoneyClicked: () -> Unit,
     onBalanceClicked: (balance: BalanceItem) -> Unit,
     onPendingClicked: (balance: BalanceItem) -> Unit,
@@ -77,7 +81,11 @@ fun BalancesComposable(
     when (state) {
         is BalanceState.None -> {}
         is BalanceState.Loading -> LoadingScreen()
-        is BalanceState.Error -> WithdrawalError(state.error)
+        is BalanceState.Error -> ErrorComposable(state.error,
+            devMode = devMode,
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()))
         is BalanceState.Success -> if (
             state.balances.isNotEmpty()
             || state.donauSummary.isNotEmpty()) {
@@ -341,6 +349,24 @@ fun BalancesComposablePreview() {
         BalancesComposable(
             innerPadding = PaddingValues(0.dp),
             state = BalanceState.Success(balances, donauSummary),
+            devMode = false,
+            onGetDemoMoneyClicked = {},
+            onBalanceClicked = {},
+            onPendingClicked = {},
+            onStatementClicked = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+fun BalancesComposableErrorPreview() {
+    TalerSurface {
+        BalancesComposable (
+            innerPadding = PaddingValues(0.dp),
+            state = BalanceState.Error(TalerErrorInfo
+                .makeCustomError("Balances could not be loaded")),
+            devMode = false,
             onGetDemoMoneyClicked = {},
             onBalanceClicked = {},
             onPendingClicked = {},
@@ -356,6 +382,7 @@ fun BalancesComposableEmptyPreview() {
         BalancesComposable (
             innerPadding = PaddingValues(0.dp),
             state = BalanceState.Success(listOf(), listOf()),
+            devMode = false,
             onGetDemoMoneyClicked = {},
             onBalanceClicked = {},
             onPendingClicked = {},

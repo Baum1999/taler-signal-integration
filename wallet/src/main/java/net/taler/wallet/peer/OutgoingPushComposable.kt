@@ -80,25 +80,27 @@ fun OutgoingPushComposable(
     getCurrencySpec: (scope: ScopeInfo) -> CurrencySpecification?,
     getFees: suspend (amount: AmountScope) -> CheckFeeResult?,
     onSend: (amount: AmountScope, summary: String, hours: Long) -> Unit,
-    onClose: () -> Unit,
 ) {
     when(state) {
         is OutgoingChecking, is OutgoingCreating, is OutgoingResponse -> LoadingScreen()
-        is OutgoingIntro, is OutgoingChecked -> OutgoingPushIntroComposable(
+        is OutgoingIntro, is OutgoingChecked, is OutgoingError -> OutgoingPushIntroComposable(
+            state = state,
             defaultScope = defaultScope,
             scopes = scopes,
+            devMode = devMode,
             getCurrencySpec = getCurrencySpec,
             getFees = getFees,
             onSend = onSend,
         )
-        is OutgoingError -> ErrorComposable(state.info, devMode, onClose)
     }
 }
 
 @Composable
 fun OutgoingPushIntroComposable(
+    state: OutgoingState,
     defaultScope: ScopeInfo?,
     scopes: List<ScopeInfo>,
+    devMode: Boolean,
     getCurrencySpec: (scope: ScopeInfo) -> CurrencySpecification?,
     getFees: suspend (amount: AmountScope) -> CheckFeeResult?,
     onSend: (amount: AmountScope, summary: String, hours: Long) -> Unit,
@@ -169,6 +171,7 @@ fun OutgoingPushIntroComposable(
                 scopes = scopes,
                 readOnly = false,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                showAmount = state !is OutgoingError,
                 showShortcuts = true,
                 onAmountChanged = {
                     amount = it.copy(userInput = true)
@@ -207,6 +210,13 @@ fun OutgoingPushIntroComposable(
                     }
                 }
             )
+
+            if (state is OutgoingError) {
+                ErrorComposable(state.info,
+                    modifier = Modifier.weight(1f),
+                    devMode = devMode)
+                return@Column
+            }
 
             AnimatedVisibility(feeResult is Success && !amount.amount.isZero()) {
                 Column(
@@ -311,7 +321,6 @@ fun PeerPushComposableCreatingPreview() {
                 exchangeBaseUrl = "https://exchange.demo.taler.net"
             ) },
             onSend = { _, _, _ -> },
-            onClose = {},
         )
     }
 }
@@ -338,7 +347,6 @@ fun PeerPushComposableCheckingPreview() {
                 exchangeBaseUrl = "https://exchange.demo.taler.net"
             ) },
             onSend = { _, _, _ -> },
-            onClose = {},
         )
     }
 }
@@ -367,7 +375,6 @@ fun PeerPushComposableCheckedPreview() {
                 exchangeBaseUrl = "https://exchange.demo.taler.net"
             ) },
             onSend = { _, _, _ -> },
-            onClose = {},
         )
     }
 }
@@ -395,7 +402,6 @@ fun PeerPushComposableErrorPreview() {
                 exchangeBaseUrl = "https://exchange.demo.taler.net"
             ) },
             onSend = { _, _, _ -> },
-            onClose = {},
         )
     }
 }

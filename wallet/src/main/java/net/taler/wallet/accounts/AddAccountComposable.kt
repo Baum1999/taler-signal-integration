@@ -23,7 +23,9 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Edit
@@ -55,7 +57,6 @@ import net.taler.wallet.accounts.PaytoUri
 import net.taler.wallet.accounts.PaytoUriBitcoin
 import net.taler.wallet.accounts.PaytoUriIban
 import net.taler.wallet.accounts.PaytoUriTalerBank
-import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.WarningLabel
@@ -75,8 +76,11 @@ fun AddAccountComposable(
     val presetPaytoUri = remember(presetAccount) { presetAccount?.let { PaytoUri.parse(it.paytoUri) } }
 
     if (supportedWireTypes.isEmpty()) {
-        return AddAccountErrorComposable(
-            message = stringResource(R.string.send_deposit_no_methods_error),
+        return ErrorComposable(
+            error = TalerErrorInfo.makeCustomError(
+                stringResource(R.string.send_deposit_no_methods_error)),
+            modifier = Modifier.verticalScroll(rememberScrollState()),
+            devMode = false,
             onClose = onClose,
         )
     }
@@ -297,21 +301,6 @@ fun MakeDepositWireTypeChooser(
             }
         }
     }
-}
-
-@Composable
-fun AddAccountErrorComposable(
-    message: String,
-    onClose: () -> Unit,
-) {
-    ErrorComposable(
-        error = TalerErrorInfo(
-            message = message,
-            code = TalerErrorCode.UNKNOWN,
-        ),
-        devMode = false,
-        onClose = onClose,
-    )
 }
 
 @Preview

@@ -74,9 +74,6 @@ class OutgoingPullFragment : Fragment() {
                                 loading = loading,
                             )
                         },
-                        onClose = {
-                            findNavController().navigate(R.id.action_nav_peer_pull_to_nav_main)
-                        }
                     )
                 }
             }

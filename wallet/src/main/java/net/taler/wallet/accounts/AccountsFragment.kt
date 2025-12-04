@@ -32,6 +32,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Add
@@ -54,6 +56,7 @@ import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -79,10 +82,10 @@ import net.taler.wallet.accounts.ListBankAccountsResult.Error
 import net.taler.wallet.accounts.ListBankAccountsResult.None
 import net.taler.wallet.accounts.ListBankAccountsResult.Success
 import net.taler.wallet.compose.Avatar
+import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.showError
-import net.taler.wallet.withdraw.WithdrawalError
 
 class BankAccountsFragment: Fragment() {
     private val model: MainViewModel by activityViewModels()
@@ -98,6 +101,7 @@ class BankAccountsFragment: Fragment() {
 
         setContent {
             val accounts by model.accountManager.bankAccounts.collectAsState()
+            val devMode by model.devMode.observeAsState(false)
 
             TalerSurface {
                 Scaffold(
@@ -135,7 +139,11 @@ class BankAccountsFragment: Fragment() {
                                 }
                             },
                         )
-                        is Error -> WithdrawalError(acc.error)
+                        is Error -> ErrorComposable(acc.error,
+                            devMode = devMode,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState()))
                     }
                 }
             }

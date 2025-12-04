@@ -45,8 +45,10 @@ import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.accounts.BankAccountRow
 import net.taler.wallet.accounts.KnownBankAccountInfo
+import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.compose.AmountCurrencyField
 import net.taler.wallet.compose.BottomButtonBox
+import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.systemBarsPaddingBottom
 import net.taler.wallet.transactions.AmountType.Negative
 import net.taler.wallet.transactions.AmountType.Positive
@@ -61,29 +63,18 @@ fun DepositAmountComposable(
     onMakeDeposit: (amount: Amount) -> Unit,
     onClose: () -> Unit,
 ) {
-    val availableScopes = remember(state.maxDepositable) {
-        state.maxDepositable.filterValues { it?.rawAmount?.isZero() == false }
-    }
-
-    if (availableScopes.isEmpty()) {
-        MakeDepositErrorComposable(
-            message = "It is not possible to deposit to this account, please select another one",
-            onClose = onClose,
-        )
-        return
-    }
-
     Column(
         Modifier
             .fillMaxSize()
             .imePadding(),
     ) {
-        var checkResult by remember { mutableStateOf<CheckDepositResult>(CheckDepositResult.None()) }
-        // TODO: use scopeInfo instead of currency
+        var checkResult by remember { mutableStateOf<CheckDepositResult>(CheckDepositResult.None) }
         // TODO: handle unavailable scopes in UI (i.e. explain restrictions)
-        val currencies = remember(availableScopes) { availableScopes.keys.toList() }
-        var amount by remember(state.maxDepositable) { mutableStateOf(Amount.zero(currencies.first())) }
-        val spec = remember(amount) { getCurrencySpec(amount.currency) }
+        val currencies = state.account.currencies?.distinct() ?: emptyList()
+        var amount by remember(currencies) {
+            mutableStateOf(currencies.firstOrNull()?.let { Amount.zero(it) }) }
+        val spec = remember(amount) { amount?.let { getCurrencySpec(it.currency) } }
+        val maxDepositable = remember(amount) { amount?.let { state.maxDepositable[it.currency] } }
 
         Column(
             modifier = Modifier
@@ -92,12 +83,6 @@ fun DepositAmountComposable(
                 .fillMaxWidth(),
             horizontalAlignment = CenterHorizontally,
         ) {
-
-            amount.useDebounce {
-                if (!amount.isZero()) {
-                    checkResult = checkDeposit(amount)
-                }
-            }
 
             BankAccountRow(
                 account = state.account,
@@ -108,15 +93,33 @@ fun DepositAmountComposable(
                 modifier = Modifier.padding(bottom = 16.dp),
             )
 
-            AnimatedVisibility(checkResult.maxDepositAmountRaw != null) {
-                checkResult.maxDepositAmountRaw?.let {
+            if (currencies.isEmpty() || amount == null) {
+                ErrorComposable(
+                    // FIXME: i18n string
+                    error = TalerErrorInfo.makeCustomError(
+                        "It is not possible to deposit to this account, please select another one"),
+                    modifier = Modifier.weight(1f),
+                    devMode = false,
+                    onClose = onClose,
+                )
+                return
+            }
+
+            amount.useDebounce {
+                if (!amount!!.isZero()) {
+                    checkResult = checkDeposit(amount!!)
+                }
+            }
+
+            AnimatedVisibility(maxDepositable?.rawAmount != null) {
+                maxDepositable?.rawAmount?.let {
                     Text(
                         modifier = Modifier.padding(
                             start = 16.dp,
                             end = 16.dp,
                             bottom = 16.dp,
                         ),
-                        text = if (checkResult.maxDepositAmountEffective == it) {
+                        text = if (maxDepositable.effectiveAmount == it) {
                             stringResource(
                                 R.string.amount_available_transfer,
                                 it.withSpec(spec),
@@ -135,7 +138,7 @@ fun DepositAmountComposable(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth(),
-                amount = amount.withSpec(spec),
+                amount = amount!!.withSpec(spec),
                 onAmountChanged = { amount = it },
                 editableCurrency = true,
                 currencies = currencies,
@@ -145,6 +148,9 @@ fun DepositAmountComposable(
                     val res = checkResult
                     if (res is CheckDepositResult.InsufficientBalance) {
                         Text(stringResource(R.string.payment_balance_insufficient))
+                    } else if (res is CheckDepositResult.ExceedsLimit) {
+                        Text(stringResource(R.string.amount_excess,
+                            res.maxDepositAmountEffective))
                     }
                 }
             )
@@ -163,13 +169,13 @@ fun DepositAmountComposable(
 
                         TransactionAmountComposable(
                             label = stringResource(R.string.amount_fee),
-                            amount = fee.withSpec(amount.spec),
+                            amount = fee.withSpec(amount?.spec),
                             amountType = Negative,
                         )
 
                         TransactionAmountComposable(
                             label = stringResource(R.string.amount_send),
-                            amount = effectiveAmount.withSpec(amount.spec),
+                            amount = effectiveAmount.withSpec(amount?.spec),
                             amountType = Positive,
                         )
                     }
@@ -181,13 +187,14 @@ fun DepositAmountComposable(
 
         BottomButtonBox(Modifier.fillMaxWidth()) {
             val focusManager = LocalFocusManager.current
+            val amount = amount
             Button(
                 modifier = Modifier
                     .systemBarsPaddingBottom(),
-                enabled = checkResult is CheckDepositResult.Success,
+                enabled = checkResult is CheckDepositResult.Success && amount != null,
                 onClick = {
                     focusManager.clearFocus()
-                    onMakeDeposit(amount)
+                    onMakeDeposit(amount!!)
                 },
             ) {
                 Text(stringResource(R.string.send_deposit_create_button))
@@ -232,7 +239,6 @@ fun DepositAmountComposablePreview() {
             checkDeposit = { CheckDepositResult.Success(
                 totalDepositCost = Amount.fromJSONString("KUDOS:10"),
                 effectiveDepositAmount = Amount.fromJSONString("KUDOS:12"),
-                maxDepositAmountEffective = Amount.fromJSONString("KUDOS:12")
             ) },
             onMakeDeposit = {},
             getCurrencySpec = { null },
@@ -260,7 +266,6 @@ fun DepositAmountComposableErrorPreview() {
             checkDeposit = { CheckDepositResult.Success(
                 totalDepositCost = Amount.fromJSONString("KUDOS:10"),
                 effectiveDepositAmount = Amount.fromJSONString("KUDOS:12"),
-                maxDepositAmountEffective = Amount.fromJSONString("KUDOS:12")
             ) },
             onMakeDeposit = {},
             getCurrencySpec = { null },

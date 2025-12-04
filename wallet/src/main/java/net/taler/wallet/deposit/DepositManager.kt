@@ -23,9 +23,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.taler.common.Amount
@@ -54,7 +54,7 @@ class DepositManager(
         if (!uriString.startsWith("payto://")) return false
         val u = Uri.parse(uriString)
         if (!u.authority.equals("iban", ignoreCase = true)) return false
-        return u.pathSegments.size >= 1
+        return u.pathSegments.isNotEmpty()
     }
 
     @UiThread
@@ -65,24 +65,28 @@ class DepositManager(
     }
 
     suspend fun checkDepositFees(paytoUri: String, amount: Amount): CheckDepositResult {
-        val max = getMaxDepositAmount(amount.currency, paytoUri)
-        var response: CheckDepositResult = CheckDepositResult.None(
-            maxDepositAmountEffective = max?.effectiveAmount,
-            maxDepositAmountRaw = max?.rawAmount,
-        )
+        var response: CheckDepositResult = CheckDepositResult.None
         api.request("checkDeposit", CheckDepositResponse.serializer()) {
             put("depositPaytoUri", paytoUri)
             put("amount", amount.toJSONString())
         }.onSuccess {
-            response = CheckDepositResult.Success(
-                totalDepositCost = it.totalDepositCost,
-                effectiveDepositAmount = it.effectiveDepositAmount,
-                kycSoftLimit = it.kycSoftLimit,
-                kycHardLimit = it.kycHardLimit,
-                kycExchanges = it.kycExchanges,
-                maxDepositAmountEffective = max?.effectiveAmount,
-                maxDepositAmountRaw = max?.rawAmount,
-            )
+            runBlocking {
+                val max = getMaxDepositAmount(amount.currency, paytoUri)
+                response = if (max?.effectiveAmount != null && amount > max.effectiveAmount) {
+                    CheckDepositResult.ExceedsLimit(
+                        maxDepositAmountEffective = max.effectiveAmount,
+                        maxDepositAmountRaw = max.rawAmount,
+                    )
+                } else {
+                    CheckDepositResult.Success(
+                        totalDepositCost = it.totalDepositCost,
+                        effectiveDepositAmount = it.effectiveDepositAmount,
+                        kycSoftLimit = it.kycSoftLimit,
+                        kycHardLimit = it.kycHardLimit,
+                        kycExchanges = it.kycExchanges,
+                    )
+                }
+            }
         }.onError { error ->
             Log.e(TAG, "Error checkDeposit $error")
             if (error.code == WALLET_DEPOSIT_GROUP_INSUFFICIENT_BALANCE) {
@@ -98,8 +102,6 @@ class DepositManager(
                     response = CheckDepositResult.InsufficientBalance(
                         maxAmountEffective = maxAmountEffective,
                         maxAmountRaw = maxAmountRaw,
-                        maxDepositAmountEffective = max?.effectiveAmount,
-                        maxDepositAmountRaw = max?.rawAmount,
                     )
                 }
             }
@@ -230,19 +232,16 @@ data class CheckDepositResponse(
 
 @Serializable
 sealed class CheckDepositResult {
-    abstract val maxDepositAmountEffective: Amount?
-    abstract val maxDepositAmountRaw: Amount?
-
-    data class None(
-        override val maxDepositAmountEffective: Amount? = null,
-        override val maxDepositAmountRaw: Amount? = null,
-    ): CheckDepositResult()
+    data object None: CheckDepositResult()
 
     data class InsufficientBalance(
         val maxAmountEffective: Amount?,
         val maxAmountRaw: Amount?,
-        override val maxDepositAmountEffective: Amount?,
-        override val maxDepositAmountRaw: Amount? = null,
+    ): CheckDepositResult()
+
+    data class ExceedsLimit(
+        val maxDepositAmountEffective: Amount,
+        val maxDepositAmountRaw: Amount,
     ): CheckDepositResult()
 
     data class Success(
@@ -251,8 +250,6 @@ sealed class CheckDepositResult {
         val kycSoftLimit: Amount? = null,
         val kycHardLimit: Amount? = null,
         val kycExchanges: List<String>? = null,
-        override val maxDepositAmountEffective: Amount?,
-        override val maxDepositAmountRaw: Amount? = null,
     ): CheckDepositResult()
 }
 

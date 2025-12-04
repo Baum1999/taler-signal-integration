@@ -22,7 +22,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -40,6 +45,7 @@ import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.showError
 import net.taler.wallet.accounts.ListBankAccountsResult.Success
+import net.taler.wallet.compose.ErrorComposable
 
 class DepositFragment : Fragment() {
     private val model: MainViewModel by activityViewModels()
@@ -68,6 +74,7 @@ class DepositFragment : Fragment() {
                 TalerSurface {
                     val state by depositManager.depositState.collectAsStateLifecycleAware()
                     val knownBankAccounts by accountManager.bankAccounts.collectAsStateLifecycleAware()
+                    val devMode by model.devMode.observeAsState(false)
 
                     BackHandler(state is DepositState.AccountSelected) {
                         depositManager.resetDepositState()
@@ -78,11 +85,15 @@ class DepositFragment : Fragment() {
                             LoadingScreen()
                         }
 
-                        is DepositState.Error -> {
-                            MakeDepositErrorComposable(s.error.userFacingMsg) {
+                        is DepositState.Error -> ErrorComposable(s.error,
+                            devMode = devMode,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState()),
+                            onClose = {
                                 findNavController().popBackStack()
-                            }
-                        }
+                            },
+                        )
 
                         is DepositState.Start -> {
                             MakeDepositComposable(

@@ -50,11 +50,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
 import net.taler.wallet.R
+import net.taler.wallet.backend.TalerErrorCode
+import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.AmountScope
 import net.taler.wallet.compose.AmountScopeField
 import net.taler.wallet.compose.BottomButtonBox
+import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.WarningLabel
@@ -162,7 +165,9 @@ fun WithdrawalShowInfo(
                 LoadingScreen(Modifier.weight(1f))
                 return
             } else if (status.status == Error && status.error != null) {
-                WithdrawalError(status.error)
+                ErrorComposable(status.error,
+                    modifier = Modifier.weight(1f),
+                    devMode = devMode)
                 return
             } else if (status.isCashAcceptor) {
                 WarningLabel(
@@ -342,7 +347,7 @@ private fun buildPreviewWithdrawStatus(
     talerWithdrawUri = "taler://",
     exchangeBaseUrl = "exchange.head.taler.net",
     transactionId = "tx:343434",
-    error = null,
+    error = TalerErrorInfo(TalerErrorCode.WALLET_EXCHANGE_UNAVAILABLE),
     uriInfo = WithdrawalDetailsForUri(
         amount = null,
         currency = "KUDOS",
@@ -412,7 +417,31 @@ fun WithdrawalShowInfoTosReviewPreview() {
         WithdrawalShowInfo(
             status = buildPreviewWithdrawStatus(TosReviewRequired),
             devMode = true,
-//            defaultScope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+            initialAmountScope = AmountScope(
+                amount = Amount.fromJSONString("KUDOS:10.10"),
+                scope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+            ),
+            editableScope = true,
+            scopes = listOf(
+                ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
+                ScopeInfo.Exchange("TESTKUDOS", "https://exchange.test.taler.net/"),
+                ScopeInfo.Global("CHF"),
+            ),
+            onSelectExchange = {},
+            onSelectAmount = { _, _ -> },
+            onTosReview = {},
+            onConfirm = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+fun WithdrawalShowInfoErrorPreview() {
+    TalerSurface {
+        WithdrawalShowInfo(
+            status = buildPreviewWithdrawStatus(Error),
+            devMode = true,
             initialAmountScope = AmountScope(
                 amount = Amount.fromJSONString("KUDOS:10.10"),
                 scope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),

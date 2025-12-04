@@ -32,6 +32,7 @@ fun MainComposable(
     state: BalanceState,
     txResult: TransactionsResult,
     viewMode: ViewMode,
+    devMode: Boolean,
     onGetDemoMoneyClicked: () -> Unit,
     onBalanceClicked: (balance: BalanceItem) -> Unit,
     onPendingClicked: (balance: BalanceItem) -> Unit,
@@ -44,6 +45,7 @@ fun MainComposable(
         is ViewMode.Assets -> BalancesComposable(
             innerPadding = innerPadding,
             state = state,
+            devMode = devMode,
             onGetDemoMoneyClicked = onGetDemoMoneyClicked,
             onBalanceClicked = onBalanceClicked,
             onPendingClicked = onPendingClicked,

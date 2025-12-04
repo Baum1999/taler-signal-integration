@@ -30,7 +30,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
 import net.taler.wallet.MainViewModel
@@ -81,9 +80,6 @@ class OutgoingPushFragment : Fragment() {
                             peerManager.checkPeerPushFees(it.amount, restrictScope = it.scope)
                         },
                         onSend = this@OutgoingPushFragment::onSend,
-                        onClose = {
-                            findNavController().navigate(R.id.action_nav_peer_push_to_nav_main)
-                        }
                     )
                 }
             }

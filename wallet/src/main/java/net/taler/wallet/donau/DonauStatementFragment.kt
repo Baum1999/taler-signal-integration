@@ -21,12 +21,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -57,14 +61,17 @@ class DonauStatementFragment: Fragment() {
         setContent {
             TalerSurface {
                 val status by model.donauManager.donauStatementsStatus.collectAsStateLifecycleAware()
-                val devMode by model.devMode.observeAsState()
+                val devMode by model.devMode.observeAsState(false)
                 when (val s = status) {
                     is GetDonauStatementsStatus.None,
                     is GetDonauStatementsStatus.Loading -> LoadingScreen()
 
                     is GetDonauStatementsStatus.Error -> ErrorComposable(
                         error = s.error,
-                        devMode = devMode == true,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
+                        devMode = devMode,
                     )
 
                     is GetDonauStatementsStatus.Success -> if (s.statements.isEmpty()) {
