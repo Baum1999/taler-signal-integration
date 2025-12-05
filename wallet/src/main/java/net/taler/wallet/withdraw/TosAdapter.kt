@@ -67,10 +67,11 @@ class TosAdapter(
 
         fun bind(item: TosSection) {
             sectionTitle.text = item.title
+                ?: v.context.getString(R.string.exchange_tos)
             showSection(item, item.expanded)
             val onClickListener = View.OnClickListener {
                 val transition = ChangeBounds()
-                transition.setDuration(200L)
+                transition.duration = 200L
                 if (!item.expanded) beginDelayedTransition(v as ViewGroup, transition)
                 item.expanded = !item.expanded
                 showSection(item, item.expanded)

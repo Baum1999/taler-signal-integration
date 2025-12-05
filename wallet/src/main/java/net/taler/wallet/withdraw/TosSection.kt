@@ -26,15 +26,16 @@ import org.commonmark.node.Text
 import java.text.ParseException
 
 data class TosSection(
-    val title: String,
+    val title: String?,
     val node: Node,
     var expanded: Boolean = false
 )
 
 @Throws(ParseException::class)
 internal fun parseTos(markwon: Markwon, text: String): List<TosSection> {
-    var node: Node? =
-        markwon.parse(text).firstChild ?: throw ParseException("Invalid markdown", 0)
+    val rootNode: Node = markwon.parse(text)
+    var node: Node? = rootNode.firstChild
+        ?: throw ParseException("Invalid markdown", 0)
     var lastHeading: String? = null
     var section = Document()
     val sections = ArrayList<TosSection>()
@@ -49,9 +50,11 @@ internal fun parseTos(markwon: Markwon, text: String): List<TosSection> {
             }
             // start new section with new heading (stripped of markup)
             lastHeading = getNodeText(node)
-            if (lastHeading.isBlank()) throw ParseException("Empty heading", 0)
+            if (lastHeading.isBlank()) {
+                return listOf(TosSection(null, rootNode, true))
+            }
         } else if (lastHeading == null) {
-            throw ParseException("The exchange ToS does not follow the correct format", 0)
+            return listOf(TosSection(null, rootNode, true))
         } else {
             section.appendChild(node)
         }
