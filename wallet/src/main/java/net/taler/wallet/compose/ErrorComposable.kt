@@ -25,9 +25,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -61,10 +63,10 @@ fun ErrorComposable(
         verticalArrangement = Arrangement.Center,
     ) {
         Icon(
-            Icons.Default.ErrorOutline,
+            Icons.Rounded.ErrorOutline,
             modifier = Modifier
-                .size(120.dp)
-                .padding(bottom = 8.dp),
+                .size(85.dp)
+                .padding(bottom = 5.dp),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.error,
         )
@@ -83,38 +85,46 @@ fun ErrorComposable(
             json.encodeToString(error)
         }
 
-        Text(
-            modifier = Modifier.padding(bottom = 16.dp),
-            style = MaterialTheme.typography.bodyLarge,
-            text = if (!devMode) {
-                error.userFacingMsg
-            } else jsonError,
-            fontFamily = if (devMode) {
-                FontFamily.Monospace
-            } else {
-                FontFamily.Default
-            },
-            textAlign = if (devMode) {
-                TextAlign.Start
-            } else {
-                TextAlign.Center
+        if (devMode) {
+            Card(Modifier
+                .fillMaxWidth()) {
+                Text(
+                    modifier = Modifier.padding(16.dp),
+                    text = jsonError,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = CardDefaults.cardColors().contentColor,
+                    fontFamily = FontFamily.Monospace,
+                    textAlign = TextAlign.Start,
+                )
             }
-        )
+        } else {
+            Text(
+                text = error.userFacingMsg,
+                fontFamily = FontFamily.Default,
+                textAlign = TextAlign.Center,
+            )
+        }
 
-        Row(
-            modifier = Modifier
-                .padding(bottom = 16.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+        Column(Modifier
+            .padding(bottom = 16.dp, top = 22.dp)
+            .fillMaxWidth(),
+            horizontalAlignment = CenterHorizontally,
         ) {
-            CopyToClipboardButton(
-                label = "Error",
-                content = jsonError,
-            )
+            Text(stringResource(R.string.error_export),
+                modifier = Modifier.padding(bottom = 12.dp),
+                style = MaterialTheme.typography.titleMedium)
+            Row(Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+            ) {
+                CopyToClipboardButton(
+                    label = "Error",
+                    content = jsonError,
+                )
 
-            ShareButton(
-                content = jsonError,
-            )
+                ShareButton(
+                    content = jsonError,
+                )
+            }
         }
 
         if (onClose != null) Button(
