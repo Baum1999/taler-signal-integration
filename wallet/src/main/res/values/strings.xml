@@ -61,8 +61,9 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="currency_via">via</string>
     <string name="edit">Edit</string>
     <string name="empty">No items were found</string>
-    <string name="enter_uri">Enter taler:// URI</string>
-    <string name="enter_uri_label">Enter URI</string>
+    <string name="enter_uri">Enter Taler link</string>
+    <string name="enter_uri_label">Taler link</string>
+    <string name="enter_uri_prefix">taler://</string>
     <string name="error">Error</string>
     <string name="error_export">Export error diagnostics</string>
     <string name="import_db">Import</string>
@@ -77,7 +78,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="reset">Reset</string>
     <string name="save">Save</string>
     <string name="share_payment">Share payment link</string>
-    <string name="uri_invalid">Not a valid Taler URI</string>
+    <string name="uri_invalid">Not a valid Taler link</string>
     <string name="warning">Warning</string>
 
     <!-- Biometric lock -->
@@ -96,9 +97,9 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
 
     <!-- Errors -->
 
-    <string name="error_no_uri">Error: No Taler URI was found</string>
-    <string name="error_broken_uri">Error: This Taler URI is (currently) not working.</string>
-    <string name="error_unsupported_uri">Error: This Taler URI is not supported.</string>
+    <string name="error_no_uri">Error: No Taler link was found</string>
+    <string name="error_broken_uri">Error: This Taler link is (currently) not working.</string>
+    <string name="error_unsupported_uri">Error: This Taler link is not supported.</string>
 
     <!-- Amounts -->
 
@@ -194,7 +195,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="transactions_fail_dialog_message">Are you sure you abandon this transaction? Funds still in transit WILL GET LOST.</string>
     <string name="transactions_fail_dialog_title">Abandon transaction</string>
     <string name="transactions_filter_nonfinal">You are viewing pending transactions</string>
-    <string name="transactions_receive_funds">Receive</string>
+    <string name="transactions_receive_funds">Request</string>
     <string name="transactions_resume">Resume</string>
     <string name="transactions_retry">Retry</string>
     <string name="transactions_required_kyc">KYC required to proceed</string>
