@@ -94,13 +94,13 @@ fun OutgoingPullComposable(
     val tosReview = checkResult != null && checkResult?.tosStatus != ExchangeTosStatus.Accepted
 
     amount.amount.useDebounce {
-        if (amount.debounce && amount.userInput) {
+        if (amount.debounce) {
             checkResult = checkPeerPullCredit(amount, false)
         }
     }
 
     LaunchedEffect(amount) {
-        if (!amount.debounce && amount.userInput) {
+        if (!amount.debounce) {
             checkResult = checkPeerPullCredit(amount, true)
         }
     }
@@ -140,17 +140,11 @@ fun OutgoingPullComposable(
                 showAmount = !tosReview && state !is OutgoingError,
                 showShortcuts = true,
                 onAmountChanged = {
-                    amount = it.copy(
-                        debounce = amount.scope == it.scope,
-                        userInput = true,
-                    )
+                    amount = it.copy(debounce = amount.scope == it.scope)
                     shortcutSelected = false
                 },
                 onShortcutSelected = {
-                    amount = it.copy(
-                        debounce = true,
-                        userInput = true,
-                    )
+                    amount = it.copy(debounce = true)
                     shortcutSelected = true
                 },
                 isError = amount.amount.isZero(),

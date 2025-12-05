@@ -118,9 +118,7 @@ fun OutgoingPushIntroComposable(
     var hours by rememberSaveable { mutableLongStateOf(DEFAULT_EXPIRY.hours) }
 
     amount.useDebounce {
-        if (amount.userInput) {
-            feeResult = getFees(it) ?: None()
-        }
+        feeResult = getFees(it) ?: None()
     }
 
     val amountFocusRequester = remember { FocusRequester() }
@@ -174,11 +172,11 @@ fun OutgoingPushIntroComposable(
                 showAmount = state !is OutgoingError,
                 showShortcuts = true,
                 onAmountChanged = {
-                    amount = it.copy(userInput = true)
+                    amount = it
                     shortcutSelected = false
                 },
                 onShortcutSelected = {
-                    amount = it.copy(userInput = true)
+                    amount = it
                     shortcutSelected = true
                 },
                 label = { Text(stringResource(R.string.amount_send)) },
