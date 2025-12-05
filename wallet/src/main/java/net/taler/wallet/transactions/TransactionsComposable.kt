@@ -421,7 +421,9 @@ fun TransactionAmountInfo(
     Column(horizontalAlignment = Alignment.End) {
         ProvideTextStyle(MaterialTheme.typography.titleLarge) {
             val amountStr = tx.amountEffective.withSpec(spec).toString(showSymbol = false)
-            when (tx.amountType) {
+            if (tx.amountEffective.isZero()) {
+                Text(amountStr)
+            } else when (tx.amountType) {
                 Positive -> Text(
                     stringResource(R.string.amount_positive, amountStr),
                     color = if (tx.txState.major == Pending || tx.txState.major == Dialog)
