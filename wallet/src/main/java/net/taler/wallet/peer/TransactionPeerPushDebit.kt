@@ -18,13 +18,15 @@ package net.taler.wallet.peer
 
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -35,12 +37,9 @@ import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.common.Timestamp
 import net.taler.wallet.R
-import net.taler.wallet.backend.TalerErrorCode.EXCHANGE_GENERIC_KYC_REQUIRED
-import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.QrCodeUriComposable
 import net.taler.wallet.compose.TalerSurface
-import net.taler.wallet.compose.getQrCodeSize
 import net.taler.wallet.transactions.ActionListener
 import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.PeerInfoShort
@@ -106,6 +105,9 @@ fun ColumnScope.PeerQrCode(
     talerUri: String?,
     instructionResId: Int,
 ) {
+    remember(state) {
+        10.dp
+    }
     if (state == TransactionState(Pending) && state.minor != MergeKycRequired) {
         Text(
             modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
@@ -127,15 +129,13 @@ fun ColumnScope.PeerQrCode(
                     text = stringResource(id = R.string.receive_peer_invoice_uri),
                 )
             }
-        } else {
-            val qrCodeSize = getQrCodeSize()
-            CircularProgressIndicator(
-                modifier = Modifier
-                    .padding(32.dp)
-                    .size(qrCodeSize)
-                    .align(CenterHorizontally),
-            )
-        }
+        } else CircularProgressIndicator(
+            modifier = Modifier
+                .padding(45.dp)
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .align(CenterHorizontally),
+        )
     }
 }
 
@@ -155,7 +155,6 @@ fun TransactionPeerPushDebitPreview(loading: Boolean = false) {
             summary = "test invoice",
         ),
         talerUri = "https://exchange.example.org/peer/pull/credit",
-        error = TalerErrorInfo(code = EXCHANGE_GENERIC_KYC_REQUIRED),
         scopes = listOf(ScopeInfo.Exchange(
             currency = "TESTKUDOS",
             url = "exchange.test.taler.net",

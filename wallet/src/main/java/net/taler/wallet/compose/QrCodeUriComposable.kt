@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -37,7 +39,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
-import androidx.compose.ui.Alignment.Companion.CenterHorizontally
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
@@ -68,16 +70,23 @@ fun ColumnScope.QrCodeUriComposable(
     val qrState = produceState(qrPlaceHolder) {
         value = QrCodeManager.makeQrCode(talerUri, qrCodeSize.value.toInt()).asImageBitmap()
     }
-    qrState.value?.let { qrCode ->
-        Image(
-            modifier = Modifier
-                .size(qrCodeSize)
-                .align(CenterHorizontally)
-                .padding(bottom = if (showContents) 8.dp else 0.dp),
-            bitmap = qrCode,
-            contentDescription = stringResource(id = R.string.button_scan_qr_code),
-        )
+
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .aspectRatio(1f)
+            .padding(bottom = if (showContents) 8.dp else 0.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        qrState.value?.let { qrCode ->
+            Image(
+                modifier = Modifier.fillMaxSize(),
+                bitmap = qrCode,
+                contentDescription = stringResource(id = R.string.button_scan_qr_code),
+            )
+        }
     }
+
     if (inBetween != null) inBetween()
     val scrollState = rememberScrollState()
     if (showContents) {
