@@ -293,7 +293,8 @@ fun OutgoingPushIntroComposable(
                 enabled = feeResult is Success && !amount.amount.isZero() && subject.isNotBlank(),
                 onClick = { onSend(amount, subject, hours) },
             ) {
-                Text(text = stringResource(R.string.send_peer_create_button))
+                Text(text = stringResource(R.string.send_peer_create_button_amount,
+                    amount.amount.withSpec(selectedSpec)))
             }
         }
     }
