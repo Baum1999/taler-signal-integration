@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -91,11 +92,15 @@ fun ColumnScope.QrCodeUriComposable(
     val scrollState = rememberScrollState()
     if (showContents) {
         if (!shareAsQrCode) {
-            Box(modifier = Modifier.padding(16.dp)) {
+            Card(modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 16.dp, top = 10.dp)) {
                 Text(
-                    modifier = Modifier.horizontalScroll(scrollState),
+                    modifier = Modifier
+                        .padding(6.dp)
+                        .horizontalScroll(scrollState),
                     fontFamily = FontFamily.Monospace,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     text = talerUri,
                 )
             }

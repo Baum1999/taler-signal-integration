@@ -124,7 +124,9 @@ fun ColumnScope.PeerQrCode(
                 buttonText = stringResource(id = R.string.copy),
             ) {
                 Text(
-                    modifier = Modifier.padding(horizontal = 16.dp),
+                    modifier = Modifier
+                        .padding(top = 12.dp)
+                        .padding(horizontal = 16.dp),
                     style = MaterialTheme.typography.bodyLarge,
                     text = stringResource(id = R.string.receive_peer_invoice_uri),
                 )
