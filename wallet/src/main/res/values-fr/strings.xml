@@ -206,7 +206,7 @@
     <string name="send_peer_expiration_7d">1 semaine</string>
     <string name="transactions_abort">Exécuter l\'annulation</string>
     <string name="share_payment">Partager le lien de paiement</string>
-    <string name="error_no_uri">Erreur : Aucune URI Taler n’a été trouvée</string>
+    <string name="error_no_uri">Erreur : Aucune URI Taler n’a été trouvée</string>
     <string name="send_peer_expiration_days">Jours</string>
     <string name="offline_banner">Aucune connexion internet</string>
     <string name="transaction_state_pending_bank">Attente de l\'autorisation de la banque</string>
