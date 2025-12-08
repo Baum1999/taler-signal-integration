@@ -219,7 +219,7 @@
     <string name="transactions_resume">Reprendre</string>
     <string name="send_deposit_iban_error">L\'IBAN n\'est pas valide</string>
     <string name="send_peer_expiration_period">Expire dans</string>
-    <string name="error_broken_uri">Erreur : Cette URI Taler ne fonctionne (actuellement) pas.</string>
+    <string name="error_broken_uri">Erreur : Cette URI Taler ne fonctionne (actuellement) pas.</string>
     <string name="amount_max">Montant maximum</string>
     <string name="amount_excess">Le montant dépasse le maximum de %1$s</string>
     <string name="amount_total">Montant total</string>
