@@ -127,16 +127,10 @@ fun AmountCurrencyField(
             }
         }
 
-        if (showShortcuts) {
-            val currency = amount.currency
+        val commonAmounts = amount.spec?.commonAmounts
+        if (showShortcuts && commonAmounts != null) {
             AmountInputShortcuts(
-                // TODO: currency-appropriate presets
-                amounts = listOf(
-                    Amount.fromString(currency, "50").withSpec(amount.spec),
-                    Amount.fromString(currency, "25").withSpec(amount.spec),
-                    Amount.fromString(currency, "10").withSpec(amount.spec),
-                    Amount.fromString(currency, "5").withSpec(amount.spec),
-                ),
+                amounts = commonAmounts,
                 onSelected = { shortcut ->
                     onShortcutSelected?.let { it(shortcut) }
                 },
