@@ -60,7 +60,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.InternalTextApi
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.BackspaceCommand
 import androidx.compose.ui.text.input.CommitTextCommand
 import androidx.compose.ui.text.input.DeleteSurroundingTextCommand
@@ -291,7 +290,7 @@ internal fun AmountInputFieldBase(
         },
         readOnly = true,
         textStyle = LocalTextStyle.current.copy(
-            fontFamily = FontFamily.Monospace,
+            fontSize = MaterialTheme.typography.titleLarge.fontSize,
         ),
         label = label,
         supportingText = supportingText,

@@ -133,10 +133,11 @@ class PromptWithdrawFragment: Fragment() {
                             WithdrawalShowInfo(
                                 status = s,
                                 devMode = devMode ?: false,
-                                initialAmountScope = AmountScope(
-                                    amount = initialAmount,
-                                    scope = initialScope,
-                                ),
+                                initialAmountScope = status.selectedAmount?.let { amount ->
+                                    status.selectedScope?.let { scope ->
+                                        AmountScope(amount, scope)
+                                    }
+                                },
                                 editableScope = editableCurrency,
                                 scopes = scopes,
                                 onSelectExchange = { selectExchange() },

@@ -77,7 +77,7 @@ import net.taler.wallet.withdraw.WithdrawalOperationStatusFlag.Pending
 fun WithdrawalShowInfo(
     status: WithdrawStatus,
     devMode: Boolean,
-    initialAmountScope: AmountScope,
+    initialAmountScope: AmountScope?,
     editableScope: Boolean,
     scopes: List<ScopeInfo>,
     onSelectAmount: (amount: Amount, scope: ScopeInfo) -> Unit,
@@ -93,7 +93,15 @@ fun WithdrawalShowInfo(
     val ageRestrictionOptions = status.amountInfo?.ageRestrictionOptions ?: emptyList()
 
     val keyboardController = LocalSoftwareKeyboardController.current
-    var selectedAmount by remember(initialAmountScope) { mutableStateOf(initialAmountScope) }
+    var selectedAmount by remember(initialAmountScope != null) {
+        mutableStateOf(initialAmountScope
+            ?: AmountScope(
+                amount = Amount.zero(scopes.first().currency),
+                scope = scopes.first(),
+                userInput = false,
+            ),
+        )
+    }
     var selectedAge by remember { mutableStateOf<Int?>(null) }
     val scrollState = rememberScrollState()
     val insufficientBalance = remember(selectedAmount, maxAmount) {
