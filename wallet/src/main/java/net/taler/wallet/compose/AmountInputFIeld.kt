@@ -163,7 +163,8 @@ private fun CurrencyDropdown(
             readOnly = true,
             enabled = false,
             textStyle = LocalTextStyle.current.copy( // show text as if not disabled
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = MaterialTheme.typography.titleLarge.fontSize,
             ),
             singleLine = true,
             label = {
