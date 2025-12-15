@@ -54,7 +54,7 @@
     <string name="refund_error_backend">Fehler bei der Verarbeitung der Rückerstattung</string>
     <string name="refund_intro_nfc">Bitte scannen Sie den QR-Code oder verwenden Sie NFC, um eine Rückerstattung zu erhalten</string>
     <string name="config_changed">Neuer Händler für %s aktiviert</string>
-    <string name="history_refund">Erstattung</string>
+    <string name="history_refund">Rückerstattung</string>
     <string name="refund_complete">Erhalten</string>
     <string name="refund_error_invalid_amount">Ungültiger Betrag</string>
     <string name="refund_error_already_refunded">Bereits erstattet</string>
