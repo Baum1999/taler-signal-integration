@@ -23,7 +23,7 @@
     <string name="transaction_order_total">Summe</string>
     <string name="transaction_order">Einkauf</string>
     <string name="transaction_order_id">Bestellung #%1$s</string>
-    <string name="transaction_refund">Erstattung</string>
+    <string name="transaction_refund">Rückerstattung</string>
     <string name="transaction_refund_from">Rückerstattung von %s</string>
     <string name="transaction_pending">AUSSTEHEND</string>
     <string name="transaction_refresh">Änderungsgebühr für das Ablaufdatum der Münze</string>
@@ -102,7 +102,7 @@
     <string name="settings_reset_summary">Wirft dein Geld weg</string>
     <string name="nav_settings_backup">Sicherung (Backup)</string>
     <string name="backup_last">Letzte Sicherung: %s</string>
-    <string name="refund_title">Erstattung</string>
+    <string name="refund_title">Rückerstattung</string>
     <string name="refund_error">Fehler bei der Verarbeitung der Rückerstattung</string>
     <string name="refund_success">Rückerstattung erhalten!</string>
     <string name="tip_title">Trinkgeld</string>
