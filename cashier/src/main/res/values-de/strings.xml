@@ -18,7 +18,7 @@
     <string name="withdraw_button_confirm">Abheben</string>
     <string name="transaction_intro_nfc">Scannen Sie zum Abheben den Code oder kontaktlos mit NFC:</string>
     <string name="config_password">Passwort</string>
-    <string name="transaction_confirm">Bestätigen</string>
+    <string name="transaction_confirm">Eingeben</string>
     <string name="transaction_abort">Abbruch ausführen</string>
     <string name="transaction_aborted">Transaktion abgebrochen</string>
     <string name="transaction_button_back">Zurück</string>
