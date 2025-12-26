@@ -7,7 +7,7 @@
     <string name="balances_inbound_label">Eingehend</string>
     <string name="or">oder</string>
     <string name="offline">Internetzugang erforderlich. Bitte stellen Sie sicher, dass Ihre Internetverbindung funktioniert, und versuchen Sie es noch einmal.</string>
-    <string name="error_unsupported_uri">Fehler: Diese Taler-URI wird nicht unterstützt.</string>
+    <string name="error_unsupported_uri">Fehler: Dieser Taler-Link wird nicht unterstützt.</string>
     <string name="menu_settings">Einstellungen</string>
     <string name="menu_retry_pending_operations">Ausstehende Vorgänge wiederholen</string>
     <string name="balances_title">Salden</string>
@@ -115,10 +115,10 @@
     <string name="nav_exchange_tos">Allgemeine Geschäftsbedingungen des Zahlungsdienstleisters</string>
     <string name="nav_exchange_select">Zahlungsdienstleister auswählen</string>
     <string name="nav_exchange_fees">Gebühren des Zahlungsdienstleisters</string>
-    <string name="enter_uri">Geben Sie die Taler-URI ein</string>
+    <string name="enter_uri">Taler-Link eingeben</string>
     <string name="paste">Einfügen</string>
     <string name="paste_invalid">Die Zwischenablage enthält einen ungültigen Datentyp</string>
-    <string name="uri_invalid">Keine gültige Taler-URI</string>
+    <string name="uri_invalid">Dies ist kein gültiger Taler-Link</string>
     <string name="ok">OK</string>
     <string name="cancel">Zurück</string>
     <string name="search">Suche</string>
@@ -178,7 +178,7 @@
     <string name="copy_uri">Taler-URI kopieren</string>
     <string name="transaction_peer_pull_debit">Forderung beglichen</string>
     <string name="transaction_peer_pull_credit">Anfordern</string>
-    <string name="transactions_receive_funds">Erhalten</string>
+    <string name="transactions_receive_funds">Anfordern</string>
     <string name="pay_peer_title">Forderung bezahlen</string>
     <string name="pay_peer_intro">Möchten Sie diese Forderung bezahlen?</string>
     <string name="receive_peer_payment_title">Zahlung erhalten</string>
@@ -226,7 +226,7 @@
     <string name="send_peer_purpose">Buchungsvermerk</string>
     <string name="exchange_list_select">Zahlungsdienstleister auswählen</string>
     <string name="settings_db_import_success">Datenbank aus Datei importiert</string>
-    <string name="error_broken_uri">Fehler: Diese Taler-URI funktioniert (im Moment) nicht.</string>
+    <string name="error_broken_uri">Fehler: Dieser Taler-Link funktioniert (zurzeit) nicht.</string>
     <string name="settings_alert_import_canceled">Import abgebrochen</string>
     <string name="import_db">Importieren</string>
     <string name="transactions_detail_title_currency">%s Transaktionen</string>
@@ -301,7 +301,7 @@
     <string name="withdraw_manual_qr_epc">EPC-QR</string>
     <string name="withdraw_manual_qr_spc">Schweizer QR-Code</string>
     <string name="transaction_state_pending_bank">Warten auf Überweisungsfreigabe in der Bank</string>
-    <string name="error_no_uri">Fehler: Kein Taler-URI gefunden</string>
+    <string name="error_no_uri">Fehler: Es wurde kein Taler-Link gefunden</string>
     <string name="payment_balance_insufficient_max">Unzureichende Deckung! Höchstbetrag ist %1$s</string>
     <string name="withdraw_fee">+%1$s Abhebegebühr</string>
     <string name="settings_test_withdrawal">KUDOS werden nun abgehoben</string>
@@ -325,7 +325,7 @@
     <string name="send_deposit_taler">x-taler-bank</string>
     <string name="actions">Aktionen</string>
     <string name="withdraw_button_label">Abheben</string>
-    <string name="enter_uri_label">URI eingeben</string>
+    <string name="enter_uri_label">Taler-Link</string>
     <string name="amount_deposit">Betrag der Einzahlung</string>
     <string name="balances_empty_demo_url">https://bank.demo.taler.net</string>
     <string name="balances_empty_get_money">Test-Geld beziehen</string>
@@ -442,4 +442,9 @@
     <string name="settings_bank_accounts_summary">Verwalten Sie hier Ihre Bankkonten für Einzahlungen</string>
     <string name="settings_donau">Steuerlich absetzbare Spenden</string>
     <string name="settings_donau_summary">Finanzamt und Steuernummer festlegen</string>
+    <string name="enter_uri_prefix">taler://</string>
+    <string name="error_export">Fehlerdiagnose exportieren</string>
+    <string name="receive_peer_create_button_amount">%1$s anfordern</string>
+    <string name="send_peer_create_button_amount">%1$s übertragen</string>
+    <string name="exchange_tos">Allgemeine Geschäftsbedingungen</string>
 </resources>
