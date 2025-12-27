@@ -187,13 +187,13 @@
     <string name="offline_banner">Kein Internetzugang</string>
     <string name="transactions_fail_dialog_title">Transaktion verwerfen</string>
     <string name="transaction_dummy_title">Unbekannte Transaktion</string>
-    <string name="receive_peer_title">Geldbetrag anfordern</string>
+    <string name="receive_peer_title">Geld anfordern</string>
     <string name="send_deposit">Auf ein Bankkonto</string>
     <string name="send_peer_bitcoin">An ein anderes Taler-Wallet</string>
     <string name="send_peer_expiration_custom">Benutzerdefiniert</string>
     <string name="exchange_delete">Zahlungsdienstleister löschen</string>
     <string name="settings_db_export_success">Datenbank in Datei exportiert</string>
-    <string name="receive_peer_create_button">Betrag anfordern</string>
+    <string name="receive_peer_create_button">Forderung erstellen</string>
     <string name="receive_peer_invoice_uri">Alternativ kopieren und senden Sie diesen URI:</string>
     <string name="receive_peer_invoice_instruction">Lassen Sie die Käufer diesen QR-Code scannen, um den Betrag zu bezahlen:</string>
     <string name="button_scan_qr_code_label">QR-Code scannen</string>
@@ -244,7 +244,7 @@
     <string name="send_peer_expiration_7d">1 Woche</string>
     <string name="balance_scope_exchange">Von: %1$s</string>
     <string name="balance_scope_auditor">Auditor %1$s</string>
-    <string name="receive_peer">Geld von einem anderen Wallet erhalten</string>
+    <string name="receive_peer">Geld von einem anderen Wallet anfordern</string>
     <string name="char_count">%1$d/%2$d</string>
     <string name="withdraw_manual_bitcoin_title">Bitcoin-Exchange zur Auszahlung bereit</string>
     <string name="transactions_retry">Wiederholen</string>
