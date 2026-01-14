@@ -114,10 +114,10 @@ data class PaytoUriIban(
             .authority(targetType)
             .apply { if (bic != null) appendPath(bic) }
             .appendPath(iban)
-            .appendQueryParameter("receiver-name", receiverName)
-            .appendQueryParameter("receiver-postal-code", receiverPostalCode)
-            .appendQueryParameter("receiver-town", receiverTown)
             .apply {
+                receiverName?.let { appendQueryParameter("receiver-name", it) }
+                receiverPostalCode?.let { appendQueryParameter("receiver-postal-code", it) }
+                receiverTown?.let { appendQueryParameter("receiver-town", it) }
                 params.forEach { (key, value) ->
                     if (value.isNotEmpty() && build().getQueryParameter(key) == null) {
                         appendQueryParameter(key, value)
@@ -161,6 +161,7 @@ data class PaytoUriTalerBank(
             .appendPath(host)
             .appendPath(account)
             .apply {
+                receiverName?.let { appendQueryParameter("receiver-name", it) }
                 params.forEach { (key, value) ->
                     if (value.isNotEmpty()) {
                         appendQueryParameter(key, value)
@@ -204,6 +205,7 @@ data class PaytoUriBitcoin(
                 }
             }
             .apply {
+                receiverName?.let { appendQueryParameter("receiver-name", it) }
                 params.forEach { (key, value) ->
                     if (value.isNotEmpty()) {
                         appendQueryParameter(key, value)

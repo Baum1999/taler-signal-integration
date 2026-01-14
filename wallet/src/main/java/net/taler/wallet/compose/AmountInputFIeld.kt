@@ -119,7 +119,7 @@ fun AmountCurrencyField(
                 CurrencyDropdown(
                     modifier = Modifier.weight(1f),
                     currencies = currencies,
-                    onCurrencyChanged = { onAmountChanged(amount.copy(currency = it)) },
+                    onCurrencyChanged = { onAmountChanged(amount.copy(currency = it, spec = null)) },
                     initialCurrency = amount.currency,
                     readOnly = readOnly || !enabled,
                 )
@@ -183,7 +183,7 @@ private fun CurrencyDropdown(
                     },
                     onClick = {
                         selectedIndex = index
-                        onCurrencyChanged(currencies[index])
+                        onCurrencyChanged(s)
                         expanded = false
                     }
                 )

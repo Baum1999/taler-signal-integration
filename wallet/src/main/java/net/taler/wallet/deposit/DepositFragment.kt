@@ -33,6 +33,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.map
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
@@ -74,6 +75,9 @@ class DepositFragment : Fragment() {
                 TalerSurface {
                     val state by depositManager.depositState.collectAsStateLifecycleAware()
                     val knownBankAccounts by accountManager.bankAccounts.collectAsStateLifecycleAware()
+                    val knownCurrencies by model.balanceManager.balances.map {
+                        it.map { bl -> bl.currency }
+                    }.observeAsState(emptyList())
                     val devMode by model.devMode.observeAsState(false)
 
                     BackHandler(state is DepositState.AccountSelected) {
@@ -112,6 +116,7 @@ class DepositFragment : Fragment() {
                         is DepositState.AccountSelected -> {
                             DepositAmountComposable(
                                 state = s,
+                                knownCurrencies = knownCurrencies,
                                 getCurrencySpec = exchangeManager::getSpecForCurrency,
                                 checkDeposit = { a ->
                                     depositManager.checkDepositFees(s.account.paytoUri, a)

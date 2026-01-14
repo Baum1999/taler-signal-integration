@@ -26,7 +26,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -59,6 +58,7 @@ import net.taler.wallet.useDebounce
 @Composable
 fun DepositAmountComposable(
     state: DepositState.AccountSelected,
+    knownCurrencies: List<String>,
     getCurrencySpec: (currency: String) -> CurrencySpecification?,
     checkDeposit: suspend (amount: Amount) -> CheckDepositResult,
     onMakeDeposit: (amount: Amount) -> Unit,
@@ -71,11 +71,10 @@ fun DepositAmountComposable(
     ) {
         var checkResult by remember { mutableStateOf<CheckDepositResult>(CheckDepositResult.None) }
         // TODO: handle unavailable scopes in UI (i.e. explain restrictions)
-        val currencies = state.account.currencies?.distinct() ?: emptyList()
+        // if currencies is null, we assume any (known) currency is supported
+        val currencies = state.account.currencies?.distinct() ?: knownCurrencies
         var amount by remember(currencies) {
             mutableStateOf(currencies.firstOrNull()?.let { Amount.zero(it) }) }
-        val spec = remember(amount) { amount?.let { getCurrencySpec(it.currency) } }
-        val maxDepositable = remember(amount) { amount?.let { state.maxDepositable[it.currency] } }
 
         Column(
             modifier = Modifier
@@ -96,9 +95,8 @@ fun DepositAmountComposable(
 
             if (currencies.isEmpty() || amount == null) {
                 ErrorComposable(
-                    // FIXME: i18n string
                     error = TalerErrorInfo.makeCustomError(
-                        "It is not possible to deposit to this account, please select another one"),
+                        stringResource(R.string.send_deposits_no_currencies_error)),
                     modifier = Modifier.fillMaxSize(),
                     devMode = false,
                     onClose = onClose,
@@ -106,10 +104,11 @@ fun DepositAmountComposable(
                 return
             }
 
+            val spec = remember(amount) { getCurrencySpec(amount!!.currency) }
+            val maxDepositable = remember(amount) { state.maxDepositable[amount!!.currency]  }
+
             amount.useDebounce {
-                if (!amount!!.isZero()) {
-                    checkResult = checkDeposit(amount!!)
-                }
+                checkResult = checkDeposit(amount!!)
             }
 
             AnimatedVisibility(maxDepositable?.rawAmount != null) {
@@ -237,6 +236,7 @@ fun DepositAmountComposablePreview() {
         )
         DepositAmountComposable(
             state = state,
+            knownCurrencies = listOf("CHF", "EUR", "MXN", "USD"),
             checkDeposit = { CheckDepositResult.Success(
                 totalDepositCost = Amount.fromJSONString("KUDOS:10"),
                 effectiveDepositAmount = Amount.fromJSONString("KUDOS:12"),
@@ -264,6 +264,7 @@ fun DepositAmountComposableErrorPreview() {
         )
         DepositAmountComposable(
             state = state,
+            knownCurrencies = listOf("CHF", "EUR", "MXN", "USD"),
             checkDeposit = { CheckDepositResult.Success(
                 totalDepositCost = Amount.fromJSONString("KUDOS:10"),
                 effectiveDepositAmount = Amount.fromJSONString("KUDOS:12"),

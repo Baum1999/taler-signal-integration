@@ -14,7 +14,7 @@
  * GNU Taler; see the file COPYING.  If not, see <http://www.gnu.org/licenses/>
  */
 
-package net.taler.wallet.deposit
+package net.taler.wallet.accounts
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -52,14 +52,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
-import net.taler.wallet.accounts.KnownBankAccountInfo
-import net.taler.wallet.accounts.PaytoUri
-import net.taler.wallet.accounts.PaytoUriBitcoin
-import net.taler.wallet.accounts.PaytoUriIban
-import net.taler.wallet.accounts.PaytoUriTalerBank
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.WarningLabel
+import net.taler.wallet.deposit.AddAccountBitcoin
+import net.taler.wallet.deposit.AddAccountIBAN
+import net.taler.wallet.deposit.AddAccountTaler
+import net.taler.wallet.deposit.GetDepositWireTypesResponse
+import net.taler.wallet.deposit.WireType
+import net.taler.wallet.deposit.WireTypeDetails
+import net.taler.wallet.deposit.getBitcoinPayto
+import net.taler.wallet.deposit.getIbanPayto
+import net.taler.wallet.deposit.getTalerPayto
 import net.taler.wallet.useDebounce
 
 @Composable
@@ -115,9 +119,14 @@ fun AddAccountComposable(
     var bitcoinAddress by rememberSaveable(presetPaytoUri) { mutableStateOf("") } // TODO: fill-in bitcoin address
 
     val paytoUri = when(selectedWireType) {
-        WireType.IBAN -> getIbanPayto(ibanName, ibanZip, ibanTown, ibanIban)
-        WireType.TalerBank -> getTalerPayto(talerName, talerHost, talerAccount)
-        WireType.Bitcoin -> getBitcoinPayto(bitcoinAddress)
+        WireType.IBAN -> getIbanPayto(
+            ibanName.trim(),
+            ibanZip?.trim(),
+            ibanTown?.trim(),
+            ibanIban.trim()
+        )
+        WireType.TalerBank -> getTalerPayto(talerName.trim(), talerHost.trim(), talerAccount.trim())
+        WireType.Bitcoin -> getBitcoinPayto(bitcoinAddress.trim())
         else -> null
     }
 

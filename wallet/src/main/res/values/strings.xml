@@ -315,6 +315,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="send_deposit_kyc_auth_warning_account">Do not use a different bank account for the deposit, or the verification will fail.</string>
     <string name="send_deposit_kyc_auth_warning_subject">This is mandatory, otherwise the verification will fail.</string>
     <string name="send_deposit_name">Account holder</string>
+    <string name="send_deposits_no_currencies_error">No known currencies are available to deposit.</string>
     <string name="send_deposit_no_methods_error">No supported wire methods</string>
     <string name="send_deposit_postal_code">Postal code (optional)</string>
     <string name="send_deposit_select_account_title">Select bank account</string>

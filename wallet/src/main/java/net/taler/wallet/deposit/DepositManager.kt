@@ -40,6 +40,7 @@ import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.balances.BalanceManager
 import net.taler.wallet.balances.ScopeInfo
 import org.json.JSONObject
+import androidx.core.net.toUri
 
 class DepositManager(
     private val api: WalletBackendApi,
@@ -52,7 +53,7 @@ class DepositManager(
 
     fun isSupportedPayToUri(uriString: String): Boolean {
         if (!uriString.startsWith("payto://")) return false
-        val u = Uri.parse(uriString)
+        val u = uriString.toUri()
         if (!u.authority.equals("iban", ignoreCase = true)) return false
         return u.pathSegments.isNotEmpty()
     }
@@ -196,7 +197,7 @@ fun getIbanPayto(
     iban = iban,
     bic = null,
     targetPath = "",
-    params = mapOf("receiver-name" to receiverName),
+    params = mapOf(),
     receiverName = receiverName,
     receiverPostalCode = receiverPostalCode,
     receiverTown = receiverTown,
@@ -206,7 +207,7 @@ fun getTalerPayto(receiverName: String, host: String, account: String) = PaytoUr
     host = host,
     account = account,
     targetPath = "",
-    params = mapOf("receiver-name" to receiverName),
+    params = mapOf(),
     receiverName = receiverName,
 ).paytoUri
 
