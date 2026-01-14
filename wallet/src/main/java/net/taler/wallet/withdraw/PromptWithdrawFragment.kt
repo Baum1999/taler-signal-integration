@@ -24,12 +24,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.map
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
@@ -40,10 +42,7 @@ import net.taler.common.EventObserver
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.main.ViewMode
-import net.taler.wallet.backend.BackendManager
-import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.AmountScope
-import net.taler.wallet.compose.EmptyComposable
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
@@ -81,19 +80,30 @@ class PromptWithdrawFragment: Fragment() {
         val withdrawExchangeUri = arguments?.getString("withdrawExchangeUri")
         val exchangeBaseUrl = arguments?.getString("exchangeBaseUrl")
         val amount = arguments?.getString("amount")?.let { Amount.fromJSONString(it) }
-        val scope: ScopeInfo? = arguments?.getString("scopeInfo")?.let {
-            BackendManager.json.decodeFromString(it)
-        } ?: (model.viewMode.value as? ViewMode.Transactions)?.selectedScope
         editableCurrency = arguments?.getBoolean("editableCurrency") ?: true
-        val scopes = balanceManager.getScopes()
 
         setContent {
             val status by withdrawManager.withdrawStatus.collectAsStateLifecycleAware()
+            val viewMode by model.viewMode.collectAsStateLifecycleAware()
             val devMode by model.devMode.observeAsState()
+            val selectedScope = remember (viewMode) {
+                (viewMode as? ViewMode.Transactions)?.selectedScope
+            }
 
-            if (scopes.isEmpty()) EmptyComposable()
-            val initialScope = status.selectedScope ?: scope ?: scopes.first()
-            val initialAmount = status.selectedAmount ?: Amount.zero(initialScope.currency)
+            val scopes by balanceManager.balances
+                .map { bl -> bl.map { it.scopeInfo } }
+                .map { bl ->
+                    val scope = status.amountInfo?.scopeInfo
+                    if (scope != null && !bl.contains(scope)) { bl + scope } else bl
+                }.observeAsState(emptyList())
+
+            val initialAmount = status.selectedAmount
+                ?: selectedScope?.let { Amount.zero(it.currency) }
+                ?: scopes.firstOrNull()?.let { Amount.zero(it.currency) }
+
+            val initialScope = status.selectedScope
+                ?: selectedScope
+                ?: scopes.firstOrNull()
 
             LaunchedEffect(status.status) {
                 if (status.status == None) {
@@ -105,7 +115,7 @@ class PromptWithdrawFragment: Fragment() {
                         withdrawManager.prepareManualWithdrawal(withdrawExchangeUri)
                     } else if (exchangeBaseUrl != null) {
                         withdrawManager.getWithdrawalDetailsForExchange(exchangeBaseUrl, loading = true)
-                    } else {
+                    } else if (initialAmount != null) {
                         withdrawManager.getWithdrawalDetailsForAmount(
                             amount = initialAmount,
                             scopeInfo = initialScope,
@@ -133,8 +143,8 @@ class PromptWithdrawFragment: Fragment() {
                             WithdrawalShowInfo(
                                 status = s,
                                 devMode = devMode ?: false,
-                                initialAmountScope = status.selectedAmount?.let { amount ->
-                                    status.selectedScope?.let { scope ->
+                                initialAmountScope = initialAmount?.let { amount ->
+                                    initialScope?.let { scope ->
                                         AmountScope(amount, scope)
                                     }
                                 },

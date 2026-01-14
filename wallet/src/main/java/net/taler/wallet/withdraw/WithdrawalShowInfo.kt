@@ -92,6 +92,11 @@ fun WithdrawalShowInfo(
     val possibleExchanges = status.uriInfo?.possibleExchanges ?: emptyList()
     val ageRestrictionOptions = status.amountInfo?.ageRestrictionOptions ?: emptyList()
 
+    if (scopes.isEmpty()) {
+        LoadingScreen()
+        return
+    }
+
     val keyboardController = LocalSoftwareKeyboardController.current
     var selectedAmount by remember(initialAmountScope != null) {
         mutableStateOf(initialAmountScope
@@ -330,7 +335,7 @@ fun WithdrawalShowInfo(
                 enabled = status.status != Updating
                         && (status.isCashAcceptor
                         || status.status == TosReviewRequired
-                        || !selectedAmount.amount.isZero()),
+                        || status.selectedAmount?.isZero() == false),
                 onClick = {
                     keyboardController?.hide()
                     if (status.status == TosReviewRequired) {
