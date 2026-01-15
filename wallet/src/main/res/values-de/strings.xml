@@ -447,4 +447,5 @@
     <string name="receive_peer_create_button_amount">%1$s anfordern</string>
     <string name="send_peer_create_button_amount">%1$s übertragen</string>
     <string name="exchange_tos">Allgemeine Geschäftsbedingungen</string>
+    <string name="send_deposits_no_currencies_error">Es sind keine bekannten Währungen für Einzahlungen verfügbar.</string>
 </resources>
