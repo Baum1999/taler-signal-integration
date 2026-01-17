@@ -74,11 +74,15 @@ class PaymentManager(
     fun createPayment(order: Order, includeProducts: Boolean = true) = scope.launch {
         val merchantConfig = configManager.merchantConfig!!
         mPayment.value = Payment(order, order.summary, configManager.currency!!)
-        val inventoryProducts = order.products.mapNotNull { product ->
-            val productId = product.productId ?: return@mapNotNull null
-            MinimalInventoryProduct(productId = productId, quantity = product.quantity)
+        val inventoryProducts = if (includeProducts) {
+            order.products.mapNotNull { product ->
+                val productId = product.productId ?: return@mapNotNull null
+                MinimalInventoryProduct(productId = productId, quantity = product.quantity)
+            }
+        } else {
+            emptyList()
         }
-        val useInventoryProducts = inventoryProducts.isNotEmpty()
+        val useInventoryProducts = includeProducts && inventoryProducts.isNotEmpty()
         val request = PostOrderRequest(
             contractTerms = order.toContractTerms(
                 includeProducts = includeProducts && !useInventoryProducts
