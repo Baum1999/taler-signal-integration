@@ -26,9 +26,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import net.taler.common.RelativeTime
 import net.taler.common.assertUiThread
 import net.taler.merchantlib.CheckPaymentResponse
+import net.taler.merchantlib.MinimalInventoryProduct
 import net.taler.merchantlib.MerchantApi
 import net.taler.merchantlib.PostOrderRequest
 import net.taler.merchantpos.MainActivity.Companion.TAG
@@ -71,10 +74,24 @@ class PaymentManager(
     fun createPayment(order: Order, includeProducts: Boolean = true) = scope.launch {
         val merchantConfig = configManager.merchantConfig!!
         mPayment.value = Payment(order, order.summary, configManager.currency!!)
+        val inventoryProducts = order.products.mapNotNull { product ->
+            val productId = product.productId ?: return@mapNotNull null
+            MinimalInventoryProduct(productId = productId, quantity = product.quantity)
+        }
+        val useInventoryProducts = inventoryProducts.isNotEmpty()
         val request = PostOrderRequest(
-            contractTerms = order.toContractTerms(includeProducts = includeProducts),
+            contractTerms = order.toContractTerms(
+                includeProducts = includeProducts && !useInventoryProducts
+            ),
             refundDelay = RelativeTime.fromMillis(HOURS.toMillis(1))
+            ,
+            inventoryProducts = if (useInventoryProducts) inventoryProducts else null,
         )
+        val requestJson = Json {
+            encodeDefaults = false
+            ignoreUnknownKeys = true
+        }.encodeToString(request)
+        Log.d(TAG, "PostOrderRequest: $requestJson")
         api.postOrder(merchantConfig, request).handle(::onNetworkError) { orderResponse ->
             assertUiThread()
             mPayment.value = mPayment.value!!.copy(orderId = orderResponse.orderId)

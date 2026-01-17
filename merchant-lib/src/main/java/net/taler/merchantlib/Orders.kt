@@ -29,8 +29,29 @@ data class PostOrderRequest(
     val contractTerms: net.taler.common.Order,
     @SerialName("refund_delay")
     val refundDelay: RelativeTime? = null,
+    @SerialName("payment_target")
+    val paymentTarget: String? = null,
+    @SerialName("session_id")
+    val sessionId: String? = null,
+    @SerialName("inventory_products")
+    val inventoryProducts: List<MinimalInventoryProduct>? = null,
+    @SerialName("lock_uuids")
+    val lockUuids: List<String>? = null,
     @SerialName("create_token")
     val createToken: Boolean = true,
+    @SerialName("otp_id")
+    val otpId: String? = null,
+)
+
+@Serializable
+data class MinimalInventoryProduct(
+    @SerialName("product_id")
+    val productId: String,
+    val quantity: Int? = null,
+    @SerialName("unit_quantity")
+    val unitQuantity: String? = null,
+    @SerialName("product_money_pot")
+    val productMoneyPot: Int? = null,
 )
 
 @Serializable

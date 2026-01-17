@@ -95,6 +95,8 @@ data class ConfigProduct(
     @SerialName("description_i18n")
     override val descriptionI18n: Map<String, String>? = null,
     override val price: Amount,
+    @SerialName("prices_are_net")
+    val pricesAreNet: Boolean = false,
     @SerialName("delivery_location")
     override val location: String? = null,
     override val image: String? = null,
@@ -106,12 +108,14 @@ data class ConfigProduct(
 
     fun toContractProduct() = ContractProduct(
         productId = productId,
+        productName = productName ?: description,
         description = description,
-        descriptionI18n = descriptionI18n,
+        descriptionI18n = descriptionI18n?.takeIf { it.isNotEmpty() },
         price = price,
-        location = location,
-        image = image,
-        taxes = taxes,
+        pricesAreNet = pricesAreNet,
+        location = null,
+        image = image?.takeIf { it.isNotBlank() },
+        taxes = taxes?.takeIf { it.isNotEmpty() },
         quantity = quantity
     )
 

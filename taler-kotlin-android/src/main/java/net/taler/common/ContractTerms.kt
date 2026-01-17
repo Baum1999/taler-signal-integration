@@ -18,6 +18,7 @@ package net.taler.common
 
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonClassDiscriminator
@@ -198,6 +199,9 @@ data class ContractProduct(
     @SerialName("description_i18n")
     override val descriptionI18n: Map<String, String>? = null,
     override val price: Amount? = null,
+    @SerialName("prices_are_net")
+    @EncodeDefault
+    val pricesAreNet: Boolean = false,
     @SerialName("delivery_location")
     override val location: String? = null,
     override val image: String? = null,
