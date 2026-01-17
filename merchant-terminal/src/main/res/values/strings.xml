@@ -3,7 +3,8 @@
     <string name="app_name_short">Merchant Terminal</string>
     <string name="project_name">GNU Taler</string>
 
-    <string name="menu_order">Orders</string>
+    <string name="menu_order">Regular order</string>
+    <string name="menu_amount_entry">Order by amount</string>
     <string name="menu_history">History</string>
     <string name="menu_settings">Settings</string>
     <string name="menu_reload">Reload</string>
@@ -23,6 +24,15 @@
     <string name="order_custom_product">Custom product name</string>
     <string name="order_custom_product_default">Tip</string>
     <string name="order_custom_add_button">Add</string>
+
+    <string name="amount_entry_label">Amount</string>
+    <string name="amount_entry_charge">Charge</string>
+    <string name="amount_entry_create_order_charge">Create order (charge amount)</string>
+    <string name="amount_entry_clear">Clear</string>
+    <string name="amount_entry_backspace">Backspace</string>
+    <string name="amount_entry_product_description">Regular order</string>
+    <string name="amount_entry_error_zero">Enter an amount</string>
+    <string name="amount_entry_error_wrong_currency">Unsupported currency</string>
 
     <string name="config_label">Merchant settings</string>
     <string name="config_old_label">JSON file (old)</string>

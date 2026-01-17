@@ -42,6 +42,16 @@
     </fragment>
 
     <fragment
+        android:id="@+id/nav_amountEntry"
+        android:name="net.taler.merchantpos.amount.AmountEntryFragment"
+        android:label="@string/amount_entry_label"
+        tools:layout="@layout/fragment_amount_entry">
+        <action
+            android:id="@+id/action_amountEntry_to_processPayment"
+            app:destination="@+id/processPayment" />
+    </fragment>
+
+    <fragment
         android:id="@+id/processPayment"
         android:name="net.taler.merchantpos.payment.ProcessPaymentFragment"
         android:label="@string/payment_process_label"
@@ -120,6 +130,11 @@
     <action
         android:id="@+id/action_global_order"
         app:destination="@+id/nav_order"
+        app:launchSingleTop="true"
+        app:popUpTo="@+id/nav_graph" />
+    <action
+        android:id="@+id/action_global_amountEntry"
+        app:destination="@+id/nav_amountEntry"
         app:launchSingleTop="true"
         app:popUpTo="@+id/nav_graph" />
     <action

@@ -68,11 +68,11 @@ class PaymentManager(
     }
 
     @UiThread
-    fun createPayment(order: Order) = scope.launch {
+    fun createPayment(order: Order, includeProducts: Boolean = true) = scope.launch {
         val merchantConfig = configManager.merchantConfig!!
         mPayment.value = Payment(order, order.summary, configManager.currency!!)
         val request = PostOrderRequest(
-            contractTerms = order.toContractTerms(),
+            contractTerms = order.toContractTerms(includeProducts = includeProducts),
             refundDelay = RelativeTime.fromMillis(HOURS.toMillis(1))
         )
         api.postOrder(merchantConfig, request).handle(::onNetworkError) { orderResponse ->

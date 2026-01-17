@@ -84,7 +84,15 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
         ui.navView.setNavigationItemSelectedListener(this)
 
         setSupportActionBar(ui.main.toolbar)
-        val appBarConfiguration = AppBarConfiguration(nav.graph, ui.drawerLayout)
+        val appBarConfiguration = AppBarConfiguration(
+            setOf(
+                R.id.nav_order,
+                R.id.nav_amountEntry,
+                R.id.nav_history,
+                R.id.nav_settings,
+            ),
+            ui.drawerLayout,
+        )
         ui.main.toolbar.setupWithNavController(nav, appBarConfiguration)
 
         handleSetupIntent(intent)
@@ -119,6 +127,7 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.nav_order   -> nav.navigate(R.id.action_global_order)
+            R.id.nav_amountEntry -> nav.navigate(R.id.action_global_amountEntry)
             R.id.nav_history -> nav.navigate(R.id.action_global_merchantHistory)
             R.id.nav_settings-> nav.navigate(R.id.action_global_merchantSettings)
         }
@@ -144,7 +153,7 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
                 flags = FLAG_ACTIVITY_NEW_TASK
             }
             startActivity(intent)
-        } else if (currentDestination == R.id.nav_order) {
+        } else if (currentDestination == R.id.nav_order || currentDestination == R.id.nav_amountEntry) {
             if (reallyExit) super.onBackPressed()
             else {
                 // this closes the app and causes orders to be lost, so let's confirm first

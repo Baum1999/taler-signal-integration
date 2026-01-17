@@ -1,4 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-<color name="colorError">#CF6679</color>
+    <!-- Dark theme palette (aligned with wallet's Material 3 palette, mapped to POS color names) -->
+
+    <!-- Core colors -->
+    <color name="colorPrimary">#B4C5FF</color>
+    <color name="colorSecondary">#A4C9FF</color>
+    <color name="colorTertiary">#8DD1E5</color>
+    <color name="colorError">#FFB4AA</color>
+    <color name="colorNeutral">#11131A</color>
+    <color name="colorNeutralVariant">#45474B</color>
+
+    <!-- Extended colors -->
+    <color name="colorOnPrimary">#002A78</color>
+    <color name="colorPrimaryContainer">#0042B3</color>
+    <color name="colorOnPrimaryContainer">#E5EBFF</color>
+    <color name="colorInversePrimary">#2756C7</color>
+
+    <color name="colorOnSecondary">#00315D</color>
+    <color name="colorSecondaryContainer">#72A3E5</color>
+    <color name="colorOnSecondaryContainer">#003869</color>
+
+    <color name="colorOnTertiary">#003641</color>
+    <color name="colorTertiaryContainer">#166577</color>
+    <color name="colorOnTertiaryContainer">#9CE0F5</color>
+
+    <color name="colorOnError">#690003</color>
+    <color name="colorErrorContainer">#B3261E</color>
+    <color name="colorOnErrorContainer">#FFCBC4</color>
+
+    <color name="colorOutline">#8F9095</color>
+    <color name="colorOutlineVariant">#45474B</color>
+
+    <color name="colorBackground">#11131A</color>
+    <color name="colorOnBackground">#E2E2EB</color>
+
+    <color name="colorSurface">#11131A</color>
+    <color name="colorOnSurface">#E5E2E1</color>
+    <color name="colorOnSurfaceVariant">#C6C6CB</color>
+    <color name="colorSurfaceVariant">#45474B</color>
+
+    <color name="colorInverseOnSurface">#313030</color>
+    <color name="colorInverseSurface">#E5E2E1</color>
+
+    <color name="colorSurfaceTint">#B4C5FF</color>
+
+    <color name="colorShadow">#000000</color>
+    <color name="colorScrim">#000000</color>
 </resources>
+

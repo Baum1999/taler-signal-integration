@@ -3,4 +3,8 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="nav_header_vertical_spacing">8dp</dimen>
     <dimen name="nav_header_height">176dp</dimen>
+
+    <!-- Amount entry / dialpad -->
+    <dimen name="amount_entry_key_min_height">88dp</dimen>
+    <dimen name="amount_entry_key_text_size">34sp</dimen>
 </resources>

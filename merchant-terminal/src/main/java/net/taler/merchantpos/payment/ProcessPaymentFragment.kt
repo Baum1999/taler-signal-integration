@@ -22,6 +22,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG
 import com.google.android.material.snackbar.Snackbar
@@ -36,7 +37,6 @@ import net.taler.lib.android.TalerNfcService.Companion.hasNfc
 import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.R
 import net.taler.merchantpos.databinding.FragmentProcessPaymentBinding
-import net.taler.merchantpos.payment.ProcessPaymentFragmentDirections.Companion.actionProcessPaymentToPaymentSuccess
 
 class ProcessPaymentFragment : Fragment() {
 
@@ -78,7 +78,14 @@ class ProcessPaymentFragment : Fragment() {
         }
         if (payment.paid) {
             model.orderManager.onOrderPaid(payment.order.id)
-            navigate(actionProcessPaymentToPaymentSuccess())
+            val nav = findNavController()
+            val previousDestinationId = nav.previousBackStackEntry?.destination?.id
+            val options = previousDestinationId?.let {
+                NavOptions.Builder()
+                    .setPopUpTo(it, false)
+                    .build()
+            }
+            nav.navigate(R.id.paymentSuccess, null, options)
             return
         }
         if (payment.claimed) {

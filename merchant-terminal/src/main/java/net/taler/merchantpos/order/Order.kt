@@ -106,13 +106,13 @@ data class Order(val id: Int, val currency: String, val availableCategories: Map
             }.toMap()
         }
 
-    fun toContractTerms(): net.taler.common.Order {
+    fun toContractTerms(includeProducts: Boolean = true): net.taler.common.Order {
         val deadline = Timestamp.fromMillis(now() + HOURS.toMillis(1))
         return net.taler.common.Order(
             summary = summary,
             summaryI18n = summaryI18n,
             amount = total,
-            products = products.map { it.toContractProduct() },
+            products = if (includeProducts) products.map { it.toContractProduct() } else null,
             refundDeadline = deadline,
             wireTransferDeadline = deadline,
             payDeadline = deadline,
