@@ -48,6 +48,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
@@ -104,6 +105,26 @@ private data class LimitedTokenResponse(
     val refreshable: Boolean,
     val expiration: TokenExpiration
 )
+
+@kotlinx.serialization.Serializable
+data class ChallengeResponse(
+    val challenges: List<Challenge>,
+    val combi_and: Boolean
+)
+
+@kotlinx.serialization.Serializable
+data class Challenge(
+    val challenge_id: String,
+    val tan_channel: String,
+    val tan_info: String
+)
+
+@kotlinx.serialization.Serializable
+data class ChallengeConfirmRequest(
+    val tan: String
+)
+
+class ChallengeRequiredException(val challengeResponse: ChallengeResponse) : Exception()
 
 @kotlinx.serialization.Serializable(with = TokenExpiration.Serializer::class)
 sealed class TokenExpiration {
@@ -370,7 +391,8 @@ class ConfigManager(
         baseUrl: String,
         username: String,
         initialSecret: String,
-        duration: TokenDuration
+        duration: TokenDuration,
+        challengeIds: List<String> = emptyList()
     ): String {
         val tokenUrl = baseUrl.toUri()
             .buildUpon()
@@ -382,15 +404,65 @@ class ConfigManager(
             .toString()
 
         val bearer = "Bearer secret-token:$initialSecret"
-        val resp: LimitedTokenResponse = httpClient
-            .post(tokenUrl) {
-                header(HttpHeaders.Authorization, bearer)
-                contentType(ContentType.Application.Json)
-                setBody(TokenRequest(scope = "write", duration = duration))
+        val response = httpClient.post(tokenUrl) {
+            header(HttpHeaders.Authorization, bearer)
+            if (challengeIds.isNotEmpty()) {
+                header("Taler-Challenge-Ids", challengeIds.joinToString(","))
             }
-            .body()
+            contentType(ContentType.Application.Json)
+            setBody(TokenRequest(scope = "write", duration = duration))
+        }
+
+        if (response.status == HttpStatusCode.Accepted) {
+            val challenge: ChallengeResponse = response.body()
+            throw ChallengeRequiredException(challenge)
+        }
+
+        val resp: LimitedTokenResponse = response.body()
 
         return resp.token.removePrefix("secret-token:")
+    }
+
+    suspend fun requestChallenge(
+        baseUrl: String,
+        username: String,
+        challengeId: String
+    ) {
+        val challengeUrl = baseUrl.toUri()
+            .buildUpon()
+            .appendPath("instances")
+            .appendPath(username)
+            .appendPath("challenge")
+            .appendPath(challengeId)
+            .build()
+            .toString()
+
+        httpClient.post(challengeUrl) {
+            contentType(ContentType.Application.Json)
+            setBody(buildJsonObject { })
+        }
+    }
+
+    suspend fun confirmChallenge(
+        baseUrl: String,
+        username: String,
+        challengeId: String,
+        tan: String
+    ) {
+        val confirmUrl = baseUrl.toUri()
+            .buildUpon()
+            .appendPath("instances")
+            .appendPath(username)
+            .appendPath("challenge")
+            .appendPath(challengeId)
+            .appendPath("confirm")
+            .build()
+            .toString()
+
+        httpClient.post(confirmUrl) {
+            contentType(ContentType.Application.Json)
+            setBody(ChallengeConfirmRequest(tan = tan))
+        }
     }
 
     @UiThread

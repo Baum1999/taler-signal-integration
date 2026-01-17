@@ -104,6 +104,12 @@
     <string name="custom_duration">Custom duration</string>
     <string name="duration">Duration</string>
     <string name="token_validity_deadline">Token validity deadline:</string>
+    <string name="mfa_challenge_title">Two-factor authentication</string>
+    <string name="mfa_challenge_message">A confirmation code was sent via %1$s (%2$s). Enter the code to continue.</string>
+    <string name="mfa_choose_title">Choose verification method</string>
+    <string name="mfa_challenge_invalid">Incorrect code. Please try again.</string>
+    <string name="mfa_challenge_retry">Too many attempts. A new code has been sent.</string>
+    <string name="mfa_challenge_failed">Verification failed. Please try again later.</string>
     <string name="expires_on">Expires on…</string>
     <string name="never_expires">Never expires</string>
     <string name="no_deadline_set">No deadline set</string>

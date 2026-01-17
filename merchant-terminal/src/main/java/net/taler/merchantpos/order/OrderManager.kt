@@ -62,6 +62,9 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
         // group products by categories
         productsByCategory.clear()
         val unknownCategory = Category(-1, context.getString(R.string.product_category_uncategorized))
+        posConfig.categories.forEach { category ->
+            productsByCategory[category] = ArrayList()
+        }
         posConfig.products.forEach { product ->
             val productCurrency = product.price.currency
             if (productCurrency != currency) {
@@ -76,28 +79,22 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
                     unknownCategory
                 }
 
-                if (productsByCategory.containsKey(category)) {
-                    productsByCategory[category]?.add(product)
-                } else {
-                    productsByCategory[category] = ArrayList<ConfigProduct>().apply { add(product) }
-                }
+                productsByCategory.getOrPut(category) { ArrayList() }.add(product)
             }
         }
-        return if (productsByCategory.size > 0) {
-            this.currency = currency
-            mCategories.postValue(posConfig.categories +
-                    if(productsByCategory.containsKey(unknownCategory)) {
-                        listOf(unknownCategory)
-                    } else {
-                        emptyList()
-                    })
-            mProducts.postValue(productsByCategory[posConfig.categories[0]])
-            orders.clear()
-            orderCounter = 0
-            orders[0] = MutableLiveOrder(0, currency, productsByCategory)
-            mCurrentOrderId.postValue(0)
-            null // success, no error string
-        } else context.getString(R.string.config_error_product_zero)
+        this.currency = currency
+        mCategories.postValue(posConfig.categories +
+                if(productsByCategory.containsKey(unknownCategory)) {
+                    listOf(unknownCategory)
+                } else {
+                    emptyList()
+                })
+        mProducts.postValue(productsByCategory[posConfig.categories[0]] ?: emptyList())
+        orders.clear()
+        orderCounter = 0
+        orders[0] = MutableLiveOrder(0, currency, productsByCategory)
+        mCurrentOrderId.postValue(0)
+        return null // success, no error string
     }
 
     @UiThread
