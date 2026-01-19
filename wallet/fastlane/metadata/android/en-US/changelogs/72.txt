@@ -1,0 +1,3 @@
+- Fixed crash when withdrawing money on a fresh wallet.
+- Fixed bug preventing deposits to IBAN accounts.
+- Updated wallet-core to 1.3.3.
