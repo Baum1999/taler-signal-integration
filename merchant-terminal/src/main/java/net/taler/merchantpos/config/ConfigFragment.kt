@@ -24,7 +24,6 @@ import android.content.pm.PackageManager
 import android.media.Image
 import android.os.Bundle
 import android.util.Log
-import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
@@ -32,11 +31,9 @@ import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.EditText
 import android.widget.RadioButton
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector
@@ -50,6 +47,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButtonToggleGroup
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
@@ -413,7 +413,7 @@ class ConfigFragment : Fragment() {
                 val labels = challenges.map { c ->
                     "${c.tan_channel}: ${c.tan_info}"
                 }.toTypedArray()
-                AlertDialog.Builder(requireContext())
+                MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.mfa_choose_title)
                     .setItems(labels) { _, which ->
                         cont.resume(challenges[which])
@@ -426,20 +426,26 @@ class ConfigFragment : Fragment() {
     private suspend fun promptForTan(challenge: Challenge): String? =
         withContext(Dispatchers.Main) {
             suspendCancellableCoroutine { cont ->
-                val input = EditText(requireContext()).apply {
-                    inputType = InputType.TYPE_CLASS_NUMBER
-                }
                 val message = getString(
                     R.string.mfa_challenge_message,
                     challenge.tan_channel,
                     challenge.tan_info
                 )
-                AlertDialog.Builder(requireContext())
+                val dialogView = layoutInflater.inflate(
+                    R.layout.dialog_mfa_challenge,
+                    null,
+                    false
+                )
+                val messageView = dialogView.findViewById<TextView>(R.id.mfaMessageView)
+                val inputLayout = dialogView.findViewById<TextInputLayout>(R.id.mfaCodeInputLayout)
+                val input = dialogView.findViewById<TextInputEditText>(R.id.mfaCodeInput)
+                messageView.text = message
+                inputLayout.isErrorEnabled = false
+                MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.mfa_challenge_title)
-                    .setMessage(message)
-                    .setView(input)
+                    .setView(dialogView)
                     .setPositiveButton(android.R.string.ok) { _, _ ->
-                        cont.resume(input.text.toString().trim())
+                        cont.resume(input?.text?.toString()?.trim().orEmpty())
                     }
                     .setNegativeButton(android.R.string.cancel) { _, _ ->
                         cont.resume(null)
