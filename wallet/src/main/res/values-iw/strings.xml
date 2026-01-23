@@ -42,8 +42,8 @@
     <string name="currency_url">%1$s (%2$s)</string>
     <string name="currency_via">דרך</string>
     <string name="edit">עריכה</string>
-    <string name="enter_uri">הזנת ה־URI של הטאלר taler://</string>
-    <string name="enter_uri_label">הכנסת URI</string>
+    <string name="enter_uri">הזנת קישור טאלר</string>
+    <string name="enter_uri_label">קישור טאלר</string>
     <string name="error">שגיאה</string>
     <string name="import_db">ייבוא</string>
     <string name="loading">טעינה</string>
@@ -56,7 +56,7 @@
     <string name="paste_invalid">הלוח מכיל סוג נתונים שאינו תקין</string>
     <string name="reset">איפוס</string>
     <string name="share_payment">שיתוף קישור התשלום</string>
-    <string name="uri_invalid">ה־URI של הטאלר אינו תקין</string>
+    <string name="uri_invalid">קישור הטאלר אינו תקין</string>
     <string name="warning">אזהרה</string>
     <!-- Biometric lock -->
     <string name="biometric_auth_error">שגיאת אימות: %1$s</string>
@@ -72,9 +72,9 @@
     <string name="qr_scan_offline">פעולה זו מצריכה חיבור לאינטרנט. כדי לנסות שנית כשהאינטרנט יהיה זמין, נא להישאר במסך זה ולחכות, או ללחוץ על הכפתור מטה.</string>
     <!-- Errors -->
 
-    <string name="error_no_uri">שגיאה: לא נמצא אף URI של טאלר</string>
-    <string name="error_broken_uri">שגיאה: URI זה של טאלר לא עובד (כרגע).</string>
-    <string name="error_unsupported_uri">שגיאה: URI זה של טאלר אינו נתמך.</string>
+    <string name="error_no_uri">שגיאה: לא נמצא אף קישור טאלר</string>
+    <string name="error_broken_uri">שגיאה: קישור הטאלר לא עובד (כרגע).</string>
+    <string name="error_unsupported_uri">שגיאה: קישור הטאלר אינו נתמך.</string>
     <!-- Amounts -->
 
     <string name="amount_available_transfer">זמין להעברה: %1$s</string>
@@ -162,7 +162,7 @@
     <string name="transactions_fail_dialog_message">האם נטישת ההעברה סופית? כספים באמצע המעבר *יאבדו בוודאות*.</string>
     <string name="transactions_fail_dialog_title">נטישת ההעברה</string>
     <string name="transactions_filter_nonfinal">זהו מבט על ההעברות הממתינות</string>
-    <string name="transactions_receive_funds">קבלה</string>
+    <string name="transactions_receive_funds">בקשה</string>
     <string name="transactions_resume">המשך</string>
     <string name="transactions_retry">ניסיון חוזר</string>
     <string name="transactions_required_kyc"/>
@@ -237,7 +237,7 @@
     <string name="send_deposit_account_add">הוספת חשבון</string>
     <string name="send_deposit_account_edit">עריכת החשבון</string>
     <string name="send_deposit_account_error">אין אפשרות להפקיד לחשבון זה. נא לנסות אחד אחר</string>
-    <string name="send_deposit_account_forget_dialog_message">האם לשכוח חשבון זה מהארנק?</string>
+    <string name="send_deposit_account_forget_dialog_message">האם למחוק חשבון זה מהארנק?</string>
     <string name="send_deposit_account_forget_dialog_title">לשכוח את החשבון</string>
     <string name="send_deposit_account_note">פתק</string>
     <string name="send_deposit_account_manage">ניהול חשבונות הבנק</string>
