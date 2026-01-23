@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/amountView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ellipsize="start"
+        android:gravity="end"
+        android:maxLines="1"
+        android:paddingHorizontal="12dp"
+        android:textAppearance="?attr/textAppearanceHeadlineLarge"
+        android:textSize="56sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/currencyLayout"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        tools:text="12.34" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/currencyLayout"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:boxBackgroundMode="outline"
+        app:endIconMode="dropdown_menu"
+        app:layout_constraintTop_toTopOf="@+id/amountView"
+        app:layout_constraintBottom_toBottomOf="@+id/amountView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/amountView">
+
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            android:id="@+id/currencyView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="none"
+            android:paddingHorizontal="16dp"
+            tools:text="EUR" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineNumpadStart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.2" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineNumpadEnd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.8" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineCharge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.8" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/numpad"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="12dp"
+        app:layout_constraintBottom_toTopOf="@+id/guidelineCharge"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/guidelineNumpadEnd"
+        app:layout_constraintStart_toEndOf="@+id/guidelineNumpadStart"
+        app:layout_constraintTop_toBottomOf="@+id/amountView">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/key1"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="4dp"
+            android:text="1"
+            android:textColor="@color/amount_entry_key_text"
+            android:textSize="@dimen/amount_entry_key_text_size"
+            app:backgroundTint="@color/amount_entry_key_background"
+            app:layout_constraintEnd_toStartOf="@+id/key2"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/key4"
+            app:layout_constraintHorizontal_chainStyle="spread"
+            app:layout_constraintVertical_chainStyle="spread" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/key2"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="4dp"
+            android:text="2"
+            android:textColor="@color/amount_entry_key_text"
+            android:textSize="@dimen/amount_entry_key_text_size"
+            app:backgroundTint="@color/amount_entry_key_background"
+            app:layout_constraintEnd_toStartOf="@+id/key3"
+            app:layout_constraintStart_toEndOf="@+id/key1"
+            app:layout_constraintTop_toTopOf="@+id/key1"
+            app:layout_constraintBottom_toBottomOf="@+id/key1" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/key3"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="4dp"
+            android:text="3"
+            android:textColor="@color/amount_entry_key_text"
+            android:textSize="@dimen/amount_entry_key_text_size"
+            app:backgroundTint="@color/amount_entry_key_background"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/key2"
+            app:layout_constraintTop_toTopOf="@+id/key1"
+            app:layout_constraintBottom_toBottomOf="@+id/key1" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/key4"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="4dp"
+            android:text="4"
+            android:textColor="@color/amount_entry_key_text"
+            android:textSize="@dimen/amount_entry_key_text_size"
+            app:backgroundTint="@color/amount_entry_key_background"
+            app:layout_constraintEnd_toStartOf="@+id/key5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/key1"
+            app:layout_constraintBottom_toTopOf="@+id/key7"
+            app:layout_constraintHorizontal_chainStyle="spread" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/key5"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="4dp"
+            android:text="5"
+            android:textColor="@color/amount_entry_key_text"
+            android:textSize="@dimen/amount_entry_key_text_size"
+            app:backgroundTint="@color/amount_entry_key_background"
+            app:layout_constraintEnd_toStartOf="@+id/key6"
+            app:layout_constraintStart_toEndOf="@+id/key4"
+            app:layout_constraintTop_toTopOf="@+id/key4"
+            app:layout_constraintBottom_toBottomOf="@+id/key4" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/key6"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="4dp"
+            android:text="6"
+            android:textColor="@color/amount_entry_key_text"
+            android:textSize="@dimen/amount_entry_key_text_size"
+            app:backgroundTint="@color/amount_entry_key_background"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/key5"
+            app:layout_constraintTop_toTopOf="@+id/key4"
+            app:layout_constraintBottom_toBottomOf="@+id/key4" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/key7"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="4dp"
+            android:text="7"
+            android:textColor="@color/amount_entry_key_text"
+            android:textSize="@dimen/amount_entry_key_text_size"
+            app:backgroundTint="@color/amount_entry_key_background"
+            app:layout_constraintEnd_toStartOf="@+id/key8"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/key4"
+            app:layout_constraintBottom_toTopOf="@+id/keyClear"
+            app:layout_constraintHorizontal_chainStyle="spread" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/key8"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="4dp"
+            android:text="8"
+            android:textColor="@color/amount_entry_key_text"
+            android:textSize="@dimen/amount_entry_key_text_size"
+            app:backgroundTint="@color/amount_entry_key_background"
+            app:layout_constraintEnd_toStartOf="@+id/key9"
+            app:layout_constraintStart_toEndOf="@+id/key7"
+            app:layout_constraintTop_toTopOf="@+id/key7"
+            app:layout_constraintBottom_toBottomOf="@+id/key7" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/key9"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="4dp"
+            android:text="9"
+            android:textColor="@color/amount_entry_key_text"
+            android:textSize="@dimen/amount_entry_key_text_size"
+            app:backgroundTint="@color/amount_entry_key_background"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/key8"
+            app:layout_constraintTop_toTopOf="@+id/key7"
+            app:layout_constraintBottom_toBottomOf="@+id/key7" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/keyClear"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="4dp"
+            android:singleLine="true"
+            android:text="@string/amount_entry_clear"
+            android:textColor="@color/amount_entry_key_text"
+            android:textSize="22sp"
+            app:backgroundTint="@color/amount_entry_key_background"
+            app:layout_constraintEnd_toStartOf="@+id/key0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/key7"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_chainStyle="spread" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/key0"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="4dp"
+            android:text="0"
+            android:textColor="@color/amount_entry_key_text"
+            android:textSize="@dimen/amount_entry_key_text_size"
+            app:backgroundTint="@color/amount_entry_key_background"
+            app:layout_constraintEnd_toStartOf="@+id/keyBackspace"
+            app:layout_constraintStart_toEndOf="@+id/keyClear"
+            app:layout_constraintTop_toTopOf="@+id/keyClear"
+            app:layout_constraintBottom_toBottomOf="@+id/keyClear" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/keyBackspace"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_margin="4dp"
+            android:contentDescription="@string/amount_entry_backspace"
+            android:gravity="center"
+            android:padding="0dp"
+            android:singleLine="true"
+            android:text=""
+            app:backgroundTint="@color/amount_entry_key_background"
+            app:icon="@drawable/ic_backspace"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconSize="34dp"
+            app:iconTint="@color/amount_entry_key_text"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/key0"
+            app:layout_constraintTop_toTopOf="@+id/keyClear"
+            app:layout_constraintBottom_toBottomOf="@+id/keyClear" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <Button
+        android:id="@+id/chargeButton"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        android:backgroundTint="@color/complete_button_bottom"
+        android:text="@string/amount_entry_create_order_charge"
+        android:textAllCaps="false"
+        android:textSize="20sp"
+        app:layout_constraintTop_toBottomOf="@+id/guidelineCharge"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/guidelineNumpadEnd"
+        app:layout_constraintStart_toEndOf="@+id/guidelineNumpadStart" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
