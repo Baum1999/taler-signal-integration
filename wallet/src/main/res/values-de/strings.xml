@@ -376,7 +376,7 @@
     <string name="withdraw_manual_step"><b>Schritt %1$s:</b> %2$s</string>
     <string name="withdraw_manual_step_finish">Nach Ihrer Überweisung von %1$s, die Sie durch Ihre Banking-App oder Ihr Online-Banking auslösen, wird diese Abhebung automatisch durchgeführt. Je nach Bank kann die Überweisung zwischen Minuten und zwei Werktagen dauern, bitte haben Sie etwas Geduld.</string>
     <string name="withdraw_manual_step_iban">Sollte die Bankverbindung noch nicht in Ihrer Favoritenliste sein, kopieren Sie jetzt IBAN und Empfänger und füllen diese in Ihrer Banking-App bzw. im Online-Banking in die entsprechenden Felder, so dass Sie die Daten für das nächste Mal sofort zur Verfügung haben:</string>
-    <string name="withdraw_manual_step_subject">Kopieren Sie diese Zeichenkette und übertragen sie in das Feld Verwendungszweck in ihrer Banking-App oder Online-Banking-Webseite:</string>
+    <string name="withdraw_manual_step_subject">Kopieren Sie diese Zeichenkette ins Feld „Buchungsvermerk“ (bzw. „Verwendungszweck“) Ihrer Banking-App oder Online-Banking-Webseite:</string>
     <string name="withdraw_review_terms">Sie müssen zunächst die Allgemeinen Geschäftsbedingungen des Zahlungsdiensts akzeptieren, bevor Sie digitales Bargeld in Ihre elektronische Geldbörse abheben können.</string>
     <string name="payment_cancel_dialog_message">Sind Sie sicher, dass Sie diese Zahlung abbrechen möchten? Sie können sie später nicht mehr abschließen. Sie können den Vorgang aber an dieser Stelle auch einfach abbrechen und später erneut beginnen.</string>
     <string name="withdraw_manual_qr_intro">Wenn Sie Ihr Online-Banking auf einem anderen Gerät ausführen, scannen Sie einen dieser QR-Codes:</string>
