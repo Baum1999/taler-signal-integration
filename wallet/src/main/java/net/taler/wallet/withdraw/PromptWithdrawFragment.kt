@@ -109,7 +109,7 @@ class PromptWithdrawFragment: Fragment() {
                 if (status.status == None) {
                     if (withdrawUri != null) {
                         // get withdrawal details for taler://withdraw URI
-                        withdrawManager.prepareBankIntegratedWithdrawal(withdrawUri, loading = true)
+                        withdrawManager.prepareBankIntegratedWithdrawal(withdrawUri, context, loading = true)
                     } else if (withdrawExchangeUri != null) {
                         // get withdrawal details for taler://withdraw-exchange URI
                         withdrawManager.prepareManualWithdrawal(withdrawExchangeUri)

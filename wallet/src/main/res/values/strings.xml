@@ -348,6 +348,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="withdraw_button_tos">Terms of service</string>
     <string name="withdraw_cash_acceptor">The amount to be withdrawn will be determined by the cash acceptor</string>
     <string name="withdraw_error_already_confirmed">Withdrawal is already confirmed</string>
+    <string name="withdraw_error_empty_exchanges">No payment providers were configured by the bank.</string>
     <string name="withdraw_error_message">Withdrawing is currently not possible. Please try again later!</string>
     <string name="withdraw_error_test">Error withdrawing KUDOS</string>
     <string name="withdraw_error_title">Withdrawal error</string>

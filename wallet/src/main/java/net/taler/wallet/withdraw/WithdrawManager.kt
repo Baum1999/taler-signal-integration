@@ -16,6 +16,7 @@
 
 package net.taler.wallet.withdraw
 
+import android.content.Context
 import android.util.Log
 import androidx.annotation.UiThread
 import kotlinx.coroutines.CoroutineScope
@@ -42,6 +43,7 @@ import net.taler.wallet.withdraw.WithdrawStatus.Status.*
 import androidx.core.net.toUri
 import kotlinx.coroutines.runBlocking
 import net.taler.common.CurrencySpecification
+import net.taler.wallet.R
 import net.taler.wallet.transactions.TransactionMajorState
 import net.taler.wallet.transactions.TransactionManager
 
@@ -280,6 +282,7 @@ class WithdrawManager(
 
     fun prepareBankIntegratedWithdrawal(
         uri: String,
+        context: Context,
         loading: Boolean = true,
     ) = scope.launch {
         _withdrawStatus.update {
@@ -303,6 +306,21 @@ class WithdrawManager(
                 val tx = transactionManager.getTransactionById(details.transactionId)
                     ?: error("transaction ${details.transactionId} not found")
 
+                val exchangeBaseUrl = details.info.defaultExchangeBaseUrl
+                    ?: details.info.possibleExchanges.firstOrNull()?.exchangeBaseUrl
+                
+                // Handle no exchanges configured by bank.
+                if (exchangeBaseUrl == null) {
+                    _withdrawStatus.updateAndGet { value ->
+                        value.copy(
+                            status = Error,
+                            error = TalerErrorInfo.makeCustomError(
+                                context.getString(R.string.withdraw_error_empty_exchanges)),
+                        )
+                    }
+                    return@launch
+                }
+
                 val status = _withdrawStatus.updateAndGet { value ->
                     updateSelections(
                         value.copy(
@@ -312,7 +330,8 @@ class WithdrawManager(
                                 AlreadyConfirmed
                             },
                             uriInfo = details.info,
-                            exchangeBaseUrl = details.info.defaultExchangeBaseUrl,
+                            exchangeBaseUrl = details.info.defaultExchangeBaseUrl
+                                ?: details.info.possibleExchanges.firstOrNull()?.exchangeBaseUrl
                         )
                     )
                 }
