@@ -45,6 +45,8 @@ import net.taler.common.fadeOut
 import net.taler.wallet.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.databinding.FragmentReviewExchangeTosBinding
+import net.taler.wallet.exchanges.ExchangeTosStatus
+import net.taler.wallet.showError
 import java.text.ParseException
 import java.util.Locale
 
@@ -114,8 +116,14 @@ class ReviewExchangeTosFragment : Fragment(), AdapterView.OnItemSelectedListener
         selectedLang = language ?: lc
         tos = exchangeManager.getExchangeTos(exchangeBaseUrl, selectedLang)
 
+        val tos = tos
+        if (tos == null || tos.status == ExchangeTosStatus.MissingTos) {
+            onTosError(getString(R.string.exchange_tos_missing))
+            return
+        }
+
         // Setup language adapter
-        val languages = tos?.tosAvailableLanguages ?: emptyList()
+        val languages = tos.tosAvailableLanguages
         langAdapter?.clear()
         langAdapter?.addAll(languages.map { lang ->
             Locale(lang).displayLanguage
@@ -134,21 +142,19 @@ class ReviewExchangeTosFragment : Fragment(), AdapterView.OnItemSelectedListener
         }
 
         // FIXME: better null handling!
-        tos?.let {
-            val sections = try {
-                parseTos(markwon, it.content)
-            } catch (e: ParseException) {
-                onTosError(e.message ?: "Unknown Error")
-                return
-            }
-
-            adapter.setSections(sections)
-            ui.tosList.adapter = adapter
-            ui.tosList.fadeIn()
-
-            ui.acceptTosCheckBox.fadeIn()
-            ui.progressBar.fadeOut()
+        val sections = try {
+            parseTos(markwon, tos.content)
+        } catch (e: ParseException) {
+            onTosError(e.message ?: "Unknown Error")
+            return
         }
+
+        adapter.setSections(sections)
+        ui.tosList.adapter = adapter
+        ui.tosList.fadeIn()
+
+        ui.acceptTosCheckBox.fadeIn()
+        ui.progressBar.fadeOut()
     }
 
     private fun setupInsets() {

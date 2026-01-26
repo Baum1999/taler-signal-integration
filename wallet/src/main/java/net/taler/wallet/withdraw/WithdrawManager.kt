@@ -308,7 +308,7 @@ class WithdrawManager(
 
                 val exchangeBaseUrl = details.info.defaultExchangeBaseUrl
                     ?: details.info.possibleExchanges.firstOrNull()?.exchangeBaseUrl
-                
+
                 // Handle no exchanges configured by bank.
                 if (exchangeBaseUrl == null) {
                     _withdrawStatus.updateAndGet { value ->
@@ -417,7 +417,7 @@ class WithdrawManager(
             scope.launch {
                 _withdrawStatus.update { value ->
                     updateSelections(value.copy(
-                        status = if (exchange.tosStatus != ExchangeTosStatus.Accepted) {
+                        status = if (!exchange.tosStatus.isAccepted()) {
                             TosReviewRequired
                         } else {
                             InfoReceived
@@ -472,7 +472,7 @@ class WithdrawManager(
             var newStatus = status
             status.exchangeBaseUrl?.let { exchangeBaseUrl ->
                 exchanges.find { it.exchangeBaseUrl == exchangeBaseUrl }?.let { exchange ->
-                    if (exchange.tosStatus == ExchangeTosStatus.Accepted) {
+                    if (exchange.tosStatus.isAccepted()) {
                         newStatus = status.copy(status = InfoReceived)
                     }
                 }

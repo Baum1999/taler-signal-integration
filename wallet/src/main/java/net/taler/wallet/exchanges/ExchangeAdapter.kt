@@ -102,7 +102,7 @@ internal class ExchangeAdapter(
 
         private fun openMenu(anchor: View, item: ExchangeItem) = PopupMenu(context, anchor).apply {
             inflate(R.menu.exchange)
-            if (item.tosStatus == ExchangeTosStatus.Accepted) {
+            if (item.tosStatus.isAccepted()) {
                 menu.findItem(R.id.action_view_tos).isVisible = true
                 menu.findItem(R.id.action_accept_tos).isVisible = false
                 menu.findItem(R.id.action_forget_tos).isVisible = devMode

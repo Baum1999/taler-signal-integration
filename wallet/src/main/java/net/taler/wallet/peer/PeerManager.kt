@@ -108,7 +108,7 @@ class PeerManager(
             _outgoingPullState.value = OutgoingChecking
         }
 
-        if (exchangeItem.tosStatus != ExchangeTosStatus.Accepted) {
+        if (!exchangeItem.tosStatus.isAccepted()) {
             _outgoingPullState.value = OutgoingIntro
             return CheckPeerPullCreditResult(
                 tosStatus = exchangeItem.tosStatus,
@@ -320,7 +320,7 @@ class PeerManager(
                         return@b
                     }
 
-                    _incomingPushState.value = if (exchange.tosStatus == ExchangeTosStatus.Accepted) {
+                    _incomingPushState.value = if (exchange.tosStatus.isAccepted()) {
                         IncomingTerms(
                             amountRaw = response.amountRaw,
                             amountEffective = response.amountEffective,
@@ -364,7 +364,7 @@ class PeerManager(
             var newState = state
             if (state is IncomingTosReview) {
                 exchanges.find { it.exchangeBaseUrl == state.exchangeBaseUrl }?.let { exchange ->
-                    if (exchange.tosStatus == ExchangeTosStatus.Accepted) {
+                    if (exchange.tosStatus.isAccepted()) {
                         newState = IncomingTerms(
                             amountRaw = state.amountRaw,
                             amountEffective = state.amountEffective,
@@ -386,7 +386,7 @@ class PeerManager(
             var newState = state
             if (state is OutgoingChecked) {
                 exchanges.find { it.exchangeBaseUrl == state.exchangeBaseUrl }?.let { exchange ->
-                    if (exchange.tosStatus == ExchangeTosStatus.Accepted) {
+                    if (exchange.tosStatus.isAccepted()) {
                         newState = OutgoingChecked(
                             amountRaw = state.amountRaw,
                             amountEffective = state.amountEffective,

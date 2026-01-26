@@ -423,6 +423,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="exchange_tos">Terms of service</string>
     <string name="exchange_tos_accept">Accept terms of service</string>
     <string name="exchange_tos_forget">Reject terms of service</string>
+    <string name="exchange_tos_missing">Terms of service were not provided by payment service</string>
     <string name="exchange_tos_view">Review terms of service</string>
     <string name="exchange_tos_error">Error showing terms of service: %1$s</string>
 

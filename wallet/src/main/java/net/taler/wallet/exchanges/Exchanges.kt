@@ -54,5 +54,7 @@ enum class ExchangeTosStatus {
     Accepted,
 
     @SerialName("missing-tos")
-    MissingTos,
+    MissingTos;
+
+    fun isAccepted() = this in listOf(Accepted, MissingTos)
 }

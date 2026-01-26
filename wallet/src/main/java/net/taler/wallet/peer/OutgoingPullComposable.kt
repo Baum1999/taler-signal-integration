@@ -91,7 +91,7 @@ fun OutgoingPullComposable(
     var option by rememberSaveable { mutableStateOf(DEFAULT_EXPIRY) }
     var hours by rememberSaveable { mutableLongStateOf(DEFAULT_EXPIRY.hours) }
 
-    val tosReview = checkResult != null && checkResult?.tosStatus != ExchangeTosStatus.Accepted
+    val tosReview = checkResult != null && checkResult!!.tosStatus!!.isAccepted()
 
     amount.amount.useDebounce {
         if (amount.debounce) {
@@ -258,7 +258,7 @@ fun OutgoingPullComposable(
                 enabled = tosReview || (res != null && !amount.amount.isZero() && subject.isNotBlank()),
                 onClick = {
                     val ex = res?.exchangeBaseUrl ?: error("clickable without exchange")
-                    if (res.tosStatus == ExchangeTosStatus.Accepted) {
+                    if (res.tosStatus?.isAccepted() == true) {
                         onCreateInvoice(
                             amount,
                             subject,
@@ -268,7 +268,7 @@ fun OutgoingPullComposable(
                     } else onTosAccept(ex)
                 },
             ) {
-                if (checkResult != null && checkResult?.tosStatus != ExchangeTosStatus.Accepted) {
+                if (checkResult != null && !checkResult!!.tosStatus!!.isAccepted()) {
                     Text(text = stringResource(R.string.exchange_tos_view))
                 } else {
                     Text(text = stringResource(R.string.receive_peer_create_button_amount,
