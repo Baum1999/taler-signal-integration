@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        if (!configManager.hasConfig()) {
+        if (!configManager.hasConfig() && nav.currentDestination?.id != R.id.configFragment) {
             nav.navigate(configManager.configDestination)
         }
     }
