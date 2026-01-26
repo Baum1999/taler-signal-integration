@@ -83,7 +83,7 @@ private fun getNodeText(rootNode: Node): String {
 
 @Serializable
 data class TosResponse(
-    val status: ExchangeTosStatus,
+    val status: ExchangeTosStatus = ExchangeTosStatus.Unknown,
     val content: String,
     val currentEtag: String,
     val contentLanguage: String? = null,

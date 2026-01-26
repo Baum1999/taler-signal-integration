@@ -135,6 +135,14 @@ class PromptWithdrawFragment: Fragment() {
             }
 
             TalerSurface {
+                // FIXME: hack to prevent initialAmount from changing after preparing withdrawal.
+                //   WithdrawalShowInfo cannot detect changes other than null -> not null,
+                //   otherwise there would be an input loop.
+                if (status.selectedAmount == null && status.selectedScope == null) {
+                    LoadingScreen()
+                    return@TalerSurface
+                }
+
                 status.let { s ->
                     when (s.status) {
                         Confirming, AlreadyConfirmed -> LoadingScreen()

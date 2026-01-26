@@ -141,7 +141,6 @@ class ReviewExchangeTosFragment : Fragment(), AdapterView.OnItemSelectedListener
             ui.langSpinner.visibility = GONE
         }
 
-        // FIXME: better null handling!
         val sections = try {
             parseTos(markwon, tos.content)
         } catch (e: ParseException) {

@@ -91,7 +91,7 @@ fun OutgoingPullComposable(
     var option by rememberSaveable { mutableStateOf(DEFAULT_EXPIRY) }
     var hours by rememberSaveable { mutableLongStateOf(DEFAULT_EXPIRY.hours) }
 
-    val tosReview = checkResult != null && checkResult!!.tosStatus!!.isAccepted()
+    val tosReview = checkResult != null && !checkResult!!.tosStatus!!.isAccepted()
 
     amount.amount.useDebounce {
         if (amount.debounce) {
