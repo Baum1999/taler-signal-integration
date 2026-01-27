@@ -121,11 +121,9 @@ class MainFragment: Fragment() {
                                 demandAttention = !actionButtonUsed,
                                 onShowSheet = {
                                     showSheet = true
-                                    model.settingsManager.saveActionButtonUsed(context)
                                 },
                                 onScanQr = {
                                     onScanQr()
-                                    model.settingsManager.saveActionButtonUsed(context)
                                 },
                             )
 
@@ -276,27 +274,33 @@ class MainFragment: Fragment() {
     }
 
     private fun onSend() {
+        model.settingsManager.saveActionButtonUsed(requireContext())
         findNavController().navigate(R.id.nav_peer_push)
     }
 
     private fun onReceive() {
+        model.settingsManager.saveActionButtonUsed(requireContext())
         findNavController().navigate(R.id.nav_peer_pull)
     }
 
     private fun onDeposit() {
+        model.settingsManager.saveActionButtonUsed(requireContext())
         findNavController().navigate(R.id.nav_deposit)
     }
 
     private fun onWithdraw() {
+        model.settingsManager.saveActionButtonUsed(requireContext())
         model.withdrawManager.resetWithdrawal()
         findNavController().navigate(R.id.promptWithdraw)
     }
 
     private fun onScanQr() {
+        model.settingsManager.saveActionButtonUsed(requireContext())
         model.scanCode()
     }
 
     private fun onEnterUri() {
+        model.settingsManager.saveActionButtonUsed(requireContext())
         findNavController().navigate(R.id.nav_uri_input)
     }
 }
