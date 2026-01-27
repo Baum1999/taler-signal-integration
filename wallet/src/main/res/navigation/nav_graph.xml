@@ -347,6 +347,11 @@
             app:argType="string" />
     </fragment>
 
+    <fragment
+        android:id="@+id/exchangeShopping"
+        android:name="net.taler.wallet.exchanges.ExchangeShoppingFragment"
+        android:label="@string/exchange_shopping_title" />
+
     <action
         android:id="@+id/action_global_handle_uri"
         app:destination="@id/handleUri" />
@@ -387,5 +392,9 @@
     <action
         android:id="@+id/action_global_reviewExchangeTos"
         app:destination="@id/reviewExchangeTOS" />
+
+    <action
+        android:id="@+id/nav_shopping"
+        app:destination="@id/exchangeShopping" />
 
 </navigation>

@@ -20,6 +20,8 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -29,15 +31,20 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFloatingActionButton
+import androidx.compose.material3.ListItem
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -48,6 +55,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.runBlocking
@@ -55,6 +63,9 @@ import net.taler.wallet.R
 import net.taler.wallet.compose.DemandAttention
 import net.taler.wallet.compose.GridMenu
 import net.taler.wallet.compose.GridMenuItem
+import net.taler.wallet.compose.Material3MenuGroup
+import net.taler.wallet.compose.Material3MenuItemData
+import net.taler.wallet.compose.TalerSurface
 import kotlin.math.roundToInt
 
 @Composable
@@ -126,6 +137,8 @@ fun TalerActionButton(
 fun TalerActionsModal(
     showSheet: Boolean,
     sheetState: SheetState,
+    selectedCurrency: String? = null,
+    showShopping: Boolean,
     disableActions: Boolean,
     disablePeer: Boolean,
     onDismiss: () -> Unit,
@@ -135,62 +148,108 @@ fun TalerActionsModal(
     onDeposit: () -> Unit,
     onWithdraw: () -> Unit,
     onEnterUri: () -> Unit,
+    onShoppingDiscovery: () -> Unit,
 ) {
     if (showSheet) {
         ModalBottomSheet(
             onDismissRequest = onDismiss,
             sheetState = sheetState,
         ) {
-            GridMenu(
-                contentPadding = PaddingValues(
-                    start = 8.dp,
-                    end = 8.dp,
-                    bottom = 16.dp + WindowInsets
-                        .systemBars
-                        .asPaddingValues()
-                        .calculateBottomPadding(),
-                ),
-            ) {
-                GridMenuItem(
-                    icon = R.drawable.ic_link,
-                    title = R.string.enter_uri,
-                    onClick = { onEnterUri(); onDismiss() },
-                )
+            Column {
+                if (showShopping && selectedCurrency != null) {
+                    Box(Modifier
+                        .padding(horizontal = 12.dp)
+                        .padding(bottom = 9.dp)) {
+                        Material3MenuGroup(items = buildList {
+                            add(
+                                Material3MenuItemData(
+                                    title = { Text(stringResource(R.string.exchange_shopping_label, selectedCurrency)) },
+                                    icon = { Icon(
+                                        Icons.Default.LocationOn,
+                                        contentDescription = null
+                                    ) },
+                                    onClick = onShoppingDiscovery,
+                                )
+                            )
+                        })
+                    }
+                }
 
-                GridMenuItem(
-                    icon = R.drawable.transaction_deposit,
-                    title = R.string.send_deposit_button_label,
-                    onClick = { onDeposit(); onDismiss() },
-                    enabled = !disableActions
-                )
+                GridMenu(
+                    contentPadding = PaddingValues(
+                        start = 8.dp,
+                        end = 8.dp,
+                        bottom = 16.dp + WindowInsets
+                            .systemBars
+                            .asPaddingValues()
+                            .calculateBottomPadding(),
+                    ),
+                ) {
+                    GridMenuItem(
+                        icon = R.drawable.ic_link,
+                        title = R.string.enter_uri,
+                        onClick = { onEnterUri(); onDismiss() },
+                    )
 
-                GridMenuItem(
-                    icon = R.drawable.ic_scan_qr,
-                    title = R.string.button_scan_qr_code_label,
-                    onClick = { onScanQr(); onDismiss() },
-                )
+                    GridMenuItem(
+                        icon = R.drawable.transaction_deposit,
+                        title = R.string.send_deposit_button_label,
+                        onClick = { onDeposit(); onDismiss() },
+                        enabled = !disableActions
+                    )
 
-                GridMenuItem(
-                    icon = R.drawable.transaction_p2p_incoming,
-                    title = R.string.transactions_receive_funds,
-                    onClick = { onReceive(); onDismiss() },
-                    enabled = !disableActions && !disablePeer,
-                )
+                    GridMenuItem(
+                        icon = R.drawable.ic_scan_qr,
+                        title = R.string.button_scan_qr_code_label,
+                        onClick = { onScanQr(); onDismiss() },
+                    )
 
-                GridMenuItem(
-                    icon = R.drawable.transaction_withdrawal,
-                    title = R.string.withdraw_button_label,
-                    onClick = { onWithdraw(); onDismiss() },
-                    enabled = !disableActions,
-                )
+                    GridMenuItem(
+                        icon = R.drawable.transaction_p2p_incoming,
+                        title = R.string.transactions_receive_funds,
+                        onClick = { onReceive(); onDismiss() },
+                        enabled = !disableActions && !disablePeer,
+                    )
 
-                GridMenuItem(
-                    icon = R.drawable.transaction_p2p_outgoing,
-                    title = R.string.transactions_send_funds,
-                    onClick = { onSend(); onDismiss() },
-                    enabled = !disableActions && !disablePeer,
-                )
+                    GridMenuItem(
+                        icon = R.drawable.transaction_withdrawal,
+                        title = R.string.withdraw_button_label,
+                        onClick = { onWithdraw(); onDismiss() },
+                        enabled = !disableActions,
+                    )
+
+                    GridMenuItem(
+                        icon = R.drawable.transaction_p2p_outgoing,
+                        title = R.string.transactions_send_funds,
+                        onClick = { onSend(); onDismiss() },
+                        enabled = !disableActions && !disablePeer,
+                    )
+                }
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview
+@Composable
+fun TalerActionsModalPreview() {
+    TalerSurface {
+        TalerActionsModal(
+            showSheet = true,
+            sheetState = rememberModalBottomSheetState(),
+            selectedCurrency = "CHF",
+            showShopping = true,
+            disableActions = false,
+            disablePeer = false,
+            onDismiss = {},
+            onSend = {},
+            onReceive = {},
+            onScanQr = {},
+            onDeposit = {},
+            onWithdraw = {},
+            onEnterUri = {},
+            onShoppingDiscovery = {},
+        )
     }
 }

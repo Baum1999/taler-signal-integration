@@ -203,28 +203,30 @@ class MainFragment: Fragment() {
                     !online || (balanceState as? BalanceState.Success)?.balances?.isEmpty() ?: true
                 }
 
-                val disablePeer = remember(balanceState, viewMode) {
-                    val selectedScope = (viewMode as? ViewMode.Transactions)?.selectedScope
+                val selectedScope = (viewMode as? ViewMode.Transactions)?.selectedScope
+
+                val selectedBalance = remember(balanceState, selectedScope) {
                     val balances = (balanceState as? BalanceState.Success)?.balances
-                        ?.filter { !it.disablePeerPayments }
-                        ?: emptyList()
                     selectedScope?.let {
-                        balances.find { it.scopeInfo == selectedScope } == null
-                    } ?: balances.isEmpty()
+                        balances?.find { it.scopeInfo == selectedScope }
+                    }
                 }
 
                 TalerActionsModal(
                     showSheet = showSheet,
                     sheetState = sheetState,
+                    selectedCurrency = selectedBalance?.currency,
+                    showShopping = selectedBalance?.shoppingUrls?.isNotEmpty() == true,
                     onDismiss = { showSheet = false },
                     disableActions = disableActions,
-                    disablePeer = disablePeer,
+                    disablePeer = selectedBalance?.disablePeerPayments == true,
                     onSend = this@MainFragment::onSend,
                     onReceive = this@MainFragment::onReceive,
                     onScanQr = this@MainFragment::onScanQr,
                     onDeposit = this@MainFragment::onDeposit,
                     onWithdraw = this@MainFragment::onWithdraw,
                     onEnterUri = this@MainFragment::onEnterUri,
+                    onShoppingDiscovery = this@MainFragment::onShoppingDiscovery,
                 )
             }
         }
@@ -302,6 +304,11 @@ class MainFragment: Fragment() {
     private fun onEnterUri() {
         model.settingsManager.saveActionButtonUsed(requireContext())
         findNavController().navigate(R.id.nav_uri_input)
+    }
+
+    private fun onShoppingDiscovery() {
+        model.settingsManager.saveActionButtonUsed(requireContext())
+        findNavController().navigate(R.id.nav_shopping)
     }
 }
 

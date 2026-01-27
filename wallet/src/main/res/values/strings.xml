@@ -426,6 +426,12 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="exchange_tos_missing">Terms of service were not provided by payment service</string>
     <string name="exchange_tos_view">Review terms of service</string>
     <string name="exchange_tos_error">Error showing terms of service: %1$s</string>
+    <string name="exchange_unselected">No payment provider is selected</string>
+
+    <!-- Exchange shopping discovery -->
+    <string name="exchange_shopping_title">Where to pay</string>
+    <string name="exchange_shopping_label">Where to pay with %1$s</string>
+    <string name="exchange_shopping_message">Your payment service provider offers the following website(s) with information about where you can pay in %1$s using your Taler wallet:</string>
 
     <!-- Losses -->
 
