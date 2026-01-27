@@ -11,12 +11,18 @@
 /.idea/assetWizardSettings.xml
 /.idea/runConfigurations.xml
 /.idea/vcs.xml
+/.idea/compiler.xml
+/.idea/deploymentTargetSelector.xml
+/.idea/deviceManager.xml
+/.idea/markdown.xml
+/.idea/AndroidProjectSystem.xml
 .DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
 /*/release/
+publish.sh
 
 # Fastlane
 */Gemfile
