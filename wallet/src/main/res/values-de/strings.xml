@@ -453,5 +453,5 @@
     <string name="exchange_unselected">Es wurde kein Zahlungsdienst ausgewählt</string>
     <string name="exchange_shopping_title">Wo bezahlen</string>
     <string name="exchange_shopping_label">Wo Sie mit %1$s bezahlen können</string>
-    <string name="exchange_shopping_message">Ihr Zahlungsdienst zeigt Ihnen auf den folgende Webseiten, wo Sie mit Ihrem Taler Wallet in %1$s bezahlen können:</string>
+    <string name="exchange_shopping_message">Ihr Zahlungsdienst zeigt Ihnen auf folgenden Webseiten, wo Sie mit Ihrem Taler Wallet in %1$s bezahlen können:</string>
 </resources>
