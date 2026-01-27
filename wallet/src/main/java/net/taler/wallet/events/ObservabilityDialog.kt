@@ -50,9 +50,8 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import net.taler.wallet.MainViewModel
+import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.compose.CopyToClipboardButton
 import net.taler.wallet.events.ObservabilityDialog.Companion.json

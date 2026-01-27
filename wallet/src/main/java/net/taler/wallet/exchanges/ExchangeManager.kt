@@ -27,11 +27,10 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import net.taler.common.CurrencySpecification
 import net.taler.common.Event
 import net.taler.common.toEvent
-import net.taler.wallet.TAG
+import net.taler.wallet.main.TAG
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi

@@ -16,7 +16,6 @@
 
 package net.taler.wallet.deposit
 
-import android.net.Uri
 import android.util.Log
 import androidx.annotation.UiThread
 import kotlinx.coroutines.CoroutineScope
@@ -29,7 +28,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.taler.common.Amount
-import net.taler.wallet.TAG
+import net.taler.wallet.main.TAG
 import net.taler.wallet.accounts.KnownBankAccountInfo
 import net.taler.wallet.accounts.PaytoUriBitcoin
 import net.taler.wallet.accounts.PaytoUriIban

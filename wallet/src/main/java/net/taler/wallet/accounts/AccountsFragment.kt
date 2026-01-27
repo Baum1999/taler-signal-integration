@@ -76,7 +76,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
-import net.taler.wallet.MainViewModel
+import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.accounts.ListBankAccountsResult.Error
 import net.taler.wallet.accounts.ListBankAccountsResult.None

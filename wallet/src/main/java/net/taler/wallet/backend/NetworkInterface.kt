@@ -33,7 +33,7 @@ import kotlinx.serialization.SerializationException
 import net.taler.common.getDefaultHttpClient
 import net.taler.common.toHttpMethod
 import net.taler.qtart.Networking
-import net.taler.wallet.TAG
+import net.taler.wallet.main.TAG
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 

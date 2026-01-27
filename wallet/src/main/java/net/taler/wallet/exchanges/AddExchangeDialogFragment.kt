@@ -23,7 +23,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import net.taler.wallet.MainViewModel
+import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.R
 
 

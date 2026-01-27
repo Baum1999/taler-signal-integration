@@ -27,7 +27,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.asFlow
 import androidx.navigation.fragment.findNavController
 import net.taler.common.showError
-import net.taler.wallet.MainViewModel
+import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware

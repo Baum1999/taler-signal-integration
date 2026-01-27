@@ -29,7 +29,7 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import net.taler.common.Amount
 import net.taler.common.toRelativeTime
 import net.taler.common.toShortDate
-import net.taler.wallet.MainViewModel
+import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.databinding.FragmentExchangeFeesBinding
 import net.taler.wallet.exchanges.CoinFeeAdapter.CoinFeeViewHolder

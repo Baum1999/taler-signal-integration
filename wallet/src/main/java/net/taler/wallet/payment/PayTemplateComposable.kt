@@ -32,7 +32,7 @@ import net.taler.common.Amount
 import net.taler.common.ContractTerms
 import net.taler.common.CurrencySpecification
 import net.taler.common.Merchant
-import net.taler.wallet.AmountResult
+import net.taler.wallet.main.AmountResult
 import net.taler.wallet.R
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface

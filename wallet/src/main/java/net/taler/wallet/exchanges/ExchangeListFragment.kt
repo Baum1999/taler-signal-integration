@@ -50,7 +50,7 @@ import net.taler.common.EventObserver
 import net.taler.common.fadeIn
 import net.taler.common.fadeOut
 import net.taler.common.showError
-import net.taler.wallet.MainViewModel
+import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.databinding.FragmentExchangeListBinding
 import net.taler.wallet.showError

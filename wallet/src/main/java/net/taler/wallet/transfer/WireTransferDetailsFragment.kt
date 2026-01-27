@@ -30,22 +30,19 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
 import net.taler.common.openUri
 import net.taler.common.shareText
-import net.taler.wallet.MainViewModel
+import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
-import net.taler.wallet.transactions.Transaction
 import net.taler.wallet.transactions.TransactionDeposit
 import net.taler.wallet.transactions.TransactionMajorState.Done
 import net.taler.wallet.transactions.TransactionWithdrawal
 import net.taler.wallet.transactions.WithdrawalDetails
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
-import net.taler.wallet.transfer.ScreenTransfer
 import net.taler.wallet.withdraw.TransferData
 
 class WireTransferDetailsFragment : Fragment() {

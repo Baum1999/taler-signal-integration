@@ -28,7 +28,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import net.taler.common.Amount
 import net.taler.common.Timestamp
-import net.taler.wallet.TAG
+import net.taler.wallet.main.TAG
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
@@ -36,7 +36,6 @@ import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.exchanges.ExchangeManager
-import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.payment.InsufficientBalanceHint
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit.HOURS

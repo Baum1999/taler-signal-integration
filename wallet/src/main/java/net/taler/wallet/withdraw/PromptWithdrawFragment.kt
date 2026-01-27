@@ -39,7 +39,7 @@ import com.google.android.material.snackbar.Snackbar.LENGTH_LONG
 import kotlinx.coroutines.launch
 import net.taler.common.Amount
 import net.taler.common.EventObserver
-import net.taler.wallet.MainViewModel
+import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.main.ViewMode
 import net.taler.wallet.compose.AmountScope

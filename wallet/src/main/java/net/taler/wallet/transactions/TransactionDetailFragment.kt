@@ -29,9 +29,9 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 import net.taler.common.showError
-import net.taler.wallet.MainViewModel
+import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.R
-import net.taler.wallet.TAG
+import net.taler.wallet.main.TAG
 import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.showError
 import net.taler.wallet.transactions.TransactionAction.Abort

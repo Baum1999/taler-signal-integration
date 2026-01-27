@@ -49,9 +49,9 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
-import net.taler.wallet.AmountResult
+import net.taler.wallet.main.AmountResult
 import net.taler.wallet.BottomInsetsSpacer
-import net.taler.wallet.MainViewModel
+import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.compose.AmountCurrencyField
 import net.taler.wallet.compose.TalerSurface

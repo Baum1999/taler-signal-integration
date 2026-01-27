@@ -42,11 +42,10 @@ import io.noties.markwon.Markwon
 import kotlinx.coroutines.launch
 import net.taler.common.fadeIn
 import net.taler.common.fadeOut
-import net.taler.wallet.MainViewModel
+import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.databinding.FragmentReviewExchangeTosBinding
 import net.taler.wallet.exchanges.ExchangeTosStatus
-import net.taler.wallet.showError
 import java.text.ParseException
 import java.util.Locale
 

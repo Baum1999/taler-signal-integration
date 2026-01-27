@@ -41,7 +41,7 @@ import net.taler.common.ContractProduct
 import net.taler.common.ContractTerms
 import net.taler.common.Timestamp
 import net.taler.wallet.R
-import net.taler.wallet.TAG
+import net.taler.wallet.main.TAG
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.common.CurrencySpecification

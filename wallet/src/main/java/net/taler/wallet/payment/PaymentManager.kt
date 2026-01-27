@@ -28,7 +28,7 @@ import net.taler.common.ContractInput
 import net.taler.common.ContractOutput
 import net.taler.common.ContractTerms
 import net.taler.common.TalerUtils.getLocalizedString
-import net.taler.wallet.TAG
+import net.taler.wallet.main.TAG
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi

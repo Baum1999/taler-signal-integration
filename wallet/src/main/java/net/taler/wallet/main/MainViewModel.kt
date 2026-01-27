@@ -1,6 +1,6 @@
 /*
  * This file is part of GNU Taler
- * (C) 2025 Taler Systems S.A.
+ * (C) 2026 Taler Systems S.A.
  *
  * GNU Taler is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -14,7 +14,7 @@
  * GNU Taler; see the file COPYING.  If not, see <http://www.gnu.org/licenses/>
  */
 
-package net.taler.wallet
+package net.taler.wallet.main
 
 import android.app.Application
 import android.util.Log
@@ -56,8 +56,9 @@ import net.taler.wallet.transactions.TransactionManager
 import net.taler.wallet.transactions.TransactionStateFilter
 import net.taler.wallet.withdraw.WithdrawManager
 import androidx.core.net.toUri
+import net.taler.wallet.BuildConfig
+import net.taler.wallet.NetworkManager
 import net.taler.wallet.donau.DonauManager
-import net.taler.wallet.main.ViewMode
 
 const val TAG = "taler-wallet"
 const val OBSERVABILITY_LIMIT = 100

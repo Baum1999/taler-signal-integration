@@ -22,7 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import net.taler.wallet.TAG
+import net.taler.wallet.main.TAG
 import net.taler.wallet.accounts.ListBankAccountsResult.Error
 import net.taler.wallet.accounts.ListBankAccountsResult.None
 import net.taler.wallet.accounts.ListBankAccountsResult.Success

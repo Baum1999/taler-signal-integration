@@ -27,7 +27,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
-import net.taler.wallet.TAG
+import net.taler.wallet.main.TAG
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.donau.DonauSummaryItem

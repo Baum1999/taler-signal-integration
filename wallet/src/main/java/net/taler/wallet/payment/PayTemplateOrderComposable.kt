@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.common.RelativeTime
-import net.taler.wallet.AmountResult
+import net.taler.wallet.main.AmountResult
 import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.compose.AmountCurrencyField

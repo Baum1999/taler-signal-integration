@@ -1,6 +1,6 @@
 /*
  * This file is part of GNU Taler
- * (C) 2025 Taler Systems S.A.
+ * (C) 2026 Taler Systems S.A.
  *
  * GNU Taler is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -14,7 +14,7 @@
  * GNU Taler; see the file COPYING.  If not, see <http://www.gnu.org/licenses/>
  */
 
-package net.taler.wallet
+package net.taler.wallet.main
 
 import android.content.Intent
 import android.content.Intent.ACTION_VIEW
@@ -62,8 +62,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import net.taler.common.EventObserver
 import net.taler.lib.android.TalerNfcService
+import net.taler.wallet.R
 import net.taler.wallet.databinding.ActivityMainBinding
 import net.taler.wallet.events.ObservabilityDialog
+import net.taler.wallet.showError
 import net.taler.wallet.transactions.TransactionPeerPullCredit
 import net.taler.wallet.transactions.TransactionPeerPushDebit
 

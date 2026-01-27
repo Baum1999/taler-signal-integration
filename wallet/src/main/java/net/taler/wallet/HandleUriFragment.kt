@@ -48,6 +48,8 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Locale
 import androidx.core.net.toUri
+import net.taler.wallet.main.MainViewModel
+import net.taler.wallet.main.TAG
 
 class HandleUriFragment: Fragment() {
     private val model: MainViewModel by activityViewModels()
