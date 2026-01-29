@@ -26,7 +26,7 @@
     <string name="transaction_last_error">Letzte Transaktion: Fehler</string>
     <string name="app_name">Taler Cashier</string>
     <string name="config_bank_url">API-Adresse der Bank</string>
-    <string name="config_demo_hint">Zum Testen können Sie <![CDATA[<a href="%s">ein Testkonto bei der Demobank erstellen</a>]]>.</string>
+    <string name="config_demo_hint">Zum Testen können Sie <a href="%s">ein Testkonto bei der Demobank erstellen</a>.</string>
     <string name="transaction_intro">Zum Abheben diesen Code mit dem Taler-Wallet scannen:</string>
     <string name="transaction_intro_scanned">Bitte bestätigen Sie die Transaktion!</string>
     <string name="transaction_last_aborted">Letzte Transaktion: Abgebrochen</string>
