@@ -7,9 +7,9 @@
     <string name="config_bank_url_error">Bu adres geçersiz.</string>
     <string name="config_username_error">Lütfen kullanıcı adınızı giriniz!</string>
     <string name="app_name">Taler Kasiyer</string>
-    <string name="config_error">Konfigürasyon alınırken hata oluştu</string>
-    <string name="config_error_auth">Geçersiz kullanıcı adı yada şifre!</string>
-    <string name="config_demo_hint">Test için &lt;a href=%s&gt;demo bankasında bir test hesabı oluşturabilirsiniz&lt;/a&gt;.</string>
+    <string name="config_error">Yapılandırma alınırken hata oluştu</string>
+    <string name="config_error_auth">Geçersiz kullanıcı adı veya şifre!</string>
+    <string name="config_demo_hint">Test için <a href="%s">demo bankasında bir test hesabı oluşturabilirsiniz</a>.</string>
     <string name="balance_current_label">Mevcut bakiye</string>
     <string name="balance_error">HATA:%s</string>
     <string name="balance_offline">Çevrimdışı. Lütfen internete bağlanın.</string>
@@ -22,17 +22,17 @@
     <string name="withdraw_input_amount">Tutar</string>
     <string name="withdraw_error_insufficient_balance">Yetersiz bakiye</string>
     <string name="withdraw_error_fetch">Banka ile iletişimde hata: %s</string>
-    <string name="withdraw_error_timeout">Hiçbir cüzdan para çekmeye çalışmadı. Lütfen tekrar deneyin.</string>
+    <string name="withdraw_error_timeout">Cüzdandan para çekme işlemi denenmedi. Lütfen tekrar deneyin.</string>
     <string name="withdraw_button_confirm">Para çek</string>
     <string name="transaction_intro">Para çekmek için Taler cüzdan uygulamasıyla kodu tarayın:</string>
-    <string name="transaction_intro_nfc">Para çekmek için Taler cüzdan uygulamasıyla kodu tarayın veya NFC\'yi kullanın:</string>
+    <string name="transaction_intro_nfc">Para çekmek için Taler cüzdan uygulamasında kodu tarayın veya NFC özelliğini kullanın:</string>
     <string name="transaction_intro_scanned">Lütfen işlemi onaylayın!</string>
     <string name="transaction_confirm">Onayla</string>
     <string name="transaction_abort">Durdur</string>
-    <string name="transaction_aborted">İşlem durduruldu</string>
+    <string name="transaction_aborted">İşlem iptal edildi</string>
     <string name="transaction_button_back">Geri git</string>
     <string name="transaction_last_success">Son İşlem: %s çekildi</string>
-    <string name="transaction_last_aborted">Son İşlem: Durduruldu</string>
+    <string name="transaction_last_aborted">Son İşlem: İptal Edildi</string>
     <string name="transaction_last_error">Son İşlem: Başarısız</string>
     <string name="about_title">GNU Taler Kasiyer</string>
     <string name="about_license">Lisans: %s</string>
@@ -41,4 +41,6 @@
     <string name="about_version">Sürüm: %s</string>
     <string name="withdraw_error_currency_mismatch">Hata: Banka farklı bir para birimi bildirdi</string>
     <string name="host_apdu_service_desc">Taler Kasiyer NFC ödemeleri</string>
+    <string name="balance_debit_threshold">Maksimum borç: %1$s</string>
+    <string name="withdraw_error_under_min_cashout">Minimum nakit çekme tutarının altında kalan miktar %1$s</string>
 </resources>
