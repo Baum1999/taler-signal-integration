@@ -68,6 +68,13 @@
         tools:isPreferenceVisible="true" />
 
     <Preference
+        app:icon="@drawable/ic_stats"
+        app:isPreferenceVisible="false"
+        android:key="pref_stats"
+        android:summary="@string/settings_stats_summary"
+        android:title="@string/settings_stats" />
+
+    <Preference
         app:icon="@drawable/ic_unarchive"
         app:isPreferenceVisible="false"
         app:key="pref_export_db"

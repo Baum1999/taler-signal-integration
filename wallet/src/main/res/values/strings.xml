@@ -69,12 +69,15 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="import_db">Import</string>
     <string name="loading">Loading</string>
     <string name="menu">Menu</string>
+    <string name="millisecond">%1$d ms</string>
     <string name="offline">Operation requires internet access. Please ensure your internet connection works and try again.</string>
     <string name="offline_banner">No internet access</string>
     <string name="ok">OK</string>
     <string name="open">Open</string>
     <string name="paste">Paste</string>
     <string name="paste_invalid">Clipboard contains an invalid data type</string>
+    <string name="ranking">#%1$d</string>
+    <string name="reload">Reload</string>
     <string name="reset">Reset</string>
     <string name="save">Save</string>
     <string name="share_payment">Share payment link</string>
@@ -447,6 +450,14 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="observability_title">Internal event log</string>
     <string name="show_logs">Show logs</string>
 
+    <!-- Performance stats -->
+    <string name="performance_stats_title">Performance stats</string>
+    <string name="performance_stats_http_fetch">HTTP requests</string>
+    <string name="performance_stats_db_query">Database queries</string>
+    <string name="performance_stats_crypto">Cryptographic operations</string>
+    <string name="performance_stats_wallet_request">Wallet-Core requests</string>
+    <string name="performance_stats_wallet_task">Wallet-Core tasks</string>
+
     <!-- Settings -->
 
     <string name="menu_settings">Settings</string>
@@ -478,6 +489,8 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="settings_logcat_error">Error exporting log</string>
     <string name="settings_logcat_success">Log exported to file</string>
     <string name="settings_logcat_summary">Save internal log</string>
+    <string name="settings_stats">Performance stats</string>
+    <string name="settings_stats_summary">View top time-consuming operations</string>
     <string name="settings_reset">Reset Wallet (dangerous!)</string>
     <string name="settings_reset_summary">Throws away your money</string>
     <string name="settings_test">Run integration test</string>

@@ -59,6 +59,8 @@ import androidx.core.net.toUri
 import net.taler.wallet.BuildConfig
 import net.taler.wallet.NetworkManager
 import net.taler.wallet.donau.DonauManager
+import net.taler.wallet.stats.PerformanceTable
+import net.taler.wallet.stats.TestingGetPerformanceStatsResponse
 
 const val TAG = "taler-wallet"
 const val OBSERVABILITY_LIMIT = 100
@@ -137,6 +139,9 @@ class MainViewModel(
 
     private val mObservabilityLog = MutableStateFlow<List<ObservabilityEvent>>(emptyList())
     val observabilityLog: StateFlow<List<ObservabilityEvent>> = mObservabilityLog
+
+    private val mPerformanceTable = MutableStateFlow<PerformanceTable?>(null)
+    val performanceTable: StateFlow<PerformanceTable?> = mPerformanceTable
 
     private val mScanCodeEvent = MutableLiveData<Event<Boolean>>()
     val scanCodeEvent: LiveData<Event<Boolean>> = mScanCodeEvent
@@ -322,6 +327,22 @@ class MainViewModel(
             api.request<Unit>("applyDevExperiment") {
                 put("devExperimentUri", uri)
             }.onError(onError)
+        }
+    }
+
+    fun loadPerformanceStats(limit: Int? = 10) {
+        viewModelScope.launch {
+            api.request(
+                "testingGetPerformanceStats",
+                TestingGetPerformanceStatsResponse.serializer(),
+            ) {
+                limit?.let { put("limit", limit) }
+                this
+            }.onError { error ->
+                Log.e(TAG, "got testingGetPerformanceStats error result $error")
+            }.onSuccess { res ->
+                mPerformanceTable.value = res.stats
+            }
         }
     }
 }

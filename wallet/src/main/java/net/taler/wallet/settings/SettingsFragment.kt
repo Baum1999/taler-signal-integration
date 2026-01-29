@@ -71,6 +71,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private lateinit var prefBiometricLock: SwitchPreference
     private lateinit var prefWithdrawTest: Preference
     private lateinit var prefLogcat: Preference
+    private lateinit var prefStats: Preference
     private lateinit var prefExportDb: Preference
     private lateinit var prefImportDb: Preference
     private lateinit var prefVersionApp: Preference
@@ -84,6 +85,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             prefVersionCore,
             prefWithdrawTest,
             prefLogcat,
+            prefStats,
             prefExportDb,
             prefImportDb,
             prefVersionExchange,
@@ -122,6 +124,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         prefBiometricLock = findPreference("pref_biometric_lock")!!
         prefWithdrawTest = findPreference("pref_testkudos")!!
         prefLogcat = findPreference("pref_logcat")!!
+        prefStats = findPreference("pref_stats")!!
         prefExportDb = findPreference("pref_export_db")!!
         prefImportDb = findPreference("pref_import_db")!!
         prefVersionApp = findPreference("pref_version_app")!!
@@ -197,6 +200,10 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         prefLogcat.setOnPreferenceClickListener {
             logLauncher.launch("taler-wallet-log-${currentTimeMillis()}.txt")
+            true
+        }
+        prefStats.setOnPreferenceClickListener {
+            findNavController().navigate(R.id.nav_performance_stats)
             true
         }
         prefExportDb.setOnPreferenceClickListener {

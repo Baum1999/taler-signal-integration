@@ -352,6 +352,11 @@
         android:name="net.taler.wallet.exchanges.ExchangeShoppingFragment"
         android:label="@string/exchange_shopping_title" />
 
+    <fragment
+        android:id="@+id/performanceStats"
+        android:name="net.taler.wallet.stats.PerformanceFragment"
+        android:label="@string/performance_stats_title" />
+
     <action
         android:id="@+id/action_global_handle_uri"
         app:destination="@id/handleUri" />
@@ -396,5 +401,9 @@
     <action
         android:id="@+id/nav_shopping"
         app:destination="@id/exchangeShopping" />
+
+    <action
+        android:id="@+id/nav_performance_stats"
+        app:destination="@id/performanceStats" />
 
 </navigation>
