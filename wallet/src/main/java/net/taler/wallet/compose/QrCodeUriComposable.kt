@@ -125,6 +125,7 @@ fun ColumnScope.QrCodeUriComposable(
             }
 
             ShareButton(
+                modifier = if (shareAsQrCode) Modifier.weight(1f) else Modifier,
                 content = talerUri,
                 shareAsQrCode = shareAsQrCode,
                 colors = ButtonDefaults.buttonColors(
