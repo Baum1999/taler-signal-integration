@@ -17,11 +17,8 @@
 package net.taler.merchantpos.order
 
 import net.taler.common.Amount
-import net.taler.common.Timestamp
-import net.taler.common.now
 import net.taler.merchantpos.config.Category
 import net.taler.merchantpos.config.ConfigProduct
-import java.util.concurrent.TimeUnit.HOURS
 
 data class Order(val id: Int, val currency: String, val availableCategories: Map<Int, Category>) {
     val products = ArrayList<ConfigProduct>()
@@ -96,26 +93,20 @@ data class Order(val id: Int, val currency: String, val availableCategories: Map
                 availableLocales.retainAll(category.nameI18n!!.keys)
                 if (availableLocales.isEmpty()) return null
             }
-            return availableLocales.map { locale ->
-                Pair(
-                    locale, categoryQuantities.map { (category, quantity) ->
-                        // category.nameI18n should be non-null now
-                        "$quantity x ${category.nameI18n!![locale]}"
-                    }.joinToString()
-                )
-            }.toMap()
+            return availableLocales.associateWith { locale ->
+                categoryQuantities.map { (category, quantity) ->
+                    // category.nameI18n should be non-null now
+                    "$quantity x ${category.nameI18n!![locale]}"
+                }.joinToString()
+            }
         }
 
     fun toContractTerms(includeProducts: Boolean = true): net.taler.common.Order {
-        val deadline = Timestamp.fromMillis(now() + HOURS.toMillis(1))
         return net.taler.common.Order(
             summary = summary,
             summaryI18n = summaryI18n,
             amount = total,
             products = if (includeProducts) products.map { it.toContractProduct() } else null,
-            refundDeadline = deadline,
-            wireTransferDeadline = deadline,
-            payDeadline = deadline,
         )
     }
 
