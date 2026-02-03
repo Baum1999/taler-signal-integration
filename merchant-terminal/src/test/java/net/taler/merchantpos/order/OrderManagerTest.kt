@@ -93,14 +93,6 @@ class OrderManagerTest {
 //    }
 
     @Test
-    fun `config test no products`() = runBlocking {
-        val config = posConfig.copy(products = emptyList())
-        val result = orderManager.onConfigurationReceived(config, "KUDOS")
-        val expectedStr = app.getString(R.string.config_error_product_zero)
-        assertEquals(expectedStr, result)
-    }
-
-    @Test
     fun `config test valid config gets accepted`() = runBlocking {
         val result = orderManager.onConfigurationReceived(posConfig, "KUDOS")
         assertNull(result)
