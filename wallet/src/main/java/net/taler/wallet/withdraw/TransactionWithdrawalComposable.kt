@@ -31,7 +31,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
@@ -98,10 +100,20 @@ fun TransactionWithdrawalComposable(
             style = MaterialTheme.typography.bodyLarge,
         )
 
-        ActionButton(tx = t, listener = actionListener)
-
         if (qrCodes.isNotEmpty()) {
-            Spacer(Modifier.padding(top = 16.dp))
+            Text(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 16.dp, bottom = 8.dp),
+                style = MaterialTheme.typography.titleMedium,
+                text = pluralStringResource(
+                    R.plurals.withdraw_qr_instruction,
+                    qrCodes.size,
+                    t.amountEffective.withSpec(spec).toString(),
+                ),
+                textAlign = TextAlign.Center,
+            )
+
             qrCodes.forEach { spec ->
                 PaytoQrCard(
                     expanded = qrExpandedStates[spec]!!,
@@ -118,6 +130,17 @@ fun TransactionWithdrawalComposable(
                 )
             }
         }
+
+        if (qrCodes.isNotEmpty()) Text(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .padding(top = 16.dp, bottom = 8.dp),
+            style = MaterialTheme.typography.titleMedium,
+            text = stringResource(R.string.withdraw_qr_manual),
+            textAlign = TextAlign.Center,
+        )
+
+        ActionButton(tx = t, listener = actionListener)
 
         if (t.amountRaw != t.amountEffective) {
             TransactionAmountComposable(

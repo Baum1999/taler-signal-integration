@@ -374,6 +374,11 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="withdraw_manual_step_finish">Finish the wire transfer of %1$s in your banking app or website, then this withdrawal will proceed automatically. Depending on your bank the transfer can take from minutes to two working days, please be patient.</string>
     <string name="withdraw_manual_step_iban">If you don\'t already have it in your banking favorites list, then copy and paste recipient and IBAN into the recipient/IBAN fields in your banking app or website (and save it as favorite for the next time):</string>
     <string name="withdraw_manual_step_subject">Copy this code and paste it into the subject/purpose field in your banking app or bank website:</string>
+    <plurals name="withdraw_qr_instruction">
+        <item quantity="one">Scan this QR code with your banking app to withdraw %1$s</item>
+        <item quantity="other">Scan one of the following QR codes with your banking app to withdraw %1$s</item>
+    </plurals>
+    <string name="withdraw_qr_manual">Or follow the instructions to enter the transfer details into your banking app:</string>
     <string name="withdraw_restrict_age">Restrict usage to age</string>
     <string name="withdraw_restrict_age_unrestricted">Unrestricted</string>
     <string name="withdraw_review_terms">You must first accept the payment service\'s terms of service before you can withdraw electronic cash to your wallet.</string>
