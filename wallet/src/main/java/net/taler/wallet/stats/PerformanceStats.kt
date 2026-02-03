@@ -21,13 +21,15 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class PerformanceStat {
-    abstract val durationMs: Int
+    abstract val maxDurationMs: Int
+    abstract val count: Int
 
     @Serializable
     @SerialName("http-fetch")
     data class HttpFetch(
         val url: String,
-        override val durationMs: Int,
+        override val maxDurationMs: Int,
+        override val count: Int,
     ): PerformanceStat()
 
     @Serializable
@@ -35,28 +37,32 @@ sealed class PerformanceStat {
     data class DbQuery(
         val name: String,
         val location: String,
-        override val durationMs: Int,
+        override val maxDurationMs: Int,
+        override val count: Int,
     ): PerformanceStat()
 
     @Serializable
     @SerialName("crypto")
     data class Crypto(
         val operation: String,
-        override val durationMs: Int,
+        override val maxDurationMs: Int,
+        override val count: Int,
     ): PerformanceStat()
 
     @Serializable
     @SerialName("wallet-request")
     data class WalletRequest(
         val operation: String,
-        override val durationMs: Int,
+        override val maxDurationMs: Int,
+        override val count: Int,
     ): PerformanceStat()
 
     @Serializable
     @SerialName("wallet-task")
     data class WalletTask(
         val taskId: String,
-        override val durationMs: Int,
+        override val maxDurationMs: Int,
+        override val count: Int,
     ): PerformanceStat()
 }
 
