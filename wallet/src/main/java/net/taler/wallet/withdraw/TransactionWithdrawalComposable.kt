@@ -17,6 +17,7 @@
 package net.taler.wallet.withdraw
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -100,14 +101,7 @@ fun TransactionWithdrawalComposable(
         ActionButton(tx = t, listener = actionListener)
 
         if (qrCodes.isNotEmpty()) {
-            Text(
-                text = stringResource(R.string.withdraw_manual_qr_intro),
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 16.dp, bottom = 8.dp),
-            )
-
+            Spacer(Modifier.padding(top = 16.dp))
             qrCodes.forEach { spec ->
                 PaytoQrCard(
                     expanded = qrExpandedStates[spec]!!,
