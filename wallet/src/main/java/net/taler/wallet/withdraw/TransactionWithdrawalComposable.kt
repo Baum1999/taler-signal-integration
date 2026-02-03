@@ -104,10 +104,8 @@ fun TransactionWithdrawalComposable(
                 text = stringResource(R.string.withdraw_manual_qr_intro),
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
-                    .padding(
-                        vertical = 8.dp,
-                        horizontal = 16.dp,
-                    )
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 16.dp, bottom = 8.dp),
             )
 
             qrCodes.forEach { spec ->
