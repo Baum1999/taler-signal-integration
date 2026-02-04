@@ -115,6 +115,7 @@ fun TransactionWithdrawalComposable(
             TransactionInfoComposable(
                 label = stringResource(id = R.string.withdraw_exchange),
                 info = cleanExchange(t.exchangeBaseUrl),
+                marquee = true,
             )
         }
         

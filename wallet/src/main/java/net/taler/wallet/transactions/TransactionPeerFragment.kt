@@ -205,6 +205,7 @@ fun TransactionAmountComposable(
 fun TransactionInfoComposable(
     label: String,
     info: String,
+    marquee: Boolean = false,
     trailing: (@Composable () -> Unit)? = null,
 ) {
     Text(
@@ -218,7 +219,7 @@ fun TransactionInfoComposable(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            modifier = Modifier.basicMarquee(),
+            modifier = if (marquee) Modifier.basicMarquee() else Modifier,
             text = info,
             fontSize = 24.sp,
         )

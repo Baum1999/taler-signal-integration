@@ -107,6 +107,7 @@ fun DonauStatementComposable(
         if (host != null) TransactionInfoComposable(
             label = stringResource(R.string.donau_statement_tax_authority),
             info = host,
+            marquee = true,
         )
 
         BottomInsetsSpacer()

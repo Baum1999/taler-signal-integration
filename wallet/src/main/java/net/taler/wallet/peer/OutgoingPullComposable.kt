@@ -244,6 +244,7 @@ fun OutgoingPullComposable(
                     TransactionInfoComposable(
                         label = stringResource(id = R.string.withdraw_exchange),
                         info = cleanExchange(exchangeBaseUrl),
+                        marquee = true,
                     )
                 }
             }

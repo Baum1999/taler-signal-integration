@@ -269,6 +269,7 @@ fun WithdrawalShowInfo(
                 TransactionInfoComposable(
                     label = stringResource(R.string.withdraw_exchange),
                     info = cleanExchange(it),
+                    marquee = true,
                     trailing = {
                         if (devMode && possibleExchanges.size > 1) {
                             IconButton(

@@ -273,6 +273,7 @@ fun OutgoingPushIntroComposable(
                             TransactionInfoComposable(
                                 label = stringResource(id = R.string.withdraw_exchange),
                                 info = cleanExchange(it.exchangeBaseUrl),
+                                marquee = true,
                             )
                         }
                     }
