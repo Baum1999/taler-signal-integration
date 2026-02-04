@@ -75,7 +75,8 @@ fun ColumnScope.QrCodeUriComposable(
     Box(
         Modifier
             .fillMaxWidth()
-            .aspectRatio(1f),
+            .aspectRatio(1f)
+            .padding(bottom = if (showContents) 8.dp else 0.dp),
         contentAlignment = Alignment.Center,
     ) {
         qrState.value?.let { qrCode ->
@@ -108,7 +109,6 @@ fun ColumnScope.QrCodeUriComposable(
         Row(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
-                .padding(top = 8.dp)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
@@ -125,7 +125,6 @@ fun ColumnScope.QrCodeUriComposable(
             }
 
             ShareButton(
-                modifier = if (shareAsQrCode) Modifier.weight(1f) else Modifier,
                 content = talerUri,
                 shareAsQrCode = shareAsQrCode,
                 colors = ButtonDefaults.buttonColors(

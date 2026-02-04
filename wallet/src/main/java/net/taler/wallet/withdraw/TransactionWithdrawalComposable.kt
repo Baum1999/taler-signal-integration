@@ -17,7 +17,6 @@
 package net.taler.wallet.withdraw
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -26,14 +25,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
@@ -65,12 +60,10 @@ import net.taler.wallet.transactions.TransactionWithdrawal
 import net.taler.wallet.transactions.TransitionsComposable
 import net.taler.wallet.transactions.WithdrawalDetails.ManualTransfer
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
-import net.taler.wallet.transfer.PaytoQrCard
 
 @Composable
 fun TransactionWithdrawalComposable(
     t: TransactionWithdrawal,
-    qrCodes: List<QrCodeSpec> = emptyList(),
     devMode: Boolean,
     spec: CurrencySpecification?,
     actionListener: ActionListener,
@@ -84,13 +77,6 @@ fun TransactionWithdrawalComposable(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         val context = LocalContext.current
-        val qrExpandedStates = remember(qrCodes) {
-            val map = mutableStateMapOf<QrCodeSpec, Boolean>()
-            qrCodes.forEach {
-                map[it] = qrCodes.size == 1
-            }
-            map
-        }
 
         TransactionStateComposable(state = t.txState, tx = t)
 
@@ -98,46 +84,6 @@ fun TransactionWithdrawalComposable(
             modifier = Modifier.padding(16.dp),
             text = t.timestamp.ms.toAbsoluteTime(context).toString(),
             style = MaterialTheme.typography.bodyLarge,
-        )
-
-        if (qrCodes.isNotEmpty()) {
-            Text(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 16.dp, bottom = 8.dp),
-                style = MaterialTheme.typography.titleMedium,
-                text = pluralStringResource(
-                    R.plurals.withdraw_qr_instruction,
-                    qrCodes.size,
-                    t.amountEffective.withSpec(spec).toString(),
-                ),
-                textAlign = TextAlign.Center,
-            )
-
-            qrCodes.forEach { spec ->
-                PaytoQrCard(
-                    expanded = qrExpandedStates[spec]!!,
-                    setExpanded = { expanded ->
-                        if (expanded) { // un-expand all others
-                            qrExpandedStates.forEach { (k, _) ->
-                                qrExpandedStates[k] = false
-                            }
-                        }
-                        // expand only toggled one
-                        qrExpandedStates[spec] = expanded
-                    },
-                    qrCode = spec,
-                )
-            }
-        }
-
-        if (qrCodes.isNotEmpty()) Text(
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .padding(top = 16.dp, bottom = 8.dp),
-            style = MaterialTheme.typography.titleMedium,
-            text = stringResource(R.string.withdraw_qr_manual),
-            textAlign = TextAlign.Center,
         )
 
         ActionButton(tx = t, listener = actionListener)
@@ -216,23 +162,12 @@ fun TransactionWithdrawalComposablePreview() {
             url = "exchange.test.taler.net",
         ))
     )
-    
-    val qrCodes = listOf(
-        QrCodeSpec(
-            type = QrCodeSpec.Type.SPC,
-            qrContent = "something",
-        ),
-//        QrCodeSpec(
-//            type = QrCodeSpec.Type.EpcQr,
-//            qrContent = "something",
-//        ),
-    )
 
     val listener = object : ActionListener {
         override fun onActionButtonClicked(tx: Transaction, type: ActionListener.Type) {}
     }
 
     Surface {
-        TransactionWithdrawalComposable(t, qrCodes, true, null, listener) {}
+        TransactionWithdrawalComposable(t, true, null, listener) {}
     }
 }

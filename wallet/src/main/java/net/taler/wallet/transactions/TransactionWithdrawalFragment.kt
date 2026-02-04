@@ -20,15 +20,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
-import net.taler.wallet.withdraw.QrCodeSpec
 import net.taler.wallet.withdraw.TransactionWithdrawalComposable
 
 class TransactionWithdrawalFragment : TransactionDetailFragment(), ActionListener {
@@ -41,22 +36,9 @@ class TransactionWithdrawalFragment : TransactionDetailFragment(), ActionListene
         setContent {
             TalerSurface {
                 val t by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
-                var qrCodes by remember { mutableStateOf<List<QrCodeSpec>>(emptyList()) }
-
                 (t as? TransactionWithdrawal)?.let { tx ->
-                    LaunchedEffect(Unit) {
-                        if (tx.withdrawalDetails is WithdrawalDetails.ManualTransfer
-                            && tx.txState.minor == TransactionMinorState.ExchangeWaitReserve) {
-                            if (tx.withdrawalDetails.exchangeCreditAccountDetails?.size == 1) {
-                                val transfer = tx.withdrawalDetails.exchangeCreditAccountDetails[0]
-                                qrCodes = withdrawManager.getQrCodesForPayto(transfer.paytoUri)
-                            }
-                        }
-                    }
-
                     TransactionWithdrawalComposable(
                         t = tx,
-                        qrCodes = qrCodes,
                         devMode = devMode,
                         spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
                         actionListener = this@TransactionWithdrawalFragment,

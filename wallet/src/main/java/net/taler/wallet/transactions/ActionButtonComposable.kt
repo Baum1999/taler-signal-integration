@@ -135,24 +135,17 @@ private fun ConfirmManualButton(
             Text(stringResource(R.string.withdraw_manual_ready_details_intro))
         }
 
-        // only show in separate view when there's more than one transfer account
-        // otherwise it will be shown on withdrawal details directly
-        if (tx is TransactionWithdrawal
-            && tx.withdrawalDetails is WithdrawalDetails.ManualTransfer
-            && tx.withdrawalDetails.exchangeCreditAccountDetails != null
-            && tx.withdrawalDetails.exchangeCreditAccountDetails.size > 1) {
-            Button(
-                onClick = { listener.onActionButtonClicked(tx, ActionListener.Type.SHOW_WIRE_QR) },
-                modifier = modifier,
-            ) {
-                Icon(
-                    Icons.Default.QrCode,
-                    contentDescription = null,
-                    modifier = Modifier.size(ButtonDefaults.IconSize)
-                )
-                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text(stringResource(R.string.withdraw_manual_ready_details_qr))
-            }
+        Button(
+            onClick = { listener.onActionButtonClicked(tx, ActionListener.Type.SHOW_WIRE_QR) },
+            modifier = modifier,
+        ) {
+            Icon(
+                Icons.Default.QrCode,
+                contentDescription = null,
+                modifier = Modifier.size(ButtonDefaults.IconSize)
+            )
+            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+            Text(stringResource(R.string.withdraw_manual_ready_details_qr))
         }
     }
 }
