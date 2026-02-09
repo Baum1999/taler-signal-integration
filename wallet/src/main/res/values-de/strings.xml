@@ -454,4 +454,13 @@
     <string name="exchange_shopping_title">Wo bezahlen</string>
     <string name="exchange_shopping_label">Wo Sie mit %1$s bezahlen können</string>
     <string name="exchange_shopping_message">Ihr Zahlungsdienst zeigt Ihnen auf folgenden Webseiten, wo Sie mit Ihrem Taler Wallet in %1$s bezahlen können:</string>
+    <string name="millisecond">%1$d Millisekunden</string>
+    <string name="performance_stats_title">Leistungsanalyse</string>
+    <string name="performance_stats_http_fetch">HTTP-Anfragen</string>
+    <string name="performance_stats_db_query">Datenbankabfragen</string>
+    <string name="performance_stats_crypto">Kryptographische Operationen</string>
+    <string name="performance_stats_wallet_request">Wallet-Core-Anfragen</string>
+    <string name="performance_stats_wallet_task">Wallet-Core-Aufgaben</string>
+    <string name="settings_stats">Leistungsanalyse</string>
+    <string name="settings_stats_summary">Zeitaufwändigste Vorgänge anzeigen</string>
 </resources>
