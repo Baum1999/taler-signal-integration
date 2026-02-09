@@ -111,7 +111,7 @@
     <string name="balances_title">יתרות</string>
     <!-- Transactions -->
 
-    <string name="transaction_action_kyc">KYC שלם</string>
+    <string name="transaction_action_kyc">זיהוי והכרת הלקוח (KYC) שלם</string>
     <string name="transaction_denom_loss">איבוד כספים</string>
     <string name="transaction_deposit">הפקדה</string>
     <string name="transaction_deposit_to">הפקדה ל־%1$s</string>
@@ -128,7 +128,7 @@
     <string name="transaction_peer_push_debit">נשלח</string>
     <string name="transaction_peer_push_debit_pending">שולח</string>
     <string name="transaction_pending">בהמתנה</string>
-    <string name="transaction_preparing_kyc"/>
+    <string name="transaction_preparing_kyc">נדרש זיהוי והכרת הלקוח (KYC). האתגר בהכנה</string>
     <string name="transaction_refresh">עמלת שינוי תוקף המטבע</string>
     <string name="transaction_refund">החזר</string>
     <string name="transaction_state_aborted">העברה זו בוטלה</string>
@@ -165,7 +165,7 @@
     <string name="transactions_receive_funds">בקשה</string>
     <string name="transactions_resume">המשך</string>
     <string name="transactions_retry">ניסיון חוזר</string>
-    <string name="transactions_required_kyc"/>
+    <string name="transactions_required_kyc">נדרש זיהוי והכרת הלקוח (KYC) כדי להמשיך</string>
     <string name="transactions_select_all">בחירת הכול</string>
     <string name="transactions_send_funds">שליחה</string>
     <string name="transactions_suspend">השהייה</string>
@@ -427,11 +427,23 @@
     <string name="wifi_connect_error">לא הצליח להתחבר ל־Wi-Fi חינמי: %1$s</string>
     <string name="wifi_disabled_error">יש להדליק את ה־Wi-Fi כדי לקבל Wi-Fi חינמי</string>
     <string name="assets_section_balances">מאזנים</string>
-    <string name="assets_section_statements">הצהרות תרומה</string>
+    <string name="assets_section_statements">הצהרות על תרומה</string>
     <string name="assets_title">נכסים</string>
     <string name="settings_bank_accounts">חשבונות בנק</string>
     <string name="settings_bank_accounts_summary">ניהול חשבונות הבנק להפקדות</string>
     <string name="donau_statement_tax_authority">רשות המיסים</string>
     <string name="donau_title">תרומות המוכרות לצורכי מס</string>
     <string name="settings_donau">תרומות המוכרות לצורכי מס</string>
+    <string name="empty">לא נמצאו פריטים</string>
+    <string name="enter_uri_prefix">taler://</string>
+    <string name="error_export">ייצוא שגיאות האבחון</string>
+    <string name="millisecond">%1$d מילישניות</string>
+    <string name="reload">טעינה מחדש</string>
+    <string name="save">שמירה</string>
+    <string name="donau_select_button">בחירת רשות המיסים</string>
+    <string name="donau_selector_title">בחירת רשות המיסים</string>
+    <string name="donau_statement_instruction">יש להציג את קוד ה־QR לרשות המיסים כדי לאשר את הצהרת התרומה</string>
+    <string name="donau_statement_year">שנה</string>
+    <string name="donau_toggle_label">קבלת קבלה על תרומה המוכרת לצורכי מס</string>
+    <string name="donau_url">URL של רשות התרומה</string>
 </resources>
