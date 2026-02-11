@@ -33,17 +33,31 @@
         android:visibility="invisible"
         tools:visibility="visible">
 
-        <ImageView
-            android:id="@+id/qrcodeView"
-            android:layout_width="match_parent"
+        <FrameLayout
+            android:id="@+id/qrcodeContainer"
+            android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_margin="12dp"
+            app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/shareButton"
-            tools:ignore="ContentDescription"
-            tools:src="@tools:sample/avatars" />
+            app:layout_constraintBottom_toTopOf="@id/shareButton">
+
+            <ImageView
+                android:id="@+id/qrcodeView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="6dp"
+                tools:ignore="ContentDescription"
+                tools:src="@tools:sample/avatars" />
+
+            <net.taler.merchantpos.payment.AnimatedQrBorderView
+                android:id="@+id/qrAnimatedBorder"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </FrameLayout>
 
         <Button
             android:id="@+id/shareButton"
@@ -70,6 +84,7 @@
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:indeterminateTint="@color/colorPrimary"
         app:layout_constraintBottom_toBottomOf="@+id/qrcodeLayout"
         app:layout_constraintEnd_toEndOf="@+id/qrcodeLayout"
         app:layout_constraintStart_toStartOf="@+id/qrcodeLayout"
@@ -130,10 +145,35 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:backgroundTint="@color/red"
+        android:textColor="?attr/colorOnError"
         android:text="@string/payment_cancel"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/guideline" />
+
+    <FrameLayout
+        android:id="@+id/qrPreviewOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#CC000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/qrPreviewImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_margin="24dp"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            tools:src="@tools:sample/avatars" />
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

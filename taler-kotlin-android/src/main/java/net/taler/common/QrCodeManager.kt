@@ -21,13 +21,25 @@ import android.graphics.Bitmap.Config.RGB_565
 import android.graphics.Color.BLACK
 import android.graphics.Color.WHITE
 import com.google.zxing.BarcodeFormat.QR_CODE
+import com.google.zxing.EncodeHintType.ERROR_CORRECTION
+import com.google.zxing.EncodeHintType.MARGIN
 import com.google.zxing.qrcode.QRCodeWriter
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 
 object QrCodeManager {
 
-    fun makeQrCode(text: String, size: Int = 256): Bitmap {
+    fun makeQrCode(
+        text: String,
+        size: Int = 256,
+        margin: Int = 4,
+        errorCorrection: ErrorCorrectionLevel = ErrorCorrectionLevel.M,
+    ): Bitmap {
         val qrCodeWriter = QRCodeWriter()
-        val bitMatrix = qrCodeWriter.encode(text, QR_CODE, size, size)
+        val hints = mapOf(
+            MARGIN to margin.coerceAtLeast(0),
+            ERROR_CORRECTION to errorCorrection,
+        )
+        val bitMatrix = qrCodeWriter.encode(text, QR_CODE, size, size, hints)
         val height = bitMatrix.height
         val width = bitMatrix.width
         val bmp = Bitmap.createBitmap(width, height, RGB_565)
