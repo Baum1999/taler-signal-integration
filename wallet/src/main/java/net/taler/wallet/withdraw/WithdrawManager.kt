@@ -29,7 +29,6 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.taler.common.Amount
-import net.taler.common.Bech32
 import net.taler.wallet.main.TAG
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
@@ -39,7 +38,6 @@ import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.exchanges.ExchangeManager
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
 import net.taler.wallet.withdraw.WithdrawStatus.Status.*
-import androidx.core.net.toUri
 import kotlinx.coroutines.runBlocking
 import net.taler.common.CurrencySpecification
 import net.taler.wallet.R
@@ -123,6 +121,17 @@ sealed class TransferData {
         val receiverPostalCode: String? = null,
         val receiverTown: String? = null,
         val iban: String,
+    ): TransferData()
+
+    data class Cyclos(
+        override val subject: String,
+        override val amountRaw: Amount,
+        override val amountEffective: Amount,
+        override val transferAmount: Amount,
+        override val withdrawalAccount: WithdrawalExchangeAccountDetails,
+        val host: String, // host + fpath
+        val account: String, // FIXME: account ID not used at all?
+        val receiverName: String, // FIXME: actual ID used for payments?
     ): TransferData()
 
     data class Bitcoin(
@@ -568,53 +577,11 @@ class WithdrawManager(
         manualTransferResponse = response,
         transactionId = response.transactionId,
         withdrawalTransfers = response.withdrawalAccountsList.mapNotNull {
-            val details = status.amountInfo ?: error("no amountInfo")
-            val uri = it.paytoUri.toUri()
-            if ("bitcoin".equals(uri.authority, true)) {
-                val msg = uri.getQueryParameter("message").orEmpty()
-                val reg = "\\b([A-Z0-9]{52})\\b".toRegex().find(msg)
-                val reserve = reg?.value ?: uri.getQueryParameter("subject")!!
-                val segwitAddresses =
-                    Bech32.generateFakeSegwitAddress(reserve, uri.pathSegments.first())
-                TransferData.Bitcoin(
-                    account = uri.lastPathSegment!!,
-                    segwitAddresses = segwitAddresses,
-                    subject = reserve,
-                    amountRaw = details.amountRaw,
-                    amountEffective = details.amountEffective,
-                    transferAmount = it.transferAmount
-                        ?.withSpec(it.currencySpecification)
-                        ?: details.amountEffective,
-                    withdrawalAccount = it.copy(paytoUri = uri.toString()),
-                )
-            } else if (uri.authority.equals("x-taler-bank", true)) {
-                TransferData.Taler(
-                    account = uri.lastPathSegment!!,
-                    receiverName = uri.getQueryParameter("receiver-name"),
-                    subject = uri.getQueryParameter("message") ?: "Error: No message in URI",
-                    amountRaw = details.amountRaw,
-                    amountEffective = details.amountEffective,
-                    exchangeBaseUrl = uri.host!!,
-                    transferAmount = it.transferAmount
-                        ?.withSpec(it.currencySpecification)
-                        ?: details.amountEffective,
-                    withdrawalAccount = it.copy(paytoUri = uri.toString()),
-                )
-            } else if (uri.authority.equals("iban", true)) {
-                TransferData.IBAN(
-                    iban = uri.lastPathSegment!!,
-                    receiverName = uri.getQueryParameter("receiver-name"),
-                    receiverTown = uri.getQueryParameter("receiver-town"),
-                    receiverPostalCode = uri.getQueryParameter("receiver-postal-code"),
-                    subject = uri.getQueryParameter("message") ?: "Error: No message in URI",
-                    amountRaw = details.amountRaw,
-                    amountEffective = details.amountEffective,
-                    transferAmount = it.transferAmount
-                        ?.withSpec(it.currencySpecification)
-                        ?: details.amountEffective,
-                    withdrawalAccount = it.copy(paytoUri = uri.toString()),
-                )
-            } else null
+            val details = status.amountInfo ?: return@mapNotNull null
+            it.getTransferDetails(
+                amountRaw = details.amountRaw,
+                amountEffective = details.amountEffective,
+            )
         },
     )
 }

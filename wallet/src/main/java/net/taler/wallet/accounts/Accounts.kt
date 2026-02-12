@@ -87,6 +87,7 @@ sealed class PaytoUri(
             return when (uri.authority?.lowercase()) {
                 "iban" -> PaytoUriIban.fromString(uri)
                 "x-taler-bank" -> PaytoUriTalerBank.fromString(uri)
+                "cyclos" -> PaytoUriCyclos.fromString(uri)
                 "bitcoin" -> PaytoUriBitcoin.fromString(uri)
                 else -> null
             }
@@ -177,6 +178,49 @@ data class PaytoUriTalerBank(
                 account = uri.pathSegments.getOrNull(1) ?: return null,
                 params = uri.queryParametersMap,
                 receiverName = uri.getQueryParameter("receiver-name"),
+                targetPath = "",
+            )
+        }
+    }
+}
+
+@Serializable
+@SerialName("cyclos")
+data class PaytoUriCyclos(
+    val host: String,
+    val account: String,
+    override val targetPath: String,
+    override val params: Map<String, String>,
+    override val receiverName: String,
+) : PaytoUri(
+    isKnown = true,
+    targetType = "cyclos",
+) {
+    val paytoUri: String
+        get() = Uri.Builder()
+            .scheme("payto")
+            .authority(targetType)
+            .appendPath(host)
+            .appendPath(account)
+            .apply {
+                appendQueryParameter("receiver-name", receiverName)
+                params.forEach { (key, value) ->
+                    if (value.isNotEmpty()) {
+                        appendQueryParameter(key, value)
+                    }
+                }
+            }
+            .build().toString()
+
+    companion object {
+        fun fromString(uri: Uri): PaytoUriCyclos? {
+            return PaytoUriCyclos(
+                account = uri.lastPathSegment ?: return null,
+                receiverName = uri.getQueryParameter("receiver-name") ?: return null,
+                host = uri.pathSegments
+                    .subList(0, uri.pathSegments.lastIndex)
+                    .joinToString("/"),
+                params = uri.queryParametersMap,
                 targetPath = "",
             )
         }

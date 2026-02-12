@@ -47,6 +47,11 @@ import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.common.CurrencySpecification
 import net.taler.common.Merchant
 import net.taler.common.RelativeTime
+import net.taler.wallet.accounts.PaytoUri
+import net.taler.wallet.accounts.PaytoUriBitcoin
+import net.taler.wallet.accounts.PaytoUriCyclos
+import net.taler.wallet.accounts.PaytoUriIban
+import net.taler.wallet.accounts.PaytoUriTalerBank
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.refund.RefundPaymentInfo
 import net.taler.wallet.transactions.TransactionMajorState.Done
@@ -282,13 +287,16 @@ data class WithdrawalExchangeAccountDetails (
                 ?.let { Amount.fromJSONString(it) }
             ?: amountEffective).withSpec(currencySpecification)
         return if ("bitcoin".equals(uri.authority, true)) {
+            // FIXME: use parsing logic from PaytoUriBitcoin.fromString()
             val msg = uri.getQueryParameter("message").orEmpty()
             val reg = "\\b([A-Z0-9]{52})\\b".toRegex().find(msg)
-            val reserve = reg?.value ?: uri.getQueryParameter("subject")!!
+            val reserve = reg?.value
+                ?: uri.getQueryParameter("subject")
+                ?: return null
             val segwitAddresses =
                 Bech32.generateFakeSegwitAddress(reserve, uri.pathSegments.first())
             TransferData.Bitcoin(
-                account = uri.lastPathSegment!!,
+                account = uri.lastPathSegment ?: return null,
                 segwitAddresses = segwitAddresses,
                 subject = reserve,
                 amountRaw = amountRaw,
@@ -297,28 +305,46 @@ data class WithdrawalExchangeAccountDetails (
                 withdrawalAccount = copy(paytoUri = uri.toString()),
             )
         } else if (uri.authority.equals("x-taler-bank", true)) {
-            TransferData.Taler(
-                account = uri.lastPathSegment!!,
-                receiverName = uri.getQueryParameter("receiver-name"),
-                subject = uri.getQueryParameter("message") ?: "Error: No message in URI",
-                amountRaw = amountRaw,
-                amountEffective = amountEffective,
-                exchangeBaseUrl = uri.pathSegments[0] ?: return null,
-                transferAmount = transferAmount,
-                withdrawalAccount = copy(paytoUri = uri.toString()),
-            )
+            PaytoUriTalerBank.fromString(uri)?.let { data ->
+                TransferData.Taler(
+                    account = data.account,
+                    receiverName = data.receiverName,
+                    subject = uri.getQueryParameter("message") ?: return@let null,
+                    amountRaw = amountRaw,
+                    amountEffective = amountEffective,
+                    exchangeBaseUrl = data.host,
+                    transferAmount = transferAmount,
+                    withdrawalAccount = copy(paytoUri = uri.toString())
+                )
+            }
         } else if (uri.authority.equals("iban", true)) {
-            TransferData.IBAN(
-                iban = uri.lastPathSegment!!,
-                receiverName = uri.getQueryParameter("receiver-name"),
-                receiverTown = uri.getQueryParameter("receiver-town"),
-                receiverPostalCode = uri.getQueryParameter("receiver-postal-code"),
-                subject = uri.getQueryParameter("message") ?: "Error: No message in URI",
-                amountRaw = amountRaw,
-                amountEffective = amountEffective,
-                transferAmount = transferAmount,
-                withdrawalAccount = copy(paytoUri = uri.toString()),
-            )
+            PaytoUriIban.fromString(uri)?.let { data ->
+                TransferData.IBAN(
+                    iban = data.iban,
+                    receiverName = data.receiverName,
+                    receiverTown = data.receiverTown,
+                    receiverPostalCode = data.receiverPostalCode,
+                    subject = uri.getQueryParameter("message") ?: return@let null,
+                    amountRaw = amountRaw,
+                    amountEffective = amountEffective,
+                    transferAmount = transferAmount,
+                    withdrawalAccount = copy(paytoUri = uri.toString()),
+                )
+            }
+        } else if (uri.authority.equals("cyclos", true)) {
+            PaytoUriCyclos.fromString(uri)?.let { data ->
+                TransferData.Cyclos(
+                    account = data.account,
+                    receiverName = data.receiverName,
+                    host = data.host,
+                    subject = uri.getQueryParameter("message") ?: return@let null,
+                    amountRaw = amountRaw,
+                    amountEffective = amountEffective,
+                    transferAmount = transferAmount
+                        .withSpec(currencySpecification),
+                    withdrawalAccount = copy(paytoUri = uri.toString()),
+                )
+            }
         } else null
     }
 }

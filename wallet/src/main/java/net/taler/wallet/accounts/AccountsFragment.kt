@@ -253,11 +253,16 @@ fun BankAccountRow(
                             color = MaterialTheme.colorScheme.onSecondaryContainer,
                         )
                     )
+
                     is PaytoUriBitcoin -> Icon(
                         Icons.Default.CurrencyBitcoin,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSecondaryContainer,
                     )
+
+                    is PaytoUriCyclos -> Text("Cy",
+                        style = MaterialTheme.typography.labelLarge)
+
                     else -> Icon(
                         Icons.Default.AccountBalance,
                         contentDescription = null,
@@ -270,6 +275,7 @@ fun BankAccountRow(
             when(paytoUri) {
                 is PaytoUriIban -> Text(stringResource(R.string.send_deposit_iban))
                 is PaytoUriTalerBank -> Text(stringResource(R.string.send_deposit_taler))
+                is PaytoUriCyclos -> Text(stringResource(R.string.send_deposit_cyclos))
                 is PaytoUriBitcoin -> Text(stringResource(R.string.send_deposit_bitcoin))
                 else -> {}
             }
@@ -282,6 +288,7 @@ fun BankAccountRow(
             when(paytoUri) {
                 is PaytoUriIban -> Text(paytoUri.iban)
                 is PaytoUriTalerBank -> Text(paytoUri.account)
+                is PaytoUriCyclos -> Text(paytoUri.receiverName)
                 is PaytoUriBitcoin -> {
                     Text(remember(paytoUri.segwitAddresses) {
                         paytoUri.segwitAddresses.joinToString(" ")
@@ -330,6 +337,20 @@ val previewKnownAccounts = listOf(
         kycCompleted = true,
         currencies = listOf("TESTKUDOS"),
         label = "Main on test",
+    ),
+
+    KnownBankAccountInfo(
+        bankAccountId = "acct:EHHRQMZNDNAW3KZMBW0ATTNHCT3WH3TNX3HNMS4MKGK10E1W0YNG",
+        paytoUri = PaytoUriCyclos(
+            host = "demo.cyclos.org",
+            account = "john123",
+            targetPath = "",
+            params = emptyMap(),
+            receiverName = "John Doe",
+        ).paytoUri,
+        kycCompleted = true,
+        currencies = listOf("UI"),
+        label = "Cyclos demo",
     ),
 
     KnownBankAccountInfo(

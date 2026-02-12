@@ -307,6 +307,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="send_deposit_button_label">Deposit</string>
     <string name="send_deposit_check_fees_button">Check fees</string>
     <string name="send_deposit_create_button">Make deposit</string>
+    <string name="send_deposit_cyclos">Cyclos</string>
     <string name="send_deposit_host">Local currency bank</string>
     <string name="send_deposit_iban">IBAN</string>
     <string name="send_deposit_iban_error">IBAN is invalid</string>
@@ -374,6 +375,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="withdraw_manual_ready_town">Town</string>
     <string name="withdraw_manual_ready_warning">This is mandatory, otherwise your money will not arrive in this wallet.</string>
     <string name="withdraw_manual_step">&lt;b&gt;Step %1$s:&lt;/b&gt; %2$s</string>
+    <string name="withdraw_manual_step_cyclos">Copy and paste recipient and amount into the corresponding fields in your banking app or website.</string>
     <string name="withdraw_manual_step_finish">Finish the wire transfer of %1$s in your banking app or website, then this withdrawal will proceed automatically. Depending on your bank the transfer can take from minutes to two working days, please be patient.</string>
     <string name="withdraw_manual_step_iban">If you don\'t already have it in your banking favorites list, then copy and paste recipient and IBAN into the recipient/IBAN fields in your banking app or website (and save it as favorite for the next time):</string>
     <string name="withdraw_manual_step_subject">Copy this code and paste it into the subject/purpose field in your banking app or bank website:</string>

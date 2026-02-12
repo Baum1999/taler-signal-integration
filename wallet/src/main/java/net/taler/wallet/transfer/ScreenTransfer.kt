@@ -175,6 +175,11 @@ fun ScreenTransfer(
                     transferContext = transferContext,
                 )
 
+                is TransferData.Cyclos -> TransferCyclos(
+                    transfer = transfer,
+                    transactionAmountEffective = transfer.amountEffective.withSpec(spec),
+                )
+
                 is TransferData.Bitcoin -> TransferBitcoin(
                     transfer = transfer,
                 )
@@ -374,6 +379,20 @@ fun ScreenTransferPreview(
                             numFractionalTrailingZeroDigits = 2,
                             altUnitNames = emptyMap(),
                         ),
+                    ),
+                ),
+                TransferData.Cyclos(
+                    host = "demo.cyclos.org/abc",
+                    account = "1234567890",
+                    receiverName = "Taler Wire",
+                    subject = "Taler Withdrawal P2T19EXRBY4B145JRNZ8CQTD7TCS03JE9VZRCEVKVWCP930P56WG",
+                    amountRaw = Amount("IU", 10, 0),
+                    amountEffective = Amount("IU", 9, 5),
+                    transferAmount = Amount("IU", 10, 0),
+                    withdrawalAccount = WithdrawalExchangeAccountDetails(
+                        paytoUri = "https://taler.net/cyclos",
+                        transferAmount = Amount("IU", 10, 0),
+                        status = Ok,
                     ),
                 ),
                 TransferData.Bitcoin(
