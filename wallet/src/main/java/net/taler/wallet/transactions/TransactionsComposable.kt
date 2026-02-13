@@ -18,6 +18,7 @@ package net.taler.wallet.transactions
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
@@ -65,6 +66,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
@@ -299,14 +301,19 @@ fun TransactionsHeader(
                 headlineContent = {
                     Text(
                         getHeaderCurrency(balance, balance.available.spec),
+                        modifier = Modifier.weight(1f, fill = false),
                         style = MaterialTheme.typography.titleMedium,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
                     )
                 },
                 supportingContent = {
                     if (balance.scopeInfo is Exchange) {
                         Text(
                             cleanExchange(balance.scopeInfo.url),
-                            modifier = Modifier.padding(top = 3.dp),
+                            modifier = Modifier
+                                .padding(top = 3.dp)
+                                .basicMarquee(),
                             style = MaterialTheme.typography.bodySmall,
                         )
                     }
