@@ -48,7 +48,16 @@ class AccountManager(
             mBankAccounts.value = Error(error)
         }.onSuccess { response ->
             mBankAccounts.value = Success(
-                accounts = response.accounts,
+                accounts = response.accounts.map { acc ->
+                    acc.copy(
+                        // FIXME: workaround for malformed Cyclos payto
+                        //   remove when fixed in libeufin
+                        paytoUri = acc.paytoUri.replace(
+                            "^payto://cyclos".toRegex(),
+                            "payto://cyclos/",
+                        ),
+                    )
+                },
                 currency = currency,
             )
         }
