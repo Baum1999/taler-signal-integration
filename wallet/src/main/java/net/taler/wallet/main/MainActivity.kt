@@ -17,7 +17,9 @@
 package net.taler.wallet.main
 
 import android.content.Intent
+import android.content.Intent.ACTION_SEND
 import android.content.Intent.ACTION_VIEW
+import android.content.Intent.EXTRA_TEXT
 import android.nfc.NdefMessage
 import android.nfc.NfcAdapter
 import android.os.Build
@@ -270,6 +272,14 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
 
         if (intent.action == ACTION_VIEW) intent.dataString?.let { uri ->
             handleTalerUri(uri, "intent")
+        }
+
+        if (intent.action == ACTION_SEND) {
+            if (intent.type == "text/plain") {
+                intent.getStringExtra(EXTRA_TEXT)?.let { uri ->
+                    handleTalerUri(uri, "intent")
+                }
+            }
         }
 
         if (intent.action == NfcAdapter.ACTION_NDEF_DISCOVERED) {

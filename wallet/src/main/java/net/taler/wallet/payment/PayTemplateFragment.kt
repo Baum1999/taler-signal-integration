@@ -21,6 +21,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -32,13 +35,16 @@ import net.taler.wallet.R
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.showError
+import androidx.core.net.toUri
+import net.taler.wallet.balances.BalanceState
+import net.taler.wallet.compose.ErrorComposable
+import net.taler.wallet.compose.LoadingScreen
 
 class PayTemplateFragment : Fragment() {
 
     private val model: MainViewModel by activityViewModels()
     private lateinit var uriString: String
     private lateinit var uri: Uri
-    private val currencies by lazy { model.balanceManager.getCurrencies() }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -46,22 +52,36 @@ class PayTemplateFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View {
         uriString = arguments?.getString("uri") ?: error("no amount passed")
-        uri = Uri.parse(uriString)
+        uri = uriString.toUri()
 
         val payStatusFlow = model.paymentManager.payStatus.asFlow()
 
         return ComposeView(requireContext()).apply {
             setContent {
-                val payStatus = payStatusFlow.collectAsStateLifecycleAware(initial = PayStatus.None)
+                val payStatus = payStatusFlow.collectAsStateLifecycleAware(PayStatus.None)
+                val balanceState by model.balanceManager.state.observeAsState(BalanceState.None)
+                val devMode by model.devMode.observeAsState(false)
                 TalerSurface {
-                    PayTemplateComposable(
-                        currencies = currencies,
-                        payStatus = payStatus.value,
-                        onCreateAmount = model::createAmount,
-                        onSubmit = this@PayTemplateFragment::createOrder,
-                        onError = { this@PayTemplateFragment.showError(it) },
-                        getCurrencySpec = model.exchangeManager::getSpecForCurrency,
-                    )
+                    when (val state = balanceState) {
+                        is BalanceState.None, is BalanceState.Loading -> LoadingScreen()
+                        is BalanceState.Error -> ErrorComposable(state.error, devMode = devMode)
+                        is BalanceState.Success -> PayTemplateComposable(
+                            currencies = state.balances.map { it.currency },
+                            payStatus = payStatus.value,
+                            onCreateAmount = model::createAmount,
+                            onSubmit = this@PayTemplateFragment::createOrder,
+                            onError = { this@PayTemplateFragment.showError(it) },
+                            getCurrencySpec = model.exchangeManager::getSpecForCurrency,
+                        )
+                    }
+
+                    LaunchedEffect(balanceState) {
+                        balanceState
+                    }
+
+                    LaunchedEffect(Unit) {
+                        model.balanceManager.loadAssets()
+                    }
                 }
             }
         }
@@ -84,7 +104,7 @@ class PayTemplateFragment : Fragment() {
                 }
 
                 is PayStatus.Checked -> {
-                    val usableCurrencies = currencies
+                    val usableCurrencies = model.balanceManager.getCurrencies()
                         .intersect(payStatus.supportedCurrencies.toSet())
                         .toList()
                     if (!payStatus.details.isTemplateEditable(usableCurrencies)) {
