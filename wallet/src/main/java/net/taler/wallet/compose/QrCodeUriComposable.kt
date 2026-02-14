@@ -42,10 +42,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Dp
@@ -54,22 +59,38 @@ import androidx.compose.ui.unit.min
 import net.taler.common.QrCodeManager
 import net.taler.common.copyToClipBoard
 import net.taler.wallet.R
+import net.taler.wallet.toImageBitmap
+import kotlin.let
 
 @Composable
 fun ColumnScope.QrCodeUriComposable(
     talerUri: String,
     clipBoardLabel: String,
+    centerLogo: Painter? = null,
     buttonText: String = stringResource(R.string.copy),
     showContents: Boolean = true,
     shareAsQrCode: Boolean = false,
     inBetween: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     val qrCodeSize = getQrCodeSize()
-    val qrPlaceHolder = if (LocalInspectionMode.current) {
-        QrCodeManager.makeQrCode(talerUri, qrCodeSize.value.toInt()).asImageBitmap()
-    } else null
-    val qrState = produceState(qrPlaceHolder) {
-        value = QrCodeManager.makeQrCode(talerUri, qrCodeSize.value.toInt()).asImageBitmap()
+    val density = LocalDensity.current
+    val direction = LocalLayoutDirection.current
+
+    val qrState = produceState<ImageBitmap?>(null) {
+        value = QrCodeManager.makeQrCode(
+            talerUri,
+            qrCodeSize.value.toInt(),
+            centerLogo = centerLogo?.let {{ size ->
+                centerLogo.toImageBitmap(
+                    Size(
+                        size * (centerLogo.intrinsicSize.width / centerLogo.intrinsicSize.height),
+                        size.toFloat(),
+                        ),
+                    density,
+                    direction,
+                ).asAndroidBitmap()
+            }},
+        ).asImageBitmap()
     }
 
     Box(

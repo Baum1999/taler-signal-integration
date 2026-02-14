@@ -44,13 +44,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Canvas
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.core.content.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import net.taler.common.Amount
 import net.taler.common.AmountParserException
@@ -201,3 +207,16 @@ fun Modifier.systemBarsPaddingHorizontal() =
 @Composable
 fun Modifier.systemBarsPaddingAllExceptTop() =
     windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
+
+fun Painter.toImageBitmap(
+    size: Size,
+    density: Density,
+    layoutDirection: LayoutDirection,
+): ImageBitmap {
+    val bitmap = ImageBitmap(size.width.toInt(), size.height.toInt())
+    val canvas = Canvas(bitmap)
+    CanvasDrawScope().draw(density, layoutDirection, canvas, size) {
+        draw(size)
+    }
+    return bitmap
+}

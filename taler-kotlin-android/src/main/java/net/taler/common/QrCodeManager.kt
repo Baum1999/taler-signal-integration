@@ -18,8 +18,12 @@ package net.taler.common
 
 import android.graphics.Bitmap
 import android.graphics.Bitmap.Config.RGB_565
+import android.graphics.Canvas
 import android.graphics.Color.BLACK
 import android.graphics.Color.WHITE
+import android.graphics.Matrix
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.set
 import com.google.zxing.BarcodeFormat.QR_CODE
 import com.google.zxing.EncodeHintType.ERROR_CORRECTION
 import com.google.zxing.EncodeHintType.MARGIN
@@ -33,6 +37,7 @@ object QrCodeManager {
         size: Int = 256,
         margin: Int = 4,
         errorCorrection: ErrorCorrectionLevel = ErrorCorrectionLevel.M,
+        centerLogo: ((size: Int) -> Bitmap)? = null,
     ): Bitmap {
         val qrCodeWriter = QRCodeWriter()
         val hints = mapOf(
@@ -42,13 +47,26 @@ object QrCodeManager {
         val bitMatrix = qrCodeWriter.encode(text, QR_CODE, size, size, hints)
         val height = bitMatrix.height
         val width = bitMatrix.width
-        val bmp = Bitmap.createBitmap(width, height, RGB_565)
+        val bmp = createBitmap(width, height, RGB_565)
         for (x in 0 until width) {
             for (y in 0 until height) {
-                bmp.setPixel(x, y, if (bitMatrix.get(x, y)) BLACK else WHITE)
+                bmp[x, y] = if (bitMatrix.get(x, y)) BLACK else WHITE
             }
         }
+
+        if (centerLogo != null) {
+            val combined = createBitmap(bmp.width, bmp.height, bmp.config!!)
+            val canvas = Canvas(combined)
+            canvas.drawBitmap(bmp, Matrix(), null)
+
+            val logo = centerLogo(canvas.width / 6)
+            val centreX = (canvas.width - logo.width) / 2f
+            val centreY = (canvas.height - logo.height) / 2f
+
+            canvas.drawBitmap(logo, centreX, centreY, null)
+            return combined
+        }
+
         return bmp
     }
-
 }

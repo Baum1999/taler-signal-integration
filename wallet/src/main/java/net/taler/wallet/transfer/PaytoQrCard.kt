@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import net.taler.wallet.R
@@ -55,6 +56,10 @@ fun PaytoQrCard(
                 clipBoardLabel = label,
                 showContents = true,
                 shareAsQrCode = true,
+                centerLogo = when (qrCode.type) {
+                    SPC -> painterResource(R.drawable.ic_swiss_qr)
+                    else -> null
+                }
             )
 
             Spacer(Modifier.height(8.dp))
