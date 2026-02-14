@@ -354,7 +354,7 @@
 
     <fragment
         android:id="@+id/performanceStats"
-        android:name="net.taler.wallet.stats.PerformanceFragment"
+        android:name="net.taler.wallet.settings.PerformanceFragment"
         android:label="@string/performance_stats_title" />
 
     <action

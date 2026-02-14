@@ -59,8 +59,8 @@ import androidx.core.net.toUri
 import net.taler.wallet.BuildConfig
 import net.taler.wallet.NetworkManager
 import net.taler.wallet.donau.DonauManager
-import net.taler.wallet.stats.PerformanceTable
-import net.taler.wallet.stats.TestingGetPerformanceStatsResponse
+import net.taler.wallet.settings.PerformanceTable
+import net.taler.wallet.settings.TestingGetPerformanceStatsResponse
 
 const val TAG = "taler-wallet"
 const val OBSERVABILITY_LIMIT = 100
