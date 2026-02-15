@@ -215,7 +215,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             true
         }
         prefTest.setOnPreferenceClickListener {
-            model.runIntegrationTest { error ->
+            settingsManager.runIntegrationTest { error ->
                 requireActivity().showError(error)
             }
             Snackbar.make(requireView(), getString(R.string.settings_test_running), LENGTH_LONG).show()

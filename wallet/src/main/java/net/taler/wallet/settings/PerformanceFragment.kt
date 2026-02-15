@@ -70,7 +70,7 @@ class PerformanceFragment: Fragment() {
     ) = ComposeView(requireContext()).apply {
         setContent {
             TalerSurface {
-                val stats by model.performanceTable.collectAsStateLifecycleAware()
+                val stats by model.settingsManager.performanceTable.collectAsStateLifecycleAware()
 
                 if (stats == null) {
                     EmptyComposable()
@@ -79,7 +79,7 @@ class PerformanceFragment: Fragment() {
 
                 stats?.let {
                     PerformanceTableComposable(it,
-                        onReload = { model.loadPerformanceStats() },
+                        onReload = { model.settingsManager.loadPerformanceStats() },
                     )
                 }
             }
@@ -88,7 +88,7 @@ class PerformanceFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        model.loadPerformanceStats()
+        model.settingsManager.loadPerformanceStats()
     }
 }
 

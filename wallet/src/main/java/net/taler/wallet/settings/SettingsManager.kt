@@ -23,17 +23,21 @@ import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import net.taler.wallet.R
+import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.main.ViewMode
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.backend.WalletResponse.Error
 import net.taler.wallet.backend.WalletResponse.Success
 import net.taler.wallet.balances.BalanceManager
+import net.taler.wallet.main.TAG
 import org.json.JSONObject
 
 class SettingsManager(
@@ -42,6 +46,9 @@ class SettingsManager(
     private val scope: CoroutineScope,
     private val balanceManager: BalanceManager,
 ) {
+    private val mPerformanceTable = MutableStateFlow<PerformanceTable?>(null)
+    val performanceTable: StateFlow<PerformanceTable?> = mPerformanceTable
+
     fun getViewMode(c: Context) = c.userPreferencesDataStore.data.map { prefs ->
         if (prefs.hasViewMode()) {
             ViewMode.fromPrefs(prefs.viewMode)
@@ -246,4 +253,32 @@ class SettingsManager(
         Toast.makeText(context, R.string.settings_db_clear_error, LENGTH_LONG).show()
     }
 
+    fun runIntegrationTest(onError: (error: TalerErrorInfo) -> Unit) {
+        scope.launch {
+            api.request<Unit>("runIntegrationTestV2") {
+                put("amountToWithdraw", "KUDOS:42")
+                put("amountToSpend", "KUDOS:23")
+                put("corebankApiBaseUrl", "https://bank.demo.taler.net/")
+                put("exchangeBaseUrl", "https://exchange.demo.taler.net/")
+                put("merchantBaseUrl", "https://backend.demo.taler.net/instances/sandbox/")
+                put("merchantAuthToken", "secret-token:sandbox")
+            }.onError(onError)
+        }
+    }
+
+    fun loadPerformanceStats(limit: Int? = 10) {
+        scope.launch {
+            api.request(
+                "testingGetPerformanceStats",
+                TestingGetPerformanceStatsResponse.serializer(),
+            ) {
+                limit?.let { put("limit", limit) }
+                this
+            }.onError { error ->
+                Log.e(TAG, "got testingGetPerformanceStats error result $error")
+            }.onSuccess { res ->
+                mPerformanceTable.value = res.stats
+            }
+        }
+    }
 }

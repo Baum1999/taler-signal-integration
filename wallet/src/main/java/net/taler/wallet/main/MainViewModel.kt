@@ -59,8 +59,6 @@ import androidx.core.net.toUri
 import net.taler.wallet.BuildConfig
 import net.taler.wallet.NetworkManager
 import net.taler.wallet.donau.DonauManager
-import net.taler.wallet.settings.PerformanceTable
-import net.taler.wallet.settings.TestingGetPerformanceStatsResponse
 
 const val TAG = "taler-wallet"
 const val OBSERVABILITY_LIMIT = 100
@@ -139,9 +137,6 @@ class MainViewModel(
 
     private val mObservabilityLog = MutableStateFlow<List<ObservabilityEvent>>(emptyList())
     val observabilityLog: StateFlow<List<ObservabilityEvent>> = mObservabilityLog
-
-    private val mPerformanceTable = MutableStateFlow<PerformanceTable?>(null)
-    val performanceTable: StateFlow<PerformanceTable?> = mPerformanceTable
 
     private val mScanCodeEvent = MutableLiveData<Event<Boolean>>()
     val scanCodeEvent: LiveData<Event<Boolean>> = mScanCodeEvent
@@ -309,40 +304,11 @@ class MainViewModel(
         }
     }
 
-    fun runIntegrationTest(onError: (error: TalerErrorInfo) -> Unit) {
-        viewModelScope.launch {
-            api.request<Unit>("runIntegrationTestV2") {
-                put("amountToWithdraw", "KUDOS:42")
-                put("amountToSpend", "KUDOS:23")
-                put("corebankApiBaseUrl", "https://bank.demo.taler.net/")
-                put("exchangeBaseUrl", "https://exchange.demo.taler.net/")
-                put("merchantBaseUrl", "https://backend.demo.taler.net/instances/sandbox/")
-                put("merchantAuthToken", "secret-token:sandbox")
-            }.onError(onError)
-        }
-    }
-
     fun applyDevExperiment(uri: String, onError: (error: TalerErrorInfo) -> Unit) {
         viewModelScope.launch {
             api.request<Unit>("applyDevExperiment") {
                 put("devExperimentUri", uri)
             }.onError(onError)
-        }
-    }
-
-    fun loadPerformanceStats(limit: Int? = 10) {
-        viewModelScope.launch {
-            api.request(
-                "testingGetPerformanceStats",
-                TestingGetPerformanceStatsResponse.serializer(),
-            ) {
-                limit?.let { put("limit", limit) }
-                this
-            }.onError { error ->
-                Log.e(TAG, "got testingGetPerformanceStats error result $error")
-            }.onSuccess { res ->
-                mPerformanceTable.value = res.stats
-            }
         }
     }
 }
