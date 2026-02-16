@@ -16,6 +16,7 @@
 
 package net.taler.wallet.compose
 
+import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -66,30 +67,20 @@ import kotlin.let
 fun ColumnScope.QrCodeUriComposable(
     talerUri: String,
     clipBoardLabel: String,
-    centerLogo: Painter? = null,
+    centerLogo: Drawable? = null,
+    drawCenterLogoBackground: Boolean = false,
     buttonText: String = stringResource(R.string.copy),
     showContents: Boolean = true,
     shareAsQrCode: Boolean = false,
     inBetween: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     val qrCodeSize = getQrCodeSize()
-    val density = LocalDensity.current
-    val direction = LocalLayoutDirection.current
-
     val qrState = produceState<ImageBitmap?>(null) {
         value = QrCodeManager.makeQrCode(
             talerUri,
             qrCodeSize.value.toInt(),
-            centerLogo = centerLogo?.let {{ size ->
-                centerLogo.toImageBitmap(
-                    Size(
-                        size * (centerLogo.intrinsicSize.width / centerLogo.intrinsicSize.height),
-                        size.toFloat(),
-                        ),
-                    density,
-                    direction,
-                ).asAndroidBitmap()
-            }},
+            centerLogo = centerLogo,
+            drawBackground = drawCenterLogoBackground,
         ).asImageBitmap()
     }
 

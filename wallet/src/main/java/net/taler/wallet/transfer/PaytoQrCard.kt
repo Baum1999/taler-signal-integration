@@ -22,9 +22,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import net.taler.wallet.R
 import net.taler.wallet.compose.ExpandableCard
 import net.taler.wallet.compose.QrCodeUriComposable
@@ -44,6 +46,8 @@ fun PaytoQrCard(
         else -> return
     }
 
+    val context = LocalContext.current
+
     ExpandableCard(
         expanded = expanded,
         setExpanded = setExpanded,
@@ -57,9 +61,9 @@ fun PaytoQrCard(
                 showContents = true,
                 shareAsQrCode = true,
                 centerLogo = when (qrCode.type) {
-                    SPC -> painterResource(R.drawable.ic_swiss_qr)
+                    SPC -> ContextCompat.getDrawable(context, R.drawable.ic_swiss_qr)
                     else -> null
-                }
+                },
             )
 
             Spacer(Modifier.height(8.dp))

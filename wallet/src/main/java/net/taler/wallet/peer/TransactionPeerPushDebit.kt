@@ -29,11 +29,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.common.Timestamp
@@ -106,9 +108,8 @@ fun ColumnScope.PeerQrCode(
     talerUri: String?,
     instructionResId: Int,
 ) {
-    remember(state) {
-        10.dp
-    }
+    val context = LocalContext.current
+
     if (state == TransactionState(Pending) && state.minor != MergeKycRequired) {
         Text(
             modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
@@ -122,7 +123,8 @@ fun ColumnScope.PeerQrCode(
             QrCodeUriComposable(
                 talerUri = talerUri,
                 clipBoardLabel = "Push payment",
-                centerLogo = painterResource(R.drawable.ic_taler_qr),
+                centerLogo = ContextCompat.getDrawable(context, R.drawable.ic_taler_logo_qr),
+                drawCenterLogoBackground = true,
                 buttonText = stringResource(id = R.string.copy),
             ) {
                 Text(

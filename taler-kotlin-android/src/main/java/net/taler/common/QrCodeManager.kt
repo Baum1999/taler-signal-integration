@@ -17,11 +17,16 @@
 package net.taler.common
 
 import android.graphics.Bitmap
+import android.graphics.Bitmap.Config.ARGB_8888
 import android.graphics.Bitmap.Config.RGB_565
 import android.graphics.Canvas
 import android.graphics.Color.BLACK
 import android.graphics.Color.WHITE
-import android.graphics.Matrix
+import android.graphics.Paint
+import android.graphics.Rect
+import android.graphics.RectF
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.set
 import com.google.zxing.BarcodeFormat.QR_CODE
@@ -37,7 +42,8 @@ object QrCodeManager {
         size: Int = 256,
         margin: Int = 4,
         errorCorrection: ErrorCorrectionLevel = ErrorCorrectionLevel.M,
-        centerLogo: ((size: Int) -> Bitmap)? = null,
+        centerLogo: Drawable? = null,
+        drawBackground: Boolean = false,
     ): Bitmap {
         val qrCodeWriter = QRCodeWriter()
         val hints = mapOf(
@@ -54,19 +60,84 @@ object QrCodeManager {
             }
         }
 
-        if (centerLogo != null) {
-            val combined = createBitmap(bmp.width, bmp.height, bmp.config!!)
-            val canvas = Canvas(combined)
-            canvas.drawBitmap(bmp, Matrix(), null)
+        return if (centerLogo != null) {
+            addCenteredLogo(bmp, centerLogo, drawBackground)
+        } else {
+            bmp
+        }
+    }
 
-            val logo = centerLogo(canvas.width / 6)
-            val centreX = (canvas.width - logo.width) / 2f
-            val centreY = (canvas.height - logo.height) / 2f
+    private fun addCenteredLogo(
+        qrBitmap: Bitmap,
+        logoDrawable: Drawable,
+        drawBackground: Boolean = false,
+    ): Bitmap {
+        val result = qrBitmap.copy(ARGB_8888, true)
+        val canvas = Canvas(result)
+        val logoBitmap = drawableToBitmap(logoDrawable)
 
-            canvas.drawBitmap(logo, centreX, centreY, null)
-            return combined
+        var logoMaxWidth = (result.width * 0.22f).toInt()
+        val logoAspectRatio = logoBitmap.width.toFloat() / logoBitmap.height.toFloat()
+        var logoWidth = logoMaxWidth
+        var logoHeight = (logoWidth / logoAspectRatio).toInt().coerceAtLeast(1)
+        var horizontalPadding = (logoHeight * 0.12f).toInt()
+        var verticalPadding = (logoHeight * 0.09f).toInt()
+
+        val maxOcclusionRatio = 0.11f
+        val currentOcclusionRatio =
+            ((logoWidth + horizontalPadding * 2f) * (logoHeight + verticalPadding * 2f)) /
+                    (result.width.toFloat() * result.height.toFloat())
+        if (currentOcclusionRatio > maxOcclusionRatio) {
+            val scale = kotlin.math.sqrt(maxOcclusionRatio / currentOcclusionRatio)
+            logoMaxWidth = (logoMaxWidth * scale).toInt().coerceAtLeast(1)
+            logoWidth = logoMaxWidth
+            logoHeight = (logoWidth / logoAspectRatio).toInt().coerceAtLeast(1)
+            horizontalPadding = (horizontalPadding * scale).toInt()
+            verticalPadding = (verticalPadding * scale).toInt()
         }
 
-        return bmp
+        val centerX = result.width / 2
+        val centerY = result.height / 2
+
+        if (drawBackground) {
+            val halfBackgroundWidth = (logoWidth / 2f) + horizontalPadding
+            val halfBackgroundHeight = (logoHeight / 2f) + verticalPadding
+            val backgroundRect = RectF(
+                centerX - halfBackgroundWidth,
+                centerY - halfBackgroundHeight,
+                centerX + halfBackgroundWidth,
+                centerY + halfBackgroundHeight,
+            )
+
+            val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.FILL
+                color = WHITE
+            }
+            val cornerRadius =
+                halfBackgroundHeight // * 0.8f taler has circle in logo, so it can be fine
+            canvas.drawRoundRect(backgroundRect, cornerRadius, cornerRadius, backgroundPaint)
+        }
+
+        val destinationRect = Rect(
+            centerX - logoWidth / 2,
+            centerY - logoHeight / 2,
+            centerX + logoWidth / 2,
+            centerY + logoHeight / 2,
+        )
+        canvas.drawBitmap(logoBitmap, null, destinationRect, Paint(Paint.ANTI_ALIAS_FLAG))
+        return result
+    }
+
+    private fun drawableToBitmap(drawable: Drawable): Bitmap {
+        if (drawable is BitmapDrawable && drawable.bitmap != null) {
+            return drawable.bitmap
+        }
+        val width = drawable.intrinsicWidth.coerceAtLeast(1)
+        val height = drawable.intrinsicHeight.coerceAtLeast(1)
+        val bitmap = createBitmap(width, height)
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+        return bitmap
     }
 }

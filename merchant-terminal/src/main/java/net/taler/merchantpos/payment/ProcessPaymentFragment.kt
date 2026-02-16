@@ -48,6 +48,7 @@ import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.R
 import net.taler.merchantpos.databinding.FragmentProcessPaymentBinding
 import androidx.core.graphics.createBitmap
+import net.taler.common.QrCodeManager
 
 class ProcessPaymentFragment : Fragment() {
 
@@ -203,81 +204,18 @@ class ProcessPaymentFragment : Fragment() {
     }
 
     private fun makePaymentQrCode(text: String, size: Int): Bitmap {
-        val qrBitmap = makeQrCode(
+        return makeQrCode(
             text = text,
             size = size,
             margin = 1,
             errorCorrection = ErrorCorrectionLevel.H,
+            centerLogo = ContextCompat.getDrawable(
+                requireContext(),
+                R.drawable.ic_taler_logo_qr,
+            ),
         )
-        val logoDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_taler_logo_qr)
-            ?: return qrBitmap
-        return addCenteredLogo(qrBitmap, logoDrawable)
     }
 
-    private fun addCenteredLogo(qrBitmap: Bitmap, logoDrawable: Drawable): Bitmap {
-        val result = qrBitmap.copy(ARGB_8888, true)
-        val canvas = Canvas(result)
-        val logoBitmap = drawableToBitmap(logoDrawable)
 
-        var logoMaxWidth = (result.width * 0.30f).toInt()
-        val logoAspectRatio = logoBitmap.width.toFloat() / logoBitmap.height.toFloat()
-        var logoWidth = logoMaxWidth
-        var logoHeight = (logoWidth / logoAspectRatio).toInt().coerceAtLeast(1)
-        var horizontalPadding = (logoHeight * 0.12f).toInt()
-        var verticalPadding = (logoHeight * 0.09f).toInt()
-
-        val maxOcclusionRatio = 0.11f
-        val currentOcclusionRatio =
-            ((logoWidth + horizontalPadding * 2f) * (logoHeight + verticalPadding * 2f)) /
-                (result.width.toFloat() * result.height.toFloat())
-        if (currentOcclusionRatio > maxOcclusionRatio) {
-            val scale = kotlin.math.sqrt(maxOcclusionRatio / currentOcclusionRatio)
-            logoMaxWidth = (logoMaxWidth * scale).toInt().coerceAtLeast(1)
-            logoWidth = logoMaxWidth
-            logoHeight = (logoWidth / logoAspectRatio).toInt().coerceAtLeast(1)
-            horizontalPadding = (horizontalPadding * scale).toInt()
-            verticalPadding = (verticalPadding * scale).toInt()
-        }
-
-        val centerX = result.width / 2
-        val centerY = result.height / 2
-        val halfBackgroundWidth = (logoWidth / 2f) + horizontalPadding
-        val halfBackgroundHeight = (logoHeight / 2f) + verticalPadding
-        val backgroundRect = RectF(
-            centerX - halfBackgroundWidth,
-            centerY - halfBackgroundHeight,
-            centerX + halfBackgroundWidth,
-            centerY + halfBackgroundHeight,
-        )
-
-        val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            style = Paint.Style.FILL
-            color = android.graphics.Color.WHITE
-        }
-        val cornerRadius = halfBackgroundHeight // * 0.8f taler has circle in logo, so it can be fine
-        canvas.drawRoundRect(backgroundRect, cornerRadius, cornerRadius, backgroundPaint)
-
-        val destinationRect = Rect(
-            centerX - logoWidth / 2,
-            centerY - logoHeight / 2,
-            centerX + logoWidth / 2,
-            centerY + logoHeight / 2,
-        )
-        canvas.drawBitmap(logoBitmap, null, destinationRect, Paint(Paint.ANTI_ALIAS_FLAG))
-        return result
-    }
-
-    private fun drawableToBitmap(drawable: Drawable): Bitmap {
-        if (drawable is BitmapDrawable && drawable.bitmap != null) {
-            return drawable.bitmap
-        }
-        val width = drawable.intrinsicWidth.coerceAtLeast(1)
-        val height = drawable.intrinsicHeight.coerceAtLeast(1)
-        val bitmap = createBitmap(width, height)
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, canvas.width, canvas.height)
-        drawable.draw(canvas)
-        return bitmap
-    }
 
 }
