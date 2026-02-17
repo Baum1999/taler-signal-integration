@@ -77,14 +77,14 @@ class TransactionFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        TalerNfcService.clearUri(requireActivity())
+        TalerNfcService.clearNdefPayload(requireActivity())
         if (!requireActivity().isChangingConfigurations) {
             withdrawManager.abort()
         }
     }
 
     private fun onWithdrawResultReceived(result: WithdrawResult?) {
-        TalerNfcService.clearUri(requireActivity())
+        TalerNfcService.clearNdefPayload(requireActivity())
 
         if (result != null) {
             ui.progressBar.animate()

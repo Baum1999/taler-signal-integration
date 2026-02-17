@@ -17,7 +17,6 @@
 package net.taler.lib.android
 
 import android.app.Activity
-import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
@@ -30,7 +29,8 @@ import android.nfc.cardemulation.CardEmulation
 import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
 import android.util.Log
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.core.content.ContextCompat
+import androidx.core.content.IntentCompat
 import java.math.BigInteger
 
 class TalerNfcService : HostApduService() {
@@ -53,12 +53,22 @@ class TalerNfcService : HostApduService() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
                 SET_URI_INTENT -> intent.getStringExtra("uri")?.let { uri ->
+                    Log.d(TAG, "onReceive(SET_URI_INTENT) | URI: $uri")
                     ndefMessage = NdefMessage(createUriRecord(uri))
-                    Log.d(TAG, "onReceive() | URI: $uri")
                 }
-                SET_NDEF_INTENT -> intent.getParcelableExtra<NdefMessage>("ndef")?.let { ndef ->
+
+                SET_NDEF_INTENT -> IntentCompat.getParcelableExtra(
+                    intent,
+                    "ndef",
+                    NdefMessage::class.java,
+                )?.let { ndef ->
+                    Log.d(TAG, "onReceive(SET_NDEF_INTENT) | NDEF: $ndef")
                     ndefMessage = ndef
-                    Log.d(TAG, "onReceive() | NDEF: $ndef")
+                }
+
+                CLEAR_NDEF_INTENT -> {
+                    Log.d(TAG, "onReceive(CLEAR_NDEF_INTENT)")
+                    ndefMessage = null
                 }
             }
         }
@@ -211,16 +221,23 @@ class TalerNfcService : HostApduService() {
 
     override fun onCreate() {
         super.onCreate()
-        LocalBroadcastManager.getInstance(this).registerReceiver(
+        Log.d(TAG, "onCreate() service running")
+        val intentFilter = IntentFilter()
+        intentFilter.addAction(SET_URI_INTENT)
+        intentFilter.addAction(SET_NDEF_INTENT)
+        intentFilter.addAction(CLEAR_NDEF_INTENT)
+        ContextCompat.registerReceiver(
+            this@TalerNfcService,
             broadcastReceiver,
-            IntentFilter(SET_URI_INTENT),
+            intentFilter,
+            ContextCompat.RECEIVER_NOT_EXPORTED,
         )
     }
 
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "onDestroy() NFC service")
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver)
+        unregisterReceiver(broadcastReceiver)
         ndefMessage = null
     }
 
@@ -228,6 +245,7 @@ class TalerNfcService : HostApduService() {
         private const val TAG = "taler-wallet-hce"
         const val SET_URI_INTENT = "taler-wallet-set-url"
         const val SET_NDEF_INTENT = "taler-wallet-set-ndef"
+        const val CLEAR_NDEF_INTENT = "taler-wallet-clear-ndef"
 
         private val APDU_SELECT = byteArrayOf(
             0x00.toByte(), // CLA	- Class - Class of instruction
@@ -349,26 +367,25 @@ class TalerNfcService : HostApduService() {
 
         fun setUri(activity: Activity, uri: String) {
             if (!hasNfc(activity)) return
-            val broadcastManager = LocalBroadcastManager.getInstance(activity)
             val intent = Intent(SET_URI_INTENT)
+            intent.setPackage(activity.packageName)
             intent.putExtra("uri", uri)
-            broadcastManager.sendBroadcast(intent)
+            activity.sendBroadcast(intent)
         }
 
         fun setNdefPayload(activity: Activity, ndef: NdefMessage) {
             if (!hasNfc(activity)) return
-            val broadcastManager = LocalBroadcastManager.getInstance(activity)
             val intent = Intent(SET_NDEF_INTENT)
+            intent.setPackage(activity.packageName)
             intent.putExtra("ndef", ndef)
-            broadcastManager.sendBroadcast(intent)
+            activity.sendBroadcast(intent)
         }
 
-        fun clearUri(activity: Activity) {
+        fun clearNdefPayload(activity: Activity) {
             if (!hasNfc(activity)) return
-            val broadcastManager = LocalBroadcastManager.getInstance(activity)
-            val intent = Intent(SET_URI_INTENT)
-            intent.putExtra("uri", null as String?)
-            broadcastManager.sendBroadcast(intent)
+            val intent = Intent(CLEAR_NDEF_INTENT)
+            intent.setPackage(activity.packageName)
+            activity.sendBroadcast(intent)
         }
     }
 }

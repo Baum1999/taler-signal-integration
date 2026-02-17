@@ -64,7 +64,7 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
             payment?.talerPayUri?.let {
                 TalerNfcService.setUri(this, it)
             } ?: run {
-                TalerNfcService.clearUri(this)
+                TalerNfcService.clearNdefPayload(this)
             }
         }
 

@@ -136,7 +136,7 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 model.transactionManager.selectedTransaction.collect { tx ->
-                    TalerNfcService.clearUri(this@MainActivity)
+                    TalerNfcService.clearNdefPayload(this@MainActivity)
 
                     when (tx) {
                         is TransactionPeerPushDebit -> tx.talerUri
@@ -372,8 +372,8 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
 
     override fun onDestroy() {
         super.onDestroy()
+        TalerNfcService.clearNdefPayload(this)
         TalerNfcService.stopService(this)
-        TalerNfcService.clearUri(this)
         model.stopWallet()
     }
 }
