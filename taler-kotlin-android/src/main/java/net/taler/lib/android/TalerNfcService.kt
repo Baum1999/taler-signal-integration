@@ -34,13 +34,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import java.math.BigInteger
 
 class TalerNfcService : HostApduService() {
-
-    private var uri: String? = null
-    private val ndefMessage: NdefMessage?
-        get() = uri?.let {
-            val record = createUriRecord(it)
-            NdefMessage(record)
-        }
+    private var ndefMessage: NdefMessage? = null
 
     private val ndefUriBytes: ByteArray?
         get() = ndefMessage?.toByteArray()
@@ -57,13 +51,21 @@ class TalerNfcService : HostApduService() {
 
     private val broadcastReceiver = object: BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            intent?.getStringExtra("uri").let { uri = it }
-            Log.d(TAG, "onReceive() | URI: $uri")
+            when (intent?.action) {
+                SET_URI_INTENT -> intent.getStringExtra("uri")?.let { uri ->
+                    ndefMessage = NdefMessage(createUriRecord(uri))
+                    Log.d(TAG, "onReceive() | URI: $uri")
+                }
+                SET_NDEF_INTENT -> intent.getParcelableExtra<NdefMessage>("ndef")?.let { ndef ->
+                    ndefMessage = ndef
+                    Log.d(TAG, "onReceive() | NDEF: $ndef")
+                }
+            }
         }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        return Service.START_STICKY
+        return START_STICKY
     }
 
     override fun processCommandApdu(
@@ -219,12 +221,13 @@ class TalerNfcService : HostApduService() {
         super.onDestroy()
         Log.d(TAG, "onDestroy() NFC service")
         LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver)
-        uri = null
+        ndefMessage = null
     }
 
     companion object {
         private const val TAG = "taler-wallet-hce"
         const val SET_URI_INTENT = "taler-wallet-set-url"
+        const val SET_NDEF_INTENT = "taler-wallet-set-ndef"
 
         private val APDU_SELECT = byteArrayOf(
             0x00.toByte(), // CLA	- Class - Class of instruction
@@ -349,6 +352,14 @@ class TalerNfcService : HostApduService() {
             val broadcastManager = LocalBroadcastManager.getInstance(activity)
             val intent = Intent(SET_URI_INTENT)
             intent.putExtra("uri", uri)
+            broadcastManager.sendBroadcast(intent)
+        }
+
+        fun setNdefPayload(activity: Activity, ndef: NdefMessage) {
+            if (!hasNfc(activity)) return
+            val broadcastManager = LocalBroadcastManager.getInstance(activity)
+            val intent = Intent(SET_NDEF_INTENT)
+            intent.putExtra("ndef", ndef)
             broadcastManager.sendBroadcast(intent)
         }
 
