@@ -6,9 +6,11 @@ NIGHTLY_APK_PATH="wallet/build/outputs/apk/nightly/release/wallet-nightly-releas
 NIGHTLY_LINT_PATH="wallet/build/reports/lint-results-fdroidDebug.html"
 FDROID_APK_PATH="wallet/build/outputs/apk/fdroid/release/wallet-fdroid-release-unsigned.apk"
 
+set +o pipefail
 TAG_REGEX='wallet-[0-9.]+(\+.*)?$'
-TAG_MATCH="$(git tag --points-at HEAD | grep -E "${TAG_REGEX}" | head -1)"
+TAG_MATCH="$(git tag --points-at "${CI_COMMIT_REF}" | grep -E "${TAG_REGEX}" | head -1)"
 FDROID_VERSION="${TAG_MATCH#wallet-}"
+set -o pipefail
 
 # F-Droid nightly build (https://f-droid.org/docs/Publishing_Nightly_Builds/)
 function build_nightly_apk {
