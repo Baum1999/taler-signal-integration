@@ -1,0 +1,7 @@
+- Major performance improvements when paying large amounts.
+- Fixed bug preventing coins from being spent after a failed refresh.
+- Improvements to send/receive over NFC.
+- Introduced branding in QR codes.
+- New performance stats feature (dev mode only).
+- UI improvements and other bug fixes.
+- Bumped wallet-core to 1.3.10.
