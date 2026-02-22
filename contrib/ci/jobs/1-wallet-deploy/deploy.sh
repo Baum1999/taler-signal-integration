@@ -2,13 +2,18 @@
 set -exuo pipefail
 
 ARTIFACT_PATH="/artifacts/taler-android/${CI_COMMIT_REF}/wallet"
-APK_PATH="wallet/build/outputs/apk/nightly/release/wallet-nightly-release-unsigned.apk"
-LINT_PATH="wallet/build/reports/lint-results-fdroidDebug.html"
+NIGHTLY_APK_PATH="wallet/build/outputs/apk/nightly/release/wallet-nightly-release-unsigned.apk"
+NIGHTLY_LINT_PATH="wallet/build/reports/lint-results-fdroidDebug.html"
+FDROID_APK_PATH="wallet/build/outputs/apk/fdroid/release/wallet-fdroid-release-unsigned.apk"
 
+TAG_REGEX='wallet-[0-9.]+(\+.*)?$'
+TAG_MATCH="$(git tag --points-at HEAD | grep -E "${TAG_REGEX}" | head -1)"
+FDROID_VERSION="${TAG_MATCH#wallet-}"
 
-function build_apk {
+# F-Droid nightly build (https://f-droid.org/docs/Publishing_Nightly_Builds/)
+function build_nightly_apk {
     [[ ! -f "${NIGHTLY_KEYSTORE_PATH}" ]] && return 1
-    echo "Building APK ..."
+    echo "Building nightly APK ..."
 
     # Test and build the APK
     ./gradlew :wallet:check :wallet:assembleNightlyRelease
@@ -18,18 +23,38 @@ function build_apk {
               --ks "${NIGHTLY_KEYSTORE_PATH}" \
               --ks-key-alias "${NIGHTLY_KEYSTORE_ALIAS}" \
               --ks-pass env:NIGHTLY_KEYSTORE_PASS \
-              "${APK_PATH}"
+              "${NIGHTLY_APK_PATH}"
 
     # Copy the APK and lint report to artifacts folder
     mkdir -p "${ARTIFACT_PATH}"
-    cp "${APK_PATH}" "${ARTIFACT_PATH}"/wallet-nightly-debug.apk
-    cp "${LINT_PATH}" "${ARTIFACT_PATH}"
+    cp "${NIGHTLY_APK_PATH}" "${ARTIFACT_PATH}"/wallet-nightly-debug.apk
+    cp "${NIGHTLY_LINT_PATH}" "${ARTIFACT_PATH}"
 }
 
 
-function deploy_apk {
+# F-Droid reproducible build (https://f-droid.org/en/docs/Reproducible_Builds/)
+# only build if commit contains release tag e.g. wallet-1.4.0+p1
+function build_fdroid_apk {
+    [[ -z "${FDROID_VERSION}" ]] && return 0
+    [[ ! -f "${FDROID_KEYSTORE_PATH}" ]] && return 0
+    echo "Building F-Droid APK (${FDROID_VERSION}) ..."
+
+    # Test and build the APK
+    ./gradlew :wallet:assembleRelease
+
+    # Sign the APK
+    apksigner sign \
+              --ks "${FDROID_KEYSTORE_PATH}" \
+              --ks-key-alias "${FDROID_KEYSTORE_ALIAS}" \
+              --ks-pass env:FDROID_KEYSTORE_PASS \
+              "${FDROID_APK_PATH}"
+}
+
+
+function deploy_nightly_apk {
     [[ ! -f "${SCP_SSH_KEY}" ]] && return 0
-    echo "Deploying APK to taler.net/files ..."
+    [[ ! -f "${NIGHTLY_APK_PATH}" ]] && return 0
+    echo "Deploying nightly APK to taler.net/files ..."
 
     apk_dest="${SCP_SSH_PATH}"/wallet/wallet-nightly-debug-$(date -u +%s).apk
     latest_dest="${SCP_SSH_PATH}"/wallet/wallet-nightly-debug-latest.apk
@@ -38,7 +63,7 @@ function deploy_apk {
     scp -i "${SCP_SSH_KEY}" \
         -o StrictHostKeyChecking=no \
         -o UserKnownHostsFile=/dev/null \
-        "${APK_PATH}" \
+        "${NIGHTLY_APK_PATH}" \
         "${SCP_SSH_HOST}":"${apk_dest}"
 
     # Create symbolic link to the latest version
@@ -50,7 +75,24 @@ function deploy_apk {
 }
 
 
-function deploy_fdroid {
+function deploy_fdroid_apk {
+    [[ -z "${FDROID_VERSION}" ]] && return 0
+    [[ ! -f "${SCP_SSH_KEY}" ]] && return 0
+    [[ ! -f "${FDROID_APK_PATH}" ]] && return 0
+    echo "Deploying F-Droid APK (${FDROID_VERSION}) to taler.net/files ..."
+
+    apk_dest="${SCP_SSH_PATH}"/wallet/wallet-fdroid-"${FDROID_VERSION}".apk
+
+    # Deploy APK to taler.net/files/wallet
+    scp -i "${SCP_SSH_KEY}" \
+        -o StrictHostKeyChecking=no \
+        -o UserKnownHostsFile=/dev/null \
+        "${FDROID_APK_PATH}" \
+        "${SCP_SSH_HOST}":"${apk_dest}"
+}
+
+
+function deploy_nightly_fdroid {
     [[ ! -f "${FDROID_REPO_KEY}" ]] && return 0
     echo "Deploying APK to F-droid nightly ..."
 
@@ -58,7 +100,7 @@ function deploy_fdroid {
     cp "${NIGHTLY_KEYSTORE_PATH}" /root/.android/debug.keystore
 
     # Rename APK, so fdroid nightly accepts it (looks for *-debug.apk)
-    cp "${APK_PATH}" wallet-debug.apk
+    cp "${NIGHTLY_APK_PATH}" wallet-debug.apk
 
     fdroid --version
 
@@ -77,6 +119,11 @@ function deploy_fdroid {
 }
 
 
-build_apk
-deploy_apk
-deploy_fdroid
+# nightly
+build_nightly_apk
+deploy_nightly_apk
+deploy_nightly_fdroid
+
+# f-droid
+build_fdroid_apk
+deploy_fdroid_apk

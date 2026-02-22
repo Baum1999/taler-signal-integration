@@ -19,6 +19,9 @@ ENV FDROID_REPO_KEY        /inputs/fdroid-repo-key.txt
 ENV NIGHTLY_KEYSTORE_PATH  /inputs/taler-nightly.keystore
 ENV NIGHTLY_KEYSTORE_ALIAS androiddebugkey
 ENV NIGHTLY_KEYSTORE_PASS  android
+ENV FDROID_KEYSTORE_PATH   /inputs/taler-fdroid.keystore
+ENV FDROID_KEYSTORE_ALIAS  androidreleasekey
+ENV FDROID_KEYSTORE_PASS   android
 
 # Deployment to taler.net/files
 ENV SCP_SSH_KEY  /inputs/wallet.taler.net
