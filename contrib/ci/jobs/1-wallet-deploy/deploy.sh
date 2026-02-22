@@ -4,13 +4,15 @@ set -exuo pipefail
 ARTIFACT_PATH="/artifacts/taler-android/${CI_COMMIT_REF}/wallet"
 NIGHTLY_APK_PATH="wallet/build/outputs/apk/nightly/release/wallet-nightly-release-unsigned.apk"
 NIGHTLY_LINT_PATH="wallet/build/reports/lint-results-fdroidDebug.html"
-FDROID_APK_PATH="wallet/build/outputs/apk/fdroid/release/wallet-fdroid-release-unsigned.apk"
+FDROID_APK_ARCHS=(x86_64 x86 arm64-v8a armeabi-v7a)
+FDROID_APK_TEMPLATE="wallet/build/outputs/apk/fdroid/release/wallet-fdroid-%s-release-unsigned.apk"
 
 set +o pipefail
 TAG_REGEX='wallet-[0-9.]+(\+.*)?$'
 TAG_MATCH="$(git tag --points-at "${CI_COMMIT_REF}" | grep -E "${TAG_REGEX}" | head -1)"
 FDROID_VERSION="${TAG_MATCH#wallet-}"
 set -o pipefail
+
 
 # F-Droid nightly build (https://f-droid.org/docs/Publishing_Nightly_Builds/)
 function build_nightly_apk {
@@ -42,14 +44,16 @@ function build_fdroid_apk {
     echo "Building F-Droid APK (${FDROID_VERSION}) ..."
 
     # Test and build the APK
-    ./gradlew :wallet:assembleRelease
+    ./gradlew -PsplitApk :wallet:assembleRelease
 
-    # Sign the APK
-    apksigner sign \
-              --ks "${FDROID_KEYSTORE_PATH}" \
-              --ks-key-alias "${FDROID_KEYSTORE_ALIAS}" \
-              --ks-pass env:FDROID_KEYSTORE_PASS \
-              "${FDROID_APK_PATH}"
+    # Sign the APK for all architectures
+    for arch in "${FDROID_APK_ARCHS[@]}"; do
+        apksigner sign \
+                  --ks "${FDROID_KEYSTORE_PATH}" \
+                  --ks-key-alias "${FDROID_KEYSTORE_ALIAS}" \
+                  --ks-pass env:FDROID_KEYSTORE_PASS \
+                  "$(printf "${FDROID_APK_TEMPLATE}" "${arch}")"
+    done
 }
 
 
@@ -80,17 +84,22 @@ function deploy_nightly_apk {
 function deploy_fdroid_apk {
     [[ -z "${FDROID_VERSION}" ]] && return 0
     [[ ! -f "${SCP_SSH_KEY}" ]] && return 0
-    [[ ! -f "${FDROID_APK_PATH}" ]] && return 0
     echo "Deploying F-Droid APK (${FDROID_VERSION}) to taler.net/files ..."
 
-    apk_dest="${SCP_SSH_PATH}"/wallet/wallet-fdroid-"${FDROID_VERSION}".apk
-
-    # Deploy APK to taler.net/files/wallet
-    scp -i "${SCP_SSH_KEY}" \
-        -o StrictHostKeyChecking=no \
-        -o UserKnownHostsFile=/dev/null \
-        "${FDROID_APK_PATH}" \
-        "${SCP_SSH_HOST}":"${apk_dest}"
+    # Deploy APK for all architectures to taler.net/files/wallet
+    for arch in "${FDROID_APK_ARCHS[@]}"; do
+        apk_path="$(printf "${FDROID_APK_TEMPLATE}" "${arch}")"
+        [[ ! -f "${apk_path}" ]] && return 1
+        # extract version name and code (encodes arch)
+        version_name="$(aapt2 dump badging "${apk_path}" | grep "versionName" | sed -e "s/.*versionName='//" -e "s/' .*//")"
+        version_code="$(aapt2 dump badging "${apk_path}" | grep "versionCode" | sed -e "s/.*versionCode='//" -e "s/' .*//")"
+        apk_dest="${SCP_SSH_PATH}"/wallet/fdroid/wallet-fdroid-"${version_name}"-"${version_code}".apk
+        scp -i "${SCP_SSH_KEY}" \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            "${apk_path}" \
+            "${SCP_SSH_HOST}":"${apk_dest}"
+    done
 }
 
 

@@ -30,5 +30,6 @@ ENV SCP_SSH_PATH ~
 
 RUN echo y | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;35.0.0"
 RUN ln -s $ANDROID_HOME/build-tools/35.0.0/apksigner /usr/bin/
+RUN ln -s $ANDROID_HOME/build-tools/35.0.0/aapt2     /usr/bin/
 
 WORKDIR /workdir
