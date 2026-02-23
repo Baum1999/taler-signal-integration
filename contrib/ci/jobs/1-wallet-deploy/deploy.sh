@@ -47,11 +47,13 @@ function build_fdroid_apk {
     ./gradlew -PsplitApk :wallet:assembleRelease
 
     # Sign the APK for all architectures
+    # see https://github.com/obfusk/apksigcopier#what-about-signatures-made-by-apksigner-from-build-tools--3500-rc1
     for arch in "${FDROID_APK_ARCHS[@]}"; do
         apksigner sign \
                   --ks "${FDROID_KEYSTORE_PATH}" \
                   --ks-key-alias "${FDROID_KEYSTORE_ALIAS}" \
                   --ks-pass env:FDROID_KEYSTORE_PASS \
+                  --alignment-preserved \
                   "$(printf "${FDROID_APK_TEMPLATE}" "${arch}")"
     done
 }
