@@ -213,6 +213,7 @@ class ProcessPaymentFragment : Fragment() {
                 requireContext(),
                 R.drawable.ic_taler_logo_qr,
             ),
+            drawBackground = true,
         )
     }
 
