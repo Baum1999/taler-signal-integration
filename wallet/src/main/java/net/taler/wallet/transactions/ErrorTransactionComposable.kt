@@ -86,8 +86,9 @@ fun ErrorTransactionButton(
             },
             confirmButton = {
                 val context = LocalContext.current
+                val navError = stringResource(R.string.nav_error)
                 TextButton(onClick = {
-                    copyToClipBoard(context, context.getString(R.string.nav_error), message)
+                    copyToClipBoard(context, navError, message)
                 }) {
                     Text(stringResource(R.string.copy))
                 }
