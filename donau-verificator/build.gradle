@@ -7,12 +7,7 @@ static def versionCodeEpoch() {
 }
 
 def gitCommit = { ->
-    def stdout = new ByteArrayOutputStream()
-    exec {
-        commandLine 'git', 'rev-parse', '--short=7', 'HEAD'
-        standardOutput = stdout
-    }
-    return stdout.toString().trim()
+    return 'git rev-parse --short=7 HEAD'.execute().text.trim()
 }
 
 android {
@@ -30,7 +25,10 @@ android {
         buildConfigField "boolean", "ALLOW_INSECURE_HTTP", "true"
         manifestPlaceholders = [usesCleartextTraffic: "true"]
 
-        archivesBaseName = "donau-verificator"
+        base {
+            archivesName = "donau-verificator"
+        }
+
         externalNativeBuild {
             cmake {
                 cppFlags ''
@@ -121,10 +119,10 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'com.google.android.material:material:1.13.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.9.4'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.4'
-    implementation 'androidx.navigation:navigation-fragment:2.9.5'
-    implementation 'androidx.navigation:navigation-ui:2.9.5'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.10.0'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.10.0'
+    implementation 'androidx.navigation:navigation-fragment:2.9.7'
+    implementation 'androidx.navigation:navigation-ui:2.9.7'
     implementation 'com.github.yuriy-budiyev:code-scanner:2.3.2'
     // https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on
     implementation group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.70'

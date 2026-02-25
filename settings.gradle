@@ -1,3 +1,13 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+}
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
 include ':donau-verificator'
 include ':cashier', ':merchant-terminal', ':wallet'
 include ':taler-kotlin-android'
