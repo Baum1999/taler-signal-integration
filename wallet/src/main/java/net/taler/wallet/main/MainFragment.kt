@@ -94,6 +94,7 @@ class MainFragment: Fragment() {
 
                 val context = LocalContext.current
                 val online by model.networkManager.networkStatus.observeAsState(false)
+                val networkStatus by model.networkManager.networkStatus.observeAsState(false)
                 val balanceState by model.balanceManager.state.observeAsState(BalanceState.None)
                 val viewMode by model.viewMode.collectAsStateLifecycleAware()
                 val devMode by model.devMode.observeAsState(false)
@@ -152,6 +153,16 @@ class MainFragment: Fragment() {
                         model.showAssets()
                     }
 
+                    LaunchedEffect(tab, balanceState, viewMode) {
+                        (requireActivity() as AppCompatActivity).apply {
+                            if (tab == Tab.ASSETS && viewMode is ViewMode.Assets && balanceState.showWelcome()) {
+                                supportActionBar?.hide()
+                            } else {
+                                supportActionBar?.show()
+                            }
+                        }
+                    }
+
                     when (tab) {
                         Tab.ASSETS -> MainComposable(
                             innerPadding = innerPadding,
@@ -159,6 +170,14 @@ class MainFragment: Fragment() {
                             txResult = txResult,
                             viewMode = viewMode,
                             devMode = devMode,
+                            networkStatus = networkStatus,
+                            onWithdrawMoneyClicked = {
+                                // FIXME: remove exchange when whitelisted in wallet-core
+                                model.exchangeManager.add("https://exchange.taler-ops.ch/") {
+                                    val args = bundleOf("exchangeBaseUrl" to "https://exchange.taler-ops.ch/")
+                                    findNavController().navigate(R.id.promptWithdraw, args)
+                                }
+                            },
                             onGetDemoMoneyClicked = {
                                 model.withdrawManager.withdrawTestBalance()
                                 Snackbar.make(
@@ -259,6 +278,13 @@ class MainFragment: Fragment() {
     override fun onStart() {
         super.onStart()
         model.balanceManager.loadAssets(model.viewMode.value is ViewMode.Assets)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        (requireActivity() as AppCompatActivity).apply {
+            supportActionBar?.show()
+        }
     }
 
     private fun setTitle(tab: Tab, viewMode: ViewMode?) {

@@ -82,6 +82,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="save">Save</string>
     <string name="share_payment">Share payment link</string>
     <string name="uri_invalid">Not a valid Taler link</string>
+    <string name="wallet">Wallet</string>
     <string name="warning">Warning</string>
 
     <!-- Biometric lock -->
@@ -139,9 +140,11 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
 
     <string name="balance_scope_auditor">Auditor: %1$s</string>
     <string name="balance_scope_exchange">From %1$s</string>
-    <string name="balances_empty_state">There is no digital cash in your wallet.\n\nYou can get demo money from the demo bank:\n\nhttps://bank.demo.taler.net</string>
-    <string name="balances_empty_demo_url">https://bank.demo.taler.net</string>
-    <string name="balances_empty_get_money">Get demo money</string>
+    <string name="balances_empty_withdraw_chf_title">Welcome to Taler Wallet!</string>
+    <string name="balances_empty_withdraw_chf_message">To make your first payment, withdraw digital cash.</string>
+    <string name="balances_empty_withdraw_chf_button">Withdraw CHF</string>
+    <string name="balances_empty_withdraw_kudos_message">Get demo cash to experience how to pay with the money of the future.</string>
+    <string name="balances_empty_withdraw_kudos_button">Get demo cash</string>
     <string name="balances_inbound_amount">+%1$s incoming</string>
     <string name="balances_outbound_amount">-%1$s outgoing</string>
 

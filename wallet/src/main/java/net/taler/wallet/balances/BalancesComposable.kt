@@ -20,15 +20,12 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -37,7 +34,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Badge
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -47,11 +43,9 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
@@ -73,57 +67,62 @@ fun BalancesComposable(
     innerPadding: PaddingValues,
     state: BalanceState,
     devMode: Boolean,
+    networkStatus: Boolean,
+    onWithdrawMoneyClicked: () -> Unit,
     onGetDemoMoneyClicked: () -> Unit,
     onBalanceClicked: (balance: BalanceItem) -> Unit,
     onPendingClicked: (balance: BalanceItem) -> Unit,
     onStatementClicked: (host: String) -> Unit,
 ) {
+    if (state.showWelcome()) {
+        EmptyBalancesComposable(
+            innerPadding = innerPadding,
+            networkStatus = networkStatus,
+            onWithdrawMoneyClicked,
+            onGetDemoMoneyClicked,
+        )
+
+        return
+    }
+
     when (state) {
-        is BalanceState.None -> {}
         is BalanceState.Loading -> LoadingScreen()
         is BalanceState.Error -> ErrorComposable(state.error,
             devMode = devMode,
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()))
-        is BalanceState.Success -> if (
-            state.balances.isNotEmpty()
-            || state.donauSummary.isNotEmpty()) {
-            LazyColumn(
-                Modifier
-                    .consumeWindowInsets(innerPadding)
-                    .fillMaxSize(),
-                contentPadding = innerPadding,
-            ) {
-                if (state.balances.isNotEmpty()) stickyHeader {
-                    SectionHeader { Text(stringResource(R.string.assets_section_balances)) }
-                }
-
-                items(state.balances, key = { it.scopeInfo.hashCode() }) { balance ->
-                    BalanceRow(
-                        balance,
-                        onClick = { onBalanceClicked(balance) },
-                        onPendingClick = { onPendingClicked(balance) },
-                    )
-                }
-
-                if (state.donauSummary.isNotEmpty()) stickyHeader {
-                    SectionHeader { Text(stringResource(R.string.assets_section_statements)) }
-                }
-
-                items(state.donauSummary) { statement ->
-                    StatementRow(
-                        statement,
-                        onClick = { onStatementClicked(statement.donauBaseUrl) },
-                    )
-                }
+        is BalanceState.Success -> LazyColumn(
+            Modifier
+                .consumeWindowInsets(innerPadding)
+                .fillMaxSize(),
+            contentPadding = innerPadding,
+        ) {
+            if (state.balances.isNotEmpty()) stickyHeader {
+                SectionHeader { Text(stringResource(R.string.assets_section_balances)) }
             }
-        } else {
-            EmptyBalancesComposable(
-                innerPadding = innerPadding,
-                onGetDemoMoneyClicked,
-            )
+
+            items(state.balances, key = { it.scopeInfo.hashCode() }) { balance ->
+                BalanceRow(
+                    balance,
+                    onClick = { onBalanceClicked(balance) },
+                    onPendingClick = { onPendingClicked(balance) },
+                )
+            }
+
+            if (state.donauSummary.isNotEmpty()) stickyHeader {
+                SectionHeader { Text(stringResource(R.string.assets_section_statements)) }
+            }
+
+            items(state.donauSummary) { statement ->
+                StatementRow(
+                    statement,
+                    onClick = { onStatementClicked(statement.donauBaseUrl) },
+                )
+            }
         }
+
+        else -> {}
     }
 }
 
@@ -282,32 +281,6 @@ fun PendingComposable(
     )
 }
 
-@Composable
-fun EmptyBalancesComposable(
-    innerPadding: PaddingValues,
-    onGetDemoMoneyClicked: () -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .padding(innerPadding)
-            .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            stringResource(R.string.balances_empty_state),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodyMedium,
-        )
-
-        Spacer(Modifier.height(32.dp))
-
-        Button(onGetDemoMoneyClicked) {
-            Text(stringResource(R.string.balances_empty_get_money))
-        }
-    }
-}
-
 @Preview
 @Composable
 fun BalancesComposablePreview() {
@@ -350,6 +323,8 @@ fun BalancesComposablePreview() {
             innerPadding = PaddingValues(0.dp),
             state = BalanceState.Success(balances, donauSummary),
             devMode = false,
+            networkStatus = true,
+            onWithdrawMoneyClicked = {},
             onGetDemoMoneyClicked = {},
             onBalanceClicked = {},
             onPendingClicked = {},
@@ -367,6 +342,8 @@ fun BalancesComposableErrorPreview() {
             state = BalanceState.Error(TalerErrorInfo
                 .makeCustomError("Balances could not be loaded")),
             devMode = false,
+            networkStatus = false,
+            onWithdrawMoneyClicked = {},
             onGetDemoMoneyClicked = {},
             onBalanceClicked = {},
             onPendingClicked = {},
@@ -383,6 +360,8 @@ fun BalancesComposableEmptyPreview() {
             innerPadding = PaddingValues(0.dp),
             state = BalanceState.Success(listOf(), listOf()),
             devMode = false,
+            networkStatus = false,
+            onWithdrawMoneyClicked = {},
             onGetDemoMoneyClicked = {},
             onBalanceClicked = {},
             onPendingClicked = {},

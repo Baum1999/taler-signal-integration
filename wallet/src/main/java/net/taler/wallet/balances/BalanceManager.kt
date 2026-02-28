@@ -58,6 +58,11 @@ sealed class BalanceState {
     data class Error(
         val error: TalerErrorInfo,
     ): BalanceState()
+
+    fun showWelcome() = this is None ||
+            (this is Success
+                    && balances.isEmpty()
+                    && donauSummary.isEmpty())
 }
 
 // TODO: rename to AssetsManager

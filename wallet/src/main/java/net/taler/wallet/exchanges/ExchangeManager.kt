@@ -95,7 +95,7 @@ class ExchangeManager(
         return mExchanges
     }
 
-    fun add(exchangeUrl: String) = scope.launch {
+    fun add(exchangeUrl: String, onSuccess: (() -> Unit)? = null) = scope.launch {
         mProgress.value = true
         api.request<Unit>("addExchange") {
             put("allowCompletion", true)
@@ -108,6 +108,7 @@ class ExchangeManager(
             mProgress.value = false
             Log.d(TAG, "Exchange $exchangeUrl added")
             list()
+            onSuccess?.invoke()
         }
     }
 
