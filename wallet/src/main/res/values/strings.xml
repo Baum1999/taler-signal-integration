@@ -30,7 +30,7 @@ GNU Taler is a privacy-preserving payment system. Customers can remain anonymous
 
 The primary use case of GNU Taler is payments; it is not intended as a store of value. Payments are always backed by an existing currency.
 
-Payments are made after converting existing money into electronic money (e-cash) with the help of an Exchange service, i.e. a payment service provider for Taler.
+Payments are made after converting existing money into electronic money (e-cash) with the help of an Exchange service, i.e. a payment service for Taler.
 
 To make a payment, customers simply need a Taler wallet with sufficient e-cash. A merchant (seller) can accept payments without customers having to register on the seller\'s website.
 
@@ -40,7 +40,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <!-- Navigation  -->
 
     <string name="nav_error">Error</string>
-    <string name="nav_exchange_fees">Provider fees</string>
+    <string name="nav_exchange_fees">Payment service fees</string>
     <string name="nav_exchange_tos">PSP\'s terms of service</string>
     <string name="nav_prompt_withdraw">Withdraw from bank</string>
     <string name="nav_prompt_withdraw_currency">Withdraw %1$s</string>
@@ -56,7 +56,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="char_count">%1$d/%2$d</string>
     <string name="copy" tools:override="true">Copy</string>
     <string name="currency">Currency</string>
-    <!-- Currency name (provider) -->
+    <!-- Currency name (payment service) -->
     <string name="currency_url">%1$s (%2$s)</string>
     <string name="currency_via">via</string>
     <string name="edit">Edit</string>
@@ -168,7 +168,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="transaction_refresh">Coin expiry change fee</string>
     <string name="transaction_refund">Refund</string>
     <string name="transaction_state_aborted">This transaction was aborted</string>
-    <string name="transaction_state_aborted_manual">This transaction was aborted. If you already sent money to this exchange, it will be transferred back to you in %1$s</string>
+    <string name="transaction_state_aborted_manual">This transaction was aborted. If you already sent money to this payment service, it will be transferred back to you in %1$s</string>
     <string name="transaction_state_aborting">This transaction is aborting</string>
     <string name="transaction_state_done">This transaction was completed successfully</string>
     <string name="transaction_state_expired">This transaction has expired</string>
@@ -176,7 +176,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="transaction_state_finalizing">This transaction is finalizing</string>
     <string name="transaction_state_pending">This transaction is pending</string>
     <string name="transaction_state_pending_bank">Waiting for authorization in the bank</string>
-    <string name="transaction_state_pending_kyc_bank">This transaction would exceed a limit set by the payment service provider. To increase the limit, follow the instructions linked below.</string>
+    <string name="transaction_state_pending_kyc_bank">This transaction would exceed a limit set by the payment service. To increase the limit, follow the instructions linked below.</string>
     <string name="transaction_state_pending_kyc_auth">You need to prove having control over the bank account for the deposit. To continue, follow the instructions linked below.</string>
     <string name="transaction_state_suspended">This transaction is suspended</string>
     <string name="transactions_abort">Abort</string>
@@ -235,10 +235,10 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="payment_automatic_execution">This payment was automatically confirmed</string>
     <string name="payment_balance_insufficient">Insufficient balance</string>
     <string name="payment_balance_insufficient_hint_age_restricted">Purchase not possible due to age restriction</string>
-    <string name="payment_balance_insufficient_hint_exchange_missing_global_fees">Provider is missing the global fee configuration, this likely means it is misconfigured</string>
-    <string name="payment_balance_insufficient_hint_fees_not_covered">Not enough funds to pay the provider fees not covered by the merchant</string>
-    <string name="payment_balance_insufficient_hint_merchant_accept_insufficient">Merchant doesn\'t accept money from one or more providers in this wallet</string>
-    <string name="payment_balance_insufficient_hint_merchant_deposit_insufficient">Merchant doesn\'t accept the wire method of the provider, this likely means it is misconfigured</string>
+    <string name="payment_balance_insufficient_hint_exchange_missing_global_fees">Payment service is missing the global fee configuration, this likely means it is misconfigured</string>
+    <string name="payment_balance_insufficient_hint_fees_not_covered">Not enough funds to pay the payment service fees not covered by the merchant</string>
+    <string name="payment_balance_insufficient_hint_merchant_accept_insufficient">Merchant doesn\'t accept money from one or more payment services in this wallet</string>
+    <string name="payment_balance_insufficient_hint_merchant_deposit_insufficient">Merchant doesn\'t accept the wire method of the payment service, this likely means it is misconfigured</string>
     <string name="payment_balance_insufficient_hint_wallet_balance_material_insufficient">Some of the coins needed for this purchase are currently unavailable</string>
     <string name="payment_balance_insufficient_max">Balance insufficient! Maximum is %1$s</string>
     <string name="payment_button_cancel">Cancel</string>
@@ -352,11 +352,11 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="withdraw_button_tos">Terms of service</string>
     <string name="withdraw_cash_acceptor">The amount to be withdrawn will be determined by the cash acceptor</string>
     <string name="withdraw_error_already_confirmed">Withdrawal is already confirmed</string>
-    <string name="withdraw_error_empty_exchanges">No payment providers were configured by the bank.</string>
+    <string name="withdraw_error_empty_exchanges">No payment services were configured by the bank.</string>
     <string name="withdraw_error_message">Withdrawing is currently not possible. Please try again later!</string>
     <string name="withdraw_error_test">Error withdrawing KUDOS</string>
     <string name="withdraw_error_title">Withdrawal error</string>
-    <string name="withdraw_exchange">Provider</string>
+    <string name="withdraw_exchange">Payment service</string>
     <string name="withdraw_fee">+%1$s withdrawal fees</string>
     <string name="withdraw_initiated">Withdrawal initiated</string>
     <string name="withdraw_manual_bitcoin_intro">Now make a split transaction with the following three outputs.</string>
@@ -389,9 +389,9 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
 
     <!-- Exchanges -->
 
-    <string name="exchange_add_error">Could not add provider</string>
-    <string name="exchange_add_url">Enter address of provider</string>
-    <string name="exchange_delete">Delete provider</string>
+    <string name="exchange_add_error">Could not add payment service</string>
+    <string name="exchange_add_url">Enter address of payment service</string>
+    <string name="exchange_delete">Delete payment service</string>
     <string name="exchange_delete_force">Force deletion (purge)</string>
     <plurals name="exchange_fee_coin">
         <item quantity="one">Coin: %s (used %d time)</item>
@@ -410,40 +410,40 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="exchange_fee_withdraw_fee">Withdraw fee: %1$s</string>
     <string name="exchange_fee_withdrawal_fee_label">Withdrawal fee:</string>
     <string name="exchange_global_add">Treat as global</string>
-    <string name="exchange_global_add_success">Provider now being treated as global</string>
+    <string name="exchange_global_add_success">Payment service now being treated as global</string>
     <string name="exchange_global_delete">Stop treating as global</string>
-    <string name="exchange_global_delete_success">Provider no longer being treated as global</string>
-    <string name="exchange_list_add">Add provider</string>
-    <string name="exchange_list_add_dev">Add development providers</string>
+    <string name="exchange_global_delete_success">Payment service no longer being treated as global</string>
+    <string name="exchange_list_add">Add payment service</string>
+    <string name="exchange_list_add_dev">Add development payment services</string>
     <string name="exchange_list_currency">Currency: %1$s</string>
-    <string name="exchange_list_empty">No providers known\n\nAdd one manually or withdraw digital cash!</string>
-    <string name="exchange_list_error">Could not list providers</string>
-    <string name="exchange_list_select">Select provider</string>
-    <string name="exchange_list_title">Providers</string>
+    <string name="exchange_list_empty">No payment services known\n\nAdd one manually or withdraw digital cash!</string>
+    <string name="exchange_list_error">Could not list payment services</string>
+    <string name="exchange_list_select">Select payment service</string>
+    <string name="exchange_list_title">Payment services</string>
     <string name="exchange_menu_manual_withdraw">Withdraw</string>
-    <string name="exchange_not_contacted">Provider not contacted</string>
+    <string name="exchange_not_contacted">Payment service not contacted</string>
     <string name="exchange_reload">Reload information</string>
-    <string name="exchange_settings_summary">Manage the payment service providers known to this wallet</string>
-    <string name="exchange_settings_title">Providers</string>
+    <string name="exchange_settings_summary">Manage the payment services known to this wallet</string>
+    <string name="exchange_settings_title">Payment services</string>
     <string name="exchange_tos">Terms of service</string>
     <string name="exchange_tos_accept">Accept terms of service</string>
     <string name="exchange_tos_forget">Reject terms of service</string>
     <string name="exchange_tos_missing">Terms of service were not provided by payment service</string>
     <string name="exchange_tos_view">Review terms of service</string>
     <string name="exchange_tos_error">Error showing terms of service: %1$s</string>
-    <string name="exchange_unselected">No payment provider is selected</string>
+    <string name="exchange_unselected">No payment service is selected</string>
 
     <!-- Exchange shopping discovery -->
     <string name="exchange_shopping_title">Where to pay</string>
     <string name="exchange_shopping_label">Where to pay with %1$s</string>
-    <string name="exchange_shopping_message">Your payment service provider offers the following website(s) with information about where you can pay in %1$s using your Taler wallet:</string>
+    <string name="exchange_shopping_message">Your payment service offers the following website(s) with information about where you can pay in %1$s using your Taler wallet:</string>
 
     <!-- Losses -->
 
     <string name="loss_reason">Reason</string>
     <string name="loss_reason_expired">Funds were not renewed, because the wallet was not opened for a long time</string>
-    <string name="loss_reason_unoffered">The payment provider stopped offering the denomination backing the funds</string>
-    <string name="loss_reason_vanished">The payment provider lost the record of the funds</string>
+    <string name="loss_reason_unoffered">The payment service stopped offering the denomination backing the funds</string>
+    <string name="loss_reason_vanished">The payment service lost the record of the funds</string>
 
     <!-- Observability -->
 
