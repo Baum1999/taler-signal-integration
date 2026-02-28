@@ -265,10 +265,10 @@ fun WithdrawalShowInfo(
                 )
             }
 
-            exchange?.let {
+            if (exchange != null && selectedAmount.scope !is ScopeInfo.Exchange) {
                 TransactionInfoComposable(
                     label = stringResource(R.string.withdraw_exchange),
-                    info = cleanExchange(it),
+                    info = cleanExchange(exchange),
                     marquee = true,
                     trailing = {
                         if (devMode && possibleExchanges.size > 1) {
