@@ -162,10 +162,9 @@ dependencies {
     implementation 'me.zhanghai.android.materialprogressbar:library:1.6.1'
 
     // Markdown rendering
-    final def markwon_version = '4.6.2'
-    implementation "io.noties.markwon:core:$markwon_version"
-    implementation "io.noties.markwon:ext-tables:$markwon_version"
-    implementation "io.noties.markwon:recycler:$markwon_version"
+    final def markdown_version = "0.39.2"
+    implementation("com.mikepenz:multiplatform-markdown-renderer:$markdown_version")
+    implementation("com.mikepenz:multiplatform-markdown-renderer-m3:$markdown_version")
 
     // Java Native Access (must always match JNA in qtart)
     implementation "net.java.dev.jna:jna:5.17.0@aar"

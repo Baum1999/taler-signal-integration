@@ -36,7 +36,6 @@ import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.balances.GetCurrencySpecificationResponse
 import net.taler.wallet.balances.ScopeInfo
-import net.taler.wallet.withdraw.TosResponse
 import org.json.JSONObject
 
 @Serializable

@@ -1,6 +1,6 @@
 /*
  * This file is part of GNU Taler
- * (C) 2020 Taler Systems S.A.
+ * (C) 2026 Taler Systems S.A.
  *
  * GNU Taler is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -18,185 +18,218 @@ package net.taler.wallet.withdraw
 
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.View
-import android.view.View.GONE
-import android.view.View.VISIBLE
 import android.view.ViewGroup
-import android.view.ViewGroup.MarginLayoutParams
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.marginBottom
-import androidx.core.view.marginLeft
-import androidx.core.view.marginRight
-import androidx.core.view.updateLayoutParams
-import androidx.core.view.updatePadding
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
-import io.noties.markwon.Markwon
+import androidx.navigation.findNavController
+import com.mikepenz.markdown.m3.Markdown
+import com.mikepenz.markdown.m3.markdownTypography
+import com.mikepenz.markdown.model.markdownPadding
 import kotlinx.coroutines.launch
-import net.taler.common.fadeIn
-import net.taler.common.fadeOut
-import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.R
-import net.taler.wallet.databinding.FragmentReviewExchangeTosBinding
+import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.compose.BottomButtonBox
+import net.taler.wallet.compose.EmptyComposable
+import net.taler.wallet.compose.ErrorComposable
+import net.taler.wallet.compose.LoadingScreen
+import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.exchanges.ExchangeTosStatus
-import java.text.ParseException
+import net.taler.wallet.exchanges.TosResponse
+import net.taler.wallet.main.MainViewModel
+import net.taler.wallet.systemBarsPaddingBottom
 import java.util.Locale
 
-class ReviewExchangeTosFragment : Fragment(), AdapterView.OnItemSelectedListener {
-
+class ReviewExchangeTosFragment : Fragment() {
     private val model: MainViewModel by activityViewModels()
     private val exchangeManager by lazy { model.exchangeManager }
-
-    private lateinit var ui: FragmentReviewExchangeTosBinding
-    private val markwon by lazy { Markwon.builder(requireContext()).build() }
-    private val adapter by lazy { TosAdapter(markwon) }
-
-    private var tos: TosResponse? = null
-    private var exchangeBaseUrl: String? = null
-    private var langAdapter: ArrayAdapter<String>? = null
-    private var selectedLang: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?,
-    ): View {
-        ui = FragmentReviewExchangeTosBinding.inflate(inflater, container, false)
-        return ui.root
+        savedInstanceState: Bundle?
+    ) = ComposeView(requireContext()).apply {
+        setContent {
+            val exchangeBaseUrl = arguments
+                ?.getString("exchangeBaseUrl")
+                ?: error("no exchangeBaseUrl passed")
+            val readOnly = arguments
+                ?.getBoolean("readOnly")
+                ?: false
+
+            var tos: TosResponse? by remember { mutableStateOf(null) }
+            var selectedLang by remember { mutableStateOf(Locale.getDefault().language) }
+
+            LaunchedEffect(selectedLang) {
+                tos = null
+                tos = model.exchangeManager.getExchangeTos(exchangeBaseUrl, selectedLang)
+            }
+
+            TalerSurface {
+                tos?.let { tos ->
+                    ReviewExchangeTosComposable(tos,
+                        readOnly = readOnly,
+                        onSelectLang = { selectedLang = it },
+                        onAcceptTos = {
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                if (exchangeManager.acceptCurrentTos(
+                                        exchangeBaseUrl = exchangeBaseUrl,
+                                        currentEtag = tos.currentEtag,
+                                    )) {
+                                    findNavController().navigateUp()
+                                }
+                            }
+                        },
+                    )
+                } ?: LoadingScreen()
+            }
+        }
     }
-    
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        setupInsets()
+}
 
-        exchangeBaseUrl = arguments?.getString("exchangeBaseUrl")
-            ?: error("no exchangeBaseUrl passed")
-        val readOnly = arguments?.getBoolean("readOnly") ?: false
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ReviewExchangeTosComposable(
+    tos: TosResponse,
+    readOnly: Boolean,
+    onSelectLang: (String) -> Unit,
+    onAcceptTos: () -> Unit,
+) {
+    if (tos.status == ExchangeTosStatus.MissingTos) {
+        EmptyComposable(stringResource(R.string.exchange_tos_missing))
+        return
+    }
 
-        langAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item)
-        langAdapter?.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        ui.langSpinner.adapter = langAdapter
-        ui.langSpinner.onItemSelectedListener = this
+    var expanded by remember { mutableStateOf(false) }
 
-        ui.buttonCard.visibility = if (readOnly) GONE else VISIBLE
-        ui.acceptTosCheckBox.isChecked = false
-        ui.acceptTosCheckBox.setOnCheckedChangeListener { _, _ ->
-            tos?.let {
-                viewLifecycleOwner.lifecycleScope.launch {
-                    if (exchangeManager.acceptCurrentTos(
-                        exchangeBaseUrl = exchangeBaseUrl!!,
-                        currentEtag = it.currentEtag,
-                    )) {
-                        findNavController().navigateUp()
+    Scaffold(
+        bottomBar = {
+            if (!readOnly) BottomButtonBox {
+                Button(
+                    modifier = Modifier
+                        .systemBarsPaddingBottom(),
+                    onClick = onAcceptTos,
+                ) {
+                    Text(stringResource(R.string.exchange_tos_accept))
+                }
+            }
+        },
+        contentWindowInsets = WindowInsets.systemBars.only(
+            WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
+        )
+    ) { innerPadding ->
+        LazyColumn(Modifier.padding(innerPadding)) {
+            if (tos.tosAvailableLanguages.size > 1) item {
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it },
+                ) {
+                    OutlinedTextField(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .fillMaxWidth()
+                            .clickable { expanded = true },
+                        label = { Text(stringResource(R.string.language)) },
+                        value = tos.contentLanguage?.let {
+                            Locale(it).displayLanguage
+                        } ?: "",
+                        onValueChange = {},
+                        readOnly = true,
+                        enabled = false,
+                        singleLine = true,
+                        textStyle = LocalTextStyle.current.copy( // show text as if not disabled
+                            color = MaterialTheme.colorScheme.onSurface,
+                        ),
+                    )
+
+                    ExposedDropdownMenu (
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        tos.tosAvailableLanguages.forEach {
+                            DropdownMenuItem(
+                                { Text("${Locale(it).displayLanguage}") },
+                                onClick = {
+                                    onSelectLang(it)
+                                    expanded = false
+                                }
+                            )
+                        }
                     }
                 }
             }
-        }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                renderTos(exchangeBaseUrl!!, selectedLang)
+            item {
+                Markdown(
+                    content = tos.content.trimIndent(),
+                    modifier = Modifier.padding(16.dp),
+                    typography = markdownTypography(
+                        h1 = MaterialTheme.typography.headlineLarge,
+                        h2 = MaterialTheme.typography.headlineMedium,
+                        h3 = MaterialTheme.typography.headlineSmall,
+                        h4 = MaterialTheme.typography.titleLarge,
+                        h5 = MaterialTheme.typography.titleMedium,
+                        h6 = MaterialTheme.typography.titleSmall,
+                        text = MaterialTheme.typography.bodyMedium,
+                        paragraph = MaterialTheme.typography.bodyMedium,
+                    ),
+                    padding = markdownPadding(
+                        block = 5.dp,
+                    ),
+                    error = { modifier ->
+                        ErrorComposable(
+                            TalerErrorInfo.makeCustomError(
+                                stringResource(R.string.exchange_tos_error, "")),
+                            modifier = modifier,
+                            devMode = false,
+                        )
+                    },
+                )
             }
         }
     }
+}
 
-    private suspend fun renderTos(
-        exchangeBaseUrl: String,
-        language: String? = null,
-    ) {
-        val lc = Locale.getDefault().language
-        selectedLang = language ?: lc
-        tos = exchangeManager.getExchangeTos(exchangeBaseUrl, selectedLang)
+@Preview
+@Composable
+fun ReviewExchangeTosComposablePreview() {
+    TalerSurface {
+        val tos = TosResponse(
+            status = ExchangeTosStatus.Proposed,
+            content = "# Terms of service\nThis is a terms of service, obviously.\n## H2\n### H3\n#### H4\n##### H5\n###### H6",
+            currentEtag = "1.2.0",
+            contentLanguage = "en",
+            tosAvailableLanguages = listOf("en", "en_US"),
+        )
 
-        val tos = tos
-        if (tos == null || tos.status == ExchangeTosStatus.MissingTos) {
-            onTosError(getString(R.string.exchange_tos_missing))
-            return
-        }
-
-        // Setup language adapter
-        val languages = tos.tosAvailableLanguages
-        langAdapter?.clear()
-        langAdapter?.addAll(languages.map { lang ->
-            Locale(lang).displayLanguage
-        })
-        langAdapter?.notifyDataSetChanged()
-
-        // Setup language spinner
-        if (languages.size > 1) {
-            ui.langSpinner.visibility = VISIBLE
-            val i = languages.indexOf(selectedLang)
-            if (i >= 0) {
-                ui.langSpinner.setSelection(i)
-            }
-        } else {
-            ui.langSpinner.visibility = GONE
-        }
-
-        val sections = try {
-            parseTos(markwon, tos.content)
-        } catch (e: ParseException) {
-            onTosError(e.message ?: "Unknown Error")
-            return
-        }
-
-        adapter.setSections(sections)
-        ui.tosList.adapter = adapter
-        ui.tosList.fadeIn()
-
-        ui.acceptTosCheckBox.fadeIn()
-        ui.progressBar.fadeOut()
+        ReviewExchangeTosComposable(tos, false, {}, {})
     }
-
-    private fun setupInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(ui.tosList) { v, windowInsets ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updatePadding(
-                left = insets.left,
-                right = insets.right,
-                bottom = insets.bottom,
-            )
-            windowInsets
-        }
-
-        val checkboxMarginLeft = ui.acceptTosCheckBox.marginLeft
-        val checkboxMarginRight = ui.acceptTosCheckBox.marginRight
-        val checkboxMarginBottom = ui.acceptTosCheckBox.marginBottom
-        ViewCompat.setOnApplyWindowInsetsListener(ui.acceptTosCheckBox) { v, windowInsets ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updateLayoutParams<MarginLayoutParams> {
-                leftMargin = checkboxMarginLeft + insets.left
-                rightMargin = checkboxMarginRight + insets.right
-                bottomMargin = checkboxMarginBottom + insets.bottom
-            }
-            windowInsets
-        }
-    }
-
-    private fun onTosError(msg: String) {
-        ui.tosList.fadeIn()
-        ui.progressBar.fadeOut()
-        ui.acceptTosCheckBox.fadeIn()
-        // ui.buttonCard.fadeOut()
-        ui.errorView.text = getString(R.string.exchange_tos_error, "\n\n$msg")
-        ui.errorView.fadeIn()
-    }
-
-    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-        tos?.tosAvailableLanguages?.get(position)?.let { lang ->
-            viewLifecycleOwner.lifecycleScope.launch {
-                renderTos(exchangeBaseUrl!!, lang)
-            }
-        }
-    }
-
-    override fun onNothingSelected(parent: AdapterView<*>?) {}
-
 }

@@ -67,6 +67,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="error">Error</string>
     <string name="error_export">Export error diagnostics</string>
     <string name="import_db">Import</string>
+    <string name="language">Language</string>
     <string name="loading">Loading</string>
     <string name="menu">Menu</string>
     <string name="millisecond">%1$d ms</string>

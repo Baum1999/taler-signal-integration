@@ -58,3 +58,12 @@ enum class ExchangeTosStatus {
 
     fun isAccepted() = this in listOf(Accepted, MissingTos)
 }
+
+@Serializable
+data class TosResponse(
+    val status: ExchangeTosStatus = ExchangeTosStatus.Unknown,
+    val content: String,
+    val currentEtag: String,
+    val contentLanguage: String? = null,
+    val tosAvailableLanguages: List<String> = emptyList(),
+)
