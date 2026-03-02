@@ -90,8 +90,9 @@ fun TransitionsComposable(
             },
             confirmButton = {
                 val context = LocalContext.current
+                val label = stringResource(R.string.nav_error)
                 TextButton(onClick = {
-                    copyToClipBoard(context, context.getString(R.string.nav_error), message)
+                    copyToClipBoard(context, label, message)
                 }) {
                     Text(stringResource(R.string.copy))
                 }
