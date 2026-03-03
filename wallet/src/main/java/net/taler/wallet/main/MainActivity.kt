@@ -161,7 +161,7 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
         model.scanCodeEvent.observe(this, EventObserver {
             val scanOptions = ScanOptions().apply {
                 setPrompt("")
-                setBeepEnabled(true)
+                setBeepEnabled(false) // FIXME: expose in settings
                 setOrientationLocked(false)
                 setDesiredBarcodeFormats(QR_CODE)
                 addExtra(SCAN_TYPE, MIXED_SCAN)
