@@ -97,13 +97,11 @@ import net.taler.wallet.transactions.TransactionMajorState.Dialog
 import net.taler.wallet.transactions.TransactionMajorState.Done
 import net.taler.wallet.transactions.TransactionMajorState.Failed
 import net.taler.wallet.transactions.TransactionMajorState.Pending
-import net.taler.wallet.transactions.TransactionMinorState.BalanceKycInit
 import net.taler.wallet.transactions.TransactionMinorState.BalanceKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
 import net.taler.wallet.transactions.TransactionMinorState.KycRequired
 import net.taler.wallet.transactions.TransactionMinorState.KycAuthRequired
 import net.taler.wallet.transactions.TransactionMinorState.KycInit
-import net.taler.wallet.transactions.TransactionMinorState.MergeKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.Repurchase
 import net.taler.wallet.transactions.TransactionsResult.Error
 import net.taler.wallet.transactions.TransactionsResult.None
@@ -480,12 +478,10 @@ fun TransactionExtraInfo(tx: Transaction) {
 
         tx.txState.major == Pending -> when(tx.txState.minor) {
             BankConfirmTransfer -> Text(stringResource(R.string.withdraw_waiting_confirm))
-            KycInit,
-            BalanceKycInit -> Text(stringResource(R.string.transaction_preparing_kyc))
+            KycInit -> Text(stringResource(R.string.transaction_preparing_kyc))
             KycRequired,
             KycAuthRequired,
-            BalanceKycRequired,
-            MergeKycRequired -> Text(stringResource(R.string.transactions_required_kyc))
+            BalanceKycRequired  -> Text(stringResource(R.string.transactions_required_kyc))
             else -> {}
         }
 

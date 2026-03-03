@@ -54,7 +54,7 @@ import net.taler.wallet.transactions.TransactionInfoComposable
 import net.taler.wallet.transactions.TransactionMajorState.Done
 import net.taler.wallet.transactions.TransactionMajorState.Pending
 import net.taler.wallet.transactions.TransactionMinorState.CreatePurse
-import net.taler.wallet.transactions.TransactionMinorState.MergeKycRequired
+import net.taler.wallet.transactions.TransactionMinorState.KycRequired
 import net.taler.wallet.transactions.TransactionMinorState.Ready
 import net.taler.wallet.transactions.TransactionPeerComposable
 import net.taler.wallet.transactions.TransactionPeerPushDebit
@@ -109,7 +109,7 @@ fun ColumnScope.PeerQrCode(
 ) {
     val context = LocalContext.current
 
-    if (state == TransactionState(Pending) && state.minor != MergeKycRequired) {
+    if (state == TransactionState(Pending) && state.minor != KycRequired) {
         Text(
             modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
             style = MaterialTheme.typography.bodyLarge,

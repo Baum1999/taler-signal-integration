@@ -85,62 +85,35 @@ enum class TransactionMajorState {
 
 @Serializable
 enum class TransactionMinorState {
-    @SerialName("unknown")
-    Unknown,
+    @SerialName("aborting-bank")
+    AbortingBank,
 
-    @SerialName("deposit")
-    Deposit,
-
-    @SerialName("kyc")
-    KycRequired,
-
-    @SerialName("kyc-init")
-    KycInit,
-
-    @SerialName("merge-kyc")
-    MergeKycRequired,
-
-    @SerialName("balance-kyc")
-    BalanceKycRequired,
-
-    @SerialName("balance-kyc-init")
-    BalanceKycInit,
-
-    @SerialName("kyc-auth")
-    KycAuthRequired,
-
-    @SerialName("track")
-    Track,
-
-    @SerialName("submit-payment")
-    SubmitPayment,
-
-    @SerialName("rebind-session")
-    RebindSession,
-
-    @SerialName("refresh")
-    Refresh,
-
-    @SerialName("pickup")
-    Pickup,
+    @SerialName("accept-refund")
+    AcceptRefund,
 
     @SerialName("auto-refund")
     AutoRefund,
 
-    @SerialName("user")
-    User,
+    @SerialName("balance-kyc")
+    BalanceKycRequired,
 
     @SerialName("bank")
     Bank,
 
-    @SerialName("exchange")
-    Exchange,
+    @SerialName("bank-confirm-transfer")
+    BankConfirmTransfer,
+
+    @SerialName("bank-register-reserve")
+    BankRegisterReserve,
+
+    @SerialName("check-refund")
+    CheckRefund,
 
     @SerialName("claim-proposal")
     ClaimProposal,
 
-    @SerialName("check-refund")
-    CheckRefund,
+    @SerialName("completed-by-another-wallet")
+    CompletedByAnotherWallet,
 
     @SerialName("create-purse")
     CreatePurse,
@@ -148,54 +121,58 @@ enum class TransactionMinorState {
     @SerialName("delete-purse")
     DeletePurse,
 
-    @SerialName("refresh-expired")
-    RefreshExpired,
+    @SerialName("deposit")
+    Deposit,
 
-    @SerialName("ready")
-    Ready,
-
-    @SerialName("merge")
-    Merge,
-
-    @SerialName("repurchase")
-    Repurchase,
-
-    @SerialName("bank-register-reserve")
-    BankRegisterReserve,
-
-    @SerialName("bank-confirm-transfer")
-    BankConfirmTransfer,
-
-    @SerialName("withdraw-coins")
-    WithdrawCoins,
+    @SerialName("exchange")
+    Exchange,
 
     @SerialName("exchange-wait-reserve")
     ExchangeWaitReserve,
 
-    @SerialName("aborting")
-    Aborting,
+    @SerialName("kyc-auth")
+    KycAuthRequired,
 
-    @SerialName("refused")
-    Refused,
+    @SerialName("kyc-init")
+    KycInit,
 
-    @SerialName("withdraw")
-    Withdraw,
+    @SerialName("kyc")
+    KycRequired,
 
-    @SerialName("merchant-order-proposed")
-    MerchantOrderProposed,
-
-    @SerialName("proposed")
-    Proposed,
-
-    @SerialName("refund-available")
-    RefundAvailable,
-
-    @SerialName("accept-refund")
-    AcceptRefund,
+    @SerialName("merge")
+    Merge,
 
     @SerialName("paid-by-other")
     PaidByOther,
 
-    @SerialName("completed-by-other-wallet")
-    CompletedByOtherWallet,
+    @SerialName("proposed")
+    Proposed,
+
+    @SerialName("ready")
+    Ready,
+
+    @SerialName("rebind-session")
+    RebindSession,
+
+    @SerialName("refresh")
+    Refresh,
+
+    @SerialName("refused")
+    Refused,
+
+    @SerialName("repurchase")
+    Repurchase,
+
+    @SerialName("submit-payment")
+    SubmitPayment,
+
+    @SerialName("track")
+    Track,
+
+    @SerialName("unknown")
+    Unknown,
+
+    @SerialName("withdraw")
+    Withdraw,
+
 }

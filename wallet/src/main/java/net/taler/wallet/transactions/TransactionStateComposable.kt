@@ -47,13 +47,11 @@ import net.taler.wallet.transactions.TransactionMajorState.Failed
 import net.taler.wallet.transactions.TransactionMajorState.Finalizing
 import net.taler.wallet.transactions.TransactionMajorState.Pending
 import net.taler.wallet.transactions.TransactionMajorState.Suspended
-import net.taler.wallet.transactions.TransactionMinorState.BalanceKycInit
 import net.taler.wallet.transactions.TransactionMinorState.BalanceKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
 import net.taler.wallet.transactions.TransactionMinorState.KycAuthRequired
 import net.taler.wallet.transactions.TransactionMinorState.KycInit
 import net.taler.wallet.transactions.TransactionMinorState.KycRequired
-import net.taler.wallet.transactions.TransactionMinorState.MergeKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.Repurchase
 import net.taler.wallet.transactions.WithdrawalDetails.ManualTransfer
 
@@ -68,10 +66,8 @@ fun TransactionStateComposable(
         TransactionState(Done) -> stringResource(R.string.transaction_state_done)
         TransactionState(Pending, BankConfirmTransfer) -> stringResource(R.string.transaction_state_pending_bank)
         TransactionState(Pending, KycInit) -> stringResource(R.string.transaction_preparing_kyc)
-        TransactionState(Pending, BalanceKycInit) -> stringResource(R.string.transaction_preparing_kyc)
         TransactionState(Pending, KycRequired) -> stringResource(R.string.transaction_state_pending_kyc_bank)
         TransactionState(Pending, BalanceKycRequired) -> stringResource(R.string.transaction_state_pending_kyc_bank)
-        TransactionState(Pending, MergeKycRequired) -> stringResource(R.string.transaction_state_pending_kyc_bank)
         TransactionState(Pending, KycAuthRequired) -> stringResource(R.string.transaction_state_pending_kyc_auth)
         TransactionState(Pending) -> stringResource(R.string.transaction_state_pending)
         TransactionState(Aborted) -> if (tx is TransactionWithdrawal && tx.withdrawalDetails is ManualTransfer) {
@@ -137,10 +133,8 @@ fun TransactionStateComposablePreview() {
             val modifier = Modifier.padding(vertical = 6.dp)
             TransactionStateComposable(modifier, state = TransactionState(Pending, BankConfirmTransfer))
             TransactionStateComposable(modifier, state = TransactionState(Pending, KycInit))
-            TransactionStateComposable(modifier, state = TransactionState(Pending, BalanceKycInit))
             TransactionStateComposable(modifier, state = TransactionState(Pending, KycRequired))
             TransactionStateComposable(modifier, state = TransactionState(Pending, BalanceKycRequired))
-            TransactionStateComposable(modifier, state = TransactionState(Pending, MergeKycRequired))
             TransactionStateComposable(modifier, state = TransactionState(Pending, KycAuthRequired))
             TransactionStateComposable(modifier, state = TransactionState(Pending))
             TransactionStateComposable(modifier, state = TransactionState(Aborted))
