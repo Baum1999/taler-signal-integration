@@ -16,6 +16,7 @@
 
 package net.taler.wallet.transfer
 
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
@@ -23,10 +24,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import net.taler.common.QrLogoSize
 import net.taler.wallet.R
 import net.taler.wallet.compose.ExpandableCard
 import net.taler.wallet.compose.QrCodeUriComposable
@@ -35,38 +36,48 @@ import net.taler.wallet.withdraw.QrCodeSpec.Type.EpcQr
 import net.taler.wallet.withdraw.QrCodeSpec.Type.SPC
 
 @Composable
+fun ColumnScope.PaytoQrCode(
+    modifier: Modifier = Modifier,
+    qrCode: QrCodeSpec,
+) {
+    val context = LocalContext.current
+    QrCodeUriComposable(
+        modifier = modifier,
+        talerUri = qrCode.qrContent,
+        clipBoardLabel = getQrCodeLabel(qrCode),
+        showContents = true,
+        shareAsQrCode = true,
+        centerLogoSize = QrLogoSize.SMALL,
+        centerLogo = when (qrCode.type) {
+            SPC -> ContextCompat.getDrawable(context, R.drawable.ic_swiss_qr)
+            else -> null
+        },
+    )
+}
+
+@Composable
 fun PaytoQrCard(
     expanded: Boolean,
     setExpanded: (expanded: Boolean) -> Unit,
     qrCode: QrCodeSpec,
 ) {
-    val label = when(qrCode.type) {
-        EpcQr -> stringResource(R.string.withdraw_manual_qr_epc)
-        SPC -> stringResource(R.string.withdraw_manual_qr_spc)
-        else -> return
-    }
-
-    val context = LocalContext.current
-
     ExpandableCard(
         expanded = expanded,
         setExpanded = setExpanded,
         header = {
-            Text(label, style = MaterialTheme.typography.titleMedium)
+            Text(getQrCodeLabel(qrCode),
+                style = MaterialTheme.typography.titleMedium)
         },
         content = {
-            QrCodeUriComposable(
-                talerUri = qrCode.qrContent,
-                clipBoardLabel = label,
-                showContents = true,
-                shareAsQrCode = true,
-                centerLogo = when (qrCode.type) {
-                    SPC -> ContextCompat.getDrawable(context, R.drawable.ic_swiss_qr)
-                    else -> null
-                },
-            )
-
+            PaytoQrCode(qrCode = qrCode)
             Spacer(Modifier.height(8.dp))
         },
     )
+}
+
+@Composable
+fun getQrCodeLabel(qr: QrCodeSpec) = when(qr.type) {
+    EpcQr -> stringResource(R.string.withdraw_manual_qr_epc)
+    SPC -> stringResource(R.string.withdraw_manual_qr_spc)
+    else -> stringResource(R.string.withdraw_manual_qr_unknown)
 }

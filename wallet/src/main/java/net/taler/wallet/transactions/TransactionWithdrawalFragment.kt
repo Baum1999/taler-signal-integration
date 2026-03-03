@@ -21,6 +21,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
@@ -37,11 +38,26 @@ class TransactionWithdrawalFragment : TransactionDetailFragment(), ActionListene
             TalerSurface {
                 val t by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
                 (t as? TransactionWithdrawal)?.let { tx ->
+                    // show QR code only if withdrawal only contains one
+                    val qrCode = remember(tx) {
+                        (tx.withdrawalDetails as? WithdrawalDetails.ManualTransfer)?.let { details ->
+                            if (details.exchangeCreditAccountDetails?.size == 1) {
+                                val account0 = details.exchangeCreditAccountDetails[0]
+                                val qrCodes = withdrawManager.getQrCodesForPayto(account0.paytoUri)
+                                if (qrCodes.size == 1) qrCodes[0]
+                                else null
+                            } else null
+                        }
+                    }
+
                     TransactionWithdrawalComposable(
                         t = tx,
                         devMode = devMode,
                         spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
-                        actionListener = this@TransactionWithdrawalFragment,
+                        qrCode = qrCode,
+                        onConfirmBank = { onActionButtonClicked(tx, ActionListener.Type.CONFIRM_WITH_BANK) },
+                        onConfirmManual = { onActionButtonClicked(tx, ActionListener.Type.CONFIRM_MANUAL) },
+                        onShowQrCodes = { onActionButtonClicked(tx, ActionListener.Type.SHOW_WIRE_QR) },
                     ) {
                         onTransitionButtonClicked(tx, it)
                     }

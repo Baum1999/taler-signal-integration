@@ -43,31 +43,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import net.taler.common.QrCodeManager
+import net.taler.common.QrLogoSize
 import net.taler.common.copyToClipBoard
 import net.taler.wallet.R
-import net.taler.wallet.toImageBitmap
-import kotlin.let
 
 @Composable
 fun ColumnScope.QrCodeUriComposable(
+    modifier: Modifier = Modifier,
     talerUri: String,
     clipBoardLabel: String,
     centerLogo: Drawable? = null,
+    centerLogoSize: QrLogoSize = QrLogoSize.MEDIUM,
     drawCenterLogoBackground: Boolean = false,
     buttonText: String = stringResource(R.string.copy),
     showContents: Boolean = true,
@@ -80,12 +76,13 @@ fun ColumnScope.QrCodeUriComposable(
             talerUri,
             qrCodeSize.value.toInt(),
             centerLogo = centerLogo,
+            centerLogoSize = centerLogoSize,
             drawBackground = drawCenterLogoBackground,
         ).asImageBitmap()
     }
 
     Box(
-        Modifier
+        modifier
             .fillMaxWidth()
             .aspectRatio(1f)
             .padding(bottom = if (showContents) 8.dp else 0.dp),

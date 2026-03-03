@@ -35,14 +35,21 @@ import com.google.zxing.EncodeHintType.MARGIN
 import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 
+enum class QrLogoSize(val size: Float) {
+    SMALL(0.15f),
+    MEDIUM(0.20f),
+    BIG(0.25f),
+}
+
 object QrCodeManager {
 
     fun makeQrCode(
         text: String,
         size: Int = 256,
-        margin: Int = 4,
+        margin: Int = 2,
         errorCorrection: ErrorCorrectionLevel = ErrorCorrectionLevel.M,
         centerLogo: Drawable? = null,
+        centerLogoSize: QrLogoSize = QrLogoSize.MEDIUM,
         drawBackground: Boolean = false,
     ): Bitmap {
         val qrCodeWriter = QRCodeWriter()
@@ -61,7 +68,7 @@ object QrCodeManager {
         }
 
         return if (centerLogo != null) {
-            addCenteredLogo(bmp, centerLogo, drawBackground)
+            addCenteredLogo(bmp, centerLogo, centerLogoSize, drawBackground)
         } else {
             bmp
         }
@@ -70,13 +77,14 @@ object QrCodeManager {
     private fun addCenteredLogo(
         qrBitmap: Bitmap,
         logoDrawable: Drawable,
+        logoSize: QrLogoSize = QrLogoSize.MEDIUM,
         drawBackground: Boolean = false,
     ): Bitmap {
         val result = qrBitmap.copy(ARGB_8888, true)
         val canvas = Canvas(result)
         val logoBitmap = drawableToBitmap(logoDrawable)
 
-        var logoMaxWidth = (result.width * 0.22f).toInt()
+        var logoMaxWidth = (result.width * logoSize.size).toInt()
         val logoAspectRatio = logoBitmap.width.toFloat() / logoBitmap.height.toFloat()
         var logoWidth = logoMaxWidth
         var logoHeight = (logoWidth / logoAspectRatio).toInt().coerceAtLeast(1)

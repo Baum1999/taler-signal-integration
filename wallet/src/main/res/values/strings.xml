@@ -364,9 +364,12 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="withdraw_fee">+%1$s withdrawal fees</string>
     <string name="withdraw_initiated">Withdrawal initiated</string>
     <string name="withdraw_manual_bitcoin_intro">Now make a split transaction with the following three outputs.</string>
+    <string name="withdraw_manual_instruction_manual">Follow the instructions to enter the transfer details into your banking app</string>
+    <string name="withdraw_manual_instruction_qr">Or share this QR code with your banking app to withdraw digital cash</string>
     <string name="withdraw_manual_qr_epc">EPC QR</string>
     <string name="withdraw_manual_qr_intro">If your banking software runs on another device, you can scan one of these QR codes:</string>
     <string name="withdraw_manual_qr_spc">Swiss QR bill</string>
+    <string name="withdraw_manual_qr_unknown">Unknown payment QR</string>
     <string name="withdraw_manual_ready_account">Account</string>
     <string name="withdraw_manual_ready_bank_button">Open in banking app</string>
     <string name="withdraw_manual_ready_details_intro">Wire transfer instructions</string>

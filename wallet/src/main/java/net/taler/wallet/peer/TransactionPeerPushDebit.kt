@@ -26,11 +26,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
+import net.taler.common.QrLogoSize
 import net.taler.common.Timestamp
 import net.taler.wallet.R
 import net.taler.wallet.balances.ScopeInfo
@@ -113,7 +112,7 @@ fun ColumnScope.PeerQrCode(
     if (state == TransactionState(Pending) && state.minor != MergeKycRequired) {
         Text(
             modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.bodyLarge,
             text = stringResource(id = instructionResId, amount.toString()),
             textAlign = TextAlign.Center,
         )
@@ -121,9 +120,11 @@ fun ColumnScope.PeerQrCode(
         if (state.minor == Ready && talerUri != null) {
             Spacer(Modifier.height(8.dp))
             QrCodeUriComposable(
+                modifier = Modifier.padding(horizontal = 16.dp),
                 talerUri = talerUri,
                 clipBoardLabel = "Push payment",
                 centerLogo = ContextCompat.getDrawable(context, R.drawable.ic_taler_logo_qr),
+                centerLogoSize = QrLogoSize.BIG,
                 drawCenterLogoBackground = true,
                 buttonText = stringResource(id = R.string.copy),
             ) {
