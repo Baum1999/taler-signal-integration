@@ -64,13 +64,18 @@ fun TransferCyclos(
             modifier = Modifier.padding(vertical = 6.dp)
         )
 
-        TransferStep(1, stringResource(R.string.withdraw_manual_step_subject))
+        TransferStep(1, stringResource(R.string.withdraw_manual_step_cyclos))
 
         DetailRow(
-            stringResource(R.string.withdraw_manual_ready_subject),
-            transfer.subject,
-            characterBreak = true,
+            stringResource(R.string.withdraw_manual_ready_receiver),
+            transfer.receiverName,
         )
+
+        WithdrawalAmountTransfer(
+            conversionAmountRaw = transfer.transferAmount,
+        )
+
+        TransferStep(2, stringResource(R.string.withdraw_manual_step_subject))
 
         WarningLabel(
             modifier = Modifier.padding(
@@ -80,15 +85,10 @@ fun TransferCyclos(
             label = stringResource(R.string.withdraw_manual_ready_warning),
         )
 
-        TransferStep(2, stringResource(R.string.withdraw_manual_step_cyclos))
-
         DetailRow(
-            stringResource(R.string.withdraw_manual_ready_receiver),
-            transfer.receiverName,
-        )
-
-        WithdrawalAmountTransfer(
-            conversionAmountRaw = transfer.transferAmount,
+            stringResource(R.string.withdraw_manual_ready_subject),
+            transfer.subject,
+            characterBreak = true,
         )
 
         TransferStep(3,

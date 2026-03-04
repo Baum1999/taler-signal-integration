@@ -81,26 +81,9 @@ fun TransferIBAN(
             modifier = Modifier.padding(vertical = 6.dp)
         )
 
-        TransferStep(1, stringResource(R.string.withdraw_manual_step_subject))
+        TransferStep(1, stringResource(R.string.withdraw_manual_step_iban))
 
-        DetailRow(
-            stringResource(R.string.withdraw_manual_ready_subject),
-            transfer.subject,
-            characterBreak = true,
-        )
-
-        WarningLabel(
-            modifier = Modifier.padding(
-                horizontal = 8.dp,
-                vertical = 16.dp,
-            ),
-            label = when (transferContext) {
-                ManualWithdrawal -> stringResource(R.string.withdraw_manual_ready_warning)
-                is DepositKycAuth -> stringResource(R.string.send_deposit_kyc_auth_warning_subject)
-            },
-        )
-
-        TransferStep(2, stringResource(R.string.withdraw_manual_step_iban))
+        DetailRow(stringResource(R.string.withdraw_manual_ready_iban), transfer.iban)
 
         transfer.receiverName?.let {
             DetailRow(stringResource(R.string.withdraw_manual_ready_receiver), it)
@@ -114,10 +97,27 @@ fun TransferIBAN(
             DetailRow(stringResource(R.string.withdraw_manual_ready_town), it)
         }
 
-        DetailRow(stringResource(R.string.withdraw_manual_ready_iban), transfer.iban)
-
         WithdrawalAmountTransfer(
             conversionAmountRaw = transfer.transferAmount,
+        )
+
+        TransferStep(2, stringResource(R.string.withdraw_manual_step_subject))
+
+        WarningLabel(
+            modifier = Modifier.padding(
+                horizontal = 8.dp,
+                vertical = 16.dp,
+            ),
+            label = when (transferContext) {
+                ManualWithdrawal -> stringResource(R.string.withdraw_manual_ready_warning)
+                is DepositKycAuth -> stringResource(R.string.send_deposit_kyc_auth_warning_subject)
+            },
+        )
+
+        DetailRow(
+            stringResource(R.string.withdraw_manual_ready_subject),
+            transfer.subject,
+            characterBreak = true,
         )
 
         TransferStep(3,
