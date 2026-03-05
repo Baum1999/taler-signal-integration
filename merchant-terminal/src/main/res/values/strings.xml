@@ -35,6 +35,14 @@
     <string name="amount_entry_error_wrong_currency">Unsupported currency</string>
 
     <string name="config_label">Merchant settings</string>
+    <string name="settings_language_label">Language</string>
+    <string name="settings_language_hint">App language</string>
+    <string name="settings_language_system_default">System default</string>
+    <string name="settings_subtitle">Choose the app language and manage merchant instance credentials.</string>
+    <string name="settings_language_description">Applied immediately to the app interface.</string>
+    <string name="settings_instance_title">Saved instance</string>
+    <string name="settings_instance_description">Change merchant URL, username, token, and other instance-specific settings.</string>
+    <string name="settings_instance_button">Modify saved instance</string>
     <string name="config_old_label">JSON file (old)</string>
     <string name="config_setup_password">Password</string>
     <string name="config_old_deprecation">This configuration method is deprecated, please use the new merchant API configuration.</string>
@@ -118,4 +126,34 @@
     <string name="pick_time">Pick time</string>
     <string name="session_expired_toast">Session expired – please re-enter your credentials</string>
     <string name="config_fragment_camera_needed_text">Camera permission is required for QR scanning</string>
+
+    <string-array name="settings_language_values">
+        <item></item>
+        <item>en</item>
+        <item>de</item>
+        <item>es</item>
+        <item>fi</item>
+        <item>fr</item>
+        <item>it</item>
+        <item>ru</item>
+        <item>sv</item>
+        <item>tr</item>
+        <item>uk</item>
+        <item>he</item>
+    </string-array>
+
+    <string-array name="settings_language_labels">
+        <item>@string/settings_language_system_default</item>
+        <item>English</item>
+        <item>Deutsch</item>
+        <item>Español</item>
+        <item>Suomi</item>
+        <item>Français</item>
+        <item>Italiano</item>
+        <item>Русский</item>
+        <item>Svenska</item>
+        <item>Türkçe</item>
+        <item>Українська</item>
+        <item>עברית</item>
+    </string-array>
 </resources>

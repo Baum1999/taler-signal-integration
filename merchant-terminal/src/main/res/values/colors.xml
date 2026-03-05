@@ -12,10 +12,10 @@
 <color name="colorOnPrimary">#ffffff</color>
 <color name="colorPrimaryContainer">#d3deff</color>
 <color name="colorOnPrimaryContainer">#00134a</color>
-<color name="colorInversePrimary">#afc6ff</color>
+<color name="colorInversePrimary">#B4C5FF</color>
 
 <color name="colorOnSecondary">#ffffff</color>
-<color name="colorSecondaryContainer">#d8e3f9</color>
+<color name="colorSecondaryContainer">#D9E3F9</color>
 <color name="colorOnSecondaryContainer">#111c2b</color>
 
 <color name="colorOnTertiary">#ffffff</color>
@@ -37,8 +37,8 @@
 <color name="colorOnSurfaceVariant">#45474f</color>
 <color name="colorSurfaceVariant">#e0e3ec</color>
 
-<color name="colorInverseOnSurface">#f4eff4</color>
-<color name="colorInverseSurface">#313033</color>
+<color name="colorInverseOnSurface">#F0F2FF</color>
+<color name="colorInverseSurface">#2C2F3A</color>
 
 <color name="colorSurfaceTint">#0042b3</color>
 

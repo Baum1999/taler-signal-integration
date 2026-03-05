@@ -46,6 +46,7 @@ import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
@@ -56,10 +57,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import net.taler.common.navigate
 import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.R
-import net.taler.merchantpos.config.ConfigFragmentDirections.Companion.actionSettingsToOrder
 import net.taler.merchantpos.databinding.FragmentMerchantConfigBinding
 import androidx.core.view.isVisible
 import com.google.zxing.*
@@ -295,7 +294,7 @@ class ConfigFragment : Fragment() {
         onResultReceived()
         updateView()
         Snackbar.make(requireView(), getString(R.string.config_changed, currency), LENGTH_LONG).show()
-        navigate(actionSettingsToOrder())
+        findNavController().navigate(R.id.action_instanceSettings_to_order)
     }
 
     private fun onError(msg: String) {

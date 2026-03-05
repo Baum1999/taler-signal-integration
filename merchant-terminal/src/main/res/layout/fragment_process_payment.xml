@@ -44,18 +44,12 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toTopOf="@id/shareButton">
 
-            <ImageView
+            <androidx.compose.ui.platform.ComposeView
                 android:id="@+id/qrcodeView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_margin="6dp"
-                tools:ignore="ContentDescription"
-                tools:src="@tools:sample/avatars" />
-
-            <net.taler.merchantpos.payment.AnimatedQrBorderView
-                android:id="@+id/qrAnimatedBorder"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                tools:ignore="ContentDescription" />
 
         </FrameLayout>
 

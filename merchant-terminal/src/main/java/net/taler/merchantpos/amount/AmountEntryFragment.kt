@@ -20,8 +20,51 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.TextUnit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import net.taler.common.Amount
@@ -31,8 +74,8 @@ import net.taler.merchantpos.R
 import net.taler.merchantpos.amount.AmountEntryFragmentDirections.Companion.actionAmountEntryToProcessPayment
 import net.taler.merchantpos.amount.AmountEntryFragmentDirections.Companion.actionGlobalConfigFetcher
 import net.taler.merchantpos.amount.AmountEntryFragmentDirections.Companion.actionGlobalMerchantSettings
+import net.taler.merchantpos.compose.PosTheme
 import net.taler.merchantpos.config.ConfigProduct
-import net.taler.merchantpos.databinding.FragmentAmountEntryBinding
 import net.taler.merchantpos.order.Order
 
 private const val QUICK_AMOUNT_ORDER_ID = -1
@@ -43,18 +86,31 @@ class AmountEntryFragment : Fragment() {
     private val viewModel: MainViewModel by activityViewModels()
     private val paymentManager by lazy { viewModel.paymentManager }
 
-    private lateinit var ui: FragmentAmountEntryBinding
-
-    private var selectedCurrency: String? = null
-    private var amount: Amount? = null
+    private var selectedCurrency by mutableStateOf<String?>(null)
+    private var amount by mutableStateOf<Amount?>(null)
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        ui = FragmentAmountEntryBinding.inflate(inflater, container, false)
-        return ui.root
+        initializeAmountState()
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                AmountEntryScreen(
+                    amountText = amount?.toString(showSymbol = false) ?: "0.00",
+                    selectedCurrency = selectedCurrency,
+                    currencyOptions = viewModel.configManager.currency?.let(::listOf) ?: emptyList(),
+                    chargeEnabled = amount?.isZero() == false,
+                    onCurrencySelected = ::setCurrency,
+                    onDigitPressed = ::onDigitPressed,
+                    onClearPressed = ::clearAmount,
+                    onBackspacePressed = ::onBackspacePressed,
+                    onChargePressed = ::onChargePressed,
+                )
+            }
+        }
     }
 
     override fun onStart() {
@@ -66,39 +122,13 @@ class AmountEntryFragment : Fragment() {
         }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        val configuredCurrency = viewModel.configManager.currency
-        if (configuredCurrency != null) {
-            bindCurrency(listOf(configuredCurrency))
-            setCurrency(configuredCurrency)
+    private fun initializeAmountState() {
+        val configuredCurrency = viewModel.configManager.currency ?: return
+        if (selectedCurrency == null) {
+            selectedCurrency = configuredCurrency
         }
-
-        ui.key0.setOnClickListener { onDigitPressed('0') }
-        ui.key1.setOnClickListener { onDigitPressed('1') }
-        ui.key2.setOnClickListener { onDigitPressed('2') }
-        ui.key3.setOnClickListener { onDigitPressed('3') }
-        ui.key4.setOnClickListener { onDigitPressed('4') }
-        ui.key5.setOnClickListener { onDigitPressed('5') }
-        ui.key6.setOnClickListener { onDigitPressed('6') }
-        ui.key7.setOnClickListener { onDigitPressed('7') }
-        ui.key8.setOnClickListener { onDigitPressed('8') }
-        ui.key9.setOnClickListener { onDigitPressed('9') }
-        ui.keyClear.setOnClickListener { clearAmount() }
-        ui.keyBackspace.setOnClickListener { onBackspacePressed() }
-
-        ui.chargeButton.setOnClickListener { onChargePressed() }
-
-        render()
-    }
-
-    private fun bindCurrency(currencies: List<String>) {
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, currencies)
-        ui.currencyView.setAdapter(adapter)
-        ui.currencyView.setOnItemClickListener { _, _, position, _ ->
-            val newCurrency = adapter.getItem(position) ?: return@setOnItemClickListener
-            setCurrency(newCurrency)
+        if (amount == null) {
+            amount = Amount.zero(configuredCurrency)
         }
     }
 
@@ -110,26 +140,21 @@ class AmountEntryFragment : Fragment() {
             currentAmount.currency == currency -> currentAmount
             else -> currentAmount.withCurrency(currency)
         }
-        ui.currencyView.setText(currency, false)
-        render()
     }
 
     private fun onDigitPressed(digit: Char) {
         val currentAmount = amount ?: return
         amount = currentAmount.addInputDigit(digit) ?: currentAmount
-        render()
     }
 
     private fun onBackspacePressed() {
         val currentAmount = amount ?: return
         amount = currentAmount.removeInputDigit() ?: currentAmount
-        render()
     }
 
     private fun clearAmount() {
         val currency = selectedCurrency ?: return
         amount = Amount.zero(currency)
-        render()
     }
 
     private fun onChargePressed() {
@@ -168,11 +193,321 @@ class AmountEntryFragment : Fragment() {
         paymentManager.createPayment(order, includeProducts = false)
         navigate(actionAmountEntryToProcessPayment())
     }
+}
 
-    private fun render() {
-        val currentAmount = amount
-        ui.amountView.text = currentAmount?.toString(showSymbol = false) ?: "0.00"
-        val enabled = currentAmount != null && !currentAmount.isZero()
-        ui.chargeButton.isEnabled = enabled
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AmountEntryScreen(
+    amountText: String,
+    selectedCurrency: String?,
+    currencyOptions: List<String>,
+    chargeEnabled: Boolean,
+    onCurrencySelected: (String) -> Unit,
+    onDigitPressed: (Char) -> Unit,
+    onClearPressed: () -> Unit,
+    onBackspacePressed: () -> Unit,
+    onChargePressed: () -> Unit,
+) {
+    PosTheme {
+        val isTabletLayout = LocalConfiguration.current.smallestScreenWidthDp >= 600
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            if (!isTabletLayout) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    AmountPane(
+                        amountText = amountText,
+                        selectedCurrency = selectedCurrency,
+                        currencyOptions = currencyOptions,
+                        isTabletLayout = false,
+                        onCurrencySelected = onCurrencySelected,
+                        modifier = Modifier
+                            .weight(0.3f)
+                            .padding(8.dp),
+                    )
+                    KeypadPane(
+                        isTabletLayout = false,
+                        chargeEnabled = chargeEnabled,
+                        onDigitPressed = onDigitPressed,
+                        onClearPressed = onClearPressed,
+                        onBackspacePressed = onBackspacePressed,
+                        onChargePressed = onChargePressed,
+                        modifier = Modifier
+                            .weight(0.7f)
+                            .padding(4.dp),
+                    )
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    AmountPane(
+                        amountText = amountText,
+                        selectedCurrency = selectedCurrency,
+                        currencyOptions = currencyOptions,
+                        isTabletLayout = true,
+                        onCurrencySelected = onCurrencySelected,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(0.35f),
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(0.65f),
+                        horizontalArrangement = Arrangement.Center,
+                    ) {
+                        KeypadPane(
+                            isTabletLayout = true,
+                            chargeEnabled = chargeEnabled,
+                            onDigitPressed = onDigitPressed,
+                            onClearPressed = onClearPressed,
+                            onBackspacePressed = onBackspacePressed,
+                            onChargePressed = onChargePressed,
+                            modifier = Modifier.fillMaxWidth(0.6f),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AmountPane(
+    amountText: String,
+    selectedCurrency: String?,
+    currencyOptions: List<String>,
+    isTabletLayout: Boolean,
+    onCurrencySelected: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    val dropdownComposable: @Composable () -> Unit = {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { if (currencyOptions.isNotEmpty()) expanded = !expanded },
+            modifier = Modifier.wrapContentWidth(Alignment.CenterHorizontally),
+        ) {
+            OutlinedTextField(
+                modifier = Modifier
+                    .menuAnchor(
+                        type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                        enabled = currencyOptions.isNotEmpty(),
+                    )
+                    .widthIn(min = 96.dp),
+                value = selectedCurrency.orEmpty(),
+                onValueChange = {},
+                readOnly = true,
+                singleLine = true,
+                label = { Text(stringResource(R.string.amount_entry_label)) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            )
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+            ) {
+                currencyOptions.forEach { currency ->
+                    DropdownMenuItem(
+                        text = { Text(currency) },
+                        onClick = {
+                            expanded = false
+                            onCurrencySelected(currency)
+                        },
+                    )
+                }
+            }
+        }
+    }
+
+    if (isTabletLayout) {
+        Row(
+            modifier = modifier,
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = amountText,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.headlineLarge.copy(fontSize = 56.sp),
+                maxLines = 1,
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            dropdownComposable()
+        }
+    } else {
+        val phoneAmountFontSize = when (amountText.length) {
+            in 0..6 -> 56.sp
+            in 7..8 -> 48.sp
+            in 9..10 -> 40.sp
+            in 11..12 -> 32.sp
+            in 13..14 -> 26.sp
+            else -> 22.sp
+        }
+
+        Column(
+            modifier = modifier,
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = amountText,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.headlineLarge.copy(fontSize = phoneAmountFontSize),
+                maxLines = 1,
+                softWrap = false,
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+            dropdownComposable()
+        }
+    }
+}
+
+@Composable
+private fun KeypadPane(
+    isTabletLayout: Boolean,
+    chargeEnabled: Boolean,
+    onDigitPressed: (Char) -> Unit,
+    onClearPressed: () -> Unit,
+    onBackspacePressed: () -> Unit,
+    onChargePressed: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val configuration = LocalConfiguration.current
+    val isCompactPhone = !isTabletLayout && configuration.screenHeightDp <= 720
+    val rowSpacing = if (isCompactPhone) 6.dp else 8.dp
+    val digitFontSize = if (isCompactPhone) 24.sp else 28.sp
+
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(rowSpacing),
+    ) {
+        val keyContainerColor = colorResource(R.color.amount_entry_key_background)
+        val keyContentColor = colorResource(R.color.amount_entry_key_text)
+        val clearLabel = stringResource(R.string.amount_entry_clear)
+        val clearTextSize = when {
+            clearLabel.length >= 14 -> if (isCompactPhone) 12.sp else 14.sp
+            clearLabel.length >= 10 -> if (isCompactPhone) 14.sp else 16.sp
+            else -> if (isCompactPhone) 16.sp else 20.sp
+        }
+
+        listOf(
+            listOf("1", "2", "3"),
+            listOf("4", "5", "6"),
+            listOf("7", "8", "9"),
+        ).forEach { row ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(rowSpacing),
+            ) {
+                row.forEach { key ->
+                    KeyButton(
+                        text = key,
+                        modifier = Modifier.weight(1f),
+                        containerColor = keyContainerColor,
+                        contentColor = keyContentColor,
+                        fontSize = digitFontSize,
+                        onClick = { onDigitPressed(key.first()) },
+                    )
+                }
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(rowSpacing),
+        ) {
+            KeyButton(
+                text = clearLabel,
+                modifier = Modifier.weight(1f),
+                containerColor = keyContainerColor,
+                contentColor = keyContentColor,
+                fontSize = clearTextSize,
+                onClick = onClearPressed,
+            )
+            KeyButton(
+                text = "0",
+                modifier = Modifier.weight(1f),
+                containerColor = keyContainerColor,
+                contentColor = keyContentColor,
+                onClick = { onDigitPressed('0') },
+            )
+            Button(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxSize(),
+                onClick = onBackspacePressed,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = keyContainerColor,
+                    contentColor = keyContentColor,
+                ),
+                contentPadding = PaddingValues(0.dp),
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_backspace),
+                    contentDescription = stringResource(R.string.amount_entry_backspace),
+                    tint = keyContentColor,
+                )
+            }
+        }
+
+        Button(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            onClick = onChargePressed,
+            enabled = chargeEnabled,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = colorResource(R.color.colorPrimary),
+                contentColor = colorResource(R.color.colorOnPrimary),
+                disabledContainerColor = colorResource(R.color.colorSecondary).copy(alpha = 0.12f),
+            ),
+        ) {
+            Text(stringResource(R.string.amount_entry_create_order_charge))
+        }
+    }
+}
+
+@Composable
+private fun KeyButton(
+    text: String,
+    modifier: Modifier,
+    containerColor: Color,
+    contentColor: Color,
+    fontSize: TextUnit? = null,
+    onClick: () -> Unit,
+) {
+    Button(
+        modifier = modifier.fillMaxSize(),
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = containerColor,
+            contentColor = contentColor,
+        ),
+        contentPadding = PaddingValues(horizontal = 2.dp, vertical = 0.dp),
+    ) {
+        Text(
+            text = text,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            softWrap = false,
+            overflow = TextOverflow.Ellipsis,
+            style = fontSize?.let { MaterialTheme.typography.headlineMedium.copy(fontSize = it) }
+                ?: MaterialTheme.typography.headlineMedium,
+        )
     }
 }

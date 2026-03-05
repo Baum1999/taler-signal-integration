@@ -145,9 +145,9 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
         val currentDestination = nav.currentDestination?.id
         if (ui.drawerLayout.isDrawerOpen(START)) {
             ui.drawerLayout.closeDrawer(START)
-        } else if (currentDestination == R.id.nav_settings
+        } else if ((currentDestination == R.id.nav_settings || currentDestination == R.id.nav_instanceSettings)
                 && !model.configManager.config.isValid()) {
-            // we are in the configuration screen and need a config to continue
+            // we are in settings and need a valid config to continue
             val intent = Intent(ACTION_MAIN).apply {
                 addCategory(CATEGORY_HOME)
                 flags = FLAG_ACTIVITY_NEW_TASK

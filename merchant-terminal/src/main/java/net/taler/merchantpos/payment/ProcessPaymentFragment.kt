@@ -17,18 +17,15 @@
 package net.taler.merchantpos.payment
 
 import android.graphics.Bitmap
-import android.graphics.Bitmap.Config.ARGB_8888
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.Rect
-import android.graphics.RectF
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.NavOptions
@@ -43,12 +40,12 @@ import net.taler.common.fadeIn
 import net.taler.common.fadeOut
 import net.taler.common.shareText
 import net.taler.common.showError
+import net.taler.lib.android.AnimatedQrCodeComposable
 import net.taler.lib.android.TalerNfcService.Companion.hasNfc
 import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.R
+import net.taler.merchantpos.compose.PosTheme
 import net.taler.merchantpos.databinding.FragmentProcessPaymentBinding
-import androidx.core.graphics.createBitmap
-import net.taler.common.QrCodeManager
 
 class ProcessPaymentFragment : Fragment() {
 
@@ -58,6 +55,7 @@ class ProcessPaymentFragment : Fragment() {
     private lateinit var ui: FragmentProcessPaymentBinding
     private lateinit var qrPreviewBackCallback: OnBackPressedCallback
     private var currentPayUri: String? = null
+    private var currentQrBitmap: Bitmap? = null
     private var deviceHasNfc: Boolean = false
 
     override fun onCreateView(
@@ -182,7 +180,7 @@ class ProcessPaymentFragment : Fragment() {
     }
 
     private fun showQrPreview() {
-        val qrBitmap = (ui.qrcodeView.drawable as? BitmapDrawable)?.bitmap ?: return
+        val qrBitmap = currentQrBitmap ?: return
         ui.qrPreviewImage.setImageBitmap(qrBitmap)
         ui.qrPreviewOverlay.visibility = View.VISIBLE
         qrPreviewBackCallback.isEnabled = true
@@ -197,8 +195,24 @@ class ProcessPaymentFragment : Fragment() {
 
     private fun renderPaymentQrCode(text: String, onRendered: (() -> Unit)? = null) {
         ui.qrcodeView.post {
-            val qrSize = minOf(ui.qrcodeView.width, ui.qrcodeView.height).coerceAtLeast(256)
-            ui.qrcodeView.setImageBitmap(makePaymentQrCode(text, qrSize))
+            val blockSize = minOf(ui.qrcodeView.width, ui.qrcodeView.height).coerceAtLeast(256)
+            val qrSize = (blockSize * 0.88f).toInt().coerceAtLeast(256)
+            currentQrBitmap = makePaymentQrCode(text, qrSize)
+
+            val density = resources.displayMetrics.density
+            val widthDp = ui.qrcodeView.width / density
+            val heightDp = ui.qrcodeView.height / density
+            ui.qrcodeView.setContent {
+                PosTheme {
+                    AnimatedQrCodeComposable(
+                        width = widthDp.dp,
+                        height = heightDp.dp,
+                        link = text,
+                        logoPainter = painterResource(R.drawable.ic_taler_logo_qr),
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
             onRendered?.invoke()
         }
     }
@@ -207,13 +221,12 @@ class ProcessPaymentFragment : Fragment() {
         return makeQrCode(
             text = text,
             size = size,
-            margin = 1,
+            margin = 0,
             errorCorrection = ErrorCorrectionLevel.H,
-            centerLogo = ContextCompat.getDrawable(
-                requireContext(),
-                R.drawable.ic_taler_logo_qr,
-            ),
+            centerLogo = null,
             drawBackground = true,
+            lightColor = ContextCompat.getColor(requireContext(), R.color.colorSurfaceVariant),
+            trimQuietZone = true,
         )
     }
 

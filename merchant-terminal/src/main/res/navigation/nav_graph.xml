@@ -91,11 +91,20 @@
 
     <fragment
         android:id="@+id/nav_settings"
+        android:name="net.taler.merchantpos.config.GeneralSettingsFragment"
+        android:label="@string/menu_settings">
+        <action
+            android:id="@+id/action_settings_to_instanceSettings"
+            app:destination="@+id/nav_instanceSettings" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_instanceSettings"
         android:name="net.taler.merchantpos.config.ConfigFragment"
         android:label="@string/config_label"
         tools:layout="@layout/fragment_merchant_config">
         <action
-            android:id="@+id/action_settings_to_order"
+            android:id="@+id/action_instanceSettings_to_order"
             app:destination="@+id/nav_order"
             app:launchSingleTop="true"
             app:popUpTo="@+id/nav_graph"
@@ -109,7 +118,7 @@
         tools:layout="@layout/fragment_config_fetcher">
         <action
             android:id="@+id/action_configFetcher_to_merchantSettings"
-            app:destination="@+id/nav_settings"
+            app:destination="@+id/nav_instanceSettings"
             app:launchSingleTop="true"
             app:popUpTo="@+id/nav_graph"
             app:popUpToInclusive="true" />

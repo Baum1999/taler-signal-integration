@@ -20,6 +20,7 @@ import android.graphics.Bitmap
 import android.graphics.Bitmap.Config.ARGB_8888
 import android.graphics.Bitmap.Config.RGB_565
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Color.BLACK
 import android.graphics.Color.WHITE
 import android.graphics.Paint
@@ -51,6 +52,9 @@ object QrCodeManager {
         centerLogo: Drawable? = null,
         centerLogoSize: QrLogoSize = QrLogoSize.MEDIUM,
         drawBackground: Boolean = false,
+        darkColor: Int = BLACK,
+        lightColor: Int = WHITE,
+        trimQuietZone: Boolean = false,
     ): Bitmap {
         val qrCodeWriter = QRCodeWriter()
         val hints = mapOf(
@@ -63,15 +67,43 @@ object QrCodeManager {
         val bmp = createBitmap(width, height, RGB_565)
         for (x in 0 until width) {
             for (y in 0 until height) {
-                bmp[x, y] = if (bitMatrix.get(x, y)) BLACK else WHITE
+                bmp[x, y] = if (bitMatrix.get(x, y)) darkColor else lightColor
             }
         }
 
+        val qrBitmap = if (trimQuietZone) trimQrQuietZone(bmp, lightColor) else bmp
+
         return if (centerLogo != null) {
-            addCenteredLogo(bmp, centerLogo, centerLogoSize, drawBackground)
+            addCenteredLogo(qrBitmap, centerLogo, centerLogoSize, drawBackground, lightColor)
         } else {
-            bmp
+            qrBitmap
         }
+    }
+
+    private fun trimQrQuietZone(bitmap: Bitmap, lightColor: Int): Bitmap {
+        val width = bitmap.width
+        val height = bitmap.height
+        var minX = width
+        var minY = height
+        var maxX = -1
+        var maxY = -1
+
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                if (bitmap.getPixel(x, y) != lightColor) {
+                    if (x < minX) minX = x
+                    if (x > maxX) maxX = x
+                    if (y < minY) minY = y
+                    if (y > maxY) maxY = y
+                }
+            }
+        }
+
+        if (maxX < minX || maxY < minY) return bitmap
+        val croppedWidth = maxX - minX + 1
+        val croppedHeight = maxY - minY + 1
+        if (croppedWidth == width && croppedHeight == height) return bitmap
+        return Bitmap.createBitmap(bitmap, minX, minY, croppedWidth, croppedHeight)
     }
 
     private fun addCenteredLogo(
@@ -79,6 +111,7 @@ object QrCodeManager {
         logoDrawable: Drawable,
         logoSize: QrLogoSize = QrLogoSize.MEDIUM,
         drawBackground: Boolean = false,
+        logoBackgroundColor: Int = WHITE,
     ): Bitmap {
         val result = qrBitmap.copy(ARGB_8888, true)
         val canvas = Canvas(result)
@@ -119,7 +152,7 @@ object QrCodeManager {
 
             val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 style = Paint.Style.FILL
-                color = WHITE
+                color = logoBackgroundColor
             }
             val cornerRadius =
                 halfBackgroundHeight // * 0.8f taler has circle in logo, so it can be fine
