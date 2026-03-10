@@ -29,22 +29,31 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.wallet.R
 import net.taler.wallet.compose.Material3MenuGroup
 import net.taler.wallet.compose.Material3MenuItemData
+import net.taler.wallet.compose.TalerSurface
 
 @Composable
 fun EmptyBalancesComposable(
@@ -53,6 +62,10 @@ fun EmptyBalancesComposable(
     onWithdrawMoneyClicked: () -> Unit,
     onGetDemoMoneyClicked: () -> Unit,
 ) {
+    var loadingWithdraw by remember { mutableStateOf(false) }
+    var loadingDemo by remember { mutableStateOf(false) }
+    val enabled = networkStatus && !loadingWithdraw && !loadingDemo
+
     LazyColumn (
         modifier = Modifier
             .padding(innerPadding)
@@ -97,11 +110,21 @@ fun EmptyBalancesComposable(
                             Spacer(Modifier.height(6.dp))
                             Button(
                                 modifier = Modifier.fillMaxWidth(),
-                                onClick = onWithdrawMoneyClicked,
-                                enabled = networkStatus,
+                                onClick = {
+                                    loadingWithdraw = true
+                                    onWithdrawMoneyClicked()
+
+                                },
+                                enabled = enabled,
                             ) {
-                                Text(
-                                    color = MaterialTheme.colorScheme.onPrimary,
+                                if (loadingWithdraw) {
+                                    CircularProgressIndicator(Modifier.size(15.dp))
+                                } else Text(
+                                    color = if (enabled) {
+                                        ButtonDefaults.buttonColors().contentColor
+                                    } else {
+                                        ButtonDefaults.buttonColors().disabledContentColor
+                                    },
                                     text = stringResource(R.string.balances_empty_withdraw_chf_button),
                                 )
                             }
@@ -124,11 +147,20 @@ fun EmptyBalancesComposable(
                                 Spacer(Modifier.height(6.dp))
                                 Button(
                                     modifier = Modifier.fillMaxWidth(),
-                                    onClick = onGetDemoMoneyClicked,
-                                    enabled = networkStatus,
+                                    onClick = {
+                                        loadingDemo = true
+                                        onGetDemoMoneyClicked()
+                                    },
+                                    enabled = networkStatus && !(loadingWithdraw || loadingDemo),
                                 ) {
-                                    Text(
-                                        color = MaterialTheme.colorScheme.onPrimary,
+                                    if (loadingDemo) {
+                                        CircularProgressIndicator(Modifier.size(15.dp))
+                                    } else Text(
+                                        color = if (enabled) {
+                                            ButtonDefaults.buttonColors().contentColor
+                                        } else {
+                                            ButtonDefaults.buttonColors().disabledContentColor
+                                        },
                                         text = stringResource(R.string.balances_empty_withdraw_kudos_button),
                                     )
                                 }
@@ -138,5 +170,18 @@ fun EmptyBalancesComposable(
                 )
             })
         }
+    }
+}
+
+@Preview
+@Composable
+fun EmptyBalancesComposablePreview() {
+    TalerSurface {
+        EmptyBalancesComposable (
+            innerPadding = PaddingValues(0.dp),
+            networkStatus = false,
+            onWithdrawMoneyClicked = {},
+            onGetDemoMoneyClicked = {},
+        )
     }
 }

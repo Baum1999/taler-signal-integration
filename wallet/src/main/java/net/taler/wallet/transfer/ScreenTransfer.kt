@@ -62,6 +62,7 @@ import net.taler.common.canAppHandleUri
 import net.taler.common.copyToClipBoard
 import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.compose.ShareButton
+import net.taler.wallet.transactions.AccountRestriction
 import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.TransactionAmountComposable
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
@@ -379,6 +380,18 @@ fun ScreenTransferPreview(
                             numFractionalTrailingZeroDigits = 2,
                             altUnitNames = emptyMap(),
                         ),
+                        creditRestrictions = listOf(
+                            AccountRestriction.RegexAccount(
+                                paytoRegex = "CH",
+                                humanHint = "Only Swiss bank accounts",
+                                humanHintI18n = emptyMap(),
+                            ),
+                            AccountRestriction.RegexAccount(
+                                paytoRegex = "DE",
+                                humanHint = "Only European bank accounts",
+                                humanHintI18n = emptyMap(),
+                            )
+                        )
                     ),
                 ),
                 TransferData.Cyclos(

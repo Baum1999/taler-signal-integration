@@ -144,7 +144,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="balances_empty_withdraw_chf_title">Welcome to Taler Wallet!</string>
     <string name="balances_empty_withdraw_chf_message">To make your first payment, withdraw digital cash.</string>
     <string name="balances_empty_withdraw_chf_button">Withdraw CHF</string>
-    <string name="balances_empty_withdraw_kudos_message">Get demo cash to experience how to pay with the money of the future.</string>
+    <string name="balances_empty_withdraw_kudos_message">Get demo cash to experience how to pay with digital cash.</string>
     <string name="balances_empty_withdraw_kudos_button">Get demo cash</string>
     <string name="balances_inbound_amount">+%1$s incoming</string>
     <string name="balances_outbound_amount">-%1$s outgoing</string>

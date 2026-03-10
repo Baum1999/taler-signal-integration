@@ -19,10 +19,15 @@ package net.taler.wallet.compose
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
@@ -33,13 +38,23 @@ fun WarningLabel(
     label: String,
     modifier: Modifier = Modifier,
 ) {
-    Text(
-        text = label,
-        style = MaterialTheme.typography.bodyMedium,
-        color = colorResource(R.color.notice_text),
-        modifier = modifier
-            .background(colorResource(R.color.notice_background))
-            .border(BorderStroke(2.dp, colorResource(R.color.notice_border)))
-            .padding(all = 16.dp)
-    )
+    Row (modifier
+        .background(colorResource(R.color.notice_background))
+        .border(BorderStroke(2.dp, colorResource(R.color.notice_border)))
+        .padding(all = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            Icons.Outlined.Warning,
+            contentDescription = null,
+            modifier = Modifier.padding(end = 10.dp),
+            tint = colorResource(R.color.notice_text),
+        )
+
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = colorResource(R.color.notice_text),
+        )
+    }
 }

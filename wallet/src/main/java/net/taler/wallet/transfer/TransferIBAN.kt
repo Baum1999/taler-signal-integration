@@ -17,6 +17,8 @@
 package net.taler.wallet.transfer
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -27,12 +29,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
+import net.taler.common.TalerUtils
 import net.taler.wallet.R
 import net.taler.wallet.accounts.PaytoUri
 import net.taler.wallet.accounts.PaytoUriIban
 import net.taler.wallet.compose.WarningLabel
+import net.taler.wallet.transactions.AccountRestriction
+import net.taler.wallet.transfer.TransferContext.DepositKycAuth
+import net.taler.wallet.transfer.TransferContext.ManualWithdrawal
 import net.taler.wallet.withdraw.TransferData
-import net.taler.wallet.transfer.TransferContext.*
 
 @Composable
 fun TransferIBAN(
@@ -66,6 +71,26 @@ fun TransferIBAN(
             modifier = Modifier
                 .padding(vertical = 8.dp)
         )
+
+        Spacer(Modifier.padding(4.dp))
+
+        transfer.withdrawalAccount.creditRestrictions?.forEach { restriction ->
+            when (restriction) {
+                is AccountRestriction.RegexAccount -> {
+                    WarningLabel (
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        label = TalerUtils.getLocalizedString(
+                            restriction.humanHintI18n,
+                            restriction.humanHint,
+                        )
+                    )
+                }
+
+                else -> {}
+            }
+        }
 
         if (transferContext is DepositKycAuth) {
             WarningLabel(
