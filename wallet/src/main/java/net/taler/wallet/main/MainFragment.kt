@@ -172,11 +172,11 @@ class MainFragment: Fragment() {
                             devMode = devMode,
                             networkStatus = networkStatus,
                             onWithdrawMoneyClicked = {
-                                // FIXME: remove exchange when whitelisted in wallet-core
-                                model.exchangeManager.add("https://exchange.taler-ops.ch/") {
-                                    val args = bundleOf("exchangeBaseUrl" to "https://exchange.taler-ops.ch/")
-                                    findNavController().navigate(R.id.promptWithdraw, args)
-                                }
+                                val args = bundleOf(
+                                    "uri" to "taler://withdraw-exchange/exchange.taler-ops.ch/",
+                                    "from" to "Withdraw CHF button",
+                                )
+                                findNavController().navigate(R.id.action_global_handle_uri, args)
                             },
                             onGetDemoMoneyClicked = {
                                 model.withdrawManager.withdrawTestBalance()
