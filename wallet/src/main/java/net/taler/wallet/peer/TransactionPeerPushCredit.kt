@@ -16,6 +16,7 @@
 
 package net.taler.wallet.peer
 
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
@@ -27,11 +28,9 @@ import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode.EXCHANGE_GENERIC_KYC_REQUIRED
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo
-import net.taler.wallet.transactions.ActionButton
-import net.taler.wallet.transactions.ActionListener
 import net.taler.wallet.transactions.AmountType
+import net.taler.wallet.transactions.PeerActions
 import net.taler.wallet.transactions.PeerInfoShort
-import net.taler.wallet.transactions.Transaction
 import net.taler.wallet.transactions.TransactionAction.Abort
 import net.taler.wallet.transactions.TransactionAction.Retry
 import net.taler.wallet.transactions.TransactionAction.Suspend
@@ -43,12 +42,12 @@ import net.taler.wallet.transactions.TransactionPeerPushCredit
 import net.taler.wallet.transactions.TransactionState
 
 @Composable
-fun TransactionPeerPushCreditComposable(
+fun ColumnScope.TransactionPeerPushCreditComposable(
     t: TransactionPeerPushCredit,
     spec: CurrencySpecification?,
-    actionListener: ActionListener,
+    onConfirmKyc: (url: String) -> Unit,
 ) {
-    ActionButton(tx = t, listener = actionListener)
+    PeerActions(t, onConfirmKyc)
 
     TransactionAmountComposable(
         label = stringResource(id = R.string.amount_sent),
@@ -99,8 +98,6 @@ fun TransactionPeerPushCreditPreview() {
         ))
     )
     Surface {
-        TransactionPeerComposable(t, true, null, object : ActionListener {
-            override fun onActionButtonClicked(tx: Transaction, type: ActionListener.Type) {}
-        }) {}
+        TransactionPeerComposable(t, true, null, {}) {}
     }
 }

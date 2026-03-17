@@ -27,10 +27,8 @@ import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode.EXCHANGE_GENERIC_KYC_REQUIRED
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo
-import net.taler.wallet.transactions.ActionListener
 import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.PeerInfoShort
-import net.taler.wallet.transactions.Transaction
 import net.taler.wallet.transactions.TransactionAction.Abort
 import net.taler.wallet.transactions.TransactionAction.Retry
 import net.taler.wallet.transactions.TransactionAction.Suspend
@@ -92,8 +90,6 @@ fun TransactionPeerPullDebitPreview() {
         ))
     )
     Surface {
-        TransactionPeerComposable(t, true, null, object: ActionListener {
-            override fun onActionButtonClicked(tx: Transaction, type: ActionListener.Type) {}
-        }) {}
+        TransactionPeerComposable(t, true, null, {}) {}
     }
 }

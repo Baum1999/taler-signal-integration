@@ -17,19 +17,10 @@
 package net.taler.wallet.withdraw
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.QrCode
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
@@ -53,6 +43,7 @@ import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.transactions.AmountType
+import net.taler.wallet.transactions.WithdrawalActions
 import net.taler.wallet.transactions.ErrorTransactionButton
 import net.taler.wallet.transactions.TransactionAction
 import net.taler.wallet.transactions.TransactionAction.Abort
@@ -68,7 +59,6 @@ import net.taler.wallet.transactions.TransactionWithdrawal
 import net.taler.wallet.transactions.TransitionsComposable
 import net.taler.wallet.transactions.WithdrawalDetails.ManualTransfer
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
-import net.taler.wallet.transfer.PaytoQrCode
 
 @Composable
 fun TransactionWithdrawalComposable(
@@ -76,6 +66,7 @@ fun TransactionWithdrawalComposable(
     devMode: Boolean,
     qrCode: QrCodeSpec?,
     spec: CurrencySpecification?,
+    onConfirmKyc: (url: String) -> Unit,
     onConfirmBank: () -> Unit,
     onConfirmManual: () -> Unit,
     onShowQrCodes: () -> Unit,
@@ -121,59 +112,13 @@ fun TransactionWithdrawalComposable(
             amountType = AmountType.Positive,
         )
 
-        if (t.txState.minor == TransactionMinorState.BankConfirmTransfer) {
-            Button(onClick = onConfirmBank) {
-                val label = stringResource(R.string.withdraw_button_confirm_bank)
-                Icon(
-                    Icons.Default.Link,
-                    label,
-                    modifier = Modifier.size(ButtonDefaults.IconSize)
-                )
-                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text(label)
-            }
-        } else if (t.txState.minor == TransactionMinorState.ExchangeWaitReserve) {
-            Text(
-                text = stringResource(R.string.withdraw_manual_instruction_manual),
-                modifier = Modifier.padding(16.dp),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyLarge,
-            )
-
-            Button(onClick = onConfirmManual) {
-                Icon(
-                    Icons.Default.AccountBalance,
-                    contentDescription = null,
-                    modifier = Modifier.size(ButtonDefaults.IconSize)
-                )
-                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text(stringResource(R.string.withdraw_manual_ready_details_intro))
-            }
-
-            if (qrCode != null) {
-                Text(
-                    text = stringResource(R.string.withdraw_manual_instruction_qr),
-                    modifier = Modifier.padding(16.dp),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-
-                PaytoQrCode(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    qrCode = qrCode,
-                )
-            } else {
-                Button(onClick = onShowQrCodes) {
-                    Icon(
-                        Icons.Default.QrCode,
-                        contentDescription = null,
-                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                    )
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text(stringResource(R.string.withdraw_manual_ready_details_qr))
-                }
-            }
-        }
+        WithdrawalActions(t,
+            mainQrCode = qrCode,
+            onConfirmKyc = onConfirmKyc,
+            onConfirmBank = onConfirmBank,
+            onConfirmManual = onConfirmManual,
+            onShowQrCodes = onShowQrCodes,
+        )
 
         if (t.exchangeBaseUrl != null) {
             TransactionInfoComposable(
@@ -232,7 +177,7 @@ fun TransactionWithdrawalComposableSingleQrPreview() {
         TransactionWithdrawalComposable(previewWithdrawalTx, true,
             QrCodeSpec(QrCodeSpec.Type.SPC, "something"),
             null,
-            {}, {}, {}, {})
+            {}, {}, {}, {}, {})
     }
 }
 
@@ -243,6 +188,6 @@ fun TransactionWithdrawalComposableMultiQrPreview() {
         TransactionWithdrawalComposable(previewWithdrawalTx, true,
             null,
             null,
-            {}, {}, {}, {})
+            {}, {}, {}, {}, {})
     }
 }

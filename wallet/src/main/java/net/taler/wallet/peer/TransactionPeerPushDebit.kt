@@ -42,10 +42,8 @@ import net.taler.wallet.R
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.QrCodeUriComposable
 import net.taler.wallet.compose.TalerSurface
-import net.taler.wallet.transactions.ActionListener
 import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.PeerInfoShort
-import net.taler.wallet.transactions.Transaction
 import net.taler.wallet.transactions.TransactionAction.Abort
 import net.taler.wallet.transactions.TransactionAction.Retry
 import net.taler.wallet.transactions.TransactionAction.Suspend
@@ -169,9 +167,7 @@ fun TransactionPeerPushDebitPreview(loading: Boolean = false) {
     )
 
     TalerSurface {
-        TransactionPeerComposable(t, true, null, object: ActionListener {
-            override fun onActionButtonClicked(tx: Transaction, type: ActionListener.Type) {}
-        }) {}
+        TransactionPeerComposable(t, true, null, {}) {}
     }
 }
 

@@ -23,6 +23,9 @@ import android.view.ViewGroup
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
+import androidx.core.os.bundleOf
+import androidx.navigation.fragment.findNavController
+import net.taler.wallet.R
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.deposit.TransactionDepositComposable
@@ -42,11 +45,23 @@ class TransactionDepositFragment : TransactionDetailFragment() {
                     t = tx,
                     devMode = devMode,
                     spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
-                    actionListener = this@TransactionDepositFragment,
+                    onWireTransfer = { onConfirmManual() },
+                    onShowQrCodes = { onShowQrCodes() },
                 ) {
                     onTransitionButtonClicked(tx, it)
                 }
             }
         }
+    }
+
+    fun onConfirmManual(showQrCodes: Boolean = false) {
+        findNavController().navigate(
+            R.id.nav_wire_transfer_details,
+            bundleOf("showQrCodes" to showQrCodes)
+        )
+    }
+
+    fun onShowQrCodes() {
+        onConfirmManual(showQrCodes = true)
     }
 }

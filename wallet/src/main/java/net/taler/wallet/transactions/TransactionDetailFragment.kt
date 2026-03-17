@@ -19,7 +19,6 @@ package net.taler.wallet.transactions
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -29,10 +28,9 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 import net.taler.common.showError
-import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.R
+import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.main.TAG
-import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.showError
 import net.taler.wallet.transactions.TransactionAction.Abort
 import net.taler.wallet.transactions.TransactionAction.Delete
@@ -40,10 +38,8 @@ import net.taler.wallet.transactions.TransactionAction.Fail
 import net.taler.wallet.transactions.TransactionAction.Resume
 import net.taler.wallet.transactions.TransactionAction.Retry
 import net.taler.wallet.transactions.TransactionAction.Suspend
-import net.taler.wallet.transactions.WithdrawalDetails.ManualTransfer
-import net.taler.wallet.transactions.WithdrawalDetails.TalerBankIntegrationApi
 
-abstract class TransactionDetailFragment : Fragment(), ActionListener {
+abstract class TransactionDetailFragment : Fragment() {
 
     private val model: MainViewModel by activityViewModels()
     protected val transactionManager by lazy { model.transactionManager }
@@ -100,55 +96,6 @@ abstract class TransactionDetailFragment : Fragment(), ActionListener {
         Retry -> retryTransaction(t)
         Suspend -> suspendTransaction(t)
         Resume -> resumeTransaction(t)
-    }
-
-    override fun onActionButtonClicked(tx: Transaction, type: ActionListener.Type) {
-        when (type) {
-            ActionListener.Type.COMPLETE_KYC -> {
-                when (tx) {
-                    is TransactionWithdrawal -> tx.kycUrl
-                    is TransactionDeposit -> tx.kycUrl
-                    is TransactionPeerPullCredit -> tx.kycUrl
-                    is TransactionPeerPushCredit -> tx.kycUrl
-                    else -> null
-                }?.let { kycUrl ->
-                    launchInAppBrowser(requireContext(), kycUrl)
-                }
-            }
-
-            ActionListener.Type.CONFIRM_WITH_BANK -> {
-                if (tx !is TransactionWithdrawal) return
-                if (tx.withdrawalDetails !is TalerBankIntegrationApi) return
-                tx.withdrawalDetails.bankConfirmationUrl?.let { url ->
-                    launchInAppBrowser(requireContext(), url)
-                }
-            }
-
-            ActionListener.Type.CONFIRM_MANUAL,
-            ActionListener.Type.SHOW_WIRE_QR -> lifecycleScope.launch {
-                when (tx) {
-                    is TransactionWithdrawal -> {
-                        if (tx.withdrawalDetails !is ManualTransfer) return@launch
-                        if (tx.withdrawalDetails.exchangeCreditAccountDetails.isNullOrEmpty()) return@launch
-                        findNavController().navigate(
-                            R.id.nav_wire_transfer_details,
-                            bundleOf("showQrCodes" to (type == ActionListener.Type.SHOW_WIRE_QR))
-                        )
-
-                    }
-
-                    is TransactionDeposit -> {
-                        if (tx.kycAuthTransferInfo == null) return@launch
-                        findNavController().navigate(
-                            R.id.nav_wire_transfer_details,
-                            bundleOf("showQrCodes" to (type == ActionListener.Type.SHOW_WIRE_QR))
-                        )
-                    }
-
-                    else -> {}
-                }
-            }
-        }
     }
 
     private fun showDialog(tt: TransactionAction, onAction: () -> Unit) {

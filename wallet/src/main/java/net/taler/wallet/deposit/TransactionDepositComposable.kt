@@ -40,11 +40,9 @@ import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode.EXCHANGE_GENERIC_KYC_REQUIRED
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo
-import net.taler.wallet.transactions.ActionButton
-import net.taler.wallet.transactions.ActionListener
 import net.taler.wallet.transactions.AmountType
+import net.taler.wallet.transactions.DepositActions
 import net.taler.wallet.transactions.ErrorTransactionButton
-import net.taler.wallet.transactions.Transaction
 import net.taler.wallet.transactions.TransactionAction
 import net.taler.wallet.transactions.TransactionAction.Abort
 import net.taler.wallet.transactions.TransactionAction.Retry
@@ -61,7 +59,8 @@ fun TransactionDepositComposable(
     t: TransactionDeposit,
     devMode: Boolean,
     spec: CurrencySpecification?,
-    actionListener: ActionListener,
+    onWireTransfer: () -> Unit,
+    onShowQrCodes: () -> Unit,
     onTransition: (t: TransactionAction) -> Unit,
 ) {
     val scrollState = rememberScrollState()
@@ -81,7 +80,9 @@ fun TransactionDepositComposable(
             style = MaterialTheme.typography.bodyLarge,
         )
 
-        ActionButton(tx = t, listener = actionListener)
+        DepositActions(t,
+            onWireTransfer = onWireTransfer,
+            onShowQrCodes = onShowQrCodes)
 
         TransactionAmountComposable(
             label = stringResource(id = R.string.amount_chosen),
@@ -132,8 +133,6 @@ fun TransactionDepositComposablePreview() {
         ))
     )
     Surface {
-        TransactionDepositComposable(t, true, null, object : ActionListener {
-            override fun onActionButtonClicked(tx: Transaction, type: ActionListener.Type) {}
-        }) {}
+        TransactionDepositComposable(t, true, null, {}, {}) {}
     }
 }

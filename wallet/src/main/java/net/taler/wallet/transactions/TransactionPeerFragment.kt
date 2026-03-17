@@ -63,12 +63,13 @@ import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
+import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.peer.TransactionPeerPullCreditComposable
 import net.taler.wallet.peer.TransactionPeerPullDebitComposable
 import net.taler.wallet.peer.TransactionPeerPushCreditComposable
 import net.taler.wallet.peer.TransactionPeerPushDebitComposable
 
-class TransactionPeerFragment : TransactionDetailFragment(), ActionListener {
+class TransactionPeerFragment : TransactionDetailFragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -82,7 +83,7 @@ class TransactionPeerFragment : TransactionDetailFragment(), ActionListener {
                     TransactionPeerComposable(
                         tx, devMode,
                         exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
-                        this@TransactionPeerFragment,
+                        onConfirmKyc = { onConfirmKyc(it) },
                     ) {
                         onTransitionButtonClicked(tx, it)
                     }
@@ -104,6 +105,10 @@ class TransactionPeerFragment : TransactionDetailFragment(), ActionListener {
             }
         }
     }
+
+    fun onConfirmKyc(url: String) {
+        launchInAppBrowser(requireContext(), url)
+    }
 }
 
 @Composable
@@ -111,7 +116,7 @@ fun TransactionPeerComposable(
     t: Transaction,
     devMode: Boolean,
     spec: CurrencySpecification?,
-    actionListener: ActionListener,
+    onConfirmKyc: (url: String) -> Unit,
     onTransition: (t: TransactionAction) -> Unit,
 ) {
     val scrollState = rememberScrollState()
@@ -132,8 +137,8 @@ fun TransactionPeerComposable(
         )
 
         when (t) {
-            is TransactionPeerPullCredit -> TransactionPeerPullCreditComposable(t, spec, actionListener)
-            is TransactionPeerPushCredit -> TransactionPeerPushCreditComposable(t, spec, actionListener)
+            is TransactionPeerPullCredit -> TransactionPeerPullCreditComposable(t, spec, onConfirmKyc)
+            is TransactionPeerPushCredit -> TransactionPeerPushCreditComposable(t, spec, onConfirmKyc)
             is TransactionPeerPullDebit -> TransactionPeerPullDebitComposable(t, spec)
             is TransactionPeerPushDebit -> TransactionPeerPushDebitComposable(t, spec)
             else -> error("unexpected transaction: ${t::class.simpleName}")

@@ -23,11 +23,16 @@ import android.view.ViewGroup
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
+import androidx.core.os.bundleOf
+import androidx.navigation.fragment.findNavController
+import net.taler.wallet.R
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
+import net.taler.wallet.launchInAppBrowser
+import net.taler.wallet.transactions.WithdrawalDetails.TalerBankIntegrationApi
 import net.taler.wallet.withdraw.TransactionWithdrawalComposable
 
-class TransactionWithdrawalFragment : TransactionDetailFragment(), ActionListener {
+class TransactionWithdrawalFragment : TransactionDetailFragment() {
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -55,14 +60,37 @@ class TransactionWithdrawalFragment : TransactionDetailFragment(), ActionListene
                         devMode = devMode,
                         spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
                         qrCode = qrCode,
-                        onConfirmBank = { onActionButtonClicked(tx, ActionListener.Type.CONFIRM_WITH_BANK) },
-                        onConfirmManual = { onActionButtonClicked(tx, ActionListener.Type.CONFIRM_MANUAL) },
-                        onShowQrCodes = { onActionButtonClicked(tx, ActionListener.Type.SHOW_WIRE_QR) },
+                        onConfirmKyc = { onConfirmKyc(it) },
+                        onConfirmBank = { onConfirmBank(tx) },
+                        onConfirmManual = { onWireTransferSteps() },
+                        onShowQrCodes = { onShowQrCodes() },
                     ) {
                         onTransitionButtonClicked(tx, it)
                     }
                 }
             }
         }
+    }
+
+    fun onConfirmKyc(url: String) {
+        launchInAppBrowser(requireContext(), url)
+    }
+
+    fun onConfirmBank(tx: TransactionWithdrawal) {
+        if (tx.withdrawalDetails !is TalerBankIntegrationApi) return
+        tx.withdrawalDetails.bankConfirmationUrl?.let { url ->
+            launchInAppBrowser(requireContext(), url)
+        }
+    }
+
+    fun onWireTransferSteps(showQrCodes: Boolean = false) {
+        findNavController().navigate(
+            R.id.nav_wire_transfer_details,
+            bundleOf("showQrCodes" to showQrCodes)
+        )
+    }
+
+    fun onShowQrCodes() {
+        onWireTransferSteps(showQrCodes = true)
     }
 }
