@@ -22,6 +22,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -210,7 +211,7 @@ private fun AmountEntryScreen(
 ) {
     PosTheme {
         val isTabletLayout = LocalConfiguration.current.smallestScreenWidthDp >= 600
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize()) {
             if (!isTabletLayout) {
                 Row(
                     modifier = Modifier
