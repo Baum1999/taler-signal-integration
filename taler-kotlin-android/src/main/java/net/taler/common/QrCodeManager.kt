@@ -50,8 +50,8 @@ object QrCodeManager {
         margin: Int = 2,
         errorCorrection: ErrorCorrectionLevel = ErrorCorrectionLevel.M,
         centerLogo: Drawable? = null,
-        centerLogoSize: QrLogoSize = QrLogoSize.MEDIUM,
-        drawBackground: Boolean = false,
+        centerLogoSize: QrLogoSize? = QrLogoSize.MEDIUM,
+        drawBackground: Boolean? = false,
         darkColor: Int = BLACK,
         lightColor: Int = WHITE,
         trimQuietZone: Boolean = false,
@@ -73,7 +73,7 @@ object QrCodeManager {
 
         val qrBitmap = if (trimQuietZone) trimQrQuietZone(bmp, lightColor) else bmp
 
-        return if (centerLogo != null) {
+        return if (centerLogo != null && centerLogoSize != null && drawBackground != null) {
             addCenteredLogo(qrBitmap, centerLogo, centerLogoSize, drawBackground, lightColor)
         } else {
             qrBitmap

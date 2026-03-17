@@ -44,7 +44,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -154,9 +153,11 @@ fun ExpandableCardPreview(
             header = { Text("Swiss QR") },
             content = {
                 QrCodeUriComposable(
-                    talerUri = "taler://withdraw-exchange",
-                    clipBoardLabel = "",
-                    centerLogo = ContextCompat.getDrawable(context, R.drawable.ic_swiss_qr),
+                    qrData = "taler://withdraw-exchange",
+                    clipboardLabel = "",
+                    params = QrCodeParams.Custom(
+                        centerLogo = ContextCompat.getDrawable(context, R.drawable.ic_swiss_qr),
+                    ),
                     showContents = false,
                 )
             }

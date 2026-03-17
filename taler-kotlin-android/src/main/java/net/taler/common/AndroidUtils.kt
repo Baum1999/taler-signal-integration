@@ -234,8 +234,8 @@ const val SHARE_QR_QUALITY = 90
  * NOTE: make sure to properly setup file provider
  * https://developer.android.com/training/secure-file-sharing/setup-sharing
  */
-suspend fun String.shareAsQrCode(context: Context, authority: String) {
-    val qrBitmap = QrCodeManager.makeQrCode(this, SHARE_QR_SIZE)
+suspend fun String.shareAsQrCode(context: Context, authority: String, qrBitmap: Bitmap? = null) {
+    val qrBitmap = qrBitmap ?: QrCodeManager.makeQrCode(this, SHARE_QR_SIZE)
     val outputDir = context.cacheDir
     try {
         val uri = withContext(Dispatchers.IO) {

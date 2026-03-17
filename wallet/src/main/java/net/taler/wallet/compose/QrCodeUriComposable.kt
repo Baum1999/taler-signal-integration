@@ -16,6 +16,7 @@
 
 package net.taler.wallet.compose
 
+import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.horizontalScroll
@@ -40,45 +41,68 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
+import androidx.core.content.ContextCompat
 import net.taler.common.QrCodeManager
 import net.taler.common.QrLogoSize
 import net.taler.common.copyToClipBoard
+import net.taler.lib.android.AnimatedQrCodeComposable
 import net.taler.wallet.R
+
+sealed class QrCodeParams {
+    data object Taler: QrCodeParams()
+
+    data class Custom(
+        val centerLogo: Drawable? = null,
+        val centerLogoSize: QrLogoSize = QrLogoSize.MEDIUM,
+        val drawCenterLogoBackground: Boolean = false,
+    ): QrCodeParams()
+}
 
 @Composable
 fun ColumnScope.QrCodeUriComposable(
     modifier: Modifier = Modifier,
-    talerUri: String,
-    clipBoardLabel: String,
-    centerLogo: Drawable? = null,
-    centerLogoSize: QrLogoSize = QrLogoSize.MEDIUM,
-    drawCenterLogoBackground: Boolean = false,
+    qrData: String,
+    clipboardLabel: String,
+    params: QrCodeParams,
     buttonText: String = stringResource(R.string.copy),
     showContents: Boolean = true,
     shareAsQrCode: Boolean = false,
     inBetween: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
+    val context = LocalContext.current
     val qrCodeSize = getQrCodeSize()
-    val qrState = produceState<ImageBitmap?>(null) {
+    val qrState by produceState<Bitmap?>(null) {
         value = QrCodeManager.makeQrCode(
-            talerUri,
+            qrData,
             qrCodeSize.value.toInt(),
-            centerLogo = centerLogo,
-            centerLogoSize = centerLogoSize,
-            drawBackground = drawCenterLogoBackground,
-        ).asImageBitmap()
+            centerLogo = when (params) {
+                QrCodeParams.Taler -> ContextCompat.getDrawable(context, net.taler.common.R.drawable.ic_taler_logo_qr)
+                is QrCodeParams.Custom -> params.centerLogo
+            },
+
+            centerLogoSize = when (params) {
+                QrCodeParams.Taler -> QrLogoSize.MEDIUM
+                is QrCodeParams.Custom -> params.centerLogoSize
+            },
+
+            drawBackground = when (params) {
+                QrCodeParams.Taler -> true
+                is QrCodeParams.Custom -> false
+            }
+        )
     }
 
     Box(
@@ -88,12 +112,24 @@ fun ColumnScope.QrCodeUriComposable(
             .padding(bottom = if (showContents) 8.dp else 0.dp),
         contentAlignment = Alignment.Center,
     ) {
-        qrState.value?.let { qrCode ->
-            Image(
-                modifier = Modifier.fillMaxSize(),
-                bitmap = qrCode,
-                contentDescription = stringResource(id = R.string.button_scan_qr_code),
-            )
+        when (params) {
+            QrCodeParams.Taler -> {
+                AnimatedQrCodeComposable(
+                    modifier = Modifier.fillMaxSize(),
+                    link = qrData,
+                    logoPainter = painterResource(net.taler.common.R.drawable.ic_taler_logo_qr)
+                )
+            }
+
+            is QrCodeParams.Custom -> {
+                qrState?.let { qrCode ->
+                    Image(
+                        modifier = Modifier.fillMaxSize(),
+                        bitmap = qrCode.asImageBitmap(),
+                        contentDescription = null,
+                    )
+                }
+            }
         }
     }
 
@@ -110,7 +146,7 @@ fun ColumnScope.QrCodeUriComposable(
                         .horizontalScroll(scrollState),
                     fontFamily = FontFamily.Monospace,
                     style = MaterialTheme.typography.bodyMedium,
-                    text = talerUri,
+                    text = qrData,
                 )
             }
         }
@@ -123,8 +159,8 @@ fun ColumnScope.QrCodeUriComposable(
         ) {
             if (!shareAsQrCode) {
                 CopyToClipboardButton(
-                    label = clipBoardLabel,
-                    content = talerUri,
+                    label = clipboardLabel,
+                    content = qrData,
                     buttonText = buttonText,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -134,8 +170,9 @@ fun ColumnScope.QrCodeUriComposable(
             }
 
             ShareButton(
-                content = talerUri,
+                content = qrData,
                 shareAsQrCode = shareAsQrCode,
+                qrBitmap = qrState,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer

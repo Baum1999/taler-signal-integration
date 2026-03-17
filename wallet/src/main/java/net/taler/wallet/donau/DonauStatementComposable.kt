@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
 import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
+import net.taler.wallet.compose.QrCodeParams
 import net.taler.wallet.compose.QrCodeUriComposable
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.transactions.AmountType
@@ -86,9 +87,10 @@ fun DonauStatementComposable(
         )
 
         QrCodeUriComposable(
-            talerUri = statement.uri,
-            clipBoardLabel = "Donau",
+            qrData = statement.uri,
+            clipboardLabel = "Donau",
             buttonText = stringResource(id = R.string.copy),
+            params = QrCodeParams.Taler,
             shareAsQrCode = true,
         )
 

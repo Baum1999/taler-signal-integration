@@ -30,15 +30,17 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,49 +53,22 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import net.taler.common.QrCodeManager.makeQrCode
 
+const val QR_CORNER_RADIUS = 0.08f
+const val QR_STRIPE_WIDTH = 0.025f
+const val QR_DATA_SIZE = 0.88f
+const val QR_LOGO_SIZE = 0.30f * QR_DATA_SIZE
+
 @Composable
 fun AnimatedQrCodeComposable(
-    width: Dp,
-    height: Dp,
+    modifier: Modifier = Modifier,
     link: String,
     logoPainter: Painter? = null,
-    qrCornerRadiusFraction: Float = 0f,
-    modifier: Modifier = Modifier,
+    qrCornerRadiusFraction: Float = QR_CORNER_RADIUS,
 ) {
-    val blockSize = minOf(width, height)
-    val cornerRadius = blockSize * 0.08f
-    val stripeWidth = blockSize * 0.025f
-    val qrSize = blockSize * 0.88f
-    val logoWidth = qrSize * 0.30f
-    val qrCornerRadius = qrSize * qrCornerRadiusFraction.coerceIn(0f, 0.5f)
-    val qrImageModifier = if (qrCornerRadius > 0.dp) {
-        Modifier
-            .size(qrSize)
-            .background(Color.White)
-            .clip(RoundedCornerShape(qrCornerRadius))
-    } else {
-        Modifier
-            .size(qrSize)
-            .background(Color.White)
-    }
-
-    val qrSizePx = with(LocalDensity.current) { qrSize.roundToPx().coerceAtLeast(256) }
-    val qrBitmap = remember(link, qrSizePx) {
-        makeQrCode(
-            text = link,
-            size = qrSizePx,
-            margin = 0,
-            errorCorrection = ErrorCorrectionLevel.H,
-            centerLogo = null,
-            drawBackground = true,
-            trimQuietZone = true,
-        )
-    }
-
     val infinite = rememberInfiniteTransition(label = "qrStripe")
     val angle by infinite.animateFloat(
         initialValue = 0f,
@@ -135,59 +110,82 @@ fun AnimatedQrCodeComposable(
     }
 
     Box(
-        modifier = modifier.requiredSize(width, height),
+        modifier = modifier
+            .fillMaxSize()
+            .aspectRatio(1f),
         contentAlignment = Alignment.Center,
     ) {
+        val density = LocalDensity.current
+        var drawSize by remember { mutableStateOf<Dp?>(null) }
+
         Box(
-            modifier = Modifier.size(blockSize),
-            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(
+                    percent = (qrCornerRadiusFraction * 100).toInt()))
+                .zIndex(-1f)
+                .background(Color.White), //TODO: VLADA design MaterialTheme.colorScheme.surfaceVariant),
+        )
+
+        Canvas(
+            modifier = Modifier.fillMaxSize(),
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(cornerRadius))
-                    .background(Color.White), //TODO: VLADA design MaterialTheme.colorScheme.surfaceVariant),
+            val s = with(density) { size.width.toDp() }
+            drawSize = s
+
+            val cornerRadius = s * qrCornerRadiusFraction
+            val stripeWidth = s * QR_STRIPE_WIDTH
+            val stripePx = stripeWidth.toPx()
+            val inset = stripePx / 2f
+            val cornerPx = (cornerRadius.toPx() - inset).coerceAtLeast(0f)
+            val cx = size.width / 2f
+            val cy = size.height / 2f
+
+            val shader = SweepGradient(cx, cy, gradientColors, gradientStops)
+            gradientMatrix.reset()
+            gradientMatrix.setRotate(angle, cx, cy)
+            shader.setLocalMatrix(gradientMatrix)
+
+            stripePaint.strokeWidth = stripePx
+            stripePaint.shader = shader
+
+            drawContext.canvas.nativeCanvas.drawRoundRect(
+                RectF(inset, inset, size.width - inset, size.height - inset),
+                cornerPx,
+                cornerPx,
+                stripePaint,
             )
+        }
 
-            Canvas(
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                val stripePx = stripeWidth.toPx()
-                val inset = stripePx / 2f
-                val cornerPx = (cornerRadius.toPx() - inset).coerceAtLeast(0f)
-                val cx = size.width / 2f
-                val cy = size.height / 2f
+        val blockSize = drawSize ?: return@Box
+        val qrSize = blockSize * QR_DATA_SIZE
+        val logoWidth = blockSize * QR_LOGO_SIZE
+        val qrSizePx = with(LocalDensity.current) { qrSize.roundToPx().coerceAtLeast(256) }
+        val qrBitmap = remember(link, qrSizePx) {
+            makeQrCode(
+                text = link,
+                size = qrSizePx,
+                margin = 0,
+                errorCorrection = ErrorCorrectionLevel.H,
+                centerLogo = null,
+                drawBackground = true,
+                trimQuietZone = true,
+            )
+        }
 
-                val shader = SweepGradient(cx, cy, gradientColors, gradientStops)
-                gradientMatrix.reset()
-                gradientMatrix.setRotate(angle, cx, cy)
-                shader.setLocalMatrix(gradientMatrix)
+        Image(
+            bitmap = qrBitmap.asImageBitmap(),
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.size(qrSize).background(Color.White),
+        )
 
-                stripePaint.strokeWidth = stripePx
-                stripePaint.shader = shader
-
-                drawContext.canvas.nativeCanvas.drawRoundRect(
-                    RectF(inset, inset, size.width - inset, size.height - inset),
-                    cornerPx,
-                    cornerPx,
-                    stripePaint,
-                )
-            }
-
+        if (logoPainter != null) {
             Image(
-                bitmap = qrBitmap.asImageBitmap(),
+                painter = logoPainter,
                 contentDescription = null,
-                contentScale = ContentScale.FillBounds,
-                modifier = qrImageModifier,
+                modifier = Modifier.width(logoWidth),
             )
-
-            if (logoPainter != null) {
-                Image(
-                    painter = logoPainter,
-                    contentDescription = null,
-                    modifier = Modifier.width(logoWidth),
-                )
-            }
         }
     }
 }

@@ -30,6 +30,7 @@ import androidx.core.content.ContextCompat
 import net.taler.common.QrLogoSize
 import net.taler.wallet.R
 import net.taler.wallet.compose.ExpandableCard
+import net.taler.wallet.compose.QrCodeParams
 import net.taler.wallet.compose.QrCodeUriComposable
 import net.taler.wallet.withdraw.QrCodeSpec
 import net.taler.wallet.withdraw.QrCodeSpec.Type.EpcQr
@@ -43,14 +44,21 @@ fun ColumnScope.PaytoQrCode(
     val context = LocalContext.current
     QrCodeUriComposable(
         modifier = modifier,
-        talerUri = qrCode.qrContent,
-        clipBoardLabel = getQrCodeLabel(qrCode),
+        qrData = qrCode.qrContent,
+        clipboardLabel = getQrCodeLabel(qrCode),
         showContents = true,
         shareAsQrCode = true,
-        centerLogoSize = QrLogoSize.SMALL,
-        centerLogo = when (qrCode.type) {
-            SPC -> ContextCompat.getDrawable(context, R.drawable.ic_swiss_qr)
-            else -> null
+        params = when(qrCode.type) {
+            SPC -> QrCodeParams.Custom(
+                centerLogoSize = QrLogoSize.SMALL,
+                centerLogo = when (qrCode.type) {
+                    SPC -> ContextCompat.getDrawable(context, R.drawable.ic_swiss_qr)
+                    else -> null
+                },
+            )
+
+            EpcQr -> QrCodeParams.Custom()
+            else -> QrCodeParams.Custom()
         },
     )
 }

@@ -198,15 +198,9 @@ class ProcessPaymentFragment : Fragment() {
             val blockSize = minOf(ui.qrcodeView.width, ui.qrcodeView.height).coerceAtLeast(256)
             val qrSize = (blockSize * 0.88f).toInt().coerceAtLeast(256)
             currentQrBitmap = makePaymentQrCode(text, qrSize)
-
-            val density = resources.displayMetrics.density
-            val widthDp = ui.qrcodeView.width / density
-            val heightDp = ui.qrcodeView.height / density
             ui.qrcodeView.setContent {
                 PosTheme {
                     AnimatedQrCodeComposable(
-                        width = widthDp.dp,
-                        height = heightDp.dp,
                         link = text,
                         logoPainter = painterResource(R.drawable.ic_taler_logo_qr),
                         modifier = Modifier.fillMaxSize(),

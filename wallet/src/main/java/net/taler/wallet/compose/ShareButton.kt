@@ -19,6 +19,7 @@ package net.taler.wallet.compose
 import android.content.Intent
 import android.content.Intent.ACTION_SEND
 import android.content.Intent.EXTRA_TEXT
+import android.graphics.Bitmap
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -46,6 +47,7 @@ fun ShareButton(
     buttonText: String = stringResource(R.string.share),
     colors: ButtonColors = ButtonDefaults.buttonColors(),
     shareAsQrCode: Boolean = false,
+    qrBitmap: Bitmap? = null,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -57,6 +59,7 @@ fun ShareButton(
                 scope.launch { content.shareAsQrCode(
                     context,
                     "${BuildConfig.APPLICATION_ID}.fileprovider",
+                    qrBitmap,
                 ) }
             } else {
                 val sendIntent: Intent = Intent().apply {
