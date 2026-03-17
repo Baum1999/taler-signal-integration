@@ -25,15 +25,16 @@ import androidx.activity.OnBackPressedCallback
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG
 import com.google.android.material.snackbar.Snackbar
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
+import kotlinx.coroutines.launch
 import net.taler.common.QrCodeManager.makeQrCode
 import net.taler.common.copyToClipBoard
 import net.taler.common.fadeIn
@@ -197,7 +198,9 @@ class ProcessPaymentFragment : Fragment() {
         ui.qrcodeView.post {
             val blockSize = minOf(ui.qrcodeView.width, ui.qrcodeView.height).coerceAtLeast(256)
             val qrSize = (blockSize * 0.88f).toInt().coerceAtLeast(256)
-            currentQrBitmap = makePaymentQrCode(text, qrSize)
+            lifecycleScope.launch {
+                currentQrBitmap = makePaymentQrCode(text, qrSize)
+            }
             ui.qrcodeView.setContent {
                 PosTheme {
                     AnimatedQrCodeComposable(
@@ -211,7 +214,7 @@ class ProcessPaymentFragment : Fragment() {
         }
     }
 
-    private fun makePaymentQrCode(text: String, size: Int): Bitmap {
+    private suspend fun makePaymentQrCode(text: String, size: Int): Bitmap {
         return makeQrCode(
             text = text,
             size = size,

@@ -35,25 +35,29 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.core.graphics.toColorInt
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import net.taler.common.QrCodeManager.makeQrCode
 
@@ -79,8 +83,7 @@ fun AnimatedQrCodeComposable(
         ),
         label = "qrStripeAngle",
     )
-
-    val stripeColor = MaterialTheme.colorScheme.primary
+    val stripeColor = Color("#3047a3".toColorInt()) // FIXME: load from light-mode primary
     val stripeBase = Color.White //MaterialTheme.colorScheme.surfaceVariant
     val stripeSoft = remember(stripeBase, stripeColor) {
         lerp(stripeBase, stripeColor, 0.55f)
@@ -116,7 +119,7 @@ fun AnimatedQrCodeComposable(
         contentAlignment = Alignment.Center,
     ) {
         val density = LocalDensity.current
-        var drawSize by remember { mutableStateOf<Dp?>(null) }
+        var drawSize by remember { mutableStateOf<Dp?>(379.dp) }
 
         Box(
             modifier = Modifier
@@ -128,11 +131,13 @@ fun AnimatedQrCodeComposable(
         )
 
         Canvas(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .onGloballyPositioned { with(density) {
+                    drawSize = it.size.width.toDp()
+                } },
         ) {
             val s = with(density) { size.width.toDp() }
-            drawSize = s
-
             val cornerRadius = s * qrCornerRadiusFraction
             val stripeWidth = s * QR_STRIPE_WIDTH
             val stripePx = stripeWidth.toPx()
@@ -157,35 +162,42 @@ fun AnimatedQrCodeComposable(
             )
         }
 
-        val blockSize = drawSize ?: return@Box
-        val qrSize = blockSize * QR_DATA_SIZE
-        val logoWidth = blockSize * QR_LOGO_SIZE
-        val qrSizePx = with(LocalDensity.current) { qrSize.roundToPx().coerceAtLeast(256) }
-        val qrBitmap = remember(link, qrSizePx) {
-            makeQrCode(
-                text = link,
-                size = qrSizePx,
-                margin = 0,
-                errorCorrection = ErrorCorrectionLevel.H,
-                centerLogo = null,
-                drawBackground = true,
-                trimQuietZone = true,
-            )
-        }
+        drawSize?.let { drawSize ->
+            val qrSize = drawSize * QR_DATA_SIZE
+            val qrSizePx = with(density) {
+                qrSize.roundToPx().coerceAtLeast(256) }
+            val logoSize = drawSize * QR_LOGO_SIZE
 
-        Image(
-            bitmap = qrBitmap.asImageBitmap(),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds,
-            modifier = Modifier.size(qrSize).background(Color.White),
-        )
+            val qrBitmap by produceState<ImageBitmap?>(null) {
+                value = makeQrCode(
+                    text = link,
+                    size = qrSizePx,
+                    margin = 0,
+                    errorCorrection = ErrorCorrectionLevel.H,
+                    centerLogo = null,
+                    drawBackground = true,
+                    trimQuietZone = true,
+                ).asImageBitmap()
+            }
 
-        if (logoPainter != null) {
-            Image(
-                painter = logoPainter,
-                contentDescription = null,
-                modifier = Modifier.width(logoWidth),
-            )
+            qrBitmap?.let { qr ->
+                Image(
+                    bitmap = qr,
+                    contentDescription = null,
+                    contentScale = ContentScale.FillBounds,
+                    modifier = Modifier
+                        .size(qrSize)
+                        .background(Color.White),
+                )
+
+                if (logoPainter != null) {
+                    Image(
+                        painter = logoPainter,
+                        contentDescription = null,
+                        modifier = Modifier.width(logoSize),
+                    )
+                }
+            }
         }
     }
 }

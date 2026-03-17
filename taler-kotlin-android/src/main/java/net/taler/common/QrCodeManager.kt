@@ -20,7 +20,6 @@ import android.graphics.Bitmap
 import android.graphics.Bitmap.Config.ARGB_8888
 import android.graphics.Bitmap.Config.RGB_565
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Color.BLACK
 import android.graphics.Color.WHITE
 import android.graphics.Paint
@@ -35,6 +34,8 @@ import com.google.zxing.EncodeHintType.ERROR_CORRECTION
 import com.google.zxing.EncodeHintType.MARGIN
 import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 enum class QrLogoSize(val size: Float) {
     SMALL(0.15f),
@@ -44,7 +45,7 @@ enum class QrLogoSize(val size: Float) {
 
 object QrCodeManager {
 
-    fun makeQrCode(
+    suspend fun makeQrCode(
         text: String,
         size: Int = 256,
         margin: Int = 2,
@@ -55,7 +56,7 @@ object QrCodeManager {
         darkColor: Int = BLACK,
         lightColor: Int = WHITE,
         trimQuietZone: Boolean = false,
-    ): Bitmap {
+    ): Bitmap = withContext(Dispatchers.IO) {
         val qrCodeWriter = QRCodeWriter()
         val hints = mapOf(
             MARGIN to margin.coerceAtLeast(0),
@@ -73,7 +74,7 @@ object QrCodeManager {
 
         val qrBitmap = if (trimQuietZone) trimQrQuietZone(bmp, lightColor) else bmp
 
-        return if (centerLogo != null && centerLogoSize != null && drawBackground != null) {
+        return@withContext if (centerLogo != null && centerLogoSize != null && drawBackground != null) {
             addCenteredLogo(qrBitmap, centerLogo, centerLogoSize, drawBackground, lightColor)
         } else {
             qrBitmap

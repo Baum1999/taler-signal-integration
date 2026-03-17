@@ -98,10 +98,7 @@ fun ColumnScope.QrCodeUriComposable(
                 is QrCodeParams.Custom -> params.centerLogoSize
             },
 
-            drawBackground = when (params) {
-                QrCodeParams.Taler -> true
-                is QrCodeParams.Custom -> false
-            }
+            drawBackground = false,
         )
     }
 
