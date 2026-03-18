@@ -171,7 +171,7 @@ class PromptWithdrawFragment: Fragment() {
                                     // TODO: rewrite ToS review screen in compose
                                     if (s.exchangeBaseUrl != null) {
                                         val args = bundleOf("exchangeBaseUrl" to s.exchangeBaseUrl)
-                                        findNavController().navigate(R.id.action_global_reviewExchangeTos, args)
+                                        findNavController().navigate(R.id.action_global_reviewExchangeTOS, args)
                                     }
                                 },
                                 onConfirm = { age ->
@@ -217,9 +217,9 @@ class PromptWithdrawFragment: Fragment() {
 
                                 if (transactionManager.selectTransaction(it)) {
                                     status.amountInfo?.scopeInfo?.let { s -> model.selectScope(s) }
-                                    findNavController().navigate(R.id.action_promptWithdraw_to_nav_transactions_detail_withdrawal)
+                                    findNavController().navigate(R.id.action_global_transactionWithdrawal)
                                 } else {
-                                    findNavController().navigate(R.id.action_promptWithdraw_to_nav_main)
+                                    findNavController().navigate(R.id.action_global_main)
                                 }
                             }
                         }

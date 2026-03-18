@@ -114,7 +114,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private val dbImportLauncher =
         registerForActivityResult(OpenDocument()) { uri ->
             Snackbar.make(requireView(), getString(R.string.settings_db_import_message), LENGTH_LONG).show()
-            findNavController().navigate(R.id.nav_main)
+            findNavController().navigate(R.id.action_global_main)
             settingsManager.importDb(uri)
         }
 
@@ -194,7 +194,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         prefWithdrawTest.setOnPreferenceClickListener {
             withdrawManager.withdrawTestBalance()
             Snackbar.make(requireView(), getString(R.string.settings_test_withdrawal), LENGTH_LONG).show()
-            findNavController().navigate(R.id.nav_main)
+            findNavController().navigate(R.id.action_global_main)
             true
         }
 
@@ -203,7 +203,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             true
         }
         prefStats.setOnPreferenceClickListener {
-            findNavController().navigate(R.id.nav_performance_stats)
+            findNavController().navigate(R.id.action_main_to_performanceStats)
             true
         }
         prefExportDb.setOnPreferenceClickListener {
@@ -219,7 +219,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 requireActivity().showError(error)
             }
             Snackbar.make(requireView(), getString(R.string.settings_test_running), LENGTH_LONG).show()
-            findNavController().navigate(R.id.nav_main)
+            findNavController().navigate(R.id.action_global_main)
             true
         }
         prefReset.setOnPreferenceClickListener {

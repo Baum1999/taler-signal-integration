@@ -87,9 +87,9 @@ class OutgoingPullFragment : Fragment() {
                 peerManager.pullState.collect {
                     if (it is OutgoingResponse) {
                         if (transactionManager.selectTransaction(it.transactionId)) {
-                            findNavController().navigate(R.id.action_nav_peer_pull_to_nav_transactions_detail_peer)
+                            findNavController().navigate(R.id.action_global_transactionPeer)
                         } else {
-                            findNavController().navigate(R.id.action_nav_peer_pull_to_nav_main)
+                            findNavController().navigate(R.id.action_global_main)
                         }
                     }
 
@@ -118,7 +118,7 @@ class OutgoingPullFragment : Fragment() {
 
     private fun onTosAccept(exchangeBaseUrl: String) {
         val bundle = bundleOf("exchangeBaseUrl" to exchangeBaseUrl)
-        findNavController().navigate(R.id.action_global_reviewExchangeTos, bundle)
+        findNavController().navigate(R.id.action_global_reviewExchangeTOS, bundle)
     }
 
     private fun onCreateInvoice(amount: AmountScope, summary: String, hours: Long, exchangeBaseUrl: String) {

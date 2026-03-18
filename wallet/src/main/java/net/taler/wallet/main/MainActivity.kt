@@ -340,7 +340,7 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
 
     private fun handleTalerUri(uri: String, from: String) {
         val args = bundleOf("uri" to uri, "from" to from)
-        nav.navigate(R.id.action_global_handle_uri, args)
+        nav.navigate(R.id.action_global_handleUri, args)
     }
 
     override fun onPreferenceStartFragment(
@@ -348,9 +348,9 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
         pref: Preference,
     ): Boolean {
         when (pref.key) {
-            "pref_exchanges" -> nav.navigate(R.id.nav_settings_exchanges)
-            "pref_accounts" -> nav.navigate(R.id.bankAccountsFragment)
-            "pref_donau" -> nav.navigate(R.id.nav_settings_donau)
+            "pref_exchanges" -> nav.navigate(R.id.action_main_to_exchangeList)
+            "pref_accounts" -> nav.navigate(R.id.action_main_to_bankAccounts)
+            "pref_donau" -> nav.navigate(R.id.action_main_to_setDonau)
         }
         return true
     }

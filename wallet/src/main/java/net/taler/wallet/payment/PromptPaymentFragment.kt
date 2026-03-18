@@ -99,7 +99,7 @@ class PromptPaymentFragment: Fragment(), ProductImageClickListener {
                             },
                             onSetupDonau = { donauBaseUrl ->
                                 findNavController().navigate(
-                                    R.id.nav_settings_donau,
+                                    R.id.action_main_to_setDonau,
                                     bundleOf(
                                         "donauBaseUrl" to donauBaseUrl,
                                         "saveShouldExit" to true,
@@ -158,9 +158,9 @@ class PromptPaymentFragment: Fragment(), ProductImageClickListener {
     private fun navigateToTransaction(id: String?) {
         lifecycleScope.launch {
             if (id != null && transactionManager.selectTransaction(id)) {
-                findNavController().navigate(R.id.action_promptPayment_to_nav_transactions_detail_payment)
+                findNavController().navigate(R.id.action_global_transactionPayment)
             } else {
-                findNavController().navigate(R.id.action_promptPayment_to_nav_main)
+                findNavController().navigate(R.id.action_global_main)
             }
         }
     }

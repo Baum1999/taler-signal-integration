@@ -69,6 +69,8 @@ import net.taler.wallet.settings.SettingsFragment
 import net.taler.wallet.transactions.Transaction
 import net.taler.wallet.transactions.TransactionMajorState
 import net.taler.wallet.transactions.TransactionPayment
+import net.taler.wallet.transactions.TransactionPeerPullDebit
+import net.taler.wallet.transactions.TransactionPeerPushCredit
 import net.taler.wallet.transactions.TransactionState
 import net.taler.wallet.transactions.TransactionStateFilter.Nonfinal
 
@@ -176,7 +178,7 @@ class MainFragment: Fragment() {
                                     "uri" to "taler://withdraw-exchange/exchange.taler-ops.ch/",
                                     "from" to "Withdraw CHF button",
                                 )
-                                findNavController().navigate(R.id.action_global_handle_uri, args)
+                                findNavController().navigate(R.id.action_global_handleUri, args)
                             },
                             onGetDemoMoneyClicked = {
                                 model.withdrawManager.withdrawTestBalance()
@@ -206,7 +208,7 @@ class MainFragment: Fragment() {
                             },
                             onStatementClicked = {
                                 findNavController().navigate(
-                                    R.id.nav_donau_statement,
+                                    R.id.action_main_to_donauStatement,
                                     bundleOf("host" to it),
                                 )
                             }
@@ -303,23 +305,23 @@ class MainFragment: Fragment() {
 
     private fun onSend() {
         model.settingsManager.saveActionButtonUsed(requireContext())
-        findNavController().navigate(R.id.nav_peer_push)
+        findNavController().navigate(R.id.action_global_outgoingPush)
     }
 
     private fun onReceive() {
         model.settingsManager.saveActionButtonUsed(requireContext())
-        findNavController().navigate(R.id.nav_peer_pull)
+        findNavController().navigate(R.id.action_global_outgoingPull)
     }
 
     private fun onDeposit() {
         model.settingsManager.saveActionButtonUsed(requireContext())
-        findNavController().navigate(R.id.nav_deposit)
+        findNavController().navigate(R.id.action_global_deposit)
     }
 
     private fun onWithdraw() {
         model.settingsManager.saveActionButtonUsed(requireContext())
         model.withdrawManager.resetWithdrawal()
-        findNavController().navigate(R.id.promptWithdraw)
+        findNavController().navigate(R.id.action_global_promptWithdraw)
     }
 
     private fun onScanQr() {
@@ -329,12 +331,12 @@ class MainFragment: Fragment() {
 
     private fun onEnterUri() {
         model.settingsManager.saveActionButtonUsed(requireContext())
-        findNavController().navigate(R.id.nav_uri_input)
+        findNavController().navigate(R.id.action_main_to_uriInput)
     }
 
     private fun onShoppingDiscovery() {
         model.settingsManager.saveActionButtonUsed(requireContext())
-        findNavController().navigate(R.id.nav_shopping)
+        findNavController().navigate(R.id.action_main_to_exchangeShopping)
     }
 }
 

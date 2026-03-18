@@ -56,7 +56,7 @@ class IncomingPushPaymentFragment : Fragment() {
                     IncomingComposable(state, incomingPush) { terms ->
                         if (terms is IncomingTosReview) {
                             val args = bundleOf("exchangeBaseUrl" to terms.exchangeBaseUrl)
-                            findNavController().navigate(R.id.action_global_reviewExchangeTos, args)
+                            findNavController().navigate(R.id.action_global_reviewExchangeTOS, args)
                         } else {
                             peerManager.confirmPeerPushCredit(terms)
                         }
@@ -74,9 +74,9 @@ class IncomingPushPaymentFragment : Fragment() {
                     Log.d(TAG, "incomingPushState is $it")
                     if (it is IncomingAccepted) {
                         if (transactionManager.selectTransaction(it.transactionId)) {
-                            findNavController().navigate(R.id.action_promptPushPayment_to_transaction_detail_peer)
+                            findNavController().navigate(R.id.action_global_transactionPeer)
                         } else {
-                            findNavController().navigate(R.id.action_promptPushPayment_to_nav_main)
+                            findNavController().navigate(R.id.action_global_main)
                         }
                     } else if (it is IncomingError) {
                         if (model.devMode.value == true) {

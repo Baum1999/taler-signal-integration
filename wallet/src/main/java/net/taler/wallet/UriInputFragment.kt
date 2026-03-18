@@ -68,7 +68,7 @@ class UriInputFragment : Fragment() {
                 trimmedText?.startsWith("payto://", ignoreCase = true) == true) {
                 ui.uriLayout.error = null
                 val args = bundleOf("uri" to trimmedText.toString(), "from" to "URI input")
-                findNavController().navigate(R.id.action_global_handle_uri, args)
+                findNavController().navigate(R.id.action_global_handleUri, args)
             } else {
                 ui.uriLayout.error = getString(R.string.uri_invalid)
             }

@@ -116,7 +116,7 @@ class HandleUriFragment: Fragment() {
             if (u.startsWith("payto://", ignoreCase = true)) {
                 Log.v(TAG, "navigating with paytoUri!")
                 val bundle = bundleOf("uri" to u)
-                findNavController().navigate(R.id.action_handleUri_to_nav_payto_uri, bundle)
+                findNavController().navigate(R.id.action_global_paytoUri, bundle)
                 return@observe
             }
 
@@ -145,7 +145,7 @@ class HandleUriFragment: Fragment() {
             when {
                 action.startsWith("pay/", ignoreCase = true) -> run {
                     Log.v(TAG, "navigating!")
-                    findNavController().navigate(R.id.action_handleUri_to_promptPayment)
+                    findNavController().navigate(R.id.action_global_promptPayment)
                     model.paymentManager.preparePay(u2)
                 }
                 action.startsWith("withdraw/", ignoreCase = true) -> run {
@@ -156,7 +156,7 @@ class HandleUriFragment: Fragment() {
                         "editableCurrency" to false,
                     )
                     model.withdrawManager.resetWithdrawal()
-                    findNavController().navigate(R.id.action_handleUri_to_promptWithdraw, args)
+                    findNavController().navigate(R.id.action_global_promptWithdraw, args)
                 }
 
                 action.startsWith("withdraw-exchange/", ignoreCase = true) -> run {
@@ -166,7 +166,7 @@ class HandleUriFragment: Fragment() {
                         "editableCurrency" to false,
                     )
                     model.withdrawManager.resetWithdrawal()
-                    findNavController().navigate(R.id.action_handleUri_to_promptWithdraw, args)
+                    findNavController().navigate(R.id.action_global_promptWithdraw, args)
                 }
 
                 action.startsWith("refund/", ignoreCase = true) -> run {
@@ -174,22 +174,22 @@ class HandleUriFragment: Fragment() {
                     model.refundManager.refund(u2).observe(viewLifecycleOwner, Observer(::onRefundResponse))
                 }
                 action.startsWith("pay-pull/", ignoreCase = true) -> run {
-                    findNavController().navigate(R.id.action_handleUri_to_promptPullPayment)
+                    findNavController().navigate(R.id.action_global_promptPullPayment)
                     model.peerManager.preparePeerPullDebit(u2)
                 }
                 action.startsWith("pay-push/", ignoreCase = true) -> run {
-                    findNavController().navigate(R.id.action_handleUri_to_promptPushPayment)
+                    findNavController().navigate(R.id.action_global_promptPushPayment)
                     model.peerManager.preparePeerPushCredit(u2)
                 }
                 action.startsWith("pay-template/", ignoreCase = true) -> {
                     val bundle = bundleOf("uri" to u2)
-                    findNavController().navigate(R.id.action_handleUri_to_promptPayTemplate, bundle)
+                    findNavController().navigate(R.id.action_global_promptPayTemplate, bundle)
                 }
                 action.startsWith("dev-experiment/", ignoreCase = true) -> {
                     model.applyDevExperiment(u2) { error ->
                         showError(error)
                     }
-                    findNavController().navigate(R.id.nav_main)
+                    findNavController().navigate(R.id.action_global_main)
                 }
                 else -> {
                     showError(R.string.error_unsupported_uri, "From: $from\nURI: $u2")

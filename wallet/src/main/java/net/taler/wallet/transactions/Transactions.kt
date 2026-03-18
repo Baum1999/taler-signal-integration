@@ -47,8 +47,6 @@ import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.common.CurrencySpecification
 import net.taler.common.Merchant
 import net.taler.common.RelativeTime
-import net.taler.wallet.accounts.PaytoUri
-import net.taler.wallet.accounts.PaytoUriBitcoin
 import net.taler.wallet.accounts.PaytoUriCyclos
 import net.taler.wallet.accounts.PaytoUriIban
 import net.taler.wallet.accounts.PaytoUriTalerBank
@@ -179,7 +177,7 @@ class TransactionWithdrawal(
 ) : Transaction() {
     override val icon = R.drawable.transaction_withdrawal
 
-    override val detailPageNav = R.id.action_nav_transactions_detail_withdrawal
+    override val detailPageNav = R.id.action_global_transactionWithdrawal
 
     @Transient
     override val amountType = AmountType.Positive
@@ -397,7 +395,7 @@ class TransactionPayment(
     val posConfirmation: String? = null,
 ) : Transaction() {
     override val icon = R.drawable.transaction_payment
-    override val detailPageNav = R.id.action_nav_transactions_detail_payment
+    override val detailPageNav = R.id.action_global_transactionPayment
 
     @Transient
     override val amountType = AmountType.Negative
@@ -439,7 +437,7 @@ class TransactionRefund(
     override val scopes: List<ScopeInfo>,
 ) : Transaction() {
     override val icon = R.drawable.transaction_refund
-    override val detailPageNav = R.id.action_nav_transactions_detail_refund
+    override val detailPageNav = R.id.action_global_transactionRefund
 
     @Transient
     override val amountType = AmountType.Positive
@@ -461,7 +459,7 @@ class TransactionRefresh(
     override val scopes: List<ScopeInfo>,
 ) : Transaction() {
     override val icon = R.drawable.transaction_refresh
-    override val detailPageNav = R.id.action_nav_transactions_detail_refresh
+    override val detailPageNav = R.id.action_global_transactionRefresh
 
     @Transient
     override val amountType = AmountType.Negative
@@ -489,7 +487,7 @@ class TransactionDeposit(
     val depositGroupId: String,
 ) : Transaction() {
     override val icon = R.drawable.transaction_deposit
-    override val detailPageNav = R.id.action_nav_transactions_detail_deposit
+    override val detailPageNav = R.id.action_global_transactionDeposit
 
     @Transient
     override val amountType = AmountType.Negative
@@ -534,7 +532,7 @@ class TransactionPeerPullDebit(
     val info: PeerInfoShort,
 ) : Transaction() {
     override val icon = R.drawable.transaction_p2p_outgoing
-    override val detailPageNav = R.id.nav_transactions_detail_peer
+    override val detailPageNav = R.id.transactionPeer
 
     @Transient
     override val amountType = AmountType.Negative
@@ -570,7 +568,7 @@ class TransactionPeerPullCredit(
     // val completed: Boolean, maybe
 ) : Transaction() {
     override val icon = R.drawable.transaction_p2p_incoming
-    override val detailPageNav = R.id.nav_transactions_detail_peer
+    override val detailPageNav = R.id.transactionPeer
 
     override val amountType get() = AmountType.Positive
     override fun getTitle(context: Context): String {
@@ -600,7 +598,7 @@ class TransactionPeerPushDebit(
     // val completed: Boolean, definitely
 ) : Transaction() {
     override val icon = R.drawable.transaction_p2p_outgoing
-    override val detailPageNav = R.id.nav_transactions_detail_peer
+    override val detailPageNav = R.id.transactionPeer
 
     @Transient
     override val amountType = AmountType.Negative
@@ -634,7 +632,7 @@ class TransactionPeerPushCredit(
     val info: PeerInfoShort,
 ) : Transaction() {
     override val icon = R.drawable.transaction_p2p_incoming
-    override val detailPageNav = R.id.nav_transactions_detail_peer
+    override val detailPageNav = R.id.transactionPeer
 
     @Transient
     override val amountType = AmountType.Positive
@@ -667,7 +665,7 @@ class TransactionDenomLoss(
     val lossEventType: LossEventType,
 ): Transaction() {
     override val icon: Int = R.drawable.transaction_loss
-    override val detailPageNav = R.id.nav_transactions_detail_loss
+    override val detailPageNav = R.id.transactionLoss
 
     @Transient
     override val amountType: AmountType = AmountType.Negative
@@ -704,7 +702,7 @@ class DummyTransaction(
     override val amountRaw: Amount = Amount.zero("TESTKUDOS")
     override val amountEffective: Amount = Amount.zero("TESTKUDOS")
     override val icon: Int = R.drawable.transaction_dummy
-    override val detailPageNav: Int = R.id.nav_transactions_detail_dummy
+    override val detailPageNav: Int = R.id.transactionDummy
     override val amountType: AmountType = AmountType.Neutral
     override val generalTitleRes: Int = R.string.transaction_dummy_title
     override val scopes: List<ScopeInfo> = listOf(ScopeInfo.Exchange(

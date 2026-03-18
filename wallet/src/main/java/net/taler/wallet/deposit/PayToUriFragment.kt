@@ -91,7 +91,7 @@ class PayToUriFragment : Fragment() {
                                 "IBAN" to iban,
                             )
                             findNavController().navigate(
-                                R.id.action_nav_payto_uri_to_nav_deposit, bundle)
+                                R.id.action_global_deposit, bundle)
                         },
                         getCurrencySpec = exchangeManager::getSpecForCurrency,
                     ) else Text(

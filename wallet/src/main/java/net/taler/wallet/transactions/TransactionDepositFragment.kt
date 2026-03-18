@@ -56,7 +56,7 @@ class TransactionDepositFragment : TransactionDetailFragment() {
 
     fun onConfirmManual(showQrCodes: Boolean = false) {
         findNavController().navigate(
-            R.id.nav_wire_transfer_details,
+            R.id.action_global_wireTransferDetails,
             bundleOf("showQrCodes" to showQrCodes)
         )
     }

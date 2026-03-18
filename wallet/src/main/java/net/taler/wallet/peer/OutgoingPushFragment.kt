@@ -50,7 +50,7 @@ class OutgoingPushFragment : Fragment() {
     // hacky way to change back action until we have navigation for compose
     private val backPressedCallback = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
-            findNavController().navigate(R.id.action_nav_peer_push_to_nav_main)
+            findNavController().navigate(R.id.action_global_main)
         }
     }
 
@@ -93,9 +93,9 @@ class OutgoingPushFragment : Fragment() {
                 peerManager.pushState.collect {
                     if (it is OutgoingResponse) {
                         if (transactionManager.selectTransaction(it.transactionId)) {
-                            findNavController().navigate(R.id.action_nav_peer_push_to_nav_transactions_detail_peer)
+                            findNavController().navigate(R.id.action_global_transactionPeer)
                         } else {
-                            findNavController().navigate(R.id.action_nav_peer_push_to_nav_main)
+                            findNavController().navigate(R.id.action_global_main)
                         }
                     }
 

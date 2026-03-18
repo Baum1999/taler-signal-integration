@@ -108,7 +108,7 @@ class DepositFragment : Fragment() {
                                     depositManager.selectAccount(account)
                                 },
                                 onManageBankAccounts = {
-                                    findNavController().navigate(R.id.action_nav_deposit_to_known_bank_accounts)
+                                    findNavController().navigate(R.id.action_global_bankAccounts)
                                 }
                             )
                         }
@@ -159,7 +159,7 @@ class DepositFragment : Fragment() {
                         }
 
                         is DepositState.Success -> {
-                            findNavController().navigate(R.id.action_nav_deposit_to_nav_main)
+                            findNavController().navigate(R.id.action_global_main)
                         }
 
                         else -> {}

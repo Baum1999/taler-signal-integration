@@ -64,9 +64,9 @@ class IncomingPullPaymentFragment : Fragment() {
                 peerManager.incomingPullState.collect {
                     if (it is IncomingAccepted) {
                         if (transactionManager.selectTransaction(it.transactionId)) {
-                            findNavController().navigate(R.id.action_promptPullPayment_to_transaction_detail_peer)
+                            findNavController().navigate(R.id.action_global_transactionPeer)
                         } else {
-                            findNavController().navigate(R.id.action_promptPullPayment_to_nav_main)
+                            findNavController().navigate(R.id.action_global_main)
                         }
                     } else if (it is IncomingError) {
                         if (model.devMode.value == true) {

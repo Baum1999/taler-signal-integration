@@ -171,12 +171,12 @@ open class ExchangeListFragment : Fragment(), ExchangeClickListener {
             "exchangeBaseUrl" to item.exchangeBaseUrl,
             "amount" to item.currency?.let { Amount.zero(it).toJSONString() },
         )
-        findNavController().navigate(R.id.promptWithdraw, args)
+        findNavController().navigate(R.id.action_global_promptWithdraw, args)
     }
 
     override fun onPeerReceive(item: ExchangeItem) {
         model.selectScope(item.scopeInfo)
-        findNavController().navigate(R.id.nav_peer_pull)
+        findNavController().navigate(R.id.action_global_outgoingPull)
     }
 
     override fun onExchangeReload(item: ExchangeItem) {
@@ -204,12 +204,12 @@ open class ExchangeListFragment : Fragment(), ExchangeClickListener {
             "exchangeBaseUrl" to item.exchangeBaseUrl,
             "readOnly" to true,
         )
-        findNavController().navigate(R.id.action_global_reviewExchangeTos, bundle)
+        findNavController().navigate(R.id.action_global_reviewExchangeTOS, bundle)
     }
 
     override fun onExchangeTosAccept(item: ExchangeItem) {
         val bundle = bundleOf("exchangeBaseUrl" to item.exchangeBaseUrl)
-        findNavController().navigate(R.id.action_global_reviewExchangeTos, bundle)
+        findNavController().navigate(R.id.action_global_reviewExchangeTOS, bundle)
     }
 
     override fun onExchangeTosForget(item: ExchangeItem) {

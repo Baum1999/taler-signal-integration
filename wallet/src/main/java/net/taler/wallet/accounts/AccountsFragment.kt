@@ -114,7 +114,7 @@ class BankAccountsFragment: Fragment() {
                             state = tooltipState,
                         ) {
                             FloatingActionButton(onClick = {
-                                findNavController().navigate(R.id.action_nav_bank_accounts_to_add_bank_account)
+                                findNavController().navigate(R.id.action_bankAccounts_to_addBankAccount)
                             }) {
                                 Icon(Icons.Default.Add, contentDescription = null)
                             }
@@ -132,7 +132,7 @@ class BankAccountsFragment: Fragment() {
                             onEdit = { account ->
                                 // TODO: navigate
                                 val args = bundleOf("bankAccountId" to account.bankAccountId)
-                                findNavController().navigate(R.id.action_nav_bank_accounts_to_add_bank_account, args)
+                                findNavController().navigate(R.id.action_bankAccounts_to_addBankAccount, args)
                             },
                             onForget = { account ->
                                 model.accountManager.forgetBankAccount(account.bankAccountId) {
