@@ -23,7 +23,6 @@
     <!-- Navigation  -->
 
     <string name="nav_error"/>
-    <string name="nav_exchange_fees"/>
     <string name="nav_exchange_tos"/>
     <string name="nav_prompt_withdraw"/>
     <string name="nav_prompt_withdraw_currency"/>
@@ -31,7 +30,6 @@
 
     <string name="actions"/>
     <string name="button_back"/>
-    <string name="button_scan_qr_code"/>
     <string name="button_scan_qr_code_label"/>
     <string name="cancel">Zrušit</string>
     <!-- The count should be mirrored in RTL languages -->
@@ -80,15 +78,12 @@
     <string name="amount_available_transfer"/>
     <string name="amount_available_transfer_fees"/>
     <string name="amount_chosen"/>
-    <string name="amount_conversion"/>
     <string name="amount_deposit"/>
-    <string name="amount_effective"/>
     <string name="amount_fee"/>
     <string name="amount_invalid"/>
     <string name="amount_invoiced"/>
     <string name="amount_lost"/>
     <string name="amount_negative"/>
-    <string name="amount_max"/>
     <string name="amount_excess"/>
     <string name="amount_positive"/>
     <string name="amount_receive"/>
@@ -103,12 +98,8 @@
 
     <string name="balance_scope_auditor"/>
     <string name="balance_scope_exchange"/>
-    <string name="balances_empty_state"/>
-    <string name="balances_empty_demo_url"/>
-    <string name="balances_empty_get_money"/>
     <string name="balances_inbound_amount"/>
     <string name="balances_outbound_amount"/>
-    <string name="balances_title"/>
     <!-- Transactions -->
 
     <string name="transaction_action_kyc"/>
@@ -156,7 +147,6 @@
     <string name="transactions_delete_selected_dialog_title"/>
     <string name="transactions_detail_title"/>
     <string name="transactions_empty"/>
-    <string name="transactions_empty_search"/>
     <string name="transactions_error"/>
     <string name="transactions_fail"/>
     <string name="transactions_fail_dialog_message"/>
@@ -184,7 +174,6 @@
     <string name="payment_balance_insufficient_hint_merchant_accept_insufficient"/>
     <string name="payment_balance_insufficient_hint_merchant_deposit_insufficient"/>
     <string name="payment_balance_insufficient_hint_wallet_balance_material_insufficient"/>
-    <string name="payment_balance_insufficient_max"/>
     <string name="payment_button_cancel"/>
     <string name="payment_button_confirm"/>
     <string name="payment_button_confirm_amount"/>
@@ -198,10 +187,8 @@
     <string name="payment_error"/>
     <string name="payment_failed"/>
     <string name="payment_fee"/>
-    <string name="payment_initiated"/>
     <string name="payment_label_order_summary"/>
     <string name="payment_pay_template_title"/>
-    <string name="payment_pending"/>
     <!-- <quantity> × <price> -->
     <string name="payment_product_price_quantity"/>
     <string name="payment_prompt_title"/>
@@ -211,7 +198,6 @@
     <!-- including <amount> <tax name> -->
     <string name="payment_tax"/>
     <!-- <quantity> × <token name> -->
-    <string name="payment_token_name_quantity"/>
     <string name="payment_token_discount"/>
     <string name="payment_token_subscription"/>
     <string name="payment_tokens_insufficient"/>
@@ -222,7 +208,6 @@
     <!-- P2P receive -->
 
     <string name="receive_peer"/>
-    <string name="receive_peer_create_button"/>
     <string name="receive_peer_invoice_uri"/>
     <string name="receive_peer_payment_instruction"/>
     <string name="receive_peer_payment_intro"/>
@@ -236,7 +221,6 @@
     <string name="send_deposit_account"/>
     <string name="send_deposit_account_add"/>
     <string name="send_deposit_account_edit"/>
-    <string name="send_deposit_account_error"/>
     <string name="send_deposit_account_forget_dialog_message"/>
     <string name="send_deposit_account_forget_dialog_title"/>
     <string name="send_deposit_account_note"/>
@@ -244,7 +228,6 @@
     <string name="send_deposit_account_warning"/>
     <string name="send_deposit_bitcoin"/>
     <string name="send_deposit_bitcoin_address"/>
-    <string name="send_deposit_bitcoin_create_button"/>
     <string name="send_deposit_button_label"/>
     <string name="send_deposit_check_fees_button"/>
     <string name="send_deposit_create_button"/>
@@ -267,7 +250,6 @@
     <string name="send_deposit_town"/>
     <string name="send_deposit_title"/>
     <string name="send_deposit_no_alias"/>
-    <string name="send_peer_create_button"/>
     <string name="send_peer_expiration_1d"/>
     <string name="send_peer_expiration_30d"/>
     <string name="send_peer_expiration_7d"/>
@@ -282,7 +264,6 @@
 
     <string name="withdraw_account"/>
     <string name="withdraw_account_currency"/>
-    <string name="withdraw_amount_error"/>
     <string name="withdraw_button_confirm"/>
     <string name="withdraw_button_confirm_bank"/>
     <string name="withdraw_button_label"/>
@@ -293,7 +274,6 @@
     <string name="withdraw_error_test"/>
     <string name="withdraw_error_title"/>
     <string name="withdraw_exchange"/>
-    <string name="withdraw_fee"/>
     <string name="withdraw_initiated"/>
     <string name="withdraw_manual_bitcoin_intro"/>
     <string name="withdraw_manual_qr_epc"/>
@@ -317,7 +297,6 @@
     <string name="withdraw_restrict_age"/>
     <string name="withdraw_restrict_age_unrestricted"/>
     <string name="withdraw_review_terms"/>
-    <string name="withdraw_select_amount"/>
     <string name="withdraw_subtitle"/>
     <string name="withdraw_title"/>
     <string name="withdraw_waiting_confirm"/>

@@ -3,80 +3,53 @@
     <string name="app_name">Taler plånbok</string>
     <string name="google_play_title" tools:keep="@string/google_play_title">Taler plånbok (experimentell)</string>
     <string name="google_play_short_desc" tools:keep="@string/google_play_short_desc">GNU Taler utför sekretessvänliga online-betalningar snabbt och enkelt.</string>
-    <string name="nav_header_title">GNU Taler</string>
-    <string name="nav_header_subtitle">Plånbok</string>
     <string name="nav_prompt_withdraw">Ta ut digitala pengar</string>
     <string name="nav_exchange_tos">Växlingskontorets användarvillkor</string>
-    <string name="nav_exchange_select">Välj Växlingskontor</string>
-    <string name="nav_exchange_fees">Växlingsavgifter</string>
     <string name="nav_error">Fel</string>
     <string name="button_back">Gå tillbaka</string>
-    <string name="button_scan_qr_code">Skanna QR-kod</string>
     <string name="enter_uri">Ange Taler URI</string>
     <string name="paste">Klistra in</string>
     <string name="paste_invalid">Urklippet innehåller en ogiltig datatyp</string>
     <string name="uri_invalid">Inte en giltig Taler URI</string>
     <string name="ok">OK</string>
     <string name="cancel">Avbryt</string>
-    <string name="search">Sök</string>
     <string name="menu">Meny</string>
-    <string name="or">eller</string>
     <string name="offline">Funktionen kräver internetåtkomst. Se till att din internetanslutning fungerar och försök igen.</string>
     <string name="error_unsupported_uri">Fel: Denna Taler URI stöds inte.</string>
     <string name="menu_settings">Inställningar</string>
-    <string name="menu_retry_pending_operations">Starta väntande operationer</string>
     <string name="host_apdu_service_desc">Taler NFC-betalningar</string>
-    <string name="balances_title">Saldo</string>
     <string name="amount_positive">+ %s</string>
     <string name="amount_negative">- %s</string>
     <string name="amount_chosen">Valt belopp</string>
-    <string name="balances_inbound_label">Inkommande</string>
-    <string name="balances_empty_state">Det finns inga digitala pengar i din plånbok.
-\n
-\nDu kan skaffa testpengar från demo banken:
-\n
-\nhttps://bank.demo.taler.net</string>
     <string name="transactions_title">Transaktioner</string>
     <string name="transactions_empty">Du har inga transaktioner</string>
-    <string name="transactions_empty_search">Inga transaktioner hittades. Prova en annan sökning.</string>
     <string name="transactions_error">Kunde inte ladda transaktioner
 \n
 \n%s</string>
     <string name="transactions_detail_title">Transaktion</string>
-    <string name="transactions_detail_title_balance">Saldo: %s</string>
     <string name="transactions_delete">Radera</string>
     <string name="transactions_select_all">Välj alla</string>
     <string name="transaction_paid">Betald</string>
     <string name="transaction_order_total">Totalt</string>
     <string name="transaction_order">Köp</string>
     <string name="transaction_order_id">Kvitto #%1$s</string>
-    <string name="transaction_tip_from">Dricks från %s</string>
     <string name="transaction_refund">Återbetalning</string>
-    <string name="transaction_refund_from">Återbetalning från %s</string>
     <string name="transaction_pending">VÄNTANDE</string>
     <string name="transaction_refresh">Avgift för byte av utgångna mynt</string>
     <string name="payment_title">Betalning</string>
     <string name="payment_fee">+%s betalningsavgift</string>
-    <string name="payment_label_amount_total">Totalbelopp:</string>
     <string name="payment_label_order_summary">Köp</string>
     <string name="payment_error">Fel: %s</string>
     <string name="payment_balance_insufficient">Otillräckligt saldo!</string>
     <string name="payment_aborted">Avbruten</string>
     <string name="payment_failed">Misslyckad</string>
-    <string name="payment_already_paid_title">Redan betald</string>
     <string name="payment_already_paid">Du har redan betalat för det här köpet.</string>
     <string name="withdraw_initiated">Uttag påbörjat</string>
     <string name="withdraw_title">Uttag</string>
-    <string name="withdraw_total">Ta ut</string>
-    <string name="withdraw_fees">Avgift</string>
     <string name="withdraw_exchange">Växling</string>
     <string name="withdraw_button_confirm">Bekräfta uttag</string>
     <string name="withdraw_button_confirm_bank">Bekräfta med bank</string>
     <string name="withdraw_button_tos">Granska villkoren</string>
-    <string name="withdraw_manual_title">Gör en manuell överföring till växling</string>
-    <string name="withdraw_amount">Hur mycket ska tas ut\?</string>
-    <string name="withdraw_amount_error">Ange giltigt belopp</string>
-    <string name="withdraw_manual_check_fees">Kontrollera avgifter</string>
     <string name="withdraw_error_title">Uttagningsfel</string>
     <string name="withdraw_error_message">Uttag är för närvarande inte möjligt. Vänligen försök igen senare!</string>
     <string name="withdraw_error_test">Fel vid uttag av TESTKUDOS</string>
@@ -105,8 +78,6 @@
     <string name="exchange_fee_wire_fee_wire_fee">Överföringsavgift: %1$s</string>
     <string name="exchange_tos_accept">Acceptera användarvillkoren</string>
     <string name="exchange_tos_error">Fel vid visning av användarvillkor: %1$s</string>
-    <string name="pending_operations_title">Väntande åtgärder</string>
-    <string name="pending_operations_no_action">(ingen åtgärd)</string>
     <string name="settings_withdraw_testkudos">Ta ut TESTKUDOS</string>
     <string name="settings_withdraw_testkudos_summary">Hämta pengar för testning</string>
     <string name="settings_logcat">Felsökningslogg</string>
@@ -117,25 +88,17 @@
     <string name="settings_version_unknown">Okänd</string>
     <string name="settings_reset">Återställ plånbok (farligt!)</string>
     <string name="settings_reset_summary">Kastar bort dina pengar</string>
-    <string name="nav_settings_backup">Säkerhetskopia</string>
-    <string name="backup_last">Senaste backup: %s</string>
     <string name="refund_title">Återbetalning</string>
     <string name="refund_success">Erhållen återbetalning: %s</string>
-    <string name="tip_title">Dricks</string>
     <string name="wifi_disabled_error">Aktivera gratis Wi-Fi</string>
     <string name="wifi_connect_error">Det gick inte att ansluta till gratis Wi-Fi: %1$s</string>
     <string name="google_play_full_desc" tools:keep="@string/google_play_full_desc">Den här appen är en plånbok för GNU Taler. Den är mycket experimentell och ännu inte redo för produktionsanvändning. GNU Taler är ett sekretessbevarande betalningssystem. Kunder kan vara anonyma, men säljare kan inte dölja sina inkomster genom betalningar via GNU Taler. Detta hjälper till att undvika skatteflykt och penningtvätt. Det primära användningsfallet för GNU Taler är betalningar, det är inte menat som en värdedepå. Betalningar backas alltid av en befintlig valuta. Betalning sker efter att man har bytt ut befintliga pengar till elektroniska pengar med hjälp av ett -växlingskontor-, det vill säga en betaltjänstleverantör för Taler. När du gör en betalning behöver kunder bara en laddad plånbok. En säljare kan acceptera betalningar utan att få sina kunder att registrera sig på säljarens webbplats. GNU Taler är immun mot många typer av bedrägerier, såsom nätfiske av kreditkortsinformation eller återkravsbedrägeri. Vid förlust eller stöld kan bara den begränsade summan som finns kvar i plånboken försvinna.</string>
-    <string name="payment_initiated">Betalning påbörjad</string>
     <string name="withdraw_waiting_confirm">Väntar på bekräftelse</string>
-    <string name="withdraw_manual_payment_options">Godkända betalningsmetoder av %1$s:
-\n
-\n%2$s</string>
     <string name="exchange_settings_summary">Hantera listan över växelkontor som är kända för denna plånbok</string>
     <string name="exchange_add_url">Ange adress för växelkontor</string>
     <string name="exchange_fee_coin_expiration_label">Tidigaste utgången av mynt:</string>
     <string name="exchange_fee_deposit_fee">Insättningsavgift: %1$s</string>
     <string name="exchange_fee_wire_fee_closing_fee">Avslutningsavgift: %1$s</string>
-    <string name="pending_operations_refuse">Avvisa erbjudande</string>
     <string name="settings_dev_mode">Utvecklarläge</string>
     <string name="settings_dev_mode_summary">Visar mer information avsedd för felsökning</string>
     <string name="refund_error">Fel vid bearbetning av återbetalning</string>
@@ -153,7 +116,6 @@
     <string name="transactions_fail_dialog_message"/>
     <string name="payment_create_order"/>
     <string name="payment_aborting"/>
-    <string name="payment_balance_insufficient_max"/>
     <string name="payment_prompt_title"/>
     <string name="transaction_state_aborting"/>
     <string name="transaction_state_expired"/>
@@ -178,7 +140,6 @@
     <string name="amount_send"/>
     <string name="amount_total"/>
     <string name="amount_total_label"/>
-    <string name="balances_empty_demo_url"/>
     <string name="transaction_peer_pull_debit_pending"/>
     <string name="transaction_peer_push_credit"/>
     <string name="transaction_peer_push_credit_pending"/>
@@ -207,7 +168,6 @@
     <string name="withdraw_manual_ready_receiver"/>
     <string name="settings_logcat_error"/>
     <string name="settings_logcat_success"/>
-    <string name="receive_peer_create_button"/>
     <string name="loss_reason"/>
     <string name="transactions_abort_dialog_message"/>
     <string name="transactions_abort_dialog_title"/>
@@ -225,7 +185,6 @@
     <string name="transaction_peer_push_debit_pending"/>
     <string name="transactions_delete_selected_dialog_title"/>
     <string name="withdraw_button_label"/>
-    <string name="withdraw_fee"/>
     <string name="observability_hide_json"/>
     <string name="withdraw_manual_ready_warning"/>
     <string name="send_deposit_account"/>
@@ -238,9 +197,6 @@
     <string name="send_deposit_title"/>
     <string name="copy" tools:override="true"/>
     <string name="amount_available_transfer"/>
-    <string name="balances_empty_get_money"/>
-    <string name="amount_conversion"/>
-    <string name="amount_effective"/>
     <string name="amount_invalid"/>
     <string name="balances_inbound_amount"/>
     <string name="balances_outbound_amount"/>
@@ -278,13 +234,11 @@
     <string name="show_logs"/>
     <string name="settings_db_export"/>
     <string name="settings_db_export_summary"/>
-    <string name="amount_max"/>
     <string name="amount_excess"/>
     <string name="amount_receive"/>
     <string name="amount_transfer"/>
     <string name="amount_withdraw"/>
     <string name="send_peer_purpose"/>
-    <string name="withdraw_select_amount"/>
     <string name="transaction_deposit"/>
     <string name="settings_alert_reset_canceled"/>
     <string name="settings_db_import_success"/>
@@ -293,9 +247,7 @@
     <string name="transaction_preparing_kyc"/>
     <string name="payment_tax"/>
     <string name="receive_peer"/>
-    <string name="send_deposit_bitcoin_create_button"/>
     <string name="send_peer_title"/>
-    <string name="send_peer_create_button"/>
     <string name="send_peer_expiration_hours"/>
     <string name="send_peer_payment_instruction"/>
     <string name="withdraw_account_currency"/>
@@ -305,16 +257,12 @@
     <string name="withdraw_subtitle"/>
     <string name="amount_sent"/>
     <string name="payment_confirmation_code"/>
-    <string name="payment_pending"/>
     <string name="exchange_global_add"/>
     <string name="observability_title"/>
     <string name="settings_db_export_message"/>
     <string name="settings_db_import_message"/>
     <string name="transaction_state_suspended"/>
-    <string name="transaction_action_kyc_balance"/>
     <string name="withdraw_manual_bitcoin_intro"/>
-    <string name="transaction_action_kyc_bank"/>
-    <string name="transaction_state_pending_kyc_balance"/>
     <string name="exchange_delete"/>
     <string name="exchange_delete_force"/>
     <string name="settings_db_clear_error"/>

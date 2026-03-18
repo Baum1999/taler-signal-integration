@@ -4,19 +4,13 @@
     <string name="settings_version_app">App-Version</string>
     <string name="host_apdu_service_desc">Taler-NFC-Zahlungen</string>
     <string name="exchange_settings_title">Zahlungsdienstleister</string>
-    <string name="balances_inbound_label">Eingehend</string>
-    <string name="or">oder</string>
     <string name="offline">Internetzugang erforderlich. Bitte stellen Sie sicher, dass Ihre Internetverbindung funktioniert, und versuchen Sie es noch einmal.</string>
     <string name="error_unsupported_uri">Fehler: Dieser Taler-Link wird nicht unterstützt.</string>
     <string name="menu_settings">Einstellungen</string>
-    <string name="menu_retry_pending_operations">Ausstehende Vorgänge wiederholen</string>
-    <string name="balances_title">Salden</string>
     <string name="app_name">Taler Wallet</string>
     <string name="transactions_title">Transaktionen</string>
     <string name="transactions_empty">Sie haben keine Transaktionen</string>
-    <string name="transactions_empty_search">Keine Transaktion gefunden. Versuchen Sie eine andere Suche.</string>
     <string name="transactions_detail_title">Transaktion</string>
-    <string name="transactions_detail_title_balance">Saldo: %s</string>
     <string name="transactions_delete">Löschen</string>
     <string name="transactions_select_all">Alle auswählen</string>
     <string name="transaction_paid">Bezahlt</string>
@@ -24,36 +18,23 @@
     <string name="transaction_order">Einkauf</string>
     <string name="transaction_order_id">Bestellung #%1$s</string>
     <string name="transaction_refund">Rückerstattung</string>
-    <string name="transaction_refund_from">Rückerstattung von %s</string>
     <string name="transaction_pending">AUSSTEHEND</string>
     <string name="transaction_refresh">Änderungsgebühr für das Ablaufdatum der Münze</string>
     <string name="payment_title">Zahlung</string>
     <string name="payment_button_confirm">Zahlung bestätigen</string>
-    <string name="payment_label_amount_total">Gesamtbetrag:</string>
     <string name="payment_label_order_summary">Einkauf</string>
     <string name="payment_error">Fehler: %s</string>
     <string name="payment_balance_insufficient">Guthaben unzureichend</string>
     <string name="payment_aborted">Abgebrochen</string>
     <string name="payment_failed">Fehlgeschlagen</string>
-    <string name="payment_initiated">Zahlung eingeleitet</string>
-    <string name="payment_already_paid_title">Bereits bezahlt</string>
     <string name="payment_already_paid">Sie haben diesen Kauf bereits bezahlt.</string>
     <string name="withdraw_initiated">Abhebung eingeleitet</string>
     <string name="withdraw_title">Abheben</string>
-    <string name="withdraw_total">Abheben</string>
-    <string name="withdraw_fees">Gebühr</string>
     <string name="withdraw_exchange">Zahlungsdienstleister</string>
     <string name="withdraw_button_confirm">Abhebung bestätigen</string>
     <string name="withdraw_button_confirm_bank">Überweisungsauftrag in der Bank erteilen</string>
     <string name="withdraw_button_tos">Allgemeine Geschäftsbedingungen</string>
     <string name="withdraw_waiting_confirm">Warte auf Bestätigung</string>
-    <string name="withdraw_manual_title">Führen Sie eine manuelle Überweisung an den Zahlungsdienstleister durch</string>
-    <string name="withdraw_amount">Wie viel soll abgehoben werden\?</string>
-    <string name="withdraw_amount_error">Gültigen Betrag eingeben</string>
-    <string name="withdraw_manual_payment_options">Zahlungsoptionen unterstützt von %1$s:
-\n
-\n%2$s</string>
-    <string name="withdraw_manual_check_fees">Überprüfen Sie die Gebühren</string>
     <string name="withdraw_error_title">Fehler beim Abheben</string>
     <string name="withdraw_error_message">Ein Abheben ist derzeit nicht möglich. Bitte zu einem späteren Zeitpunkt erneut versuchen!</string>
     <string name="withdraw_error_test">Es kam zu einem Fehler beim Abheben von KUDOS</string>
@@ -84,9 +65,6 @@
     <string name="exchange_fee_wire_fee_wire_fee">Überweisungsgebühr: %1$s</string>
     <string name="exchange_fee_wire_fee_closing_fee">Rücküberweisungsgebühr: %1$s</string>
     <string name="exchange_tos_accept">Allgemeine Geschäftsbedingungen akzeptieren</string>
-    <string name="pending_operations_title">Schwebende Vorgänge</string>
-    <string name="pending_operations_refuse">Vorschlag ablehnen</string>
-    <string name="pending_operations_no_action">(keine Aktion)</string>
     <string name="settings_dev_mode">Entwicklermodus</string>
     <string name="settings_dev_mode_summary">Zeigt weitere Informationen zum Debuggen an</string>
     <string name="settings_withdraw_testkudos">KUDOS als Testgeld abheben</string>
@@ -100,35 +78,22 @@
     <string name="settings_version_unknown">Unbekannt</string>
     <string name="settings_reset">Brieftasche zurücksetzen (gefährlich!)</string>
     <string name="settings_reset_summary">Wirft dein Geld weg</string>
-    <string name="nav_settings_backup">Sicherung (Backup)</string>
-    <string name="backup_last">Letzte Sicherung: %s</string>
     <string name="refund_title">Rückerstattung</string>
     <string name="refund_error">Fehler bei der Verarbeitung der Rückerstattung</string>
     <string name="refund_success">Rückerstattung erhalten!</string>
-    <string name="tip_title">Trinkgeld</string>
     <string name="wifi_disabled_error">Schalten Sie den WLAN-Empfang an, um eine WLAN-Verbindung aufzubauen</string>
     <string name="wifi_connect_error">Es konnte keine Verbindung zu kostenlosem WLAN hergestellt werden: %1$s</string>
     <string name="google_play_full_desc" tools:keep="@string/google_play_full_desc">Diese App ist eine Geldbörse für GNU Taler (Wallet). GNU Taler ist ein Bezahlsystem mit Datenschutz für die Käufer. Die Käufer bleiben anonym, das Einkommen der Händler hingegen ist offengelegt. Dies vermindert systematisch die Möglichkeit von Steuerhinterziehung und Geldwäsche. Die Hauptfunktion von GNU Taler ist das Bezahlen; es versteht sich nicht als Mittel zur Wertaufbewahrung. Alle Zahlungen sind durch eine schon bestehende Währung gedeckt. Zahlungen werden mit Hilfe eines Zahlungsdiensts (Taler Exchange) durchgeführt, an den die Käufer Geld überweisen und dafür elektronische Zahlungsmittel (e-cash) in ihre Taler-Wallets abheben können. Um eine Zahlung durchzuführen, benötigen Käufer ausreichend e-cash im Wallet. Verkäufer können Zahlungen annehmen, ohne dass sich ihre Kunden auf Webseiten registrieren müssen. GNU Taler ist sicher vor vielen Betrugsarten wie z.B. Phishing von Kreditkartendaten oder Betrug durch Rückbuchungen. Im Fall des Verlusts oder Diebstahls eines Wallets verliert man höchstens die Menge an elektronischem Geld, das sich noch im Wallet befand.</string>
-    <string name="nav_header_title">GNU Taler</string>
-    <string name="nav_header_subtitle">Wallet</string>
     <string name="nav_prompt_withdraw">Geld von Bank abheben</string>
     <string name="nav_exchange_tos">Allgemeine Geschäftsbedingungen des Zahlungsdienstleisters</string>
-    <string name="nav_exchange_select">Zahlungsdienstleister auswählen</string>
-    <string name="nav_exchange_fees">Gebühren des Zahlungsdienstleisters</string>
     <string name="enter_uri">Taler-Link eingeben</string>
     <string name="paste">Einfügen</string>
     <string name="paste_invalid">Die Zwischenablage enthält einen ungültigen Datentyp</string>
     <string name="uri_invalid">Dies ist kein gültiger Taler-Link</string>
     <string name="ok">OK</string>
     <string name="cancel">Zurück</string>
-    <string name="search">Suche</string>
     <string name="menu">Menü</string>
     <string name="nav_error">Fehler</string>
-    <string name="balances_empty_state">In Ihrem Wallet befindet sich kein digitales Geld.
-\n
-\nSie können Demo-Geld von der Demo-Bank erhalten:
-\n
-\nhttps://bank.demo.taler.net</string>
     <string name="transactions_error">Transaktionen konnten nicht geladen werden
 \n
 \n%s</string>
@@ -136,33 +101,26 @@
     <string name="settings_version_protocol_exchange">Unterstützte Exchange-Versionen</string>
     <string name="amount_negative">- %s</string>
     <string name="amount_positive">+%s</string>
-    <string name="transaction_tip_from">Trinkgeld von %s</string>
     <string name="exchange_add_url">Adresse des Zahlungsdienstleisters eingeben</string>
     <string name="button_back">Zurück</string>
-    <string name="button_scan_qr_code">Taler-QR-Code scannen</string>
     <string name="withdraw_manual_ready_iban">IBAN</string>
-    <string name="withdraw_manual_ready_title">Der Zahlungsdienstleister ist für den Abhebevorgang bereit!</string>
     <string name="withdraw_manual_ready_intro">Sie müssen an den Zahlungsdienst %1$s von Ihrem normalen Bankkonto überweisen, damit diese elektronische Geldbörse %2$s als digitales Bargeld beziehen kann.</string>
     <string name="withdraw_manual_ready_details_intro">Überweisungsanleitung</string>
     <string name="withdraw_manual_ready_subject">Buchungsvermerk</string>
     <string name="withdraw_manual_ready_bank_button">In Banking-App öffnen</string>
-    <string name="withdraw_manual_ready_cancel">Abhebevorgang abbrechen</string>
     <string name="withdraw_manual_ready_warning">Dies ist obligatorisch, da Ihr Geld sonst nicht im Taler-Wallet ankommt.</string>
     <string name="reset">Zurücksetzen</string>
     <string name="payment_prompt_title">Zahlung überprüfen</string>
     <string name="send_deposit_iban_error">Die IBAN ist unvollständig oder ungültig</string>
-    <string name="send_peer_create_button">Jetzt Geld senden</string>
     <string name="send_peer_title">Geld an ein anderes Wallet senden</string>
     <string name="send_deposit_bitcoin_address">Bitcoin-Adresse</string>
     <string name="withdraw_restrict_age">Nutzung auf Alter beschränken</string>
-    <string name="send_deposit_bitcoin_create_button">Bitcoin übertragen</string>
     <string name="settings_db_export">Datenbank exportieren</string>
     <string name="transactions_delete_dialog_message">Sind Sie sicher, dass Sie diese Transaktion aus Ihrem Wallet entfernen möchten?</string>
     <string name="transactions_delete_dialog_title">Transaktion löschen</string>
     <string name="receive_peer_payment_intro">Möchten Sie diese Zahlung erhalten?</string>
     <string name="transactions_abort">Abbruch ausführen</string>
     <string name="payment_pay_template_title">Passen Sie Ihre Bestellung an</string>
-    <string name="send_intro">Wählen Sie aus, wohin Sie Geld senden möchten:</string>
     <string name="send_deposit_title">Einzahlung an Bankkonto</string>
     <string name="withdraw_manual_ready_account">Konto</string>
     <string name="withdraw_manual_ready_receiver">Zahlungsempfänger</string>
@@ -175,7 +133,6 @@
     <string name="settings_test">Integrationstest durchführen</string>
     <string name="settings_test_summary">Führt Testtransaktionen zu Demonstrationszwecken durch</string>
     <string name="copy" tools:override="true">Kopieren</string>
-    <string name="copy_uri">Taler-URI kopieren</string>
     <string name="transaction_peer_pull_debit">Forderung beglichen</string>
     <string name="transaction_peer_pull_credit">Anfordern</string>
     <string name="transactions_receive_funds">Anfordern</string>
@@ -188,14 +145,10 @@
     <string name="transactions_fail_dialog_title">Transaktion verwerfen</string>
     <string name="transaction_dummy_title">Unbekannte Transaktion</string>
     <string name="receive_peer_title">Geld anfordern</string>
-    <string name="send_deposit">Auf ein Bankkonto</string>
-    <string name="send_peer_bitcoin">An ein anderes Taler-Wallet</string>
     <string name="send_peer_expiration_custom">Benutzerdefiniert</string>
     <string name="exchange_delete">Zahlungsdienstleister löschen</string>
     <string name="settings_db_export_success">Datenbank in Datei exportiert</string>
-    <string name="receive_peer_create_button">Forderung erstellen</string>
     <string name="receive_peer_invoice_uri">Alternativ kopieren und senden Sie diesen URI:</string>
-    <string name="receive_peer_invoice_instruction">Lassen Sie die Käufer diesen QR-Code scannen, um den Betrag zu bezahlen:</string>
     <string name="button_scan_qr_code_label">QR-Code scannen</string>
     <string name="send_deposit_check_fees_button">Gebühren prüfen</string>
     <string name="send_deposit_name">Kontoinhaber/in</string>
@@ -208,12 +161,8 @@
     <string name="transactions_delete_selected_dialog_message">Sind Sie sicher, dass Sie die ausgewählten Transaktionen aus Ihrem Wallet entfernen möchten?</string>
     <string name="transactions_resume">Fortsetzen</string>
     <string name="transactions_abort_dialog_title">Transaktion abbrechen</string>
-    <string name="transactions_cancel_dialog_message">Sind Sie sicher, dass Sie diese Abhebung stornieren möchten? Gelder, die gerade noch übertragen werden, könnten verloren gehen.</string>
-    <string name="send_deposit_bic">BIC / SWIFT</string>
-    <string name="send_peer">An ein anderes Wallet</string>
     <string name="payment_confirmation_code">Bestätigungscode</string>
     <string name="send_deposit_iban">IBAN</string>
-    <string name="send_deposit_bic_error">BIC ist ungültig</string>
     <string name="withdraw_subtitle">Ziel-Bankkonto auswählen</string>
     <string name="settings_db_import">Datenbank importieren</string>
     <string name="settings_db_import_summary">Datenbank aus Datei wiederherstellen</string>
@@ -229,13 +178,9 @@
     <string name="error_broken_uri">Fehler: Dieser Taler-Link funktioniert (zurzeit) nicht.</string>
     <string name="settings_alert_import_canceled">Import abgebrochen</string>
     <string name="import_db">Importieren</string>
-    <string name="transactions_detail_title_currency">%s Transaktionen</string>
-    <string name="receive_withdraw">Vom Bankkonto abheben</string>
     <string name="send_deposit_create_button">Einzahlung ausführen</string>
-    <string name="receive_intro">Wählen Sie aus, woher Sie Geld erhalten möchten:</string>
     <string name="amount_sent">Abzubuchender Betrag</string>
     <string name="amount_received">Empfangener Betrag</string>
-    <string name="payment_pending">Zahlung nicht abgeschlossen - sie wird erneut versucht</string>
     <string name="send_peer_payment_instruction">Scannen Sie diesen QR-Code, um %1$s zu erhalten</string>
     <string name="transaction_deposit">Einzahlen</string>
     <string name="exchange_list_error">Zahlungsdienstleister konnten nicht aufgelistet werden</string>
@@ -246,7 +191,6 @@
     <string name="balance_scope_auditor">Auditor %1$s</string>
     <string name="receive_peer">Geld von einem anderen Wallet anfordern</string>
     <string name="char_count">%1$d/%2$d</string>
-    <string name="withdraw_manual_bitcoin_title">Bitcoin-Exchange zur Auszahlung bereit</string>
     <string name="transactions_retry">Wiederholen</string>
     <string name="send_peer_expiration_period">Läuft ab in</string>
     <string name="transactions_suspend">Aussetzen</string>
@@ -264,7 +208,6 @@
     <string name="qr_scan_context_title">Möglicherweise unbeabsichtigte Aktion</string>
     <string name="qr_scan_context_receive_message">Es scheint, dass Sie Geld erhalten wollten, doch entspricht der eingescannte QR-Code einer anderen Aktion. Möchten Sie dennoch fortfahren?</string>
     <string name="qr_scan_context_send_message">Es scheint, dass Sie Geld senden wollten, doch entspricht der eingescannte QR-Code einer anderen Aktion. Möchten Sie dennoch fortfahren?</string>
-    <string name="amount_effective">Gesamtbetrag</string>
     <string name="amount_fee">Gebühr</string>
     <string name="amount_invalid">Ungültiger Betrag</string>
     <string name="amount_invoiced">Betrag angefordert</string>
@@ -295,29 +238,21 @@
     <string name="transaction_denom_loss">Guthabenverlust</string>
     <string name="withdraw_account">Konto #%1$d</string>
     <string name="withdraw_account_currency">Konto #%1$d (%2$s)</string>
-    <string name="amount_conversion">Währungsumtausch</string>
     <string name="exchange_reload">Information erneut laden</string>
     <string name="show_logs">Protokolle anzeigen</string>
     <string name="withdraw_manual_qr_epc">EPC-QR</string>
     <string name="withdraw_manual_qr_spc">Schweizer QR-Code</string>
     <string name="transaction_state_pending_bank">Warten auf Überweisungsfreigabe in der Bank</string>
     <string name="error_no_uri">Fehler: Es wurde kein Taler-Link gefunden</string>
-    <string name="payment_balance_insufficient_max">Unzureichende Deckung! Höchstbetrag ist %1$s</string>
-    <string name="withdraw_fee">+%1$s Abhebegebühr</string>
     <string name="settings_test_withdrawal">KUDOS werden nun abgehoben</string>
-    <string name="amount_max">Höchstbetrag</string>
     <string name="amount_excess">Der Betrag übersteigt das Maximum von %1$s</string>
     <string name="amount_withdraw">Von der Bank abzuhebender Betrag</string>
-    <string name="withdraw_select_amount">Betrag wählen</string>
     <string name="edit">Bearbeiten</string>
     <string name="transaction_state_aborted_manual">Diese Transaktion wurde abgebrochen. Falls Sie bereits Geld an den Zahlungsdienst überwiesen haben, wird dieses an Sie zurücküberwiesen am %1$s</string>
     <string name="transaction_preparing_kyc">Die Abfrage des wirtschaftlich Berechtigten wird vorbereitet</string>
     <string name="exchange_tos_view">Allgemeine Geschäftsbedingungen lesen</string>
     <string name="transaction_state_pending_kyc_bank">Diese Transaktion würde die vom Zahlungsdienst maximal erlaubte Höhe übersteigen. Folgen Sie bitte den Anweisungen unten, um sie anzuheben.</string>
     <string name="exchange_tos_forget">Allgemeine Geschäftsbedingungen ablehnen</string>
-    <string name="transaction_action_kyc_balance">Gesamtguthaben (KYC)</string>
-    <string name="transaction_action_kyc_bank">KYC-Prüfung zum Abheben durchführen</string>
-    <string name="transaction_state_pending_kyc_balance">Diese Überweisung würde die von Ihrer Bank maximal erlaubte Abhebung übersteigen. Um fortzufahren ist eine vollständige KYC-Prüfung nötig</string>
     <string name="payment_tax">einschließlich %1$s %2$s</string>
     <string name="send_deposit_account">Konto</string>
     <string name="send_deposit_host">Regionalwährung-Bank</string>
@@ -327,8 +262,6 @@
     <string name="withdraw_button_label">Abheben</string>
     <string name="enter_uri_label">Taler-Link</string>
     <string name="amount_deposit">Betrag der Einzahlung</string>
-    <string name="balances_empty_demo_url">https://bank.demo.taler.net</string>
-    <string name="balances_empty_get_money">Test-Geld beziehen</string>
     <string name="transactions_currency">%1$s (%2$s)</string>
     <string name="send_deposit_button_label">Einzahlen</string>
     <string name="send_deposit_account_warning">Sie müssen aufgrund regulatorischer Bestimmungen ein Konto angeben, über das Sie persönlich verfügen können.</string>
@@ -348,7 +281,6 @@
     <string name="amount_available_transfer_fees">Nach Abzug von Gebühren verfügbar: %1$s</string>
     <string name="send_deposit_account_edit">Konto bearbeiten</string>
     <string name="send_deposit_account_add">Bankkonto hinzufügen</string>
-    <string name="send_deposit_account_error">Es ist nicht möglich, auf dieses Konto Einzahlungen vorzunehmen, bitte wählen Sie ein anderes</string>
     <string name="send_deposit_account_forget_dialog_message">Wollen Sie wirklich, dass Taler-Wallet dieses Konto vergisst?</string>
     <string name="send_deposit_account_forget_dialog_title">Konto vergessen</string>
     <string name="send_deposit_account_note">Anmerkung</string>
@@ -428,7 +360,6 @@
     <string name="donau_statement_tax_authority">Finanzamt</string>
     <string name="donau_statement_title">Spendenbescheinigung</string>
     <string name="donau_statement_title_year">Spenden %1$d</string>
-    <string name="donau_statement_year">Fiskaljahr</string>
     <string name="donau_title">Steuerlich absetzbare Spenden</string>
     <string name="donau_toggle_label">Steuerlich absetzbare Spendenbescheinigung erhalten</string>
     <string name="donau_warning_mismatch">Ihr für diese Anwendung gewähltes Finanzamt (%1$s) ist für diese Option nicht verfügbar. Wenn Sie umgezogen sind, wählen Sie bitte die für Sie am neuen Wohnort zuständige Steuerbehörde.</string>
@@ -446,7 +377,6 @@
     <string name="error_export">Fehlerdiagnose exportieren</string>
     <string name="receive_peer_create_button_amount">%1$s anfordern</string>
     <string name="send_peer_create_button_amount">%1$s übertragen</string>
-    <string name="exchange_tos">Allgemeine Geschäftsbedingungen</string>
     <string name="send_deposits_no_currencies_error">Es sind keine bekannten Währungen für Einzahlungen verfügbar.</string>
     <string name="withdraw_error_empty_exchanges">Von der Bank wurden keine Zahlungsdienste konfiguriert.</string>
     <string name="exchange_tos_missing">Die Allgemeinen Geschäftsbedingungen wurden vom Zahlungsdienst nicht bereitgestellt</string>

@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="menu_retry_pending_operations">Réessayer les opérations en attente</string>
-    <string name="balances_empty_state">Il n\'y a pas d\'argent numérique dans votre portefeuille.
-\n
-\nVous pouvez obtenir de l\'argent de démonstration auprès de la banque de démonstration :
-\n
-\nhttps://bank.demo.taler.net</string>
     <string name="withdraw_error_message">Le retrait n\'est actuellement pas possible. Veuillez réessayer plus tard !</string>
     <string name="settings_dev_mode">Mode développeur</string>
     <string name="menu_settings">Paramètres</string>
@@ -13,18 +7,14 @@
     <string name="app_name">Portefeuille Taler</string>
     <string name="google_play_title" tools:keep="@string/google_play_title">Portefeuille Taler (expérimental)</string>
     <string name="google_play_short_desc" tools:keep="@string/google_play_short_desc">GNU Taler rend les transactions en ligne respectueuses de la vie privée, rapides et faciles.</string>
-    <string name="button_scan_qr_code">Scanner un code QR</string>
-    <string name="balances_title">Transactions</string>
     <string name="amount_positive">+%s</string>
     <string name="amount_chosen">Montant choisi</string>
-    <string name="balances_inbound_label">entrant</string>
     <string name="transactions_title">Transactions</string>
     <string name="transactions_empty">Vous n\'avez aucune transaction</string>
     <string name="transactions_error">Impossible de charger les transactions
 \n
 \n%s</string>
     <string name="transactions_detail_title">Transaction</string>
-    <string name="transactions_detail_title_balance">Solde : %s</string>
     <string name="transactions_delete">Supprimer</string>
     <string name="transactions_select_all">Tout sélectionner</string>
     <string name="transaction_paid">Payé</string>
@@ -35,20 +25,14 @@
     <string name="transaction_refresh">Frais de change pour la monnaie expirée</string>
     <string name="payment_fee">+%s frais de transaction</string>
     <string name="payment_button_confirm">Confirmer le paiement</string>
-    <string name="nav_exchange_fees">Frais du prestataire</string>
     <string name="amount_negative">-%s</string>
-    <string name="nav_header_title">GNU Taler</string>
-    <string name="nav_header_subtitle">Portefeuille</string>
     <string name="nav_prompt_withdraw">Retirer depuis un compte bancaire</string>
     <string name="nav_exchange_tos">Conditions générales d\'utilisation du service d\'échange</string>
     <string name="nav_error">Erreur</string>
     <string name="button_back">Retour</string>
     <string name="payment_label_order_summary">Achat</string>
     <string name="payment_balance_insufficient">Solde insuffisant !</string>
-    <string name="payment_already_paid_title">Déjà payé</string>
     <string name="payment_already_paid">Vous avez déjà payé pour cet achat.</string>
-    <string name="withdraw_total">Retirer</string>
-    <string name="withdraw_fees">Frais</string>
     <string name="withdraw_exchange">Prestataire</string>
     <string name="withdraw_button_confirm">Confirmer le retrait</string>
     <string name="withdraw_button_tos">Conditions générales d’utilisation</string>
@@ -66,9 +50,6 @@
     <string name="exchange_fee_wire_fee_closing_fee">Frais de clôture : %1$s</string>
     <string name="exchange_tos_accept">Accepter les conditions générales d\'utilisation</string>
     <string name="exchange_tos_error">Erreur lors de l\'affichage des conditions générales d\'utilisation : %1$s</string>
-    <string name="pending_operations_title">Opérations en attente</string>
-    <string name="pending_operations_refuse">Refuser la proposition</string>
-    <string name="pending_operations_no_action">(aucune action)</string>
     <string name="settings_dev_mode_summary">Affiche plus d\'informations pour le débogage</string>
     <string name="settings_withdraw_testkudos">Retrait de KUDOS de démonstration</string>
     <string name="settings_withdraw_testkudos_summary">Obtenez de l\'argent pour les tests</string>
@@ -77,40 +58,25 @@
     <string name="refund_success">Remboursement reçu !</string>
     <string name="payment_error">Erreur : %s</string>
     <string name="google_play_full_desc" tools:keep="@string/google_play_full_desc">Cette application est un portefeuille pour GNU Taler. Cette dernière est expérimentale et n\'est pas encore prête à être utilisée en production. GNU Taler est un système de paiement préservant la vie privée. Les clients peuvent rester anonymes, mais les commerçants ne peuvent pas cacher leurs revenus avec GNU Taler. Cela permet d\'éviter l\'évasion fiscale et le blanchiment d\'argent. Le principal cas d\'utilisation de GNU Taler est celui des paiements ; il ne s\'agit pas d\'une réserve de valeur. Les paiements sont toujours garantis par une devise existante. Les paiements sont effectués après avoir échangé l\'argent existant en monnaie électronique avec l\'aide d\'un service d\'échange, qui est un prestataire de services de paiement pour Taler. Pour effectuer un paiement, les clients n\'ont besoin que d\'un portefeuille chargé. Un commerçant peut accepter des paiements sans demander à ses clients de s\'inscrire sur son site web. GNU Taler est immunisé contre de nombreux types de fraude, tels que l\'hameçonnage de cartes de crédit ou la fraude par rétrofacturation. En cas de perte ou de vol, seul le montant limité d\'argent restant dans le portefeuille peut être perdu.</string>
-    <string name="payment_label_amount_total">Montant total :</string>
     <string name="exchange_fee_coin_expiration_label">Expiration de pièce la plus proche :</string>
     <string name="ok">OK</string>
     <string name="cancel">Annuler</string>
     <string name="offline">L\'opération nécessite un accès Internet. Veuillez vous assurer que votre connexion internet fonctionne et réessayez.</string>
     <string name="error_unsupported_uri">Erreur : Cet URI Taler n\'est pas pris en charge.</string>
-    <string name="transactions_empty_search">Aucune transaction trouvée. Essayez une recherche différente.</string>
-    <string name="transaction_refund_from">Remboursement %s</string>
     <string name="transaction_pending">EN ATTENTE</string>
     <string name="payment_title">Paiement</string>
     <string name="payment_aborted">Annulé</string>
-    <string name="payment_initiated">Paiement initié</string>
-    <string name="nav_exchange_select">Sélectionner le change</string>
     <string name="enter_uri">Entrer l\'URI taler://</string>
     <string name="paste">Coller</string>
     <string name="paste_invalid">Le presse-papiers contient un type de données non valide</string>
     <string name="uri_invalid">URI Taler non valide</string>
-    <string name="search">Rechercher</string>
     <string name="menu">Menu</string>
-    <string name="or">ou</string>
-    <string name="transaction_tip_from">Pourboire de %s</string>
     <string name="payment_failed">Échec</string>
     <string name="withdraw_initiated">Retrait initié</string>
     <string name="withdraw_title">Retrait</string>
     <string name="withdraw_button_confirm_bank">Autoriser à la banque</string>
     <string name="withdraw_waiting_confirm">En attente de confirmation</string>
-    <string name="withdraw_amount">Retirer quel montant \?</string>
-    <string name="withdraw_amount_error">Indiquer un montant valide</string>
-    <string name="withdraw_manual_payment_options">Modes de paiement fournis par %1$s :
-\n
-\n%2$s</string>
-    <string name="withdraw_manual_check_fees">Vérifier les frais</string>
     <string name="host_apdu_service_desc">Paiements Taler NFC</string>
-    <string name="withdraw_manual_title">Effectuer un transfert manuel vers la bourse</string>
     <string name="exchange_settings_title">Prestataires</string>
     <string name="exchange_settings_summary">Gérer la liste des prestataires connus par ce portefeuille</string>
     <string name="exchange_list_title">Prestataires</string>
@@ -120,10 +86,7 @@
     <string name="settings_logcat_summary">Sauver le journal interne</string>
     <string name="settings_version_app">Version mobile</string>
     <string name="settings_version_unknown">Inconnu</string>
-    <string name="nav_settings_backup">Sauvegarde</string>
-    <string name="backup_last">Dernière sauvegarde : %s</string>
     <string name="refund_title">Remboursement</string>
-    <string name="tip_title">Pourboire</string>
     <string name="wifi_disabled_error">Activer le Wi-Fi pour profiter du Wi-Fi gratuit</string>
     <string name="wifi_connect_error">Connection au Wi-Fi impossible : %1$s</string>
     <string name="exchange_list_add">Ajoutez un prestataire</string>
@@ -137,66 +100,42 @@
     <string name="settings_version_core">Version Wallet Core</string>
     <string name="settings_version_protocol_exchange">Versions des prestataires compatibles</string>
     <string name="transaction_action_kyc">Compléter le KYC</string>
-    <string name="transactions_cancel_dialog_message">Êtes-vous sûr de vouloir annuler ce retrait \? Les fonds encore en transit peuvent être perdus.</string>
     <string name="transaction_deposit">Dépôt</string>
-    <string name="receive_withdraw">Retrait du compte bancaire</string>
     <string name="receive_peer">Créer une demande</string>
     <string name="receive_peer_title">Demander de l\'argent</string>
-    <string name="receive_peer_create_button">Créer une demande</string>
     <string name="transactions_delete_dialog_title">Supprimer la transaction</string>
     <string name="transactions_delete_dialog_message">Êtes-vous sûr de vouloir supprimer cette transaction de votre portefeuille ?</string>
-    <string name="receive_amount_invalid">Montant invalide</string>
-    <string name="receive_intro">Choisir où recevoir l\'argent :</string>
-    <string name="receive_peer_invoice_instruction">Laissez le payeur scanner ce QR code pour payer :</string>
     <string name="copy" tools:override="true">Copier</string>
     <string name="transactions_balance">Solde</string>
     <string name="transaction_peer_pull_debit">Demande payée</string>
     <string name="transaction_peer_push_credit">Reçu</string>
-    <string name="copy_uri">Copier l\'URI de Taler</string>
     <string name="transaction_peer_push_debit">Envoyé</string>
     <string name="transaction_peer_pull_credit">Demander</string>
-    <string name="receive_amount">Montant à recevoir</string>
-    <string name="send_amount">Montant à envoyer</string>
-    <string name="send_intro">Choisir où envoyer l\'argent :</string>
-    <string name="transactions_detail_title_currency">%s Transactions</string>
     <string name="currency">Devise</string>
     <string name="transactions_receive_funds">Recevoir</string>
     <string name="transactions_send_funds">Envoyer</string>
     <string name="char_count">%1$d/%2$d</string>
     <string name="transactions_delete_selected_dialog_message">Êtes-vous sûr de vouloir supprimer les transactions sélectionnées de votre portefeuille ?</string>
     <string name="receive_peer_invoice_uri">Sinon, copier et envoyer cet URI :</string>
-    <string name="send_deposit_bic">BIC/SWIFT</string>
     <string name="send_deposit_name">Titulaire du compte</string>
     <string name="send_deposit_bitcoin_address">Adresse Bitcoin</string>
-    <string name="send_deposit_bitcoin_create_button">Transfert de Bitcoin</string>
     <string name="send_peer_title">Envoyer de l\'argent vers un autre portefeuille</string>
-    <string name="send_peer_payment_amount_received">Montant reçu</string>
-    <string name="send_peer_payment_amount_sent">Montant envoyé</string>
     <string name="withdraw_restrict_age">Limiter l\'utilisation selon l\'âge</string>
     <string name="pay_peer_title">Payer la demande</string>
-    <string name="send_peer_warning">Avertissement : Les fonds quittent immédiatement le portefeuille.</string>
     <string name="send_peer_payment_instruction">Scannez ce code QR pour recevoir %1$s</string>
     <string name="send_deposit_check_fees_button">Vérifier les frais</string>
-    <string name="send_deposit_amount_effective">Montant effectif</string>
     <string name="send_deposit_create_button">Déposer sur le compte bancaire</string>
-    <string name="send_peer">Vers un autre portefeuille</string>
     <string name="pay_peer_intro">Voulez-vous payer cette demande ?</string>
     <string name="receive_peer_payment_title">Recevoir le paiement</string>
     <string name="receive_peer_payment_intro">Voulez-vous recevoir ce paiement ?</string>
     <string name="send_peer_purpose">Référence</string>
     <string name="send_deposit_bitcoin">Bitcoin</string>
-    <string name="send_peer_bitcoin">Vers un autre portefeuille Taler</string>
-    <string name="send_peer_create_button">Envoyer des fonds maintenant</string>
-    <string name="send_deposit">Vers un compte bancaire</string>
     <string name="send_deposit_title">Déposer sur un compte bancaire</string>
     <string name="send_deposit_iban">IBAN</string>
     <string name="withdraw_restrict_age_unrestricted">Sans restriction</string>
     <string name="withdraw_manual_ready_subject">Référence</string>
-    <string name="withdraw_manual_ready_cancel">Annuler le retrait</string>
-    <string name="withdraw_manual_bitcoin_title">Le change de Bitcoin prêt pour les retraits</string>
     <string name="withdraw_manual_bitcoin_intro">Effectuez maintenant une transaction fractionnée avec les trois sorties suivantes.</string>
     <string name="withdraw_manual_ready_bank_button">Ouvrir dans l\'application bancaire</string>
-    <string name="withdraw_manual_ready_title">Le change est prêt pour le retrait !</string>
     <string name="withdraw_manual_ready_intro">Vous devez transférer %1$s de votre compte bancaire habituel vers le prestataire de services de paiement pour recevoir %2$s sous forme d\'argent électronique dans ce portefeuille.</string>
     <string name="withdraw_manual_ready_details_intro">Instructions pour le virement bancaire</string>
     <string name="withdraw_manual_ready_iban">IBAN</string>
@@ -220,7 +159,6 @@
     <string name="send_deposit_iban_error">L\'IBAN n\'est pas valide</string>
     <string name="send_peer_expiration_period">Expire dans</string>
     <string name="error_broken_uri">Erreur : Cette URI Taler ne fonctionne (actuellement) pas.</string>
-    <string name="amount_max">Montant maximum</string>
     <string name="amount_excess">Le montant dépasse le maximum de %1$s</string>
     <string name="amount_total">Montant total</string>
     <string name="amount_total_label">Total :</string>
@@ -229,13 +167,10 @@
     <string name="import_db">Importer</string>
     <string name="transactions_abort_dialog_title">Abandonner la transaction</string>
     <string name="send_peer_expiration_hours">Heures</string>
-    <string name="transactions_send_funds_title">Envoyer %1$s</string>
     <string name="transaction_state_pending_kyc_bank">Cette transaction dépasserait la limite fixée par le prestataire de services de paiement. Pour augmenter cette limite, suivez les instructions ci-dessous.</string>
-    <string name="transaction_state_pending_kyc_balance">Cette transaction dépasserait la limite de crédit dans votre portefeuille définie par le prestataire, afin de continuer, vous devez effectuer la vérification par une procédure de connaissance du client (KYC)</string>
     <string name="payment_confirmation_code">Code de confirmation</string>
     <string name="amount_received">Montant reçu</string>
     <string name="amount_sent">Montant envoyé</string>
-    <string name="transaction_action_kyc_balance">Solde complet KYC</string>
     <string name="transactions_retry">Réessayez</string>
     <string name="payment_pay_template_title">Personnalisez votre commande</string>
     <string name="send_peer_expiration_30d">30 jours</string>
@@ -256,17 +191,11 @@
     <string name="amount_lost">Montant perdu</string>
     <string name="actions">Actions</string>
     <string name="enter_uri_label">Entrez une URI</string>
-    <string name="amount_conversion">Conversion de devises</string>
     <string name="amount_deposit">Montant du dépôt</string>
-    <string name="amount_effective">Montant effectif</string>
-    <string name="balances_empty_get_money">Obtenir de l\'argent de démonstration</string>
-    <string name="balances_empty_demo_url">https://bank.demo.taler.net</string>
     <string name="transactions_fail_dialog_title">Abandonner la transaction</string>
-    <string name="payment_balance_insufficient_max">Solde insuffisant ! Le maximum est de %1$s</string>
     <string name="send_deposit_button_label">Déposer</string>
     <string name="withdraw_button_label">Retrait</string>
     <string name="settings_test_summary">Effectue des transactions de test avec la configuration de démonstration</string>
-    <string name="withdraw_fee">+%1$s de frais de retrait</string>
     <string name="settings_test_running">Le test d\'intégration est en train de s\'exécuter</string>
     <string name="transaction_deposit_to">Dépot vers %1$s</string>
     <string name="transaction_peer_push_credit_pending">Réception</string>
@@ -275,10 +204,7 @@
     <string name="transactions_currency">%1$s (%2$s)</string>
     <string name="transactions_suspend">Suspendre</string>
     <string name="payment_aborting">Annulation</string>
-    <string name="send_deposit_max_amount">Disponible pour un dépôt : %1$s</string>
-    <string name="send_peer_max_amount">Disponible pour envoyer : %1$s</string>
     <string name="withdraw_manual_ready_receiver">Destinataire</string>
-    <string name="withdraw_select_amount">Sélectionner le montant</string>
     <string name="withdraw_subtitle">Selectionner le compte bancaire de destination</string>
     <string name="exchange_list_add_dev">Ajouter des prestataires de développement</string>
     <string name="exchange_list_error">Impossible de faire la liste des prestataires</string>
@@ -298,7 +224,6 @@
     <string name="transaction_peer_pull_debit_pending">Demande de paiement</string>
     <string name="transactions_delete_selected_dialog_title">Effacer les transactions</string>
     <string name="transactions_fail_dialog_message">Êtes-vous sûr d\'abandonner cette transaction ? Les fonds encore en transit SERONT PERDUS.</string>
-    <string name="payment_pending">Le paiement n\'a pas abouti, il sera relancé</string>
     <string name="receive_peer_payment_instruction">Scannez ce code QR pour payer %1$s</string>
     <string name="exchange_reload">Recharger les informations</string>
     <string name="loss_reason_expired">Les fonds n\'ont pas été renouvelés, car le portefeuille n\'a pas été ouvert pendant une longue période</string>
@@ -327,7 +252,6 @@
     <string name="settings_dialog_reset_message">Voulez-vous vraiment réinitialiser le portefeuille et perdre toutes les pièces et tous les achats ?</string>
     <string name="transaction_preparing_kyc">KYC requis, préparation du test</string>
     <string name="settings_alert_reset_done">Le portefeuille a été réinitialisé</string>
-    <string name="transaction_action_kyc_bank">Veuillez effectuer les formalités de connaissance du client (KYC en anglais) nécessaires aux retraits</string>
     <string name="payment_tax">y compris %1$s %2$s</string>
     <string name="settings_test_withdrawal">Retrait de KUDOS</string>
     <plurals name="exchange_fee_coin">
@@ -367,7 +291,6 @@
     <string name="send_deposit_known_bank_accounts_empty">Aucun compte bancaire enregistré dans le portefeuille</string>
     <string name="send_deposit_select_amount_title">Sélectionnez le montant à déposer</string>
     <string name="send_deposit_no_alias">Pas d\'alias</string>
-    <string name="send_deposit_account_error">Il n\'est pas possible de faire un dépôt sur ce compte, veuillez en sélectionner un autre</string>
     <string name="send_deposit_select_account_title">Sélectionner un compte bancaire</string>
     <string name="withdraw_cash_acceptor">Le montant à retirer sera déterminé par la borne de rechargement</string>
     <string name="payment_balance_insufficient_hint_age_restricted">Achat impossible en raison d\'une restriction d\'âge</string>

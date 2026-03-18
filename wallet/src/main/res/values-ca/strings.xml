@@ -18,15 +18,10 @@
     <string name="google_play_title" tools:keep="@string/google_play_title">Cartera Taler (experimental)</string>
     <string name="google_play_short_desc" tools:keep="@string/google_play_short_desc">GNU Taler et permet fer transaccions privades, fàcil i ràpidament.</string>
     <string name="google_play_full_desc" tools:keep="@string/google_play_full_desc">Aquesta aplicació és una cartera per al GNU Taler. És altament experimental i encara no està llesta per a l\'ús quotidià seriós. GNUTaler és un sistema de pagament respectuós amb la privadesa. Els clients es poden mantenir anònims, però els comerciants no poden amagar els seus ingressos fets amb GNU Taler. Això ajuda a evitar l\'evasió d\'impostos i el blanqueig de diners. L\'ús principal de GNU Taler és fer pagaments; no com a bé de refugi o d\'especulació. Els pagaments sempre estan recolzats per una divisa ja existent. Els pagaments es fan després de canviar diners existents per efectiu digital amb l\'ajuda d\'un servei d\'intercanvi; és a dir, un proveïdor de serveis de pagament per al Taler. Per a fer un pagament, el client només necessita una cartera carregada de diners. El comerciant pot acceptar els pagaments sense fer que el client es registri al seu lloc web. El GNU Taler és immune a molts tipus de frau, com el «phishing» de dades bancàries o el frau de devolució. En cas de pèrdua o robament, només la quantitat limitada de diners que quedin a la cartera podrien ser perduts.</string>
-    <string name="nav_header_title">GNU Taler</string>
-    <string name="nav_header_subtitle">Cartera</string>
     <string name="nav_prompt_withdraw">Retira diners del banc</string>
     <string name="nav_exchange_tos">Termes de servei de l\'intercanvi</string>
-    <string name="nav_exchange_select">Selecciona l\'intercanvi</string>
-    <string name="nav_exchange_fees">Comissions del proveïdor</string>
     <string name="nav_error">Error</string>
     <string name="button_back">Anar enrere</string>
-    <string name="button_scan_qr_code">Escaneja el codi QR de Taler</string>
     <string name="enter_uri">Introdueix l\'URI taler://</string>
     <string name="copy" tools:override="true">Copia</string>
     <string name="paste">Enganxa</string>
@@ -34,33 +29,22 @@
     <string name="uri_invalid">No és una URI de Taler vàlida</string>
     <string name="ok">D\'acord</string>
     <string name="cancel">Cancel·la</string>
-    <string name="search">Cerca</string>
     <string name="menu">Menú</string>
-    <string name="or">o bé</string>
     <string name="currency">Divisa</string>
     <!-- The count should be mirrored in RTL languages -->
     <string name="char_count">%1$d/%2$d</string>
     <string name="offline">L\'operació requereix accés a internet. Si us plau, assegura\'t que la connexió a internet funciona i torna a intentar-ho.</string>
     <string name="error_unsupported_uri">Error: Aquesta URI de Taler no està suportada.</string>
     <string name="menu_settings">Paràmetres</string>
-    <string name="menu_retry_pending_operations">Reintenta les operacions pendents</string>
     <string name="host_apdu_service_desc">Pagaments de Taler per NFC</string>
-    <string name="balances_title">Saldo</string>
     <string name="amount_positive">+%s</string>
     <string name="amount_negative">-%s</string>
     <string name="amount_chosen">Quantitat escollida</string>
-    <string name="balances_inbound_label">entrant</string>
-    <string name="balances_empty_state">No hi ha efectiu digital a la teva cartera.
-\n
-\nPots obtenir diners de prova des del banc de demostració:
-\n
-\nhttps://bank.demo.taler.net</string>
     <string name="transactions_title">Transaccions</string>
     <string name="transactions_balance">Saldo</string>
     <string name="transactions_send_funds">Enviar</string>
     <string name="transactions_receive_funds">Rebre</string>
     <string name="transactions_empty">No tens cap transacció</string>
-    <string name="transactions_empty_search">No s\'han trobat transaccions. Prova una cerca diferent.</string>
     <string name="transactions_error">No s\'han pogut carregar transaccions
 \n
 \n%s</string>
@@ -75,9 +59,7 @@
     <string name="transaction_order_total">Total</string>
     <string name="transaction_order">Compra</string>
     <string name="transaction_order_id">Número de rebut: #%1$s</string>
-    <string name="transaction_tip_from">Recompensa de %s</string>
     <string name="transaction_refund">Reemborsament</string>
-    <string name="transaction_refund_from">Reemborsament de %s</string>
     <string name="transaction_pending">PENDENT</string>
     <string name="transaction_refresh">Comissió de canvi per caducitat de moneda</string>
     <string name="transaction_deposit">Dipòsit</string>
@@ -85,7 +67,6 @@
     <string name="transaction_peer_pull_credit">Petició</string>
     <string name="transaction_peer_pull_debit">Petició pagada</string>
     <string name="transaction_peer_push_credit">Rebut</string>
-    <string name="transaction_action_kyc_bank">Completa KYC (política \'Know Your Customer\')</string>
     <string name="payment_title">Pagament</string>
     <string name="payment_fee">+%s comissió de pagament</string>
     <string name="payment_button_confirm">Confirmar el pagament</string>
@@ -95,14 +76,11 @@
     <string name="payment_balance_insufficient">Saldo insuficient!</string>
     <string name="payment_aborted">Avortat</string>
     <string name="payment_failed">Ha fallat</string>
-    <string name="payment_initiated">Pagament començat</string>
-    <string name="payment_already_paid_title">Ja pagat</string>
     <string name="payment_already_paid">Ja has pagat aquesta compra.</string>
     <string name="amount_receive">Quantitat a rebre</string>
     <string name="amount_invalid">Quantitat invàlida</string>
     <string name="receive_peer">Demanar diners d\'una altra cartera</string>
     <string name="receive_peer_title">Sol·licitud de diners</string>
-    <string name="receive_peer_create_button">Crear petició</string>
     <string name="receive_peer_invoice_uri">Alternativament, copia i envia aquesta URI:</string>
     <string name="amount_send">Quantitat a enviar</string>
     <string name="send_deposit_title">Depositar a compte bancari</string>
@@ -110,11 +88,8 @@
     <string name="send_deposit_name">Titular del compte</string>
     <string name="send_deposit_bitcoin_address">Adreça de Bitcoin</string>
     <string name="send_deposit_check_fees_button">Despeses de comprovació</string>
-    <string name="amount_effective">Quantitat efectiva</string>
     <string name="send_deposit_create_button">Fes un dipòsit</string>
-    <string name="send_deposit_bitcoin_create_button">Transferir Bitcoin</string>
     <string name="send_peer_title">Envia diners a una altra cartera</string>
-    <string name="send_peer_create_button">Envia diners ara</string>
     <string name="send_peer_payment_instruction">Escaneja aquest codi QR per rebre %1$s</string>
     <string name="amount_received">Quantitat rebuda</string>
     <string name="amount_sent">Quantitat enviada</string>
@@ -132,8 +107,6 @@
     <string name="receive_peer_payment_intro">Vols rebre aquest pagament?</string>
     <string name="withdraw_initiated">Retirada iniciada</string>
     <string name="withdraw_title">Retirada</string>
-    <string name="withdraw_total">Retirar</string>
-    <string name="withdraw_fees">Comissió</string>
     <string name="withdraw_restrict_age">Restringeix per edat</string>
     <string name="withdraw_restrict_age_unrestricted">No restringit</string>
     <string name="withdraw_exchange">Proveïdor</string>
@@ -141,13 +114,6 @@
     <string name="withdraw_button_confirm_bank">Autoritzar amb el banc</string>
     <string name="withdraw_button_tos">Comprova els termes del servei</string>
     <string name="withdraw_waiting_confirm">Esperant confirmació</string>
-    <string name="withdraw_manual_title">Fes una transferència manual a l\'intercanvi</string>
-    <string name="withdraw_amount">Quant vols retirar\?</string>
-    <string name="withdraw_amount_error">Insereix una quantitat vàlida</string>
-    <string name="withdraw_manual_payment_options">Les opcions de pagament estan suportades per %1$s:
-\n
-\n%2$s</string>
-    <string name="withdraw_manual_check_fees">Comprova la comissió</string>
     <string name="withdraw_manual_ready_intro">Has de transferir %1$s des del teu compte de banc normal al servei de pagament per rebre %2$s en diners electrònics a aquesta cartera.</string>
     <string name="withdraw_manual_ready_details_intro">Instruccions de transferència bancària (per cable)</string>
     <string name="withdraw_manual_bitcoin_intro">Ara fes una transacció dividida amb aquestes tres sortides.</string>
@@ -188,9 +154,6 @@
     <string name="exchange_fee_wire_fee_closing_fee">Comissió de tancament: %1$s</string>
     <string name="exchange_tos_accept">Acceptar termes de servei</string>
     <string name="exchange_tos_error">Error mostrant termes de servei: %1$s</string>
-    <string name="pending_operations_title"/>
-    <string name="pending_operations_refuse"/>
-    <string name="pending_operations_no_action"/>
     <string name="settings_dev_mode">Mode de desenvolupador</string>
     <string name="settings_dev_mode_summary">Mostra més informació per a depuració de programari («debugging»)</string>
     <string name="settings_withdraw_testkudos">Retira KUDOS de demostració (prova)</string>
@@ -210,12 +173,9 @@
     <string name="settings_version_unknown">Desconegut</string>
     <string name="settings_reset">Resetejar cartera (perillós!)</string>
     <string name="settings_reset_summary">Perdràs els teus diners</string>
-    <string name="nav_settings_backup"/>
-    <string name="backup_last"/>
     <string name="refund_title">Reemborsar</string>
     <string name="refund_error">Error processant reemborsament</string>
     <string name="refund_success">Reemborsament rebut!</string>
-    <string name="tip_title"/>
     <string name="wifi_disabled_error">Encén wifi per aconseguir wifi gratuït</string>
     <string name="wifi_connect_error">No s\'ha pogut connectar a wifi gratuït: %1$s</string>
     <string name="transaction_dummy_title">Transacció desconeguda</string>
@@ -240,11 +200,8 @@
     <string name="amount_transfer">Transferir</string>
     <string name="transaction_state_aborting">Aquesta transacció s\'està avortant</string>
     <string name="transaction_state_failed">Aquesta transacció ha fallat o s\'ha abandonat</string>
-    <string name="transaction_state_pending_kyc_balance">Aquesta transacció excediria el límit de saldo a la teva cartera establert pel proveïdor; per continuar cal que completis el procés d\'identificació KYC</string>
     <string name="transaction_state_suspended">Aquesta transacció està suspesa</string>
-    <string name="payment_balance_insufficient_max">Saldo insuficient! El màxim és de %1$s</string>
     <string name="send_deposit_button_label">Dipòsit</string>
-    <string name="withdraw_select_amount">Selecciona quantitat</string>
     <string name="loss_reason_expired">Els fons no s\'han renovat perquè la cartera no s\'ha obert en molt de temps</string>
     <string name="loss_reason_unoffered">El proveïdor de pagament ha deixat d\'oferir la denominació que recolza els fons</string>
     <string name="loss_reason_vanished">El proveïdor de pagament ha perdut el registre dels fons</string>
@@ -252,14 +209,12 @@
     <string name="show_logs">Mostra registres</string>
     <string name="actions">Accions</string>
     <string name="enter_uri_label">Introdueix URI</string>
-    <string name="amount_conversion">Conversió</string>
     <string name="transaction_deposit_to">Dipositar a %1$s</string>
     <string name="transaction_state_pending">Aquesta transacció està pendent</string>
     <string name="transaction_state_pending_kyc_bank">Aquesta transacció excediria el límit de retirada establert pel teu banc; per continuar cal que completis el procés d\'identificació KYC</string>
     <string name="withdraw_account">Compte número #%1$d</string>
     <string name="withdraw_button_label">Retirar</string>
     <string name="exchange_delete_force">Forçar eliminació (purgar)</string>
-    <string name="balances_empty_demo_url">https://bank.demo.taler.net</string>
     <string name="balances_inbound_amount">+%1$s arribant</string>
     <string name="transaction_peer_pull_debit_pending">Pagant petició</string>
     <string name="transaction_state_aborted_manual">Aquesta transacció s\'ha avortat. Si ja has enviat diners a aquest intercanvi, se\'t retornaran en %1$s</string>
@@ -270,7 +225,6 @@
     <string name="qr_scan_context_receive_message">Sembla que intentaves rebre diners, però el QR que has escanejat correspon a una acció diferent. Desitges continuar?</string>
     <string name="qr_scan_context_send_message">Sembla que intentaves enviar diners, però el QR que has escanejat correspon a una acció diferent. Desitges continuar?</string>
     <string name="amount_deposit">Quantitat a dipositar</string>
-    <string name="balances_empty_get_money">Aconseguir diners de prova</string>
     <string name="payment_tax">Inclou %1$s %2$s</string>
     <string name="loss_reason">Motiu</string>
     <string name="observability_show_json">Mostrar JSON</string>
@@ -296,7 +250,6 @@
     <string name="error_no_uri">Error: No s\'ha trobat l\'URI del Taler</string>
     <string name="withdraw_account_currency">Compte número #%1$d (%2$s)</string>
     <string name="withdraw_manual_ready_receiver">Destinatari</string>
-    <string name="transaction_action_kyc_balance">Completar saldo KYC</string>
     <string name="receive_peer_payment_instruction">Escaneja aquest codi QR per pagar %1$s</string>
     <string name="transaction_state_pending_bank">Esperant autorització al banc</string>
     <string name="balance_scope_auditor">Auditor: %1$s</string>
@@ -306,17 +259,14 @@
     <string name="settings_db_import">Importar base de dades</string>
     <string name="exchange_delete">Esborrar proveïdor</string>
     <string name="error_broken_uri">Error: Aquesta URI del Taler no funciona (actualment).</string>
-    <string name="amount_max">Quantitat màxima</string>
     <string name="amount_excess">La quantitat excedeix el màxim de %1$s</string>
     <string name="amount_withdraw">Quantitat a retirar del banc</string>
     <string name="payment_aborting">Avortant</string>
-    <string name="withdraw_fee">+%1$s en comissions de retirada</string>
     <string name="withdraw_manual_qr_epc">QR EPC</string>
     <string name="withdraw_manual_qr_spc">Codi QR de factura suïssa</string>
     <string name="withdraw_subtitle">Selecciona el compte bancari de destí</string>
     <string name="exchange_not_contacted">Proveïdor no contactat</string>
     <string name="exchange_reload">Recarrega informació</string>
-    <string name="payment_pending">El pagament no s\'ha completat, es reintentarà</string>
     <string name="import_db">Import</string>
     <string name="reset">Restablir</string>
     <string name="transaction_preparing_kyc">Es requereix identificació KYC, preparant repte</string>
@@ -349,7 +299,6 @@
     <string name="payment_balance_insufficient_hint_age_restricted">Compra no disponible per restriccions d\'edat</string>
     <string name="payment_balance_insufficient_hint_fees_not_covered">No hi ha prou fons coberts pel comerciant per pagar les comissions del proveïdor</string>
     <string name="send_deposit_account_forget_dialog_message">Segur que vols oblidar aquest compte a la cartera?</string>
-    <string name="send_deposit_account_error">No és possible dipositar a aquest compte; si us plau, selecciona\'n un altre</string>
     <string name="send_deposit_select_amount_title">Selecciona quantitat a dipositar</string>
     <string name="amount_available_transfer_fees">Disponible per transferir després de comissions: %1$s</string>
     <string name="send_deposit_account_forget_dialog_title">Oblidar compte</string>
@@ -374,8 +323,6 @@
     <string name="withdraw_manual_qr_intro">Si el teu programari bancari s\'executa en un altre dispositiu, pots escanejar un d\'aquests codis QR:</string>
     <string name="withdraw_manual_ready_details_qr">Codis QR de transferència bancària (per cable)</string>
     <string name="transaction_state_done">Aquesta transacció s\'ha completat amb èxit</string>
-    <string name="transaction_state_pending_kyc_merge">Aquesta transacció excediria el límit de transferència establert pel proveïdor; per continuar cal que completis el procés d\'identificació KYC</string>
-    <string name="transaction_action_kyc_merge">Completar el procés d\'identificació KYC</string>
     <string name="payment_balance_insufficient_hint_exchange_missing_global_fees">Al proveïdor li manca la configuració global de comissions; probablement estigui mal configurat</string>
     <string name="payment_balance_insufficient_hint_merchant_accept_insufficient">El comerciant no accepta diners d\'un o més dels proveïdors d\'aquesta cartera</string>
     <string name="payment_balance_insufficient_hint_merchant_deposit_insufficient">El comerciant no accepta el mètode de transferència bancària (per cable) el proveïdor; probablement estigui mal configurat</string>

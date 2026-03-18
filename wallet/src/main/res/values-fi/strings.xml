@@ -18,27 +18,19 @@
     <string name="google_play_title" tools:keep="@string/google_play_title">Taler lompakko (kokeilu)</string>
     <string name="google_play_short_desc" tools:keep="@string/google_play_short_desc">GNU Taler mahdollistaa yksityisyyttä kunnioittavat verkkomaksut nopeasti ja helposti.</string>
     <string name="google_play_full_desc" tools:keep="@string/google_play_full_desc">Tämä sovellus on lompakko GNU Talerille. Se on erittäin kokeellinen eikä vielä valmis tuotantokäyttöön. GNU Taler on yksityisyyttä kunnioittava maksujärjestelmä. Asiakkaat voivat pysyä anonyymeinä, mutta kauppiaat eivät voi piilottaa tulojaan maksujen avulla GNU Talerilla. Tämä auttaa välttämään veronkiertoa ja rahanpesua. GNU Talerin ensisijainen käyttötarkoitus on maksut; sitä ei tarkoiteta arvon säilyttämiseen. Maksut ovat aina tuettuja olemassa olevalla valuutalla. Maksut suoritetaan vaihtamalla olemassa oleva raha sähköiseksi rahaksi Exchange-palvelun avulla, eli Talerin maksupalveluntarjoajan avulla. Maksua tehdessään asiakkaat tarvitsevat vain ladatun lompakon. Kauppias voi hyväksyä maksut ilman, että asiakkaiden tarvitsee rekisteröityä kauppiaan verkkosivustolle. GNU Taler on immuuni monille huijauksen muodoille, kuten luottokorttitietojen kalastelu tai palautuspetos. Jos lompakko katoaa tai varastetaan, vain lompakossa oleva rajoitettu rahasumma voi kadota.</string>
-    <string name="nav_header_title">GNU Taler</string>
-    <string name="nav_header_subtitle">Lompakko</string>
     <string name="nav_prompt_withdraw">Nosta sähköistä käteistä</string>
     <string name="nav_exchange_tos">Vaidon käyttöehdot</string>
-    <string name="nav_exchange_select">Valitse vaihto</string>
-    <string name="nav_exchange_fees">Vaihdon maksut</string>
     <string name="nav_error">Virhe</string>
     <string name="button_back">Takaisin</string>
-    <string name="button_scan_qr_code">Skannaa Taler QR koodi</string>
     <string name="button_scan_qr_code_label">Saknnaa QR koodi</string>
     <string name="enter_uri">Syötä Taler URI</string>
     <string name="copy" tools:override="true">Kopioi</string>
-    <string name="copy_uri">Kopioi Taler URI</string>
     <string name="paste">Liitä</string>
     <string name="paste_invalid">Leikepöytä sisältää virheellisen tietotyypin</string>
     <string name="uri_invalid">Taler URI ei ole kelvollinen</string>
     <string name="ok">OK</string>
     <string name="cancel">Hylkää</string>
-    <string name="search">Haku</string>
     <string name="menu">Valikko</string>
-    <string name="or">tai</string>
     <string name="currency">Valuutta</string>
     <!-- The count should be mirrored in RTL languages -->
     <string name="char_count">%1$d/%2$d</string>
@@ -50,20 +42,12 @@
     <string name="error_unsupported_uri">Virhe: Tätä Taler URI:a ei tueta.</string>
     <string name="error_broken_uri">Virhe: Tämä Taler URI ei (tällä hetkellä) toimi.</string>
     <string name="menu_settings">Asetukset</string>
-    <string name="menu_retry_pending_operations">Yritä uudelleen odottavia toimintoja</string>
     <string name="host_apdu_service_desc">Taler NFC maksut</string>
-    <string name="balances_title">Saldot</string>
     <string name="amount_positive">+%s</string>
     <string name="amount_negative">-%s</string>
     <string name="amount_chosen">Valittu summa</string>
     <string name="amount_sent">Summa lähetetty</string>
     <string name="amount_received">Summa saatu</string>
-    <string name="balances_inbound_label">saapuva</string>
-    <string name="balances_empty_state">Lompakossasi ei ole sähköistä rahaa.
-\n
-\nVoit saada testirahaa demopankista:
-\n
-\nhttps://bank.demo.taler.net</string>
     <string name="balance_scope_exchange">Vaihda:%1$s</string>
     <string name="balance_scope_auditor">Tarkastaja: %1$s</string>
     <string name="transactions_title">Tapahtumat</string>
@@ -71,12 +55,10 @@
     <string name="transactions_send_funds">Lähetä \nVarat</string>
     <string name="transactions_receive_funds">Vastaanota \nVarat</string>
     <string name="transactions_empty">Sinulla ei ole tapahtumia</string>
-    <string name="transactions_empty_search">Tapahtumia ei löytynyt. Yritä toista hakua.</string>
     <string name="transactions_error">Tapahtumaa ei voinut ladata
 \n
 \n%s</string>
     <string name="transactions_detail_title">Tapahtuma</string>
-    <string name="transactions_detail_title_currency">%s Tapahtumat</string>
     <string name="transactions_delete">Poista</string>
     <string name="transactions_retry">Yritä uudelleen</string>
     <string name="transactions_abort">Peruuta</string>
@@ -91,14 +73,12 @@
     <string name="transactions_abort_dialog_message">Haluatko varmasti keskeyttää tämän tapahtuman? Siirrettävät varat saattavat kadota.</string>
     <string name="transactions_fail_dialog_title">Lopeta tapahtuma</string>
     <string name="transactions_fail_dialog_message">Haluatko varmasti lopettaa tämän tapahtuman? Vielä siirrettävät varat MENETÄÄN.</string>
-    <string name="transactions_cancel_dialog_message">Haluatko varmasti peruuttaa tämän noston? Siirrettävät varat saattavat kadota.</string>
     <!-- Transactions -->
     <string name="transaction_paid">Maksettu</string>
     <string name="transaction_order_total">Yhteensä</string>
     <string name="transaction_order">Osto</string>
     <string name="transaction_order_id">Kuitti #%1$s</string>
     <string name="transaction_refund">Maksun palautus</string>
-    <string name="transaction_refund_from">Maksun palautus %s</string>
     <string name="transaction_pending">ODOTTAA</string>
     <string name="transaction_refresh">Kolikon voimassaolon vaihtomaksu</string>
     <string name="transaction_deposit">Talletus</string>
@@ -112,49 +92,29 @@
     <string name="payment_prompt_title">Näytä maksu</string>
     <string name="payment_fee">+%s maksun käsittelymaksu</string>
     <string name="payment_button_confirm">Vahvista maksu</string>
-    <string name="payment_label_amount_total">Kokonais summa:</string>
     <string name="payment_label_order_summary">Osta</string>
     <string name="payment_error">Virhe: %s</string>
-    <string name="payment_pending">Maksua ei suoritettu, sitä yritetään uudelleen</string>
     <string name="payment_balance_insufficient">Saldo ei riitä!</string>
     <string name="payment_aborted">Peruutettu</string>
     <string name="payment_failed">Epäonnistui</string>
-    <string name="payment_initiated">Maksu aloitettu</string>
-    <string name="payment_already_paid_title">Jo maskettu</string>
     <string name="payment_already_paid">Olet jo maksanut tämän ostoksen.</string>
     <string name="payment_pay_template_title">Muokkaa tilausta</string>
     <string name="payment_create_order">Luo tilaus</string>
     <string name="payment_confirmation_code">Vahvistuskoodi</string>
     <string name="payment_template_error">Virhe tilausken tekemisessä</string>
-    <string name="receive_amount">Vastaanotettava summa</string>
-    <string name="receive_amount_invalid">Virrheellinen summa</string>
-    <string name="receive_intro">Valitse mistä saat rahaa:</string>
-    <string name="receive_withdraw">Nosto pankkitililtä</string>
     <string name="receive_peer">Laskuta toista lompakkoa</string>
     <string name="receive_peer_title">Pyydä maksu</string>
-    <string name="receive_peer_create_button">Luo lasku</string>
-    <string name="receive_peer_invoice_instruction">Anna maksajan skannata tämä QR koodi maksaakseen:</string>
     <string name="receive_peer_invoice_uri">Vaihtoehtoisesti kopioi ja lähetä tämä URI:</string>
     <string name="amount_invoiced">Summa laskutettu</string>
-    <string name="send_amount">Lähetettävä summa</string>
-    <string name="send_intro">Valitse mihin lähetät rahaa:</string>
-    <string name="send_deposit">Pankkitilille</string>
     <string name="send_deposit_bitcoin">Bitcoin lompakkoon</string>
     <string name="send_deposit_title">Talletus pankkitilille</string>
     <string name="send_deposit_iban">IBAN</string>
     <string name="send_deposit_iban_error">IBAN on virheellinen</string>
-    <string name="send_deposit_bic_error">BIC on virheellinen</string>
-    <string name="send_deposit_bic">BIC/SWIFT</string>
     <string name="send_deposit_name">Tilin haltija</string>
     <string name="send_deposit_bitcoin_address">Bitcoin osoite</string>
     <string name="send_deposit_check_fees_button">Tarkista maksut</string>
-    <string name="send_deposit_amount_effective">Todellinen summa</string>
     <string name="send_deposit_create_button">Tee talletus</string>
-    <string name="send_deposit_bitcoin_create_button">Siirrä Bitcoineja</string>
-    <string name="send_peer">Toiseen lompakkoon</string>
-    <string name="send_peer_bitcoin">Toiseen Taler lompakkoon</string>
     <string name="send_peer_title">Lähetä rahaa toiseen lompakkoon</string>
-    <string name="send_peer_create_button">Lähetä varat nyt</string>
     <string name="send_peer_payment_instruction">Anna maksunsaajan skannata tämä QR-koodi saadaksesi:</string>
     <string name="send_peer_expiration_period">Vanhenee</string>
     <string name="send_peer_expiration_1d">1 päivässä</string>
@@ -171,43 +131,27 @@
     <string name="withdraw_initiated">Nosto aloitettu</string>
     <string name="withdraw_title">Nosto</string>
     <string name="withdraw_subtitle">Valiste kohdepankkitili</string>
-    <string name="withdraw_total">Nosta</string>
-    <string name="withdraw_fees">Maksu</string>
     <string name="withdraw_restrict_age">Ikärajoitus</string>
     <string name="withdraw_restrict_age_unrestricted">Rajoittamaton</string>
     <string name="withdraw_exchange">Vaihto</string>
-    <string name="withdraw_bank">Pankki</string>
     <string name="withdraw_button_confirm">Vahvista nosto</string>
     <string name="withdraw_button_confirm_bank">Vahvista pankilla</string>
     <string name="withdraw_button_tos">Tarkista ehdot</string>
     <string name="withdraw_waiting_confirm">Odottaa vahvistusta</string>
-    <string name="withdraw_manual_title">Tee manuaalinen siirto vaihtoon</string>
-    <string name="withdraw_amount">Kuinka paljon nostetaan?</string>
-    <string name="withdraw_amount_error">Syötä kelvollinen summa</string>
-    <string name="withdraw_manual_payment_options">%1$s:n tukemat maksuvaihtoehdot:
-\n
-\n%2$s</string>
-    <string name="withdraw_manual_check_fees">Tarkista maksut</string>
-    <string name="withdraw_manual_ready_title">Vaihto on valmis nostettavaksi!</string>
     <string name="withdraw_manual_ready_intro">Suorittaaksesi prosessin sinun on siirrettävä %s vaihtopankkitilille</string>
     <string name="withdraw_manual_ready_details_intro">Pankkisiirtotiedot</string>
-    <string name="withdraw_manual_bitcoin_title">Bitcoin vaihto valmis nostettavaksi</string>
     <string name="withdraw_manual_bitcoin_intro">Tee nyt jaettu tapahtuma seuraavalla kolmella ulostulolla.</string>
     <string name="withdraw_manual_ready_iban">IBAN</string>
     <string name="withdraw_manual_ready_account">Tili</string>
     <string name="withdraw_manual_ready_receiver">Vastaanotajan nimi</string>
     <string name="withdraw_manual_ready_subject">Aihe</string>
     <string name="withdraw_manual_ready_bank_button">Avaa pankkisovelluksessa</string>
-    <string name="withdraw_manual_ready_cancel">Peruuta nosto</string>
     <string name="withdraw_manual_ready_warning">Varmista, että käytät oikeaa aihetta, muuten rahat eivät tule tähän lompakkoon.</string>
     <string name="withdraw_error_title">Nosto virhe</string>
     <string name="withdraw_error_message">Nosto ei ole tällä hetkellä mahdollista. Yritä uudelleen myöhemmin!</string>
     <string name="withdraw_error_test">Virhe nostaessa TESTKUDOS</string>
     <string name="withdraw_account">Tili #%1$d</string>
     <string name="withdraw_account_currency">Tili #%1$d (%2$s)</string>
-    <string name="withdraw_transfer">Vaihda</string>
-    <string name="amount_conversion">Muuntaminen</string>
-    <string name="withdraw_conversion_support">Tämä vaihto tukee valuutan muuntamista</string>
     <string name="exchange_settings_title">Vaihdot</string>
     <string name="exchange_settings_summary">Hallinnoi tämän lompakon tuntemien vaihtojen luetteloa</string>
     <string name="exchange_list_title">Vaihdot</string>
@@ -219,7 +163,6 @@
     <string name="exchange_list_select">Valitse vaihto</string>
     <string name="exchange_delete">Poista vaihto</string>
     <string name="exchange_delete_force">Pakota poisto (puhdistus)</string>
-    <string name="exchange_dialog_delete_message">Haluatko varmasti poistaa tämän vaihdon? Tämän toimenpiteen pakottaminen johtaa varojen menetykseen.</string>
     <string name="exchange_not_contacted">Vaihtoon ei otettu yhteyttä</string>
     <string name="exchange_add_url">Anna vaihton osoite</string>
     <string name="exchange_add_error">Vaihtoa ei voitu lisätä</string>
@@ -244,9 +187,6 @@
     <string name="exchange_fee_wire_fee_closing_fee">Sulkemismaksu: %1$s</string>
     <string name="exchange_tos_accept">Hyväksy käyttöehdot</string>
     <string name="exchange_tos_error">Virhe näytettäessä käyttöehtoja: %1$s</string>
-    <string name="pending_operations_title">Odottavat toiminnot</string>
-    <string name="pending_operations_refuse">Hylkää ehdotus</string>
-    <string name="pending_operations_no_action">(ei toimintaa)</string>
     <string name="settings_dev_mode">Kehittäjätila</string>
     <string name="settings_dev_mode_summary">Näyttää enemmän virheenkorjaukseen tarkoitettuja tietoja</string>
     <string name="settings_withdraw_testkudos">Nosta TESTKUDOS</string>
@@ -291,7 +231,6 @@
     <string name="error_no_uri"/>
     <string name="transaction_state_aborted"/>
     <string name="transaction_state_aborted_manual"/>
-    <string name="transaction_state_pending_kyc_balance"/>
     <string name="transactions_currency"/>
     <string name="send_deposit_button_label"/>
     <string name="withdraw_button_label"/>
@@ -310,13 +249,10 @@
     <string name="send_deposit_account_warning"/>
     <string name="loss_reason_expired"/>
     <string name="loss_reason_unoffered"/>
-    <string name="withdraw_select_amount"/>
     <string name="send_deposit_taler"/>
     <string name="amount_available_transfer"/>
-    <string name="amount_effective"/>
     <string name="amount_transfer"/>
     <string name="amount_withdraw"/>
-    <string name="balances_empty_demo_url"/>
     <string name="transaction_denom_loss"/>
     <string name="transaction_deposit_to"/>
     <string name="transaction_peer_push_credit_pending"/>
@@ -325,13 +261,11 @@
     <string name="transaction_state_pending_kyc_bank"/>
     <string name="transaction_state_suspended"/>
     <string name="transactions_delete_selected_dialog_title"/>
-    <string name="payment_balance_insufficient_max"/>
     <string name="exchange_tos_view"/>
     <string name="transaction_state_pending_bank"/>
     <string name="amount_lost"/>
     <string name="balances_inbound_amount"/>
     <string name="balances_outbound_amount"/>
-    <string name="amount_max"/>
     <string name="amount_excess"/>
     <string name="amount_receive"/>
     <string name="amount_send"/>
@@ -339,7 +273,6 @@
     <string name="amount_total_label"/>
     <string name="exchange_tos_forget"/>
     <string name="transaction_preparing_kyc"/>
-    <string name="balances_empty_get_money"/>
     <string name="exchange_global_add"/>
     <string name="exchange_global_add_success"/>
     <string name="exchange_global_delete"/>
@@ -351,8 +284,6 @@
     <string name="show_logs"/>
     <string name="settings_db_export_message"/>
     <string name="settings_db_import_message"/>
-    <string name="transaction_action_kyc_balance"/>
-    <string name="transaction_action_kyc_bank"/>
     <string name="transaction_state_expired"/>
     <string name="transaction_state_failed"/>
     <string name="transaction_state_pending"/>
@@ -362,6 +293,5 @@
     <string name="send_deposit_account"/>
     <string name="send_deposit_host"/>
     <string name="send_deposit_no_methods_error"/>
-    <string name="withdraw_fee"/>
     <string name="withdraw_manual_qr_spc"/>
 </resources>

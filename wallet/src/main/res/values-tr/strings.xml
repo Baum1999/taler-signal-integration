@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Taler Cüzdan</string>
-    <string name="search">Ara</string>
     <string name="menu">Menü</string>
-    <string name="or">veya</string>
     <string name="offline">İşlem internet erişimi gerektirir. Lütfen internet bağlantınızın çalıştığından emin olun ve tekrar deneyin.</string>
-    <string name="nav_exchange_select">Exchange\'i seç</string>
-    <string name="nav_exchange_fees">Sağlayıcı ücretleri</string>
     <string name="nav_error">Hata</string>
     <string name="button_back">Geri git</string>
-    <string name="button_scan_qr_code">Taler QR kodunu tara</string>
     <string name="enter_uri">taler:// URI girin</string>
     <string name="paste">Yapıştır</string>
     <string name="ok">Tamam</string>
@@ -18,86 +13,58 @@
     <string name="cancel">İptal</string>
     <string name="google_play_title" tools:keep="@string/google_play_title">Taler Cüzdan (deneysel)</string>
     <string name="google_play_short_desc" tools:keep="@string/google_play_short_desc">GNU Taler, gizlilik dostu çevrimiçi işlemleri hızlı ve kolay hale getirir.</string>
-    <string name="nav_header_title">GNU Taler</string>
-    <string name="nav_header_subtitle">Cüzdan</string>
     <string name="nav_prompt_withdraw">Dijital nakit çek</string>
     <string name="nav_exchange_tos">PSP\'nin Hizmet Şartları</string>
     <string name="menu_settings">Ayarlar</string>
     <string name="error_unsupported_uri">Hata: Bu Taler URI\'si desteklenmiyor.</string>
-    <string name="menu_retry_pending_operations">Bekleyen İşlemleri Yeniden Deneyin</string>
     <string name="host_apdu_service_desc">Taler NFC ödemeleri</string>
-    <string name="balances_title">Bakiye</string>
     <string name="amount_positive">+. %s</string>
     <string name="amount_negative">-. %s</string>
     <string name="amount_chosen">Seçilen miktar</string>
-    <string name="balances_inbound_label">gelen</string>
     <string name="transactions_title">İşlemler</string>
     <string name="transactions_empty">Herhangi bir işleminiz bulunmamaktadır</string>
-    <string name="transactions_empty_search">İşlem bulunamadı. Farklı bir arama yapmayı deneyin.</string>
     <string name="transactions_error">İşlemler yüklenemedi
 \n
 \n%s</string>
     <string name="transactions_detail_title">İşlem</string>
-    <string name="transactions_detail_title_balance">Bakiye: %s</string>
     <string name="transactions_delete">Sil</string>
     <string name="transactions_select_all">Hepsini seç</string>
     <string name="transaction_paid">Ödendi</string>
     <string name="transaction_order_total">Toplam</string>
     <string name="transaction_order">Satın al</string>
     <string name="transaction_order_id">Sipariş #%1$s</string>
-    <string name="transaction_tip_from">%s dan İkramiye</string>
     <string name="transaction_refund">Para iadesi</string>
     <string name="payment_title">Ödeme</string>
     <string name="payment_fee">+%s ödeme ücreti</string>
     <string name="payment_button_confirm">Ödemeyi onayla</string>
-    <string name="payment_label_amount_total">Toplam Miktar:</string>
     <string name="payment_label_order_summary">Satın alma</string>
     <string name="payment_error">Hata: %s</string>
     <string name="payment_balance_insufficient">Yetersiz bakiye!</string>
     <string name="payment_aborted">İptal edildi</string>
     <string name="payment_failed">Başarısız</string>
     <string name="payment_already_paid">Bu satın alma işlemi için zaten ödeme yaptınız.</string>
-    <string name="payment_already_paid_title">Zaten ödendi</string>
     <string name="withdraw_initiated">Para çekme işlemi başlatıldı</string>
     <string name="withdraw_title">Para çekme</string>
-    <string name="withdraw_total">Para çek</string>
-    <string name="withdraw_fees">Ücret</string>
     <string name="withdraw_exchange">Sağlayıcı</string>
     <string name="withdraw_button_confirm_bank">Banka ile onayla</string>
     <string name="withdraw_button_tos">Şartları İncele</string>
     <string name="withdraw_waiting_confirm">Onay bekliyor</string>
-    <string name="withdraw_manual_title">Sağlayıcıya elle aktarım yapın</string>
-    <string name="withdraw_amount">Ne kadar para çekilmeli\?</string>
-    <string name="withdraw_manual_payment_options">%1$s tarafından desteklenen ödeme seçenekleri:
-\n
-\n%2$s</string>
-    <string name="withdraw_manual_check_fees">Ücretleri kontrol edin</string>
-    <string name="transaction_refund_from">%s dan para iadesi</string>
     <string name="transaction_pending">BEKLEYEN</string>
     <string name="settings_dev_mode_summary">Hata gidermeye yönelik daha fazla bilgi gösterir</string>
     <string name="settings_withdraw_testkudos">TESTKUDOS\'u çek</string>
     <string name="settings_withdraw_testkudos_summary">Test için para al</string>
     <string name="google_play_full_desc" tools:keep="@string/google_play_full_desc">Bu uygulama GNU Taler için bir cüzdandır. Oldukça deneyseldir ve henüz üretimde kullanıma hazır değildir. GNU Taler, gizliliği koruyan bir ödeme sistemidir. Müşteriler anonim kalabilir, ancak satıcılar GNU Taler ile yapılan ödemeler yoluyla gelirlerini gizleyemezler. Bu, vergi kaçakçılığının ve kara para aklamanın önlenmesine yardımcı olur. GNU Taler\'in birincil kullanım durumu ödemelerdir; bir değer saklama aracı olarak tasarlanmamıştır. Ödemeler her zaman mevcut bir para birimi tarafından desteklenir. Ödeme, bir Exchange hizmeti, yani Taler için bir ödeme hizmeti sağlayıcısı yardımıyla mevcut parayı elektronik paraya çevirdikten sonra yapılır. Müşteriler ödeme yaparken yalnızca ücretli bir cüzdana ihtiyaç duyar. Bir tüccar, müşterilerini tüccarın Web Sitesine kaydettirmeden ödemeleri kabul edebilir. GNU Taler, kredi kartı bilgilerinin kimlik avı veya ters ibraz sahtekarlığı gibi birçok dolandırıcılık türüne karşı bağışıktır. Kaybolma veya çalınma durumunda cüzdanda yalnızca sınırlı miktarda kalan para gitmiş olabilir.</string>
-    <string name="balances_empty_state">Cüzdanınızda dijital para bulunmamaktadır.
-\n
-\nDemo bankasından test parası alabilirsiniz:
-\n
-\nhttps://bank.demo.taler.net</string>
     <string name="transaction_refresh"/>
-    <string name="payment_initiated">Ödeme başlatıldı</string>
     <string name="withdraw_button_confirm">Para çekimini onayla</string>
-    <string name="withdraw_amount_error">Geçerli tutarı girin</string>
     <string name="withdraw_error_message">Para çekme şu anda mümkün değil. Lütfen daha sonra tekrar deneyiniz!</string>
     <string name="exchange_list_empty">Bilinen sağlayıcı yok
 \n
 \nElle bir tane ekleyin veya dijital parayı çekin!</string>
-    <string name="withdraw_manual_ready_title">Exchange para çekmek için hazır!</string>
     <string name="withdraw_manual_ready_intro">İşlemi tamamlamak için %s sağlayıcının banka hesabına havale etmeniz gerekir</string>
     <string name="withdraw_manual_ready_details_intro">Banka havalesi ayrıntıları</string>
     <string name="withdraw_manual_ready_iban">IBAN</string>
     <string name="withdraw_manual_ready_subject">Konu</string>
     <string name="withdraw_manual_ready_bank_button">Bankacılık uygulamasında aç</string>
-    <string name="withdraw_manual_ready_cancel">Para çekme işlemini iptal et</string>
     <string name="withdraw_manual_ready_warning">Doğru konuyu kullandığınızdan emin olun, aksi takdirde para bu cüzdana ulaşmayacaktır.</string>
     <string name="withdraw_error_title">Para çekme hatası</string>
     <string name="withdraw_error_test">KUDOS çekilirken hata oluştu</string>
@@ -114,7 +81,6 @@
     <string name="exchange_fee_coin_expiration_label"/>
     <string name="exchange_fee_coin_fees_label"/>
     <string name="exchange_fee_refresh_fee">Değişim ücreti: %1$s</string>
-    <string name="pending_operations_no_action">(Hiçbir eylem)</string>
     <string name="exchange_fee_wire_fees_label">Havale ücretleri</string>
     <string name="exchange_fee_withdraw_fee">Para çekme ücreti: %1$s</string>
     <string name="exchange_fee_deposit_fee">Yatırma ücreti: %1$s</string>
@@ -124,8 +90,6 @@
     <string name="exchange_fee_wire_fee_closing_fee">Kapanış ücreti: %1$s</string>
     <string name="exchange_tos_accept">Hizmet Şartlarını kabul et</string>
     <string name="exchange_tos_error">Hizmet Şartları gösterilirken hata: %1$s</string>
-    <string name="pending_operations_title">Bekleyen İşlemler</string>
-    <string name="pending_operations_refuse">Teklifi Reddet</string>
     <string name="settings_dev_mode">Geliştirici modu</string>
     <string name="settings_logcat">Hata giderme günlüğü</string>
     <string name="settings_logcat_summary">Dahili günlüğü kaydet</string>
@@ -136,11 +100,8 @@
     <string name="settings_version_unknown">Bilinmeyen</string>
     <string name="settings_reset">Cüzdanı Sıfırla (tehlikeli!)</string>
     <string name="settings_reset_summary">Paranızı çöpe atar</string>
-    <string name="nav_settings_backup">Yedekle</string>
-    <string name="backup_last">Son Yedekleme: %s</string>
     <string name="refund_title">Para iadesi</string>
     <string name="refund_success">Para iadesi alındı!</string>
-    <string name="tip_title">İkramiye</string>
     <string name="wifi_disabled_error">Ücretsiz Wi-Fi almak için Wi-Fi\'yi açın</string>
     <string name="wifi_connect_error">Ücretsiz Wi-Fi\'ye bağlanılamadı: %1$s</string>
     <string name="refund_error">Para iade işleminde hata oluştu</string>
@@ -150,16 +111,13 @@
     </plurals>
     <string name="transactions_send_funds">Gönder</string>
     <string name="transactions_receive_funds">Al</string>
-    <string name="transactions_detail_title_currency">%s işlem</string>
     <string name="transactions_retry">Tekrar dene</string>
     <string name="transactions_abort">İptal et</string>
-    <string name="transactions_cancel_dialog_message">Bu çekimi iptal etmek istediğinizden emin misiniz? Transit halindeki fonlar kaybolabilir.</string>
     <string name="transactions_balance">Bakiye</string>
     <string name="offline_banner">İnternet erişimi yok</string>
     <string name="settings_db_export">Veritabanını dışa aktar</string>
     <string name="withdraw_manual_ready_account">Hesap</string>
     <string name="transaction_state_aborted_manual">Bu işlem iptal edildi. Bu borsaya zaten para gönderdiyseniz, %1$s içinde size geri aktarılacaktır</string>
-    <string name="transactions_send_funds_title">%1$s gönder</string>
     <string name="send_peer_expiration_custom">Özel</string>
     <string name="transaction_state_expired">İşlemin süresi doldu</string>
     <string name="transaction_state_failed">İşlem başarısız oldu</string>
@@ -169,10 +127,7 @@
     <string name="transaction_state_suspended">İşlem askıya alındı</string>
     <string name="payment_prompt_title">Ödemeyi incele</string>
     <string name="payment_pay_template_title">Siparişinizi özelleştirin</string>
-    <string name="receive_intro">Paranın nereden alınacağını seçin:</string>
     <string name="receive_peer">Başka bir cüzdanı faturalandır</string>
-    <string name="receive_peer_create_button">Fatura oluştur</string>
-    <string name="send_intro">Paranın nereye gönderileceğini seçin:</string>
     <string name="send_deposit_bitcoin_address">Bitcoin adresi</string>
     <string name="send_deposit_iban">IBAN</string>
     <string name="send_deposit_name">Hesap sahibi</string>
@@ -205,14 +160,12 @@
     <string name="currency">Para birimi</string>
     <string name="transaction_state_pending_bank">Banka onayı bekleniyor</string>
     <string name="transactions_fail">Sonlandır</string>
-    <string name="transactions_receive_funds_title">%1$s al</string>
     <string name="transactions_resume">Sürdür</string>
     <string name="receive_peer_title">Ödeme talep et</string>
     <string name="payment_aborting">İptal ediliyor</string>
     <string name="balance_scope_auditor">Denetçi: %1$s</string>
     <string name="balance_scope_exchange">%1$s gelen</string>
     <string name="send_deposit_bitcoin">Bitcoin cüzdanına</string>
-    <string name="send_peer_bitcoin">Başka bir Taler cüzdanına</string>
     <string name="char_count">%1$d/%2$d</string>
     <string name="button_scan_qr_code_label">QR kodu tara</string>
     <string name="exchange_delete">Sağlayıcıyı sil</string>
@@ -229,9 +182,6 @@
     <string name="qr_scan_context_receive_message">Para almayı planlıyormuşsunuz gibi görünüyor ancak taradığınız QR kodu farklı bir işleme karşılık geliyor. Devam etmek istiyor musunuz?</string>
     <string name="qr_scan_context_send_message">Para göndermek istiyormuşsunuz gibi görünüyor ancak taradığınız QR kodu farklı bir işleme karşılık geliyor. Devam etmek istiyor musunuz?</string>
     <string name="transactions_fail_dialog_title">İşlemi sonlandır</string>
-    <string name="send_deposit_bitcoin_create_button">Bitcoin gönder</string>
-    <string name="send_peer">Başka bir cüzdana</string>
-    <string name="send_peer_create_button">Şimdi para gönder</string>
     <string name="send_peer_payment_instruction">Alacaklının aşağıdakileri alabilmesi için bu QR kodunu taramasına izin verin:</string>
     <string name="exchange_delete_force">Silmeye zorla (temizle)</string>
     <string name="exchange_list_select">Sağlayıcı seç</string>
@@ -244,10 +194,8 @@
     <string name="show_logs">Günlükleri göster</string>
     <string name="settings_alert_reset_canceled">Sıfırlama iptal edildi</string>
     <string name="transactions_abort_dialog_message">Bu işlemi iptal etmek istediğinizden emin misiniz? Hala geçişte olan fonlar kaybolabilir.</string>
-    <string name="amount_max">Azami miktar</string>
     <string name="amount_excess">Miktar azami %1$s sınırını aşıyor</string>
     <string name="amount_withdraw">Çekilecek miktar</string>
-    <string name="withdraw_fee">+%1$s para çekme ücreti</string>
     <string name="withdraw_manual_qr_epc">EPC QR</string>
     <string name="withdraw_manual_qr_spc">Swiss QR</string>
     <string name="send_peer_purpose">Amaç</string>
@@ -258,13 +206,10 @@
     <string name="transaction_peer_push_credit">Ödemeyi yap</string>
     <string name="transactions_fail_dialog_message">Bu işlemi sonlandırmak istediğinizden emin misiniz? Halen geçişte olan fonlar KAYBOLACAKTIR.</string>
     <string name="transactions_suspend">Askıya al</string>
-    <string name="payment_balance_insufficient_max">Bakiye yetersiz! Azami %1$s</string>
     <string name="payment_tax">dahil %1$s %2$s</string>
     <string name="receive_peer_payment_title">Ödeme al</string>
-    <string name="receive_withdraw">Banka hesabından para çek</string>
     <string name="transaction_preparing_kyc">KYC gerekli, doğrulama hazırlanıyor</string>
     <string name="transaction_state_pending_kyc_bank">İşlem bankanızın belirlediği para çekme limitini aşacaktır; devam etmek için KYC doğrulamasını tamamlamanız gerekir</string>
-    <string name="transaction_state_pending_kyc_balance">İşlem, sağlayıcı tarafından belirlenen cüzdanınızdaki bakiye sınırını aşacaktır, devam etmek için KYC doğrulamasını tamamlamanız gerekir</string>
     <string name="pay_peer_intro">Bu faturayı ödemek istiyor musunuz?</string>
     <string name="send_peer_expiration_1d">1 gün</string>
     <string name="send_peer_expiration_days">Gün</string>
@@ -278,18 +223,15 @@
     <string name="amount_sent">Gönderilen miktar</string>
     <string name="amount_received">Alınan miktar</string>
     <string name="payment_confirmation_code">Onay kodu</string>
-    <string name="payment_pending">Ödeme tamamlanmadı, yeniden denenecek</string>
     <string name="send_deposit_iban_error">IBAN geçersiz</string>
     <string name="send_deposit_title">Banka hesabına para yatırma</string>
     <string name="send_peer_expiration_30d">30 gün</string>
     <string name="withdraw_restrict_age_unrestricted">Kısıtlanmamış</string>
-    <string name="withdraw_select_amount">Tutar seç</string>
     <string name="exchange_list_add_dev">Geliştirme sağlayıcıları ekle</string>
     <string name="loss_reason">Sebep</string>
     <string name="settings_test_withdrawal">Şimdi KUDOS\'u çek</string>
     <string name="transaction_denom_loss">Fon kaybı</string>
     <string name="payment_create_order">Sipariş oluştur</string>
-    <string name="send_deposit">Banka hesabına</string>
     <string name="transactions_delete_dialog_title">İşlemi sil</string>
     <string name="transactions_delete_selected_dialog_message">Seçilen işlemleri cüzdanınızdan kaldırmak istediğinizden emin misiniz?</string>
     <string name="transaction_deposit_to">%1$s hesabına para yatırın</string>
@@ -300,12 +242,10 @@
     <string name="loading">Yükleniyor</string>
     <string name="open">Aç</string>
     <string name="share_payment">Ödeme bağlantısını paylaş</string>
-    <string name="amount_conversion">Dönüştür</string>
     <string name="amount_transfer">Aktar</string>
     <string name="balances_inbound_amount">+%1$s gelen</string>
     <string name="balances_outbound_amount">-%1$s giden</string>
     <string name="transaction_deposit">Yatır</string>
-    <string name="amount_effective">Etkin miktar</string>
     <string name="amount_fee">Hizmet bedeli</string>
     <string name="amount_invalid">Miktar geçersiz</string>
     <string name="amount_invoiced">Faturalandırılan miktar</string>
@@ -327,11 +267,8 @@
     <string name="withdraw_manual_bitcoin_intro"/>
     <string name="settings_db_export_message"/>
     <string name="settings_db_import_message"/>
-    <string name="balances_empty_demo_url"/>
-    <string name="balances_empty_get_money"/>
     <string name="transactions_currency"/>
     <string name="receive_peer_payment_instruction"/>
-    <string name="transaction_action_kyc_bank"/>
     <string name="transaction_peer_pull_debit_pending"/>
     <string name="transactions_delete_selected_dialog_title"/>
     <string name="exchange_tos_forget"/>
@@ -340,5 +277,4 @@
     <string name="exchange_global_add_success"/>
     <string name="exchange_global_delete"/>
     <string name="exchange_global_delete_success"/>
-    <string name="transaction_action_kyc_balance"/>
 </resources>

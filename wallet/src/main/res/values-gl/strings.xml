@@ -23,14 +23,12 @@
     <!-- Navigation  -->
 
     <string name="nav_error">Erro</string>
-    <string name="nav_exchange_fees">Comisións do provedor</string>
     <string name="nav_exchange_tos">Termos do servizo PSP</string>
     <string name="nav_prompt_withdraw">Retirar do banco</string>
     <!-- General -->
 
     <string name="actions">Accións</string>
     <string name="button_back">Volver</string>
-    <string name="button_scan_qr_code">Escanear código Taler QR</string>
     <string name="button_scan_qr_code_label">Escanear código QR</string>
     <string name="cancel">Desbotar</string>
     <!-- The count should be mirrored in RTL languages -->
@@ -67,15 +65,12 @@
     <string name="amount_available_transfer">Dispoñible para transferir: %1$s</string>
     <string name="amount_available_transfer_fees">Dispoñible despois das comisións: %1$s</string>
     <string name="amount_chosen">Cantidade elexida</string>
-    <string name="amount_conversion">Conversión</string>
     <string name="amount_deposit">Cantidade a depositar</string>
-    <string name="amount_effective">Cantidade efectiva</string>
     <string name="amount_fee">Comisión</string>
     <string name="amount_invalid">Cantidade non válida</string>
     <string name="amount_invoiced">Cantidade solicitada</string>
     <string name="amount_lost">Cantidade perdida</string>
     <string name="amount_negative">-%s</string>
-    <string name="amount_max">Cantidade máxima</string>
     <string name="amount_excess">A cantidade excede o máximo de %1$s</string>
     <string name="amount_positive">+%s</string>
     <string name="amount_receive">Cantidade a recibir</string>
@@ -90,20 +85,10 @@
 
     <string name="balance_scope_auditor">Auditoría: %1$s</string>
     <string name="balance_scope_exchange">De %1$s</string>
-    <string name="balances_empty_state">Non hai efectivo dixital na carteira.
-\n
-\nPode obter moeda de mostra desde o banco imaxinario:
-\n
-\nhttps://bank.demo.taler.net</string>
-    <string name="balances_empty_demo_url">https://bank.demo.taler.net</string>
-    <string name="balances_empty_get_money">Obter cartos de mostra</string>
     <string name="balances_inbound_amount">+%1$s entrante</string>
     <string name="balances_outbound_amount">-%1$s saínte</string>
-    <string name="balances_title">Saldos</string>
     <!-- Transactions -->
 
-    <string name="transaction_action_kyc_balance">Saldo completo KYC</string>
-    <string name="transaction_action_kyc_bank">Retirada completa KYC</string>
     <string name="transaction_denom_loss">Perda de fondos</string>
     <string name="transaction_deposit">Depositar</string>
     <string name="transaction_deposit_to">Depositar en %1$s</string>
@@ -131,7 +116,6 @@
     <string name="transaction_state_pending">Esta transacción está pendente</string>
     <string name="transaction_state_pending_bank">Agardando pola autorización do banco</string>
     <string name="transaction_state_pending_kyc_bank">Esta transacción excedería o límite de retirada establecido polo seu banco, para poder continuar debe completar a verificación KYC</string>
-    <string name="transaction_state_pending_kyc_balance">Esta transacción excedería o límite do saldo na súa carteira establecido polo provedor, para poder continuar debe completar a verificación KYC</string>
     <string name="transaction_state_suspended">Esta transacción foi suspendida</string>
     <string name="transactions_abort">Abortar</string>
     <string name="transactions_abort_dialog_message">Ten certeza de querer abortar esta transacción? Os fondos que estivesen en tránsito poderían perderse.</string>
@@ -146,7 +130,6 @@
     <string name="transactions_delete_selected_dialog_title">Eliminar transaccións</string>
     <string name="transactions_detail_title">Transacción</string>
     <string name="transactions_empty">Non ten transaccións</string>
-    <string name="transactions_empty_search">Non se atopan transaccións. Intente outra busca.</string>
     <string name="transactions_error">Non se puideron cargar as transaccións
 \n
 \n%s</string>
@@ -166,17 +149,14 @@
     <string name="payment_aborting">Abortando</string>
     <string name="payment_already_paid">Xa pagou por esta merca.</string>
     <string name="payment_balance_insufficient">Non hai saldo suficiente!</string>
-    <string name="payment_balance_insufficient_max">Saldo insuficiente! O máximo é %1$s</string>
     <string name="payment_button_confirm">Confirmar pago</string>
     <string name="payment_confirmation_code">Código de confirmación</string>
     <string name="payment_create_order">Crear pedido</string>
     <string name="payment_error">Erro: %s</string>
     <string name="payment_failed">Fallou</string>
     <string name="payment_fee">+%s comisión por pago</string>
-    <string name="payment_initiated">Pago iniciado</string>
     <string name="payment_label_order_summary">Merca</string>
     <string name="payment_pay_template_title">Personalice a súa orde</string>
-    <string name="payment_pending">Non se completou o pago, vaise volver intentar</string>
     <string name="payment_prompt_title">Revisar pago</string>
     <!-- including <amount> <tax name> -->
     <string name="payment_tax">incl. %1$s por %2$s</string>
@@ -185,7 +165,6 @@
     <!-- P2P receive -->
 
     <string name="receive_peer">Solicitar cartos desde outra carteira</string>
-    <string name="receive_peer_create_button">Crear solicitude</string>
     <string name="receive_peer_invoice_uri">Ou tamén pode copiar e enviar este URI:</string>
     <string name="receive_peer_payment_instruction">Escaneee este código QR para pagar %1$s</string>
     <string name="receive_peer_payment_intro">Quere recibir este pagamento?</string>
@@ -198,7 +177,6 @@
     <string name="send_deposit_account">Conta</string>
     <string name="send_deposit_account_add">Engadir conta</string>
     <string name="send_deposit_account_edit">Editar conta</string>
-    <string name="send_deposit_account_error">Non é posible facer un depósito nesta conta, seleccione outra</string>
     <string name="send_deposit_account_forget_dialog_message">Quere realmente esquecer esta conta na carteira?</string>
     <string name="send_deposit_account_forget_dialog_title">Esquecer conta</string>
     <string name="send_deposit_account_note">Nota</string>
@@ -206,7 +184,6 @@
     <string name="send_deposit_account_warning">Debe escribir unha conta que vostede xestione, doutro xeito non poderá cumprir cos requerimentos legais.</string>
     <string name="send_deposit_bitcoin">Bitcoin</string>
     <string name="send_deposit_bitcoin_address">Enderezo Bitcoin</string>
-    <string name="send_deposit_bitcoin_create_button">Transferir Bitcoin</string>
     <string name="send_deposit_button_label">Depositar</string>
     <string name="send_deposit_check_fees_button">Comprobar comisións</string>
     <string name="send_deposit_create_button">Facer depósito</string>
@@ -223,7 +200,6 @@
     <string name="send_deposit_taler">x-taler-bank</string>
     <string name="send_deposit_title">Depositar na conta do banco</string>
     <string name="send_deposit_no_alias">Sen alias</string>
-    <string name="send_peer_create_button">Enviar agora os fondos</string>
     <string name="send_peer_expiration_1d">1 día</string>
     <string name="send_peer_expiration_30d">30 días</string>
     <string name="send_peer_expiration_7d">1 semana</string>
@@ -238,7 +214,6 @@
 
     <string name="withdraw_account">Conta #%1$d</string>
     <string name="withdraw_account_currency">Conta #%1$d (%2$s)</string>
-    <string name="withdraw_amount_error">Escriba unha cantidade válida</string>
     <string name="withdraw_button_confirm">Confirmar retirada</string>
     <string name="withdraw_button_confirm_bank">Autorizar no banco</string>
     <string name="withdraw_button_label">Retirar</string>
@@ -247,7 +222,6 @@
     <string name="withdraw_error_test">Erro ao retirar TESTKUKOS</string>
     <string name="withdraw_error_title">Erro ao retirar</string>
     <string name="withdraw_exchange">Provedor</string>
-    <string name="withdraw_fee">+%1$s comisión por retirada</string>
     <string name="withdraw_initiated">Iniciouse a retirada</string>
     <string name="withdraw_manual_bitcoin_intro">Agora faga unha transacción fragmentada coas seguintes tres saídas.</string>
     <string name="withdraw_manual_qr_epc">QR EPC</string>
@@ -262,7 +236,6 @@
     <string name="withdraw_manual_ready_warning">Poña coidado en usar o concepto correcto, doutro xeito os cartos non chegarán a esta carteira.</string>
     <string name="withdraw_restrict_age">Restrinxir o uso por idade</string>
     <string name="withdraw_restrict_age_unrestricted">Sen restriccións</string>
-    <string name="withdraw_select_amount">Seleccionar cantidade</string>
     <string name="withdraw_subtitle">Seleccione a conta do banco de destino</string>
     <string name="withdraw_title">Retirada</string>
     <string name="withdraw_waiting_confirm">Agardando pola confirmación</string>

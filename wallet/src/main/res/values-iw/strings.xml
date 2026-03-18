@@ -23,7 +23,6 @@
     <!-- Navigation  -->
 
     <string name="nav_error">שגיאה</string>
-    <string name="nav_exchange_fees">עמלות הספק</string>
     <string name="nav_exchange_tos">תנאי השירות של PSP</string>
     <string name="nav_prompt_withdraw">משיכה מהבנק</string>
     <string name="nav_prompt_withdraw_currency">משיכה של %1$s</string>
@@ -31,7 +30,6 @@
 
     <string name="actions">פעולות</string>
     <string name="button_back">חזרה</string>
-    <string name="button_scan_qr_code">סריקת קוד ה־QR של טאלר</string>
     <string name="button_scan_qr_code_label">סריקת קוד ה־QR</string>
     <string name="cancel">סגירה</string>
     <!-- The count should be mirrored in RTL languages -->
@@ -80,15 +78,12 @@
     <string name="amount_available_transfer">זמין להעברה: %1$s</string>
     <string name="amount_available_transfer_fees">זמין להעברה לאחר הורדת העמלות: %1$s</string>
     <string name="amount_chosen">הסכום שנבחר</string>
-    <string name="amount_conversion">המרה</string>
     <string name="amount_deposit">הסכום להפקדה</string>
-    <string name="amount_effective">סכום במזומן</string>
     <string name="amount_fee">עמלה</string>
     <string name="amount_invalid">הסכום אינו תקין</string>
     <string name="amount_invoiced">נדרש סכום</string>
     <string name="amount_lost">הסכום שאבד</string>
     <string name="amount_negative">-%s</string>
-    <string name="amount_max">הסכום המקסימלי</string>
     <string name="amount_excess">הסכום גבוה מהמקסימום העומד על %1$s</string>
     <string name="amount_positive">+%s</string>
     <string name="amount_receive">סכום לקבל</string>
@@ -103,12 +98,8 @@
 
     <string name="balance_scope_auditor">רואה חשבון: %1$s</string>
     <string name="balance_scope_exchange">מאת %1$s</string>
-    <string name="balances_empty_state">אין כסף דיגיטלי בארנק.\n\nניתן להשיג כסף מדומה מהבנק המדומה:\n\nhttps://bank.demo.taler.net</string>
-    <string name="balances_empty_demo_url">https://bank.demo.taler.net</string>
-    <string name="balances_empty_get_money">קבלת כסף מדומה</string>
     <string name="balances_inbound_amount">+%1$s נכנסים</string>
     <string name="balances_outbound_amount">-%1$s יוצאים</string>
-    <string name="balances_title">יתרות</string>
     <!-- Transactions -->
 
     <string name="transaction_action_kyc">זיהוי והכרת הלקוח (KYC) שלם</string>
@@ -156,7 +147,6 @@
     <string name="transactions_delete_selected_dialog_title">מחיקת ההעברות</string>
     <string name="transactions_detail_title">העברה</string>
     <string name="transactions_empty">אין העברות</string>
-    <string name="transactions_empty_search">לא נמצאו העברות. יש לנסות ולחפש אחרת.</string>
     <string name="transactions_error">טעינת ההעברות נכשלה\n\n%s</string>
     <string name="transactions_fail">נטישה</string>
     <string name="transactions_fail_dialog_message">האם נטישת ההעברה סופית? כספים באמצע המעבר *יאבדו בוודאות*.</string>
@@ -184,7 +174,6 @@
     <string name="payment_balance_insufficient_hint_merchant_accept_insufficient">הסוחר אינו מקבל כסף מספק אחד לפחות בארנק זה</string>
     <string name="payment_balance_insufficient_hint_merchant_deposit_insufficient">הסוחר אינו מאשר את שיטת ההעברה הבנקאית של הספק. זה כנראה מעיד על תצורה לקויה</string>
     <string name="payment_balance_insufficient_hint_wallet_balance_material_insufficient">כמה מהמטבעות הדרושים לקנייה זו אינם זמינים כעת</string>
-    <string name="payment_balance_insufficient_max">היתרה אינה מספיקה! המקסימום הוא %1$s</string>
     <string name="payment_button_cancel">סגירה</string>
     <string name="payment_button_confirm">אישור התשלום</string>
     <string name="payment_button_confirm_amount">לשלם %1$s</string>
@@ -198,10 +187,8 @@
     <string name="payment_error">שגיאה: %s</string>
     <string name="payment_failed">נכשל</string>
     <string name="payment_fee">+%s עמלת תשלום</string>
-    <string name="payment_initiated">נוצר תשלום</string>
     <string name="payment_label_order_summary">רכישה</string>
     <string name="payment_pay_template_title">התאמת ההזמנה</string>
-    <string name="payment_pending">התשלום לא הושלם. יתבצע ניסיון נוסף</string>
     <!-- <quantity> × <price> -->
     <string name="payment_product_price_quantity">%1$s × %2$s</string>
     <string name="payment_prompt_title">צפייה בתשלום</string>
@@ -211,7 +198,6 @@
     <!-- including <amount> <tax name> -->
     <string name="payment_tax">כולל %1$s %2$s</string>
     <!-- <quantity> × <token name> -->
-    <string name="payment_token_name_quantity">%1$d × %2$s</string>
     <string name="payment_token_discount">הנחה</string>
     <string name="payment_token_subscription">הרשמה</string>
     <string name="payment_tokens_insufficient">האסימונים אינם מספיקים</string>
@@ -222,7 +208,6 @@
     <!-- P2P receive -->
 
     <string name="receive_peer">בקשת כסף מארנק אחר</string>
-    <string name="receive_peer_create_button">יצירת בקשה</string>
     <string name="receive_peer_invoice_uri">לחלופין, ניתן להעתיק ולשלוח את ה־URI:</string>
     <string name="receive_peer_payment_instruction">סריקת קוד ה־QR הבא כדי לשלם %1$s</string>
     <string name="receive_peer_payment_intro">האם לקבל תשלום זה?</string>
@@ -236,7 +221,6 @@
     <string name="send_deposit_account">חשבון</string>
     <string name="send_deposit_account_add">הוספת חשבון</string>
     <string name="send_deposit_account_edit">עריכת החשבון</string>
-    <string name="send_deposit_account_error">אין אפשרות להפקיד לחשבון זה. נא לנסות אחד אחר</string>
     <string name="send_deposit_account_forget_dialog_message">האם למחוק חשבון זה מהארנק?</string>
     <string name="send_deposit_account_forget_dialog_title">לשכוח את החשבון</string>
     <string name="send_deposit_account_note">פתק</string>
@@ -244,7 +228,6 @@
     <string name="send_deposit_account_warning">יש להזין חשבון שבשליטתך, אחרת לא תהיה אפשרות למלא אחר דרישות הפיקוח.</string>
     <string name="send_deposit_bitcoin">ביטקוין</string>
     <string name="send_deposit_bitcoin_address">כתובת הביטקוין</string>
-    <string name="send_deposit_bitcoin_create_button">העברת ביטקוין</string>
     <string name="send_deposit_button_label">הפקדה</string>
     <string name="send_deposit_check_fees_button">בדיקת העמלות</string>
     <string name="send_deposit_create_button">הפקדה</string>
@@ -267,7 +250,6 @@
     <string name="send_deposit_town">יישוב (רשות)</string>
     <string name="send_deposit_title">הפקדה לחשבון בנק</string>
     <string name="send_deposit_no_alias"/>
-    <string name="send_peer_create_button">שליחת כספים כעת</string>
     <string name="send_peer_expiration_1d">יום אחד</string>
     <string name="send_peer_expiration_30d">30 ימים</string>
     <string name="send_peer_expiration_7d">שבוע אחד</string>
@@ -282,7 +264,6 @@
 
     <string name="withdraw_account">חשבון מספר #%1$d</string>
     <string name="withdraw_account_currency">חשבון מספר #%1$d (%2$s)</string>
-    <string name="withdraw_amount_error">נא להזין סכום תקין</string>
     <string name="withdraw_button_confirm">אישור המשיכה</string>
     <string name="withdraw_button_confirm_bank">אימות בבנק</string>
     <string name="withdraw_button_label">משיכה</string>
@@ -293,7 +274,6 @@
     <string name="withdraw_error_test">שגיאה במשיכת KUDOS</string>
     <string name="withdraw_error_title">שגיאת משיכה</string>
     <string name="withdraw_exchange">ספק</string>
-    <string name="withdraw_fee">+%1$s עמלות משיכה</string>
     <string name="withdraw_initiated">נוצרה משיכה</string>
     <string name="withdraw_manual_bitcoin_intro">עכשיו יש לבצע העברה מפוצלת בעזרת שלושת הפלטים הבאים.</string>
     <string name="withdraw_manual_qr_epc">קוד QR של המועצה האירופית לתשלומים (EPC QR)</string>
@@ -317,7 +297,6 @@
     <string name="withdraw_restrict_age">הגבלת השימוש לפי גיל</string>
     <string name="withdraw_restrict_age_unrestricted">ללא הגבלה</string>
     <string name="withdraw_review_terms">תחילה יש לאשר את תנאי התשלום של תנאי השימוש לפני שניתן יהיה למשוך כסף אלקטרוני מהארנק.</string>
-    <string name="withdraw_select_amount">בחירת כמות</string>
     <string name="withdraw_subtitle">בחירת חשבון הבנק לנמען</string>
     <string name="withdraw_title">משיכה</string>
     <string name="withdraw_waiting_confirm">מחכה לאישור</string>
@@ -443,7 +422,6 @@
     <string name="donau_select_button">בחירת רשות המיסים</string>
     <string name="donau_selector_title">בחירת רשות המיסים</string>
     <string name="donau_statement_instruction">יש להציג את קוד ה־QR לרשות המיסים כדי לאשר את הצהרת התרומה</string>
-    <string name="donau_statement_year">שנה</string>
     <string name="donau_toggle_label">קבלת קבלה על תרומה המוכרת לצורכי מס</string>
     <string name="donau_url">URL של רשות התרומה</string>
 </resources>

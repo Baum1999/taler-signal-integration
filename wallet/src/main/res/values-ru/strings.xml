@@ -2,44 +2,29 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="ok">OK</string>
     <string name="menu_settings">Настройки</string>
-    <string name="nav_header_subtitle">Кошелёк</string>
     <string name="nav_prompt_withdraw">Вывести электронные наличные деньги</string>
     <string name="nav_error">Ошибка</string>
     <string name="button_back">Вернитесь назад</string>
-    <string name="button_scan_qr_code">Сканировать Taler QR-код</string>
     <string name="enter_uri">Введите Taler URI</string>
     <string name="paste">Вставить</string>
     <string name="uri_invalid">Неверный Taler URI</string>
     <string name="cancel">Отменить</string>
-    <string name="search">Поиск</string>
     <string name="menu">Меню</string>
-    <string name="or">или</string>
     <string name="offline">Для работы системы необходимо подключиться к Интернету. Пожалуйста, убедитесь, что у вас есть соединение с Интернетом, и попробуйте еще раз.</string>
     <string name="error_unsupported_uri">Ошибка: данный Taler URI не поддерживается.</string>
-    <string name="menu_retry_pending_operations">Повторить незавершённые операции</string>
     <string name="host_apdu_service_desc">Taler NFC-платежи</string>
     <string name="amount_positive">+ %s</string>
-    <string name="balances_title">Балансы</string>
     <string name="amount_chosen">Выбранная сумма</string>
-    <string name="balances_inbound_label">входящая</string>
     <string name="app_name">Taler Кошелёк</string>
     <string name="transactions_title">Транзакции</string>
     <string name="transactions_empty">У вас нет транзакций</string>
-    <string name="transactions_empty_search">Не удалось найти транзакции. Попробуйте новый поиск.</string>
     <string name="transactions_error">Не удалось загрузить транзакции
 \n
 \n%s</string>
     <string name="transactions_detail_title">Транзакция</string>
     <string name="google_play_title" tools:keep="@string/google_play_title">Taler Кошелёк (экспериментальное приложение)</string>
-    <string name="nav_header_title">GNU Taler</string>
-    <string name="transactions_detail_title_balance">Баланс: %s</string>
     <string name="transactions_select_all">Выбрать все</string>
     <string name="transaction_paid">Оплачено</string>
-    <string name="balances_empty_state">В вашем кошельке нет электронных наличных денег.
-\n
-\nВы можете получить тестовые деньги в нашем демо-банке:
-\n
-\nhttps://bank.demo.taler.net</string>
     <string name="transaction_order_id">Чек #%1$s</string>
     <string name="transaction_order">Покупка</string>
     <string name="transaction_order_total">Итого</string>
@@ -48,15 +33,10 @@
     <string name="payment_error">Ошибка: %s</string>
     <string name="payment_title">Платёж</string>
     <string name="payment_button_confirm">Подтвердить платёж</string>
-    <string name="payment_label_amount_total">Общая сумма:</string>
     <string name="payment_balance_insufficient">Недостаточно средств на балансе!</string>
     <string name="nav_exchange_tos">Условия оказания услуг биржей</string>
-    <string name="nav_exchange_select">Выбрать биржу</string>
-    <string name="nav_exchange_fees">Комиссионные сборы биржи</string>
     <string name="paste_invalid">Неверный тип данных в буфере обмена</string>
     <string name="amount_negative">- %s</string>
-    <string name="transaction_tip_from">Вознаграждение от %s</string>
-    <string name="transaction_refund_from">Возврат от %s</string>
     <string name="payment_fee">+%s комиссия за платёж</string>
     <string name="transaction_refresh">Комиссия за обмен монет с истёкшим сроком годности</string>
     <string name="google_play_short_desc" tools:keep="@string/google_play_short_desc">GNU Taler помогает осуществлять удобные и безопасные онлайн-транзакции быстро и просто.</string>
@@ -64,16 +44,11 @@
     <string name="exchange_fee_coin_fees_label">Комиссионные сборы за монеты</string>
     <string name="payment_already_paid">Вы уже оплатили эту покупку.</string>
     <string name="withdraw_exchange">Биржа</string>
-    <string name="withdraw_fees">Комиссия</string>
     <string name="payment_aborted">Платёж отозван</string>
     <string name="payment_failed">Платёж не прошёл</string>
-    <string name="payment_initiated">Платёж инициирован</string>
-    <string name="payment_already_paid_title">Уже оплачено</string>
     <string name="withdraw_initiated">Вывод средств инициирован</string>
     <string name="withdraw_title">Вывод средств</string>
     <string name="withdraw_button_confirm">Подтвердить вывод средств</string>
-    <string name="withdraw_total">Вывести средства</string>
-    <string name="withdraw_manual_check_fees">Проверить комиссионные сборы</string>
     <string name="exchange_fee_wire_fees_label">Комиссионные сборы за перевод</string>
     <string name="google_play_full_desc" tools:keep="@string/google_play_full_desc">Это приложение для кошелька GNU Taler. Его можно протестировать, но оно пока не готово к использованию. GNU Taler - платёжная система, обеспечивающая сохранность конфиденциальности персональных данных. Покупатели могут оставаться анонимными, а продавцы не могут скрывать информацию о своих доходах посредством платежей через GNU Taler. Это помогает избежать уклонения от уплаты налогов и отмывания денег. Основное назначение GNU Taler - это работа с платежами; система не предназначена для накопления средств. Система поддерживает платежи в любой существующей валюте. Платежи осуществляются после того, как текущие деньги обменены на электронные через биржу, - поставщика услуг по обмену электронной валюты для Taler. Покупателям всего лишь нужно пополнить свой кошелёк для осуществления платежа. Покупателям не нужно регистрироваться на сайте продавца для того, чтобы производить оплату. GNU Taler защищена от многих видов интернет-мошенничества, таких как фишинг, цель которого является получение доступа к данным банковских карт пользователей, или чарджбэк. В случае утери или кражи конфиденциальных данных лишь ограниченная денежная сумма может быть выведена с электронного кошелька.</string>
     <string name="transaction_pending">ОЖИДАЕТ ПОДТВЕРЖДЕНИЯ</string>
@@ -81,11 +56,6 @@
     <string name="payment_label_order_summary">Покупка</string>
     <string name="withdraw_button_tos">Проверить условия оказания услуг</string>
     <string name="withdraw_waiting_confirm">Ожидает подтверждения</string>
-    <string name="withdraw_amount">Какую сумму вы хотели бы вывести\?</string>
-    <string name="withdraw_manual_title">Осуществить перевод на биржу вручную</string>
-    <string name="withdraw_manual_payment_options">Способы оплаты поддерживаются %1$s:
-\n
-\n%2$s</string>
     <string name="withdraw_error_title">Ошибка при выводе средств</string>
     <string name="withdraw_error_message">Вывод средств в данный момент не возможен. Пожалуйста, попробуйте ещё раз позже!</string>
     <string name="withdraw_error_test">Ошибка при выводе TESTKUDOS</string>
@@ -100,16 +70,12 @@
     <string name="exchange_fee_wire_fee_timespan">Временной диапазон: %1$s - %2$s</string>
     <string name="exchange_fee_wire_fee_wire_fee">Комиссия за перевод: %1$s</string>
     <string name="exchange_tos_accept">Принять условия оказания услуг</string>
-    <string name="pending_operations_title">Незавершенные операции</string>
-    <string name="pending_operations_refuse">Отклонить предложение</string>
-    <string name="pending_operations_no_action">(нет действий)</string>
     <string name="settings_dev_mode">Режим разработчика</string>
     <string name="settings_withdraw_testkudos">Вывести TESTKUDOS</string>
     <string name="settings_withdraw_testkudos_summary">Получить деньги для тестирования</string>
     <string name="settings_logcat">Журнал отладки</string>
     <string name="settings_version_app">Версия приложения</string>
     <string name="settings_reset">Переустановить кошелёк (Опасно!)</string>
-    <string name="nav_settings_backup">Резервная копия</string>
     <string name="exchange_fee_refresh_fee">Комиссия за обмен: %1$s</string>
     <string name="exchange_fee_overhead_label">Округленные убытки:</string>
     <string name="exchange_fee_refund_fee">Комиссия за возврат: %1$s</string>
@@ -118,14 +84,11 @@
     <string name="settings_version_core">Базовая версия кошелька</string>
     <string name="settings_version_protocol_exchange">Поддерживаемые версии биржи</string>
     <string name="exchange_fee_coin_expiration_label">Самый ранний срок годности монеты:</string>
-    <string name="backup_last">Последняя резервная копия: %s</string>
     <string name="refund_title">Возврат</string>
     <string name="refund_error">Ошибка при обработке возврата</string>
     <string name="refund_success">Возврат получен: %s</string>
-    <string name="tip_title">Вознаграждение</string>
     <string name="wifi_connect_error">Не удалось подключиться к бесплатному Wi-Fi: %1$s</string>
     <string name="wifi_disabled_error">Включите Wi-Fi, чтобы получить бесплатный Wi-Fi</string>
-    <string name="withdraw_amount_error">Введите допустимую сумму</string>
     <string name="exchange_settings_summary">Управление каталогом бирж, известных этому кошельку</string>
     <string name="exchange_list_empty">Неизвестные биржи
 \n
@@ -167,7 +130,6 @@
     <string name="transaction_state_aborting"/>
     <string name="transaction_state_expired"/>
     <string name="transaction_state_failed"/>
-    <string name="transaction_state_pending_kyc_balance"/>
     <string name="transaction_state_suspended"/>
     <string name="send_deposit_account_warning"/>
     <string name="send_deposit_bitcoin"/>
@@ -175,10 +137,8 @@
     <string name="settings_logcat_success"/>
     <string name="transactions_fail_dialog_message"/>
     <string name="open"/>
-    <string name="amount_conversion"/>
     <string name="qr_scan_context_send_message"/>
     <string name="transactions_delete_selected_dialog_title"/>
-    <string name="withdraw_fee"/>
     <string name="withdraw_manual_bitcoin_intro"/>
     <string name="exchange_list_error"/>
     <string name="loss_reason"/>
@@ -193,19 +153,14 @@
     <string name="settings_test_withdrawal"/>
     <string name="amount_available_transfer"/>
     <string name="amount_deposit"/>
-    <string name="amount_effective"/>
-    <string name="balances_empty_get_money"/>
-    <string name="balances_empty_demo_url"/>
     <string name="balances_inbound_amount"/>
     <string name="balances_outbound_amount"/>
-    <string name="transaction_action_kyc_balance"/>
     <string name="transaction_denom_loss"/>
     <string name="transaction_peer_pull_debit_pending"/>
     <string name="transaction_peer_push_credit_pending"/>
     <string name="transaction_peer_push_debit_pending"/>
     <string name="transaction_state_aborted"/>
     <string name="transactions_currency"/>
-    <string name="payment_balance_insufficient_max"/>
     <string name="payment_tax"/>
     <string name="receive_peer_payment_instruction"/>
     <string name="send_deposit_button_label"/>
@@ -218,7 +173,6 @@
     <string name="withdraw_manual_ready_warning"/>
     <string name="exchange_reload"/>
     <string name="loss_reason_vanished"/>
-    <string name="amount_max"/>
     <string name="transaction_peer_push_debit"/>
     <string name="transaction_peer_push_credit"/>
     <string name="exchange_tos_forget"/>
@@ -226,7 +180,6 @@
     <string name="transaction_preparing_kyc"/>
     <string name="transaction_state_pending_kyc_bank"/>
     <string name="payment_template_error"/>
-    <string name="withdraw_select_amount"/>
     <string name="receive_peer_invoice_uri"/>
     <string name="send_deposit_title"/>
     <string name="send_deposit_iban"/>
@@ -240,7 +193,6 @@
     <string name="settings_db_import_message"/>
     <string name="settings_dialog_import_message"/>
     <string name="settings_dialog_reset_message"/>
-    <string name="transaction_action_kyc_bank"/>
     <string name="loss_reason_unoffered"/>
     <string name="observability_title"/>
     <string name="amount_total_label"/>
@@ -251,7 +203,6 @@
     <string name="transactions_receive_funds"/>
     <string name="transactions_resume"/>
     <string name="transactions_retry"/>
-    <string name="receive_peer_create_button"/>
     <string name="withdraw_restrict_age"/>
     <string name="withdraw_restrict_age_unrestricted"/>
     <string name="send_peer_payment_instruction"/>
@@ -285,7 +236,6 @@
     <string name="transactions_delete_selected_dialog_message"/>
     <string name="transactions_fail"/>
     <string name="payment_create_order"/>
-    <string name="payment_pending"/>
     <string name="payment_prompt_title"/>
     <string name="send_deposit_create_button"/>
     <string name="send_deposit_name"/>
@@ -303,7 +253,6 @@
     <string name="pay_peer_title">Оплатить платежный запрос</string>
     <string name="transactions_balance"/>
     <string name="transactions_send_funds"/>
-    <string name="send_deposit_bitcoin_create_button"/>
     <string name="exchange_list_select"/>
     <string name="show_logs"/>
     <string name="settings_db_import_summary"/>
@@ -312,7 +261,6 @@
     <string name="settings_alert_import_canceled"/>
     <string name="settings_alert_reset_canceled"/>
     <string name="settings_db_import_error"/>
-    <string name="send_peer_create_button"/>
     <string name="observability_hide_json"/>
     <string name="observability_show_json"/>
     <string name="settings_db_export_success"/>

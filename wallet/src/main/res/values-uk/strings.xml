@@ -23,15 +23,11 @@
     <!-- Navigation  -->
 
     <string name="nav_error">Помилка</string>
-    <string name="nav_exchange_fees">Комісії постачальника</string>
     <string name="nav_exchange_tos">Умови обслуговування PSP</string>
-    <string name="nav_header_subtitle">Гаманець</string>
-    <string name="nav_header_title">GNU Taler</string>
     <string name="nav_prompt_withdraw">Зняти електронні гроші</string>
     <!-- General -->
 
     <string name="button_back">Назад</string>
-    <string name="button_scan_qr_code">Сканувати QR-код Taler</string>
     <string name="button_scan_qr_code_label">Сканувати QR-код</string>
     <string name="cancel">Скасувати</string>
     <!-- The count should be mirrored in RTL languages -->
@@ -46,11 +42,9 @@
     <string name="offline_banner">Немає доступу до Інтернету</string>
     <string name="ok">ОК</string>
     <string name="open">Відкрити</string>
-    <string name="or">або</string>
     <string name="paste">Вставити</string>
     <string name="paste_invalid">Буфер обміну містить недійсний тип даних</string>
     <string name="reset">Скинути</string>
-    <string name="search">Пошук</string>
     <string name="share_payment">Поділитися посиланням на оплату</string>
     <string name="uri_invalid">Недійсний URI Taler</string>
     <!-- QR code handling -->
@@ -65,14 +59,11 @@
     <!-- Amounts -->
 
     <string name="amount_chosen">Вибрана сума</string>
-    <string name="amount_conversion">Конвертація</string>
-    <string name="amount_effective">Фактична сума</string>
     <string name="amount_fee">Комісія</string>
     <string name="amount_invalid">Недійсна сума</string>
     <string name="amount_invoiced">Сума виставленого рахунку</string>
     <string name="amount_lost">Втрачена сума</string>
     <string name="amount_negative">-%s</string>
-    <string name="amount_max">Максимальна сума</string>
     <string name="amount_excess">Сума перевищує максимум%1$s</string>
     <string name="amount_positive">+%s</string>
     <string name="amount_receive">Сума до отримання</string>
@@ -87,14 +78,8 @@
 
     <string name="balance_scope_auditor">Аудитор: %1$s</string>
     <string name="balance_scope_exchange">Від %1$s</string>
-    <string name="balances_empty_state">У вашому гаманці немає електронних грошей.
-\n
-\nВи можете отримати тестові гроші в демо-банку:
-\n
-\nhttps://bank.demo.taler.net</string>
     <string name="balances_inbound_amount">+%1$s надійшло</string>
     <string name="balances_outbound_amount">-%1$s витрачено</string>
-    <string name="balances_title">Баланси</string>
     <!-- Transactions -->
 
     <string name="transaction_action_kyc">Завершити KYC</string>
@@ -129,9 +114,7 @@
     <string name="transactions_delete_dialog_title">Видалити транзакцію</string>
     <string name="transactions_delete_selected_dialog_message">Ви впевнені, що хочете видалити вибрані транзакції з вашого гаманця?</string>
     <string name="transactions_detail_title">Транзакція</string>
-    <string name="transactions_detail_title_currency">Транзакції %s</string>
     <string name="transactions_empty">У вас немає транзакцій</string>
-    <string name="transactions_empty_search">Транзакцій не знайдено. Спробуйте інший пошук.</string>
     <string name="transactions_error">Не вдалося завантажити транзакції
 \n
 \n%s</string>
@@ -139,12 +122,10 @@
     <string name="transactions_fail_dialog_message">Ви впевнені, що хочете припинити цю транзакцію? Кошти, що перебувають у транзиті, БУДУТЬ ВТРАЧЕНІ.</string>
     <string name="transactions_fail_dialog_title">Припинити транзакцію</string>
     <string name="transactions_receive_funds">Отримати</string>
-    <string name="transactions_receive_funds_title">Отримати %1$s</string>
     <string name="transactions_resume">Відновити</string>
     <string name="transactions_retry">Спробувати ще раз</string>
     <string name="transactions_select_all">Вибрати все</string>
     <string name="transactions_send_funds">Надіслати</string>
-    <string name="transactions_send_funds_title">Переказати %1$s</string>
     <string name="transactions_suspend">Призупинити</string>
     <string name="transactions_title">Транзакції</string>
     <!-- Payments -->
@@ -159,29 +140,22 @@
     <string name="payment_error">Помилка: %s</string>
     <string name="payment_failed">Платіж не пройшов</string>
     <string name="payment_fee">+%s комісія за оплату</string>
-    <string name="payment_initiated">Оплату розпочато</string>
     <string name="payment_label_order_summary">Покупка</string>
     <string name="payment_pay_template_title">Налаштуйте ваше замовлення</string>
-    <string name="payment_pending">Оплату не завершено, вона буде повторена</string>
     <string name="payment_prompt_title">Переглянути оплату</string>
     <string name="payment_template_error">Помилка створення замовлення</string>
     <string name="payment_title">Оплата</string>
     <!-- P2P receive -->
 
-    <string name="receive_intro">Виберіть, звідки отримувати гроші:</string>
     <string name="receive_peer">Виставити рахунок іншому гаманцю</string>
-    <string name="receive_peer_create_button">Створити рахунок</string>
     <string name="receive_peer_invoice_uri">Або скопіюйте та надішліть цей URI:</string>
     <string name="receive_peer_payment_intro">Ви хочете отримати цей платіж?</string>
     <string name="receive_peer_payment_title">Отримати платіж</string>
     <string name="receive_peer_title">Запит на оплату</string>
-    <string name="receive_withdraw">Зняти з банківського рахунку</string>
     <!-- P2P send -->
 
     <string name="pay_peer_title">Оплатити рахунок</string>
     <string name="pay_peer_intro">Ви хочете оплатити цей рахунок?</string>
-    <string name="send_intro">Виберіть, куди надіслати гроші:</string>
-    <string name="send_deposit">На банківський рахунок</string>
     <string name="send_deposit_bitcoin">На Bitcoin гаманець</string>
     <string name="send_deposit_title">Депозит на банківський рахунок</string>
     <string name="send_deposit_iban">IBAN</string>
@@ -190,11 +164,7 @@
     <string name="send_deposit_bitcoin_address">Адреса Bitcoin</string>
     <string name="send_deposit_check_fees_button">Перевірити комісії</string>
     <string name="send_deposit_create_button">Зробити депозит</string>
-    <string name="send_deposit_bitcoin_create_button">Переказати Bitcoin</string>
-    <string name="send_peer">На інший гаманець</string>
-    <string name="send_peer_bitcoin">На інший гаманець Taler</string>
     <string name="send_peer_title">Надіслати гроші на інший гаманець</string>
-    <string name="send_peer_create_button">Надіслати кошти зараз</string>
     <string name="send_peer_payment_instruction">Дозвольте отримувачу відсканувати цей QR-код для отримання:</string>
     <string name="send_peer_expiration_period">Термін дії закінчується через</string>
     <string name="send_peer_expiration_1d">1 день</string>
@@ -208,7 +178,6 @@
 
     <string name="withdraw_account">Рахунок #%1$d</string>
     <string name="withdraw_account_currency">Рахунок #%1$d (%2$s)</string>
-    <string name="withdraw_amount_error">Введіть дійсну суму</string>
     <string name="withdraw_button_confirm">Підтвердити зняття</string>
     <string name="withdraw_button_confirm_bank">Авторизувати в банку</string>
     <string name="withdraw_button_tos">Переглянути умови надання послуг</string>
@@ -216,13 +185,8 @@
     <string name="withdraw_error_test">Помилка при знятті TESTKUDOS</string>
     <string name="withdraw_error_title">Помилка зняття</string>
     <string name="withdraw_exchange">Постачальник</string>
-    <string name="withdraw_fee">+%1$s комісія за зняття</string>
     <string name="withdraw_initiated">Зняття розпочато</string>
     <string name="withdraw_manual_bitcoin_intro">Зараз здійсніть розділений переказ з наступними трьома виходами.</string>
-    <string name="withdraw_manual_check_fees">Перевірити комісії</string>
-    <string name="withdraw_manual_payment_options">Варіанти оплати, підтримувані %1$s:
-\n
-\n%2$s</string>
     <string name="withdraw_manual_qr_epc">EPC QR</string>
     <string name="withdraw_manual_qr_spc">Швейцарський QR</string>
     <string name="withdraw_manual_ready_account">Рахунок</string>
@@ -233,10 +197,8 @@
     <string name="withdraw_manual_ready_receiver">Ім\'я отримувача</string>
     <string name="withdraw_manual_ready_subject">Призначення</string>
     <string name="withdraw_manual_ready_warning">Переконайтеся, що використовуєте правильне призначення, інакше гроші не надійдуть на цей гаманець.</string>
-    <string name="withdraw_manual_title">Здійснити ручний переказ постачальнику</string>
     <string name="withdraw_restrict_age">Обмежити використання за віком</string>
     <string name="withdraw_restrict_age_unrestricted">Без обмежень</string>
-    <string name="withdraw_select_amount">Виберіть суму</string>
     <string name="withdraw_subtitle">Виберіть цільовий банківський рахунок</string>
     <string name="withdraw_title">Зняття коштів</string>
     <string name="withdraw_waiting_confirm">Очікування підтвердження</string>
@@ -339,15 +301,11 @@
     <string name="wifi_connect_error">Не вдалося підключитися до безкоштовного Wi-Fi: %1$s</string>
     <string name="wifi_disabled_error">Увімкніть Wi-Fi, щоб отримати безкоштовний Wi-Fi</string>
     <string name="error_no_uri">Помилка: Taler URI не знайдено</string>
-    <string name="payment_balance_insufficient_max">Недостатній баланс! Максимум становить %1$s</string>
     <string name="transaction_state_aborted_manual">Ця транзакція була скасована. Якщо ви вже надіслали гроші на цей обмін, вони будуть повернуті вам через %1$s</string>
     <string name="edit">Редагувати</string>
     <string name="actions"/>
     <string name="enter_uri_label"/>
     <string name="withdraw_button_label"/>
-    <string name="balances_empty_demo_url"/>
-    <string name="balances_empty_get_money"/>
-    <string name="transaction_state_pending_kyc_balance"/>
     <string name="exchange_tos_forget"/>
     <string name="exchange_tos_view"/>
     <string name="exchange_global_add"/>
@@ -371,8 +329,6 @@
     <string name="send_deposit_host"/>
     <string name="send_deposit_no_methods_error"/>
     <string name="transaction_preparing_kyc"/>
-    <string name="transaction_action_kyc_balance"/>
-    <string name="transaction_action_kyc_bank"/>
     <string name="payment_tax"/>
     <string name="send_deposit_account"/>
 </resources>

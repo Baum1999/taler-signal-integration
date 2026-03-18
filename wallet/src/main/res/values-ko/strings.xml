@@ -7,83 +7,52 @@
     <string name="payment_button_confirm">결제 확인</string>
     <string name="payment_balance_insufficient">잔액 부족!</string>
     <string name="withdraw_exchange">교환</string>
-    <string name="withdraw_manual_title">거래소에 수동으로 이체</string>
-    <string name="nav_header_title">GNU 탈러</string>
-    <string name="nav_header_subtitle">지갑</string>
     <string name="nav_prompt_withdraw">디지털 현금 인출</string>
     <string name="nav_exchange_tos">거래소의 서비스 약관</string>
-    <string name="nav_exchange_select">거래소 선택</string>
-    <string name="nav_exchange_fees">교환 수수료</string>
     <string name="nav_error">오류</string>
     <string name="button_back">뒤로 가기</string>
-    <string name="button_scan_qr_code">탈러 QR 코드를 스캔합니다</string>
     <string name="enter_uri">탈러 URI 입력</string>
     <string name="paste">붙여넣기</string>
     <string name="paste_invalid">클립 보드에 잘못된 데이터 유형이 있습니다</string>
     <string name="uri_invalid">유효한 탈러 URI가 아닙니다</string>
     <string name="ok">네</string>
     <string name="cancel">취소</string>
-    <string name="search">검색</string>
     <string name="menu">메뉴</string>
-    <string name="or">혹은</string>
     <string name="offline">작동하려면 인터넷 연결이 필요합니다. 인터넷이 연결되어 있는지 확인 후 다시 시도하세요.</string>
     <string name="error_unsupported_uri">오류: 이 탈러 URI는 지원되지 않습니다.</string>
     <string name="menu_settings">설정</string>
-    <string name="menu_retry_pending_operations">보류중인 작업 재시도</string>
     <string name="host_apdu_service_desc">탈러 NFC 결제</string>
-    <string name="balances_title">잔고</string>
     <string name="amount_positive">+ %s</string>
     <string name="amount_negative">- %s</string>
     <string name="amount_chosen">선택한 금액</string>
-    <string name="balances_inbound_label">인바운드(도착)</string>
-    <string name="balances_empty_state">지갑에 디지털 현금이 없습니다.
-\n
-\n데모 은행에서 테스트 금액을 받을 수 있습니다.
-\n
-\nhttps://bank.demo.taler.net</string>
     <string name="transactions_title">거래</string>
     <string name="transactions_empty">거래가 없습니다</string>
-    <string name="transactions_empty_search">거래를 찾을 수 없습니다. 다르게 검색해보세요.</string>
     <string name="transactions_error">거래를 불러올 수 없습니다
 \n
 \n%s</string>
     <string name="transactions_detail_title">거래</string>
-    <string name="transactions_detail_title_balance">잔액 : %s</string>
     <string name="transactions_delete">삭제</string>
     <string name="transactions_select_all">모두 선택</string>
     <string name="transaction_paid">결제완료</string>
     <string name="transaction_order_total">합계</string>
     <string name="transaction_order">구매</string>
     <string name="transaction_order_id">영수증 #%1$s</string>
-    <string name="transaction_tip_from">%s의 팁</string>
     <string name="transaction_refund">환불</string>
-    <string name="transaction_refund_from">%s로부터 환불</string>
     <string name="transaction_pending">대기중</string>
     <string name="transaction_refresh">코인 만료 변경 수수료</string>
     <string name="payment_title">결제</string>
     <string name="payment_fee">+%s 결제 수수료</string>
-    <string name="payment_label_amount_total">총 금액:</string>
     <string name="payment_label_order_summary">구매</string>
     <string name="payment_error">오류: %s</string>
     <string name="payment_aborted">중단</string>
     <string name="payment_failed">실패</string>
-    <string name="payment_initiated">결제 시작</string>
-    <string name="payment_already_paid_title">이미 지불</string>
     <string name="payment_already_paid">이 구매에 대해 이미 결제하셨습니다.</string>
     <string name="withdraw_initiated">출금 시작됨</string>
     <string name="withdraw_title">출금</string>
-    <string name="withdraw_total">출금</string>
-    <string name="withdraw_fees">수수료</string>
     <string name="withdraw_button_confirm">취소 확인</string>
     <string name="withdraw_button_confirm_bank">은행과 확인</string>
     <string name="withdraw_button_tos">조건 살펴보기</string>
     <string name="withdraw_waiting_confirm">승인 대기 중</string>
-    <string name="withdraw_amount">얼마를 출금할까요\?</string>
-    <string name="withdraw_amount_error">유효한 금액을 입력하세요</string>
-    <string name="withdraw_manual_payment_options">%1$s이(가) 지원하는 결제 옵션:
-\n
-\n%2$s</string>
-    <string name="withdraw_manual_check_fees">수수료 확인</string>
     <string name="withdraw_error_title">출금 오류</string>
     <string name="withdraw_error_message">현재 인출이 불가능합니다. 다시 시도해주세요!</string>
     <string name="withdraw_error_test">TESTKUDOS 인출 오류</string>
@@ -115,9 +84,6 @@
     <string name="exchange_fee_wire_fee_closing_fee">마감 수수료: %1$s</string>
     <string name="exchange_tos_accept">서비스 약관 동의</string>
     <string name="exchange_tos_error">서비스 약관 표시 오류: %1$s</string>
-    <string name="pending_operations_title">보류중인 작업</string>
-    <string name="pending_operations_refuse">제안 거부</string>
-    <string name="pending_operations_no_action">(작업 없음)</string>
     <string name="settings_dev_mode">개발자 모드</string>
     <string name="settings_withdraw_testkudos">TESTKUDOS 출금</string>
     <string name="settings_withdraw_testkudos_summary">테스트를 위한 자금 얻기</string>
@@ -129,11 +95,8 @@
     <string name="settings_version_unknown">알 수 없음</string>
     <string name="settings_reset">지갑 재설정 (위험!)</string>
     <string name="settings_reset_summary">당신의 돈을 버립니다</string>
-    <string name="nav_settings_backup">백업</string>
-    <string name="backup_last">마지막 백업: %s</string>
     <string name="refund_title">환불</string>
     <string name="refund_success">받은 환불: %s</string>
-    <string name="tip_title">팁</string>
     <string name="wifi_connect_error">무료 Wi-Fi에 연결할 수 없습니다: %1$s</string>
     <string name="settings_dev_mode_summary">디버깅을 위한 추가 정보가 표시됩니다</string>
     <string name="settings_version_protocol_exchange">지원되는 거래소 버전</string>
@@ -141,12 +104,10 @@
     <string name="wifi_disabled_error">무료 Wi-Fi를 사용하기 위해 Wi-Fi를 켜세요</string>
     <string name="withdraw_manual_ready_account"/>
     <string name="exchange_list_error"/>
-    <string name="payment_balance_insufficient_max"/>
     <string name="send_deposit_create_button"/>
     <string name="send_peer_payment_instruction"/>
     <string name="show_logs"/>
     <string name="amount_deposit"/>
-    <string name="amount_effective"/>
     <string name="actions"/>
     <string name="edit"/>
     <string name="enter_uri_label"/>
@@ -157,7 +118,6 @@
     <string name="transaction_peer_pull_credit"/>
     <string name="transaction_peer_pull_debit"/>
     <string name="transaction_peer_push_credit"/>
-    <string name="transaction_state_pending_kyc_balance"/>
     <string name="transaction_state_suspended"/>
     <string name="transactions_currency"/>
     <string name="transactions_delete_dialog_message"/>
@@ -193,7 +153,6 @@
     <string name="settings_test_running"/>
     <string name="transaction_state_aborted_manual"/>
     <string name="send_deposit_bitcoin_address"/>
-    <string name="send_deposit_bitcoin_create_button"/>
     <string name="withdraw_manual_qr_epc"/>
     <string name="withdraw_restrict_age_unrestricted"/>
     <string name="settings_logcat_error"/>
@@ -204,10 +163,7 @@
     <string name="settings_test_summary"/>
     <string name="amount_lost"/>
     <string name="amount_receive"/>
-    <string name="balances_empty_demo_url"/>
     <string name="balances_inbound_amount"/>
-    <string name="transaction_action_kyc_balance"/>
-    <string name="transaction_action_kyc_bank"/>
     <string name="transaction_dummy_title"/>
     <string name="payment_aborting"/>
     <string name="receive_peer_payment_instruction"/>
@@ -224,7 +180,6 @@
     <string name="withdraw_manual_ready_iban"/>
     <string name="share_payment"/>
     <string name="exchange_reload"/>
-    <string name="withdraw_select_amount"/>
     <string name="exchange_global_add_success"/>
     <string name="exchange_global_delete"/>
     <string name="exchange_global_delete_success"/>
@@ -238,14 +193,12 @@
     <string name="settings_db_import_error"/>
     <string name="settings_db_import_message"/>
     <string name="settings_test_withdrawal"/>
-    <string name="amount_conversion"/>
     <string name="send_deposit_account"/>
     <string name="send_deposit_host"/>
     <string name="send_deposit_no_methods_error"/>
     <string name="send_deposit_taler"/>
     <string name="withdraw_restrict_age"/>
     <string name="error_no_uri"/>
-    <string name="withdraw_fee"/>
     <string name="exchange_delete"/>
     <string name="settings_db_export_success"/>
     <string name="send_peer_expiration_1d"/>
@@ -282,7 +235,6 @@
     <string name="withdraw_manual_ready_intro"/>
     <string name="withdraw_manual_ready_warning"/>
     <string name="transaction_deposit_to"/>
-    <string name="amount_max"/>
     <string name="amount_excess"/>
     <string name="amount_withdraw"/>
     <string name="balance_scope_auditor"/>
@@ -291,7 +243,6 @@
     <string name="receive_peer"/>
     <string name="transactions_fail_dialog_title"/>
     <string name="payment_template_error"/>
-    <string name="receive_peer_create_button"/>
     <string name="import_db"/>
     <string name="reset"/>
     <string name="payment_confirmation_code"/>
@@ -307,14 +258,11 @@
     <string name="send_peer_expiration_days"/>
     <string name="send_peer_expiration_hours"/>
     <string name="pay_peer_title"/>
-    <string name="send_peer_create_button"/>
     <string name="send_peer_expiration_30d"/>
     <string name="send_peer_expiration_custom"/>
     <string name="send_peer_title"/>
     <string name="amount_received"/>
     <string name="amount_sent"/>
-    <string name="payment_pending"/>
-    <string name="balances_empty_get_money"/>
     <string name="exchange_global_add"/>
     <string name="exchange_list_add_dev"/>
     <string name="settings_db_export"/>

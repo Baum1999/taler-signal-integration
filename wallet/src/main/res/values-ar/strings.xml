@@ -7,10 +7,8 @@
     <string name="google_play_short_desc" tools:keep="@string/google_play_short_desc">يجعل نظام GNU Taler من معاملات الخصوصية سهلة الاستخدام عبر الإنترنت سريعة وميسرة.</string>
     <string name="nav_prompt_withdraw">سحب النقود الرقمية</string>
     <string name="nav_exchange_tos">شروط الخدمة لشركة الصرافة</string>
-    <string name="nav_exchange_fees">رسوم شركة الصرافة</string>
     <string name="nav_error">خطأ</string>
     <string name="button_back">الرجوع إلى السابق</string>
-    <string name="button_scan_qr_code">مسح رمز الاستجابة السريع لنظام Taler</string>
     <string name="enter_uri">أدخل مُعرّف الموارد الموحد لنظام Taler</string>
     <string name="paste">لصق</string>
     <string name="paste_invalid">تحتوي الحافظة على نوع بيانات غير صحيحة</string>
@@ -20,19 +18,12 @@
     <string name="offline">تتطلب العملية الاتصال بالإنترنت. يرجى التأكد من أنّ اتصالك بالإنترنت يعمل وحاول مرة أخرى.</string>
     <string name="error_unsupported_uri">خطأ: مُعرّف الموارد الموحد لنظام URI غير معتمد.</string>
     <string name="host_apdu_service_desc">مدفوعات الاتصال قريب المدى لنظام Taler</string>
-    <string name="balances_title">الأرصدة</string>
     <string name="amount_positive">%s +</string>
     <string name="amount_negative">%s -</string>
     <string name="amount_chosen">المبلغ المختار</string>
-    <string name="balances_empty_state">لا يوجد عملة رقمية في محفظتك.
-\n
-\nيمكنك فحص المال من المصرف التجريبي:
-\n
-\nhttps://bank.demo.taler.net</string>
     <string name="transactions_title">المعاملات</string>
     <string name="transactions_empty">ليس لديك معاملات</string>
     <string name="google_play_full_desc" tools:keep="@string/google_play_full_desc">هذا التطبيق عبارة عن محفظة لنظام GNU Taler. وهو نظام تجريبي للغاية، وغير جاهز للاستخدام في بيئة الإنتاج لغاية الآن. ونظام GNU Taler هو نظام دفع يحافظ على الخصوصية. يمكن للعملاء عدم الكشف عن هويتهم، لكن لا يمكن للتجار إخفاء دخلهم من خلال المدفوعات باستخدام نظام GNU Taler. هذا يساعد على تجنب التهرب الضريبي وغسيل الأموال. حالة الاستخدام الرئيسية لنظام GNU Taler هي المدفوعات؛ لا يُقصد به أن يكون قيمة مختزنة. تُدعم المدفوعات دائمًا بعملة موجودة. يتم الدفع بعد تحويل الأموال الموجودة إلى نقود إلكترونية بمساعدة شركة الصرافة ، وهي مزود خدمة الدفع لنظام Taler. عند الدفع، يحتاج العملاء فقط إلى محفظة مشحونة. يمكن للتاجر قبول المدفوعات دون إرغام عملائه على التسجيل في موقع التاجر. كما أنّ نظام GNU Taler محصن من العديد من أنواع الاحتيال، مثل التصيد الاحتيالي لمعلومات بطاقة الائتمان أو الاحتيال في استرداد الأموال. وفي حالة الضياع أو السرقة ، قد تختفي فقط كمية محدودة من المال المتبقي في المحفظة.</string>
-    <string name="transactions_empty_search">لم يُعثر على معاملات. جرب بحثًا مختلفًا.</string>
     <string name="transactions_error">تعذر تحميل المعاملات
 \n
 \n%s</string>
@@ -53,7 +44,6 @@
     <string name="payment_balance_insufficient">رصيد غير كافٍ!</string>
     <string name="payment_aborted">ملغي</string>
     <string name="payment_failed">إخفاق</string>
-    <string name="payment_initiated">بدء الدفع</string>
     <string name="withdraw_initiated">لقد بدأ السحب</string>
     <string name="withdraw_title">السحب</string>
     <string name="amount_fee">رسوم</string>
@@ -100,7 +90,6 @@
     <string name="amount_total_label">المبلغ الكلي:</string>
     <string name="payment_already_paid">لقد دفعت الآن لعملية الشراء.</string>
     <string name="withdraw_waiting_confirm">بانتظار الموافقة</string>
-    <string name="withdraw_amount_error">أدخل مبلغًا صحيحًا</string>
     <string name="withdraw_error_message">لا يمكن تنفيذ السحب الآن. يُرجى المحاولة فيما بعد!</string>
     <string name="exchange_list_empty">لا توجد شركات صرافة معروفة
 \n
@@ -134,7 +123,6 @@
     <string name="pay_peer_intro"/>
     <string name="send_deposit_button_label"/>
     <string name="send_deposit_iban_error"/>
-    <string name="send_peer_create_button"/>
     <string name="send_peer_expiration_30d"/>
     <string name="send_peer_payment_instruction"/>
     <string name="withdraw_button_label"/>
@@ -144,7 +132,6 @@
     <string name="withdraw_manual_ready_intro"/>
     <string name="withdraw_manual_ready_subject"/>
     <string name="withdraw_restrict_age_unrestricted"/>
-    <string name="withdraw_select_amount"/>
     <string name="exchange_list_error"/>
     <string name="loss_reason_unoffered"/>
     <string name="observability_hide_json"/>
@@ -155,19 +142,16 @@
     <string name="settings_db_export_summary"/>
     <string name="settings_dialog_import_message"/>
     <string name="settings_dialog_reset_message"/>
-    <string name="balances_empty_demo_url"/>
     <string name="transactions_resume"/>
     <string name="qr_scan_context_title"/>
     <string name="qr_scan_context_receive_message"/>
     <string name="error_no_uri"/>
     <string name="amount_deposit"/>
-    <string name="amount_effective"/>
     <string name="amount_invalid"/>
     <string name="amount_lost"/>
     <string name="amount_total"/>
     <string name="amount_transfer"/>
     <string name="amount_withdraw"/>
-    <string name="balances_empty_get_money"/>
     <string name="balances_inbound_amount"/>
     <string name="balances_outbound_amount"/>
     <string name="transaction_deposit_to"/>
@@ -181,14 +165,10 @@
     <string name="transactions_suspend"/>
     <string name="payment_aborting"/>
     <string name="payment_confirmation_code"/>
-    <string name="payment_pending"/>
     <string name="receive_peer"/>
-    <string name="receive_peer_create_button"/>
     <string name="receive_peer_payment_instruction"/>
     <string name="receive_peer_payment_intro"/>
     <string name="pay_peer_title"/>
-    <string name="send_deposit_bitcoin_create_button"/>
-    <string name="withdraw_fee"/>
     <string name="withdraw_manual_ready_account"/>
     <string name="exchange_delete"/>
     <string name="loss_reason_vanished"/>
@@ -214,17 +194,14 @@
     <string name="settings_db_import_success"/>
     <string name="copy" tools:override="true"/>
     <string name="share_payment"/>
-    <string name="payment_balance_insufficient_max"/>
     <string name="withdraw_manual_ready_iban"/>
     <string name="loss_reason_expired"/>
     <string name="balance_scope_auditor"/>
     <string name="balance_scope_exchange"/>
     <string name="transaction_state_failed"/>
     <string name="transaction_peer_pull_credit"/>
-    <string name="transaction_action_kyc_balance"/>
     <string name="transaction_peer_pull_debit"/>
     <string name="transaction_peer_push_credit"/>
-    <string name="transaction_state_pending_kyc_balance"/>
     <string name="transactions_delete_selected_dialog_title"/>
     <string name="send_deposit_account_warning"/>
     <string name="offline_banner"/>
@@ -233,12 +210,10 @@
     <string name="currency"/>
     <string name="send_deposit_iban"/>
     <string name="char_count"/>
-    <string name="amount_conversion"/>
     <string name="amount_receive"/>
     <string name="amount_send"/>
     <string name="withdraw_subtitle"/>
     <string name="error_broken_uri"/>
-    <string name="amount_max"/>
     <string name="amount_excess"/>
     <string name="transaction_state_pending"/>
     <string name="transaction_state_suspended"/>
@@ -289,7 +264,6 @@
     <string name="settings_db_import_message"/>
     <string name="amount_received"/>
     <string name="amount_sent"/>
-    <string name="transaction_action_kyc_bank"/>
     <string name="payment_create_order"/>
     <string name="receive_peer_payment_title"/>
     <string name="open"/>

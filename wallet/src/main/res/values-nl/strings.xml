@@ -31,23 +31,17 @@
     <string name="button_scan_qr_code_label"></string>
     <string name="transactions_abort"></string>
     <string name="actions"></string>
-    <string name="button_scan_qr_code"></string>
     <string name="enter_uri"></string>
     <string name="enter_uri_label"></string>
     <string name="loading"></string>
     <string name="open"></string>
     <string name="paste_invalid"></string>
     <string name="uri_invalid"></string>
-    <string name="balances_empty_get_money"></string>
-    <string name="balances_empty_demo_url"></string>
     <string name="balances_inbound_amount"></string>
-    <string name="transaction_action_kyc_balance"></string>
-    <string name="transaction_action_kyc_bank"></string>
     <string name="transaction_dummy_title"></string>
     <string name="transaction_order_id"></string>
     <string name="transaction_paid"></string>
     <string name="transaction_peer_push_debit"></string>
-    <string name="transaction_state_pending_kyc_balance"></string>
     <string name="transaction_state_suspended"></string>
     <string name="transactions_abort_dialog_message"></string>
     <string name="transactions_fail_dialog_title"></string>
@@ -56,7 +50,6 @@
     <string name="transactions_delete_selected_dialog_message"></string>
     <string name="transactions_send_funds"></string>
     <string name="send_deposit_button_label"></string>
-    <string name="send_peer_create_button"></string>
     <string name="withdraw_manual_ready_receiver"></string>
     <string name="withdraw_button_label"></string>
     <string name="withdraw_button_tos"></string>
@@ -115,8 +108,6 @@
     <string name="copy" tools:override="true"></string>
     <string name="google_play_full_desc" tools:keep="@string/google_play_full_desc"></string>
     <string name="nav_error"></string>
-    <string name="nav_exchange_fees"></string>
-    <string name="amount_effective"></string>
     <string name="amount_fee"></string>
     <string name="transaction_peer_pull_debit_pending"></string>
     <string name="transaction_peer_push_credit_pending"></string>
@@ -127,7 +118,6 @@
     <string name="transactions_delete_selected_dialog_title"></string>
     <string name="offline"></string>
     <string name="transactions_title"></string>
-    <string name="payment_balance_insufficient_max"></string>
     <string name="payment_pay_template_title"></string>
     <string name="withdraw_subtitle"></string>
     <string name="exchange_fee_wire_fees_label"></string>
@@ -137,9 +127,7 @@
     <string name="send_peer_expiration_30d"></string>
     <string name="qr_scan_context_title"></string>
     <string name="qr_scan_context_receive_message"></string>
-    <string name="withdraw_fee"></string>
     <string name="withdraw_restrict_age_unrestricted"></string>
-    <string name="withdraw_select_amount"></string>
     <string name="exchange_add_error"></string>
     <string name="payment_balance_insufficient"></string>
     <string name="payment_confirmation_code"></string>
@@ -152,7 +140,6 @@
     <string name="error_no_uri"></string>
     <string name="amount_chosen"></string>
     <string name="transaction_peer_pull_credit"></string>
-    <string name="payment_pending"></string>
     <string name="payment_title"></string>
     <string name="settings_dialog_import_message"></string>
     <string name="amount_invalid"></string>
@@ -164,7 +151,6 @@
     <string name="payment_already_paid"></string>
     <string name="payment_button_confirm"></string>
     <string name="send_peer_expiration_custom"></string>
-    <string name="withdraw_amount_error"></string>
     <string name="withdraw_manual_qr_epc"></string>
     <string name="withdraw_manual_qr_spc"></string>
     <string name="exchange_settings_summary"></string>
@@ -172,18 +158,15 @@
     <string name="payment_template_error"></string>
     <string name="exchange_delete"></string>
     <string name="exchange_delete_force"></string>
-    <string name="amount_conversion"></string>
     <string name="error_broken_uri"></string>
     <string name="amount_total"></string>
     <string name="amount_total_label"></string>
     <string name="amount_transfer"></string>
     <string name="balance_scope_exchange"></string>
     <string name="payment_fee"></string>
-    <string name="payment_initiated"></string>
     <string name="payment_label_order_summary"></string>
     <string name="receive_peer_title"></string>
     <string name="pay_peer_title"></string>
-    <string name="receive_peer_create_button"></string>
     <string name="send_deposit_name"></string>
     <string name="withdraw_manual_ready_details_intro"></string>
     <string name="withdraw_manual_ready_iban"></string>
@@ -199,14 +182,12 @@
     <string name="amount_excess"></string>
     <string name="amount_receive"></string>
     <string name="amount_send"></string>
-    <string name="amount_max"></string>
     <string name="amount_withdraw"></string>
     <string name="balance_scope_auditor"></string>
     <string name="transaction_peer_pull_debit"></string>
     <string name="transaction_peer_push_credit"></string>
     <string name="transaction_refund"></string>
     <string name="transaction_state_pending"></string>
-    <string name="transactions_empty_search"></string>
     <string name="transactions_delete_dialog_message"></string>
     <string name="transactions_error"></string>
     <string name="transactions_fail_dialog_message"></string>
@@ -217,7 +198,6 @@
     <string name="payment_aborting"></string>
     <string name="receive_peer"></string>
     <string name="send_deposit_title"></string>
-    <string name="send_deposit_bitcoin_create_button"></string>
     <string name="send_deposit_bitcoin_address"></string>
     <string name="send_deposit_check_fees_button"></string>
     <string name="send_deposit_create_button"></string>
@@ -238,7 +218,6 @@
     <string name="exchange_list_currency"></string>
     <string name="import_db"></string>
     <string name="reset"></string>
-    <string name="balances_title"></string>
     <string name="settings_test_withdrawal"></string>
     <string name="transactions_delete"></string>
     <string name="transactions_balance"></string>
@@ -259,7 +238,6 @@
     <string name="withdraw_button_confirm"></string>
     <string name="amount_received"></string>
     <string name="amount_sent"></string>
-    <string name="balances_empty_state"></string>
     <string name="exchange_global_add"></string>
     <string name="exchange_global_add_success"></string>
     <string name="exchange_global_delete"></string>
