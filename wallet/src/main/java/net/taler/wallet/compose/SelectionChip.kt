@@ -16,6 +16,7 @@
 
 package net.taler.wallet.compose
 
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
@@ -35,6 +36,7 @@ fun <T> SelectionChip(
     SuggestionChip(
         label = label,
         modifier = modifier,
+        shape = CircleShape,
         onClick = {
             onSelected(value)
         },

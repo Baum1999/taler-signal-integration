@@ -120,8 +120,8 @@ fun AmountScopeField(
                 showSymbol = true,
             )
 
-            val commonAmounts = amount.amount.spec?.commonAmounts?.map {
-                it.withSpec(amount.amount.spec) }
+            val commonAmounts = amount.amount.spec?.commonAmounts
+                ?.map { it.withSpec(amount.amount.spec) }
             AnimatedVisibility(showShortcuts && amount.amount.isZero() && commonAmounts != null) {
                 if (commonAmounts != null) {
                     AmountInputShortcuts(
@@ -286,7 +286,7 @@ fun AmountInputFieldPreview() {
     TalerSurface {
         var amount by remember {
             mutableStateOf(AmountScope(
-                amount = Amount.fromJSONString("KUDOS:10").withSpec(
+                amount = Amount.fromJSONString("KUDOS:0").withSpec(
                     CurrencySpecification(
                         name = "Kudos",
                         numFractionalInputDigits = 2,

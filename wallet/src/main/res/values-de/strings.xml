@@ -104,11 +104,12 @@
     <string name="exchange_add_url">Adresse des Zahlungsdienstleisters eingeben</string>
     <string name="button_back">Zurück</string>
     <string name="withdraw_manual_ready_iban">IBAN</string>
-    <string name="withdraw_manual_ready_intro">Sie müssen an den Zahlungsdienst %1$s von Ihrem normalen Bankkonto überweisen, damit diese elektronische Geldbörse %2$s als digitales Bargeld beziehen kann.</string>
+    <string name="withdraw_manual_ready_intro">Sie müssen %1$s von Ihrem regulären Bankkonto an den Zahlungsdienst überweisen, um %2$s als digitales Bargeld in diese Wallet zu erhalten.</string>
     <string name="withdraw_manual_ready_details_intro">Überweisungsanleitung</string>
     <string name="withdraw_manual_ready_subject">Buchungsvermerk</string>
     <string name="withdraw_manual_ready_bank_button">In Banking-App öffnen</string>
-    <string name="withdraw_manual_ready_warning">Dies ist obligatorisch, da Ihr Geld sonst nicht im Taler-Wallet ankommt.</string>
+    <string name="withdraw_manual_ready_warning">Dies ist obligatorisch, da Ihr Geld sonst nicht in dieser Wallet ankommt.</string>
+    <string name="reload">Aktualisieren</string>
     <string name="reset">Zurücksetzen</string>
     <string name="payment_prompt_title">Zahlung überprüfen</string>
     <string name="send_deposit_iban_error">Die IBAN ist unvollständig oder ungültig</string>
@@ -123,12 +124,13 @@
     <string name="payment_pay_template_title">Passen Sie Ihre Bestellung an</string>
     <string name="send_deposit_title">Einzahlung an Bankkonto</string>
     <string name="withdraw_manual_ready_account">Konto</string>
-    <string name="withdraw_manual_ready_receiver">Zahlungsempfänger</string>
+    <string name="withdraw_manual_ready_receiver">Empfänger</string>
     <string name="exchange_delete_force">Löschung erzwingen (bereinigen)</string>
     <string name="settings_db_export_summary">Interne Datenbank speichern</string>
     <string name="settings_db_clear_error">Fehler beim Bereinigen der Datenbank</string>
     <string name="settings_alert_reset_canceled">Zurücksetzen abgebrochen</string>
     <string name="exchange_not_contacted">Zahlungsdienstleister nicht kontaktiert</string>
+    <string name="send_peer_default_purpose">Gesendet mit GNU Taler</string>
     <string name="send_peer_expiration_1d">1 Tag</string>
     <string name="settings_test">Integrationstest durchführen</string>
     <string name="settings_test_summary">Führt Testtransaktionen zu Demonstrationszwecken durch</string>
@@ -148,6 +150,7 @@
     <string name="send_peer_expiration_custom">Benutzerdefiniert</string>
     <string name="exchange_delete">Zahlungsdienstleister löschen</string>
     <string name="settings_db_export_success">Datenbank in Datei exportiert</string>
+    <string name="receive_peer_default_purpose">Angefordert mit GNU Taler</string>
     <string name="receive_peer_invoice_uri">Alternativ kopieren und senden Sie diesen URI:</string>
     <string name="button_scan_qr_code_label">QR-Code scannen</string>
     <string name="send_deposit_check_fees_button">Gebühren prüfen</string>
@@ -188,6 +191,7 @@
     <string name="send_peer_expiration_30d">30 Tage</string>
     <string name="send_peer_expiration_7d">1 Woche</string>
     <string name="balance_scope_exchange">Von: %1$s</string>
+    <string name="balances_title">Salden</string>
     <string name="balance_scope_auditor">Auditor %1$s</string>
     <string name="receive_peer">Geld von einem anderen Wallet anfordern</string>
     <string name="char_count">%1$d/%2$d</string>
@@ -198,6 +202,7 @@
     <string name="transactions_fail">Verwerfen</string>
     <string name="transactions_fail_dialog_message">Sind Sie sicher, dass die Transaktion verworfen werden soll? Bereits abgesendete Guthaben GEHEN VERLOREN.</string>
     <string name="payment_create_order">Auftrag anlegen</string>
+    <string name="language">Sprache</string>
     <string name="loading">Lädt Daten</string>
     <string name="open">Öffnen</string>
     <string name="loss_reason_expired">Das Guthaben wurde nicht aufgefrischt, weil die Wallet-Anwendung zu lange keinen Internetzugang hatte</string>
@@ -215,7 +220,8 @@
     <string name="amount_send">Betrag, der überwiesen wird</string>
     <string name="amount_total">Gesamtbetrag</string>
     <string name="amount_total_label">Gesamt:</string>
-    <string name="amount_transfer">Überweisung</string>
+    <string name="amount_transfer">Betrag</string>
+    <string name="balances_empty_withdraw_kudos_button">Demo-Geld erhalten</string>
     <string name="balances_inbound_amount">+%1$s eingehend</string>
     <string name="balances_outbound_amount">-%1$s abgehend</string>
     <string name="transaction_deposit_to">Einzahlung an %1$s</string>
@@ -240,6 +246,7 @@
     <string name="withdraw_account_currency">Konto #%1$d (%2$s)</string>
     <string name="exchange_reload">Information erneut laden</string>
     <string name="show_logs">Protokolle anzeigen</string>
+    <string name="withdraw_manual_instruction_qr">Oder scannen Sie diesen QR-Code mit Ihrer Banking-App, um digitales Bargeld abzuheben</string>
     <string name="withdraw_manual_qr_epc">EPC-QR</string>
     <string name="withdraw_manual_qr_spc">Schweizer QR-Code</string>
     <string name="transaction_state_pending_bank">Warten auf Überweisungsfreigabe in der Bank</string>
@@ -305,11 +312,11 @@
     <string name="nav_prompt_withdraw_currency">%1$s abheben</string>
     <string name="payment_button_cancel">Abbrechen</string>
     <string name="payment_cancel_dialog_title">Bezahlvorgang abbrechen</string>
-    <string name="withdraw_manual_step"><b>Schritt %1$s:</b> %2$s</string>
-    <string name="withdraw_manual_step_finish">Nach Ihrer Überweisung von %1$s, die Sie durch Ihre Banking-App oder Ihr Online-Banking auslösen, wird diese Abhebung automatisch durchgeführt. Je nach Bank kann die Überweisung zwischen Minuten und zwei Werktagen dauern, bitte haben Sie etwas Geduld.</string>
-    <string name="withdraw_manual_step_iban">Sollte die Bankverbindung noch nicht in Ihrer Favoritenliste sein, kopieren Sie jetzt IBAN und Empfänger und füllen diese in Ihrer Banking-App bzw. im Online-Banking in die entsprechenden Felder, so dass Sie die Daten für das nächste Mal sofort zur Verfügung haben:</string>
-    <string name="withdraw_manual_step_subject">Kopieren Sie diese Zeichenkette ins Feld „Buchungsvermerk“ (bzw. „Verwendungszweck“) Ihrer Banking-App oder Online-Banking-Webseite:</string>
-    <string name="withdraw_review_terms">Sie müssen zunächst die Allgemeinen Geschäftsbedingungen des Zahlungsdiensts akzeptieren, bevor Sie digitales Bargeld in Ihre elektronische Geldbörse abheben können.</string>
+    <string name="withdraw_manual_step">&lt;b&gt;Schritt %1$s:&lt;/b&gt; %2$s</string>
+    <string name="withdraw_manual_step_finish">Schließen Sie die Überweisung von %1$s in Ihrer Banking-App oder Bank-Website ab, dann wird diese Abhebung automatisch durchgeführt. Die Überweisung kann - je nach Bank - bis zu zwei Tage dauern. Bitte haben Sie etwas Geduld.</string>
+    <string name="withdraw_manual_step_iban">Wenn Sie es noch nicht in Ihrer Favoritenliste haben, kopieren Sie Empfänger und IBAN in Ihre Banking-App oder Bank-Webseite (und speichern den Kontakt als Favorit für das nächste Mal):</string>
+    <string name="withdraw_manual_step_subject">Kopieren Sie diesen Code und setzen ihn als Verwendungszweck (bzw. „Mitteilung an Empfänger“) in Ihrer Banking-App oder Bank-Website ein:</string>
+    <string name="withdraw_review_terms">Sie müssen zuerst die Allgemeinen Geschäftsbedingungen des Zahlungsdiensts akzeptieren, bevor Sie digitales Bargeld in Ihre Wallet abheben können.</string>
     <string name="payment_cancel_dialog_message">Sind Sie sicher, dass Sie diese Zahlung abbrechen möchten? Sie können sie später nicht mehr abschließen. Sie können den Vorgang aber an dieser Stelle auch einfach abbrechen und später erneut beginnen.</string>
     <string name="withdraw_manual_qr_intro">Wenn Sie Ihr Online-Banking auf einem anderen Gerät ausführen, scannen Sie einen dieser QR-Codes:</string>
     <string name="withdraw_manual_ready_details_qr">QR-Codes für die Überweisung</string>
@@ -332,6 +339,7 @@
     <string name="biometric_prompt_title">Taler Wallet entsperren</string>
     <string name="biometric_unlock_label">Zum Entsperren tippen</string>
     <string name="withdraw_manual_ready_postal_code">Postleitzahl</string>
+    <string name="wire_transfer">Überweisung</string>
     <string name="biometric_auth_error">Berechtigungsfehler: %1$s</string>
     <string name="error">Fehler</string>
     <string name="warning">Warnung</string>
@@ -367,8 +375,7 @@
     <string name="donau_url">URL der für Spendenbescheinigungen zuständigen Steuerbehörde</string>
     <string name="donau_statement_legal_domain">Rechtsbereich</string>
     <string name="empty">Es gibt nichts anzuzeigen</string>
-    <string name="assets_section_balances">Salden</string>
-    <string name="assets_section_statements">Spendenbescheinigungen</string>
+    <string name="balances_section_statements">Spendenbescheinigungen</string>
     <string name="settings_bank_accounts">Bankkonten</string>
     <string name="settings_bank_accounts_summary">Verwalten Sie hier Ihre Bankkonten für Einzahlungen</string>
     <string name="settings_donau">Steuerlich absetzbare Spenden</string>
@@ -393,4 +400,9 @@
     <string name="performance_stats_wallet_task">Wallet-Core-Aufgaben</string>
     <string name="settings_stats">Leistungsanalyse</string>
     <string name="settings_stats_summary">Zeitaufwändigste Vorgänge anzeigen</string>
+    <string name="balances_empty_withdraw_chf_title">Willkommen bei Taler Wallet!</string>
+    <string name="balances_empty_withdraw_chf_message">Um Ihre erste Zahlung zu tätigen, heben Sie digitales Bargeld ab</string>
+    <string name="balances_empty_withdraw_chf_button">CHF abheben</string>
+    <string name="balances_empty_withdraw_kudos_message">Mit Demo-Geld ausprobieren, wie Sie mit digitalem Geld bezahlen können.</string>
+    <string name="withdraw_manual_instruction_manual">Befolgen Sie die Anleitung, um die Überweisungsdaten in Ihrer Banking-App einzugeben</string>
 </resources>

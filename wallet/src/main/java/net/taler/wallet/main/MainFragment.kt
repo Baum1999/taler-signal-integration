@@ -65,6 +65,7 @@ import net.taler.wallet.R
 import net.taler.wallet.balances.BalanceState
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
+import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.settings.SettingsFragment
 import net.taler.wallet.transactions.Transaction
 import net.taler.wallet.transactions.TransactionMajorState
@@ -111,7 +112,7 @@ class MainFragment: Fragment() {
                         NavigationBar {
                             NavigationBarItem(
                                 icon = { Icon(Icons.Default.BarChart, contentDescription = null) },
-                                label = { Text(stringResource(R.string.assets_title)) },
+                                label = { Text(stringResource(R.string.balances_title)) },
                                 selected = tab == Tab.ASSETS,
                                 onClick = {
                                     tab = Tab.ASSETS
@@ -247,7 +248,11 @@ class MainFragment: Fragment() {
                     onDeposit = this@MainFragment::onDeposit,
                     onWithdraw = this@MainFragment::onWithdraw,
                     onEnterUri = this@MainFragment::onEnterUri,
-                    onShoppingDiscovery = this@MainFragment::onShoppingDiscovery,
+                    onShoppingDiscovery = {
+                        selectedBalance?.shoppingUrls?.let {
+                            onShoppingDiscovery(it)
+                        }
+                    }
                 )
             }
         }
@@ -293,7 +298,7 @@ class MainFragment: Fragment() {
         (requireActivity() as AppCompatActivity).apply {
             supportActionBar?.title = when (tab) {
                 Tab.ASSETS -> when(viewMode) {
-                    is ViewMode.Assets -> getString(R.string.assets_title)
+                    is ViewMode.Assets -> getString(R.string.balances_title)
                     is ViewMode.Transactions -> getString(R.string.transactions_title)
                     null -> getString(R.string.loading)
                 }
@@ -334,9 +339,11 @@ class MainFragment: Fragment() {
         findNavController().navigate(R.id.action_main_to_uriInput)
     }
 
-    private fun onShoppingDiscovery() {
+    private fun onShoppingDiscovery(shoppingUrls: List<String>) {
         model.settingsManager.saveActionButtonUsed(requireContext())
-        findNavController().navigate(R.id.action_main_to_exchangeShopping)
+        if (shoppingUrls.size == 1) {
+            launchInAppBrowser(requireContext(), shoppingUrls[0])
+        } else findNavController().navigate(R.id.action_main_to_exchangeShopping)
     }
 }
 

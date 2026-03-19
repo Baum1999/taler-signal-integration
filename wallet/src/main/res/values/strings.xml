@@ -61,7 +61,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="empty">No items were found</string>
     <string name="enter_uri">Enter Taler link</string>
     <string name="enter_uri_label">Taler link</string>
-    <string name="enter_uri_prefix">taler://</string>
+    <string name="enter_uri_prefix" translatable="false">taler://</string>
     <string name="error">Error</string>
     <string name="error_export">Export error diagnostics</string>
     <string name="import_db">Import</string>
@@ -83,6 +83,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="uri_invalid">Not a valid Taler link</string>
     <string name="wallet">Wallet</string>
     <string name="warning">Warning</string>
+    <string name="wire_transfer">Wire transfer</string>
 
     <!-- Biometric lock -->
     <string name="biometric_auth_error">Authentication error: %1$s</string>
@@ -123,26 +124,22 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="amount_sent">Amount sent</string>
     <string name="amount_total">Total amount</string>
     <string name="amount_total_label">Total:</string>
-    <string name="amount_transfer">Transfer</string>
+    <string name="amount_transfer">Amount</string>
     <string name="amount_withdraw">Amount to withdraw from bank</string>
-
-    <!-- Assets -->
-
-    <string name="assets_section_balances">Balances</string>
-    <string name="assets_section_statements">Donation statements</string>
-    <string name="assets_title">Assets</string>
 
     <!-- Balances -->
 
     <string name="balance_scope_auditor">Auditor: %1$s</string>
     <string name="balance_scope_exchange">From %1$s</string>
-    <string name="balances_empty_withdraw_chf_title">Welcome to Taler Wallet!</string>
-    <string name="balances_empty_withdraw_chf_message">To make your first payment, withdraw digital cash.</string>
     <string name="balances_empty_withdraw_chf_button">Withdraw CHF</string>
-    <string name="balances_empty_withdraw_kudos_message">Get demo cash to experience how to pay with digital cash.</string>
+    <string name="balances_empty_withdraw_chf_message">To make your first payment, withdraw digital cash.</string>
+    <string name="balances_empty_withdraw_chf_title">Welcome to Taler Wallet!</string>
     <string name="balances_empty_withdraw_kudos_button">Get demo cash</string>
+    <string name="balances_empty_withdraw_kudos_message">Get demo cash to experience how to pay with digital cash.</string>
     <string name="balances_inbound_amount">+%1$s incoming</string>
     <string name="balances_outbound_amount">-%1$s outgoing</string>
+    <string name="balances_section_statements">Donation statements</string>
+    <string name="balances_title">Balances</string>
 
     <!-- Transactions -->
 
@@ -273,17 +270,33 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
 
     <string name="receive_peer">Request money from another wallet</string>
     <string name="receive_peer_create_button_amount">Request %1$s</string>
+    <string name="receive_peer_default_purpose">Requested with GNU Taler</string>
     <string name="receive_peer_invoice_uri">Alternatively, copy and send this URI:</string>
     <string name="receive_peer_payment_instruction">Scan this QR code to pay %1$s</string>
     <string name="receive_peer_payment_intro">Do you want to receive this payment?</string>
     <string name="receive_peer_payment_title">Receive payment</string>
-    <string name="receive_peer_review_terms">You must first accept the payment service\'s terms of service before you can request electronic cash.</string>
+    <string name="receive_peer_review_terms">You must first accept the payment service\'s terms of service before you can request digital cash.</string>
     <string name="receive_peer_title">Request money</string>
 
     <!-- P2P send -->
 
     <string name="pay_peer_intro">Do you want to pay this request?</string>
     <string name="pay_peer_title">Pay request</string>
+    <string name="send_peer_create_button_amount">Send %1$s</string>
+    <string name="send_peer_default_purpose">Sent with GNU Taler</string>
+    <string name="send_peer_expiration_1d">1 day</string>
+    <string name="send_peer_expiration_30d">30 days</string>
+    <string name="send_peer_expiration_7d">1 week</string>
+    <string name="send_peer_expiration_custom">Custom</string>
+    <string name="send_peer_expiration_days">Days</string>
+    <string name="send_peer_expiration_hours">Hours</string>
+    <string name="send_peer_expiration_period">Expires in</string>
+    <string name="send_peer_payment_instruction">Scan this QR code to receive %1$s</string>
+    <string name="send_peer_purpose">Purpose</string>
+    <string name="send_peer_title">Send money to another wallet</string>
+
+    <!-- Deposits -->
+
     <string name="send_deposit_account">Account</string>
     <string name="send_deposit_account_add">Add account</string>
     <string name="send_deposit_account_edit">Edit account</string>
@@ -318,17 +331,6 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="send_deposit_town">Town (optional)</string>
     <string name="send_deposit_title">Deposit to bank account</string>
     <string name="send_deposit_no_alias">No alias</string>
-    <string name="send_peer_create_button_amount">Send %1$s</string>
-    <string name="send_peer_expiration_1d">1 day</string>
-    <string name="send_peer_expiration_30d">30 days</string>
-    <string name="send_peer_expiration_7d">1 week</string>
-    <string name="send_peer_expiration_custom">Custom</string>
-    <string name="send_peer_expiration_days">Days</string>
-    <string name="send_peer_expiration_hours">Hours</string>
-    <string name="send_peer_expiration_period">Expires in</string>
-    <string name="send_peer_payment_instruction">Scan this QR code to receive %1$s</string>
-    <string name="send_peer_purpose">Purpose</string>
-    <string name="send_peer_title">Send money to another wallet</string>
 
     <!-- Withdrawals -->
 
@@ -337,7 +339,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="withdraw_button_confirm">Confirm withdrawal</string>
     <string name="withdraw_button_confirm_bank">Authorize in bank</string>
     <string name="withdraw_button_label">Withdraw</string>
-    <string name="withdraw_button_tos">Terms of service</string>
+    <string name="withdraw_button_tos">Terms of Service</string>
     <string name="withdraw_cash_acceptor">The amount to be withdrawn will be determined by the cash acceptor</string>
     <string name="withdraw_error_already_confirmed">Withdrawal is already confirmed</string>
     <string name="withdraw_error_empty_exchanges">No payment services were configured by the bank.</string>
@@ -358,7 +360,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="withdraw_manual_ready_details_intro">Wire transfer instructions</string>
     <string name="withdraw_manual_ready_details_qr">Wire transfer QR codes</string>
     <string name="withdraw_manual_ready_iban">IBAN</string>
-    <string name="withdraw_manual_ready_intro">You need to transfer %1$s from your regular bank account to the payment service to receive %2$s as electronic cash in this wallet.</string>
+    <string name="withdraw_manual_ready_intro">You need to transfer %1$s from your regular bank account to the payment service to receive %2$s as digital cash in this wallet.</string>
     <string name="withdraw_manual_ready_postal_code">Postal code</string>
     <string name="withdraw_manual_ready_receiver">Recipient</string>
     <string name="withdraw_manual_ready_subject">Subject</string>
@@ -368,7 +370,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="withdraw_manual_step_cyclos">Copy and paste recipient and amount into the corresponding fields in your banking app or website.</string>
     <string name="withdraw_manual_step_finish">Finish the wire transfer of %1$s in your banking app or website, then this withdrawal will proceed automatically. Depending on your bank the transfer can take from minutes to two working days, please be patient.</string>
     <string name="withdraw_manual_step_iban">If you don\'t already have it in your banking favorites list, then copy and paste recipient and IBAN into the recipient/IBAN fields in your banking app or website (and save it as favorite for the next time):</string>
-    <string name="withdraw_manual_step_subject">Copy this code and paste it into the subject/purpose field in your banking app or bank website:</string>
+    <string name="withdraw_manual_step_subject">Copy this code and paste it into the subject/purpose field (or “Message to recipient”) in your banking app or bank website:</string>
     <string name="withdraw_restrict_age">Restrict usage to age</string>
     <string name="withdraw_restrict_age_unrestricted">Unrestricted</string>
     <string name="withdraw_review_terms">You must first accept the payment service\'s terms of service before you can withdraw electronic cash to your wallet.</string>
@@ -414,7 +416,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="exchange_reload">Reload information</string>
     <string name="exchange_settings_summary">Manage the payment services known to this wallet</string>
     <string name="exchange_settings_title">Payment services</string>
-    <string name="exchange_tos_accept">Accept terms of service</string>
+    <string name="exchange_tos_accept">Accept Terms of Service</string>
     <string name="exchange_tos_forget">Reject terms of service</string>
     <string name="exchange_tos_missing">Terms of service were not provided by payment service</string>
     <string name="exchange_tos_view">Review terms of service</string>

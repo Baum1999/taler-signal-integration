@@ -99,6 +99,7 @@
     <string name="settings_version_protocol_merchant">Versions de Taler Merchant compatibles</string>
     <string name="settings_version_core">Version Wallet Core</string>
     <string name="settings_version_protocol_exchange">Versions des prestataires compatibles</string>
+    <string name="balances_title">Soldes</string>
     <string name="transaction_action_kyc">Compléter le KYC</string>
     <string name="transaction_deposit">Dépôt</string>
     <string name="receive_peer">Créer une demande</string>
@@ -116,6 +117,8 @@
     <string name="transactions_send_funds">Envoyer</string>
     <string name="char_count">%1$d/%2$d</string>
     <string name="transactions_delete_selected_dialog_message">Êtes-vous sûr de vouloir supprimer les transactions sélectionnées de votre portefeuille ?</string>
+    <string name="receive_peer_create_button_amount">Demander %1$s</string>
+    <string name="receive_peer_default_purpose">Demandé avec GNU Taler</string>
     <string name="receive_peer_invoice_uri">Sinon, copier et envoyer cet URI :</string>
     <string name="send_deposit_name">Titulaire du compte</string>
     <string name="send_deposit_bitcoin_address">Adresse Bitcoin</string>
@@ -136,10 +139,10 @@
     <string name="withdraw_manual_ready_subject">Référence</string>
     <string name="withdraw_manual_bitcoin_intro">Effectuez maintenant une transaction fractionnée avec les trois sorties suivantes.</string>
     <string name="withdraw_manual_ready_bank_button">Ouvrir dans l\'application bancaire</string>
-    <string name="withdraw_manual_ready_intro">Vous devez transférer %1$s de votre compte bancaire habituel vers le prestataire de services de paiement pour recevoir %2$s sous forme d\'argent électronique dans ce portefeuille.</string>
+    <string name="withdraw_manual_ready_intro">Vous devez transférer %1$s de votre compte bancaire habituel vers le prestataire de services de paiement pour recevoir %2$s sous forme d\'argent numérique dans ce portefeuille.</string>
     <string name="withdraw_manual_ready_details_intro">Instructions pour le virement bancaire</string>
     <string name="withdraw_manual_ready_iban">IBAN</string>
-    <string name="withdraw_manual_ready_warning">Ceci est obligatoire, sinon votre argent n\'arrivera pas dans ce portefeuille.</string>
+    <string name="withdraw_manual_ready_warning">Ceci est impératif, sinon votre argent n\'arrivera pas dans ce portefeuille.</string>
     <string name="transaction_state_aborted_manual">Cette transaction a été annulée. Si vous avez déjà envoyé de l\'argent à ce prestataire, il vous sera reversé dans %1$s</string>
     <string name="send_deposit_account">Compte</string>
     <string name="send_peer_expiration_7d">1 semaine</string>
@@ -153,7 +156,7 @@
     <string name="button_scan_qr_code_label">Scanner le code QR</string>
     <string name="qr_scan_context_receive_message">Il semble que vous aviez l’intention de recevoir de l’argent, mais le code QR que vous avez scanné correspond à une autre action. Voulez-vous continuer ?</string>
     <string name="qr_scan_context_send_message">Il semble que vous aviez l’intention d\'envoyer de l’argent, mais le code QR que vous avez scanné correspond à une autre action. Voulez-vous continuer ?</string>
-    <string name="amount_receive">Montant à recevoir</string>
+    <string name="amount_receive">Montant à demander</string>
     <string name="amount_send">Montant à envoyer</string>
     <string name="transactions_resume">Reprendre</string>
     <string name="send_deposit_iban_error">L\'IBAN n\'est pas valide</string>
@@ -162,7 +165,7 @@
     <string name="amount_excess">Le montant dépasse le maximum de %1$s</string>
     <string name="amount_total">Montant total</string>
     <string name="amount_total_label">Total :</string>
-    <string name="amount_transfer">Transfert</string>
+    <string name="amount_transfer">Montant</string>
     <string name="amount_withdraw">Montant à retirer du compte en banque</string>
     <string name="import_db">Importer</string>
     <string name="transactions_abort_dialog_title">Abandonner la transaction</string>
@@ -181,7 +184,9 @@
     <string name="transaction_state_expired">Cette transaction a expiré</string>
     <string name="transaction_state_failed">Cette transaction a échoué ou a été abandonnée</string>
     <string name="transaction_state_pending">Cette transaction est en attente</string>
+    <string name="send_peer_default_purpose">Envoyé avec GNU Taler</string>
     <string name="send_peer_expiration_1d">1 jour</string>
+    <string name="language">Langue</string>
     <string name="loading">Chargement</string>
     <string name="open">Ouvrir</string>
     <string name="edit">Modifier</string>
@@ -231,6 +236,7 @@
     <string name="settings_db_export">Export de la base de données</string>
     <string name="settings_db_import_success">Base de donnée importée depuis un fichier</string>
     <string name="settings_test">Executer le test d\'intégration</string>
+    <string name="withdraw_manual_instruction_qr">Ou scannez ce code QR avec votre application bancaire pour retirer de l\'argent numérique</string>
     <string name="withdraw_manual_qr_epc">QR code EPC</string>
     <string name="withdraw_manual_qr_spc">Code QR suisse</string>
     <string name="exchange_not_contacted">Prestataire non contacté</string>
@@ -239,10 +245,12 @@
     <string name="qr_scan_context_title">Action éventuellement involontaire</string>
     <string name="exchange_delete">Effacer le prestataire</string>
     <string name="balance_scope_auditor">Auditeur : %1$s</string>
+    <string name="balances_empty_withdraw_kudos_message">Obtenez de l\'argent fictif pour découvrir comment payer avec de l\'argent numérique.</string>
     <string name="balances_inbound_amount">+%1$s entrant</string>
     <string name="balances_outbound_amount">-%1$s sortant</string>
     <string name="exchange_delete_force">Forcer la suppression (purge)</string>
     <string name="payment_template_error">Erreur de création de la commande</string>
+    <string name="reload">Recharger</string>
     <string name="reset">Réinitialiser</string>
     <string name="payment_prompt_title">Vérifier le paiement</string>
     <string name="exchange_tos_forget">Refuser les conditions d\'utilisation</string>
@@ -309,11 +317,11 @@
     <string name="payment_button_cancel">Annuler</string>
     <string name="payment_cancel_dialog_message">Êtes-vous sûr de vouloir annuler ce paiement ? Vous ne pourrez pas le terminer plus tard. Vous pouvez simplement quitter cet écran et revenir plus tard.</string>
     <string name="payment_cancel_dialog_title">Annuler le Paiement</string>
-    <string name="receive_peer_review_terms">Vous devez d\'abord accepter les conditions générales d\'utilisation du prestataire de services de paiement avant de pouvoir retirer de l\'argent électronique.</string>
+    <string name="receive_peer_review_terms">Vous devez d\'abord accepter les conditions générales d\'utilisation du prestataire de services de paiement avant de pouvoir retirer de l\'argent numérique dans votre portefeuille.</string>
     <string name="send_deposit_kyc_auth_warning_account">N\'utilisez pas un compte bancaire différent pour le dépôt, sinon la vérification échouera.</string>
     <string name="send_deposit_kyc_auth_warning_subject">Ceci est obligatoire, sinon la vérification échouera.</string>
-    <string name="withdraw_manual_step"><b>Étape %1$s:</b> %2$s</string>
-    <string name="withdraw_manual_step_subject">Copiez ce code et collez-le dans le champ référence/objet de votre application bancaire ou du site web de votre banque :</string>
+    <string name="withdraw_manual_step">&lt;b&gt;Étape %1$s :&lt;/b&gt; %2$s</string>
+    <string name="withdraw_manual_step_subject">Copiez ce code et collez-le dans le champ Référence (ou « Communication au bénéficiaire ») de votre application bancaire ou du site web de votre banque :</string>
     <string name="withdraw_review_terms">Vous devez d\'abord accepter les conditions d\'utilisation du prestataire de services de paiement avant de pouvoir retirer de l\'argent électronique dans votre portefeuille.</string>
     <string name="withdraw_manual_ready_details_qr">Codes QR pour le virement bancaire</string>
     <string name="currency_via">via</string>
@@ -323,14 +331,15 @@
     <string name="send_deposit_kyc_auth_intro_bank">Vous devez transférer %1$s du compte bancaire %2$s au prestataire de services de paiement pour prouver que vous avez le contrôle de ce compte.</string>
     <string name="send_deposit_kyc_auth_step_finish">Terminez le virement de %1$s dans votre application bancaire ou sur votre site web pour prouver que vous avez le contrôle du compte bancaire %2$s. Selon votre banque, le transfert peut prendre de quelques minutes à deux jours ouvrables, soyez patient.</string>
     <string name="withdraw_manual_qr_intro">Si votre logiciel bancaire fonctionne sur un autre appareil, vous pouvez scanner l\'un de ces codes QR :</string>
-    <string name="withdraw_manual_step_finish">Terminez le virement bancaire de %1$s dans votre application bancaire ou sur votre site web, puis ce retrait se fera automatiquement. Selon votre banque, le transfert peut prendre de quelques minutes à deux jours ouvrables, soyez patient.</string>
-    <string name="withdraw_manual_step_iban">Si vous ne l\'avez pas déjà dans votre liste de favoris bancaires, copiez et collez le destinataire et l\'IBAN dans les champs destinataire/IBAN de votre application ou site web bancaire (et sauvegardez-le en tant que favori pour la prochaine fois) :</string>
+    <string name="withdraw_manual_step_finish">Terminez le virement bancaire de %1$s dans votre application bancaire ou sur votre site web, et ce retrait se fera automatiquement. Selon votre banque, le transfert peut prendre de quelques minutes à deux jours ouvrables. Veuillez patienter.</string>
+    <string name="withdraw_manual_step_iban">Si vous ne l\'avez pas déjà dans votre liste de favoris bancaires, copiez et collez le destinataire et l\'IBAN dans les champs destinataire/IBAN de votre application bancaire ou de votre site web (et sauvegardez-le en tant que favori pour la prochaine fois) :</string>
     <string name="send_deposit_postal_code">Code postal (facultatif)</string>
     <string name="send_deposit_town">Ville (facultatif)</string>
     <string name="withdraw_manual_ready_postal_code">Code postal</string>
     <string name="withdraw_manual_ready_town">Ville</string>
     <string name="biometric_auth_failed">Echec de l\'authentification</string>
     <string name="biometric_unlock_label">Appuyez pour déverrouiller</string>
+    <string name="wire_transfer">Virement bancaire</string>
     <string name="biometric_auth_error">Erreur d\'authentification : %1$s</string>
     <string name="biometric_auth_unavailable">Aucune méthode d\'authentification n\'est disponible.</string>
     <string name="settings_lock_auth_summary">Nécessite une empreinte digitale ou un mot de passe pour accéder au portefeuille</string>
@@ -344,4 +353,12 @@
     <string name="donau_select_button">Sélectionner une autorité fiscale</string>
     <string name="donau_selector_confirm">Configurer un numéro fiscal</string>
     <string name="donau_selector_title">Sélectionner une autorité fiscale</string>
+    <string name="balances_empty_withdraw_chf_button">Retirer CHF</string>
+    <string name="balances_empty_withdraw_chf_message">Pour effectuer votre premier paiement, retirez de l\'argent numérique.</string>
+    <string name="balances_empty_withdraw_chf_title">Bienvenue dans Taler Wallet !</string>
+    <string name="balances_empty_withdraw_kudos_button">Obtenir de l\'argent de démonstration</string>
+    <string name="exchange_shopping_label">Où payer avec %1$s</string>
+    <string name="payment_button_confirm_amount">Paier %1$s</string>
+    <string name="settings_bank_accounts">Comptes bancaires</string>
+    <string name="withdraw_manual_instruction_manual">Suivez les instructions pour saisir les détails du virement dans votre application bancaire</string>
 </resources>

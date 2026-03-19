@@ -405,9 +405,8 @@
     <string name="host_apdu_service_desc">תשלומי NFC של טאלר</string>
     <string name="wifi_connect_error">לא הצליח להתחבר ל־Wi-Fi חינמי: %1$s</string>
     <string name="wifi_disabled_error">יש להדליק את ה־Wi-Fi כדי לקבל Wi-Fi חינמי</string>
-    <string name="assets_section_balances">מאזנים</string>
-    <string name="assets_section_statements">הצהרות על תרומה</string>
-    <string name="assets_title">נכסים</string>
+    <string name="balances_section_statements">הצהרות על תרומה</string>
+    <string name="balances_title">נכסים</string>
     <string name="settings_bank_accounts">חשבונות בנק</string>
     <string name="settings_bank_accounts_summary">ניהול חשבונות הבנק להפקדות</string>
     <string name="donau_statement_tax_authority">רשות המיסים</string>

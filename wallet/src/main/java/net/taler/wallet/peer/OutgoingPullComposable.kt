@@ -41,7 +41,6 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
@@ -180,15 +179,8 @@ fun OutgoingPullComposable(
                             if (input.length <= MAX_LENGTH_SUBJECT)
                                 subject = input.replace('\n', ' ')
                         },
-                        isError = subject.isBlank(),
-                        label = {
-                            Text(
-                                stringResource(R.string.send_peer_purpose),
-                                color = if (subject.isBlank()) {
-                                    MaterialTheme.colorScheme.error
-                                } else Color.Unspecified,
-                            )
-                        },
+                        label = { Text(stringResource(R.string.send_peer_purpose)) },
+                        placeholder = { Text(stringResource(R.string.receive_peer_default_purpose)) },
                         supportingText = {
                             Text(
                                 stringResource(
@@ -252,17 +244,18 @@ fun OutgoingPullComposable(
             BottomInsetsSpacer()
         }
 
+        val defaultSubject = stringResource(R.string.receive_peer_default_purpose)
         BottomButtonBox(Modifier.fillMaxWidth()) {
             Button(
                 modifier = Modifier
                     .systemBarsPaddingBottom(),
-                enabled = tosReview || (res != null && !amount.amount.isZero() && subject.isNotBlank()),
+                enabled = tosReview || (res != null && !amount.amount.isZero()),
                 onClick = {
                     val ex = res?.exchangeBaseUrl ?: error("clickable without exchange")
                     if (res.tosStatus?.isAccepted() == true) {
                         onCreateInvoice(
                             amount,
-                            subject,
+                            subject.ifBlank { defaultSubject },
                             hours,
                             ex
                         )

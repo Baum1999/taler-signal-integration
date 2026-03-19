@@ -118,7 +118,7 @@
     <fragment
         android:id="@+id/main"
         android:name="net.taler.wallet.main.MainFragment"
-        android:label="@string/assets_title">
+        android:label="@string/balances_title">
         <action
             android:id="@+id/action_main_to_uriInput"
             app:destination="@id/uriInput" />
@@ -199,7 +199,7 @@
     <fragment
         android:id="@+id/wireTransferDetails"
         android:name="net.taler.wallet.transfer.WireTransferDetailsFragment"
-        android:label="@string/withdraw_manual_ready_details_intro" />
+        android:label="@string/wire_transfer" />
 
     <fragment
         android:id="@+id/deposit"

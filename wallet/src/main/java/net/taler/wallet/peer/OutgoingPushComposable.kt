@@ -41,7 +41,6 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
@@ -232,15 +231,8 @@ fun OutgoingPushIntroComposable(
                             if (input.length <= MAX_LENGTH_SUBJECT)
                                 subject = input.replace('\n', ' ')
                         },
-                        isError = subject.isBlank(),
-                        label = {
-                            Text(
-                                stringResource(R.string.send_peer_purpose),
-                                color = if (subject.isBlank()) {
-                                    MaterialTheme.colorScheme.error
-                                } else Color.Unspecified,
-                            )
-                        },
+                        placeholder = { Text(stringResource(R.string.send_peer_default_purpose)) },
+                        label = { Text(stringResource(R.string.send_peer_purpose)) },
                         supportingText = {
                             Text(
                                 stringResource(
@@ -288,11 +280,16 @@ fun OutgoingPushIntroComposable(
             BottomInsetsSpacer()
         }
 
+        val defaultSubject = stringResource(R.string.send_peer_default_purpose)
         BottomButtonBox(Modifier.fillMaxWidth()) {
             Button(
                 modifier = Modifier.systemBarsPaddingBottom(),
-                enabled = feeResult is Success && !amount.amount.isZero() && subject.isNotBlank(),
-                onClick = { onSend(amount, subject, hours) },
+                enabled = feeResult is Success && !amount.amount.isZero(),
+                onClick = { onSend(
+                    amount,
+                    subject.ifBlank { defaultSubject },
+                    hours,
+                ) },
             ) {
                 Text(text = stringResource(R.string.send_peer_create_button_amount,
                     amount.amount.withSpec(selectedSpec)))

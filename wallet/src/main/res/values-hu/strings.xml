@@ -98,9 +98,8 @@
     <string name="amount_withdraw"/>
     <!-- Assets -->
 
-    <string name="assets_section_balances"/>
-    <string name="assets_section_statements"/>
-    <string name="assets_title"/>
+    <string name="balances_section_statements"/>
+    <string name="balances_title"/>
     <!-- Balances -->
 
     <string name="balance_scope_auditor"/>

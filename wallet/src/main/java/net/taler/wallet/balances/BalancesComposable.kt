@@ -98,10 +98,6 @@ fun BalancesComposable(
                 .fillMaxSize(),
             contentPadding = innerPadding,
         ) {
-            if (state.balances.isNotEmpty()) stickyHeader {
-                SectionHeader { Text(stringResource(R.string.assets_section_balances)) }
-            }
-
             items(state.balances, key = { it.scopeInfo.hashCode() }) { balance ->
                 BalanceRow(
                     balance,
@@ -111,7 +107,7 @@ fun BalancesComposable(
             }
 
             if (state.donauSummary.isNotEmpty()) stickyHeader {
-                SectionHeader { Text(stringResource(R.string.assets_section_statements)) }
+                SectionHeader { Text(stringResource(R.string.balances_section_statements)) }
             }
 
             items(state.donauSummary) { statement ->
