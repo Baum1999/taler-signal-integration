@@ -22,7 +22,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.launch
 import net.taler.common.QrCodeManager.makeQrCode
 import net.taler.lib.android.TalerNfcService.Companion.hasNfc
 import net.taler.merchantpos.MainViewModel
@@ -39,7 +41,7 @@ class RefundUriFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         ui = FragmentRefundUriBinding.inflate(inflater, container, false)
         return ui.root
     }
@@ -49,7 +51,9 @@ class RefundUriFragment : Fragment() {
         val result = refundManager.refundResult.value
         if (result !is RefundResult.Success) throw IllegalStateException()
 
-        ui.refundQrcodeView.setImageBitmap(makeQrCode(result.refundUri))
+        lifecycleScope.launch {
+            ui.refundQrcodeView.setImageBitmap(makeQrCode(result.refundUri))
+        }
 
         val introRes =
             if (hasNfc(requireContext())) R.string.refund_intro_nfc else R.string.refund_intro
