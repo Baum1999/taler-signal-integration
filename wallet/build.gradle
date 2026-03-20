@@ -24,7 +24,7 @@ plugins {
     id "org.jetbrains.kotlin.plugin.compose" version "$kotlin_version"
 }
 
-def qtart_version = "1.3.13"
+def qtart_version = "1.4.0"
 
 static def versionCodeEpoch() {
     return (new Date().getTime() / 1000).toInteger()
