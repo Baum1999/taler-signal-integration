@@ -21,14 +21,20 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class PerformanceStat {
+    abstract val avgDurationMs: Int
     abstract val maxDurationMs: Int
+    abstract val minDurationMs: Int
+    abstract val totalDurationMs: Int
     abstract val count: Int
 
     @Serializable
     @SerialName("http-fetch")
     data class HttpFetch(
         val url: String,
+        override val avgDurationMs: Int,
         override val maxDurationMs: Int,
+        override val minDurationMs: Int,
+        override val totalDurationMs: Int,
         override val count: Int,
     ): PerformanceStat()
 
@@ -37,7 +43,10 @@ sealed class PerformanceStat {
     data class DbQuery(
         val name: String,
         val location: String,
+        override val avgDurationMs: Int,
         override val maxDurationMs: Int,
+        override val minDurationMs: Int,
+        override val totalDurationMs: Int,
         override val count: Int,
     ): PerformanceStat()
 
@@ -45,7 +54,10 @@ sealed class PerformanceStat {
     @SerialName("crypto")
     data class Crypto(
         val operation: String,
+        override val avgDurationMs: Int,
         override val maxDurationMs: Int,
+        override val minDurationMs: Int,
+        override val totalDurationMs: Int,
         override val count: Int,
     ): PerformanceStat()
 
@@ -53,7 +65,10 @@ sealed class PerformanceStat {
     @SerialName("wallet-request")
     data class WalletRequest(
         val operation: String,
+        override val avgDurationMs: Int,
         override val maxDurationMs: Int,
+        override val minDurationMs: Int,
+        override val totalDurationMs: Int,
         override val count: Int,
     ): PerformanceStat()
 
@@ -61,7 +76,10 @@ sealed class PerformanceStat {
     @SerialName("wallet-task")
     data class WalletTask(
         val taskId: String,
+        override val avgDurationMs: Int,
         override val maxDurationMs: Int,
+        override val minDurationMs: Int,
+        override val totalDurationMs: Int,
         override val count: Int,
     ): PerformanceStat()
 }
