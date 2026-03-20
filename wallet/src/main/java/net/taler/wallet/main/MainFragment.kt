@@ -270,9 +270,18 @@ class MainFragment: Fragment() {
             // unfinished transactions (dialog)
             TransactionState(TransactionMajorState.Dialog) -> when (tx) {
                 is TransactionPayment -> {
-                    model.paymentManager.preparePay(tx.transactionId) {
-                        findNavController().navigate(R.id.action_global_promptPayment)
-                    }
+                    model.paymentManager.preparePay(tx.transactionId) {}
+                    findNavController().navigate(R.id.action_global_promptPayment)
+                }
+
+                is TransactionPeerPushCredit -> {
+                    model.peerManager.preparePeerPushCredit(transactionId = tx.transactionId)
+                    findNavController().navigate(R.id.action_global_promptPushPayment)
+                }
+
+                is TransactionPeerPullDebit -> {
+                    model.peerManager.preparePeerPullDebit(transactionId = tx.transactionId)
+                    findNavController().navigate(R.id.action_global_promptPullPayment)
                 }
 
                 else -> showTxDetails()

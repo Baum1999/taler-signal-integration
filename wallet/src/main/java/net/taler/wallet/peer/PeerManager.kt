@@ -267,11 +267,16 @@ class PeerManager(
         _outgoingPushState.value = OutgoingIntro
     }
 
-    fun preparePeerPullDebit(talerUri: String) {
+    fun preparePeerPullDebit(
+        talerUri: String? = null,
+        transactionId: String? = null,
+    ) {
         _incomingPullState.value = IncomingChecking
         scope.launch(Dispatchers.IO) {
             api.request("preparePeerPullDebit", PreparePeerPullDebitResponse.serializer()) {
-                put("talerUri", talerUri)
+                talerUri?.let { put("talerUri", talerUri) }
+                transactionId?.let { put("transactionId", transactionId) }
+                this
             }.onSuccess { response ->
                 _incomingPullState.value = IncomingTerms(
                     amountRaw = response.amountRaw,
@@ -300,11 +305,16 @@ class PeerManager(
         }
     }
 
-    fun preparePeerPushCredit(talerUri: String) {
+    fun preparePeerPushCredit(
+        talerUri: String? = null,
+        transactionId: String? = null,
+    ) {
         _incomingPushState.value = IncomingChecking
         scope.launch(Dispatchers.IO) a@ {
             api.request("preparePeerPushCredit", PreparePeerPushCreditResponse.serializer()) {
-                put("talerUri", talerUri)
+                talerUri?.let { put("talerUri", talerUri) }
+                transactionId?.let { put("transactionId", transactionId) }
+                this
             }.onSuccess { response ->
                 scope.launch(Dispatchers.IO) b@ {
                     val exchange = exchangeManager.findExchangeByUrl(response.exchangeBaseUrl)
