@@ -10,6 +10,7 @@
     <string name="menu_reload">Reload</string>
 
     <string name="product_image">Product image</string>
+    <string name="product_category_all_objects">All objects</string>
     <string name="product_category_uncategorized">Uncategorized</string>
 
     <string name="order_label_title">Order #%s</string>

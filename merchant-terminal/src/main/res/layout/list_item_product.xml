@@ -54,13 +54,26 @@
             tools:text="Steak and two Eggs" />
 
         <TextView
+            android:id="@+id/description"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="?android:textColorSecondary"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/name"
+            tools:text="Two eggs, potatoes, and steak"
+            tools:visibility="visible" />
+
+        <TextView
             android:id="@+id/price"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:textColor="?android:textColorSecondary"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/name"
+            app:layout_constraintTop_toBottomOf="@+id/description"
             tools:text="7.95" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

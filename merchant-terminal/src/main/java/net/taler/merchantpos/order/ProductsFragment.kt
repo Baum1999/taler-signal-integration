@@ -106,12 +106,20 @@ private class ProductAdapter(
 
     inner class ProductViewHolder(private val v: View) : ViewHolder(v) {
         private val name: TextView = v.findViewById(R.id.name)
+        private val description: TextView = v.findViewById(R.id.description)
         private val price: TextView = v.findViewById(R.id.price)
         private val image: ImageView = v.findViewById(R.id.image)
 
         fun bind(product: ConfigProduct) {
-            name.text = product.localizedDescription
-            price.text = product.price.amountStr
+            name.text = product.displayName
+            val productDescription = product.displayDescription
+            if (productDescription == null) {
+                description.visibility = GONE
+            } else {
+                description.visibility = VISIBLE
+                description.text = productDescription
+            }
+            price.text = product.displayPrice
 
             // base64 encoded image
             val bitmap = product.image?.base64Bitmap

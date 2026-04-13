@@ -17,6 +17,8 @@
 package net.taler.merchantpos.order
 
 import android.app.Application
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlinx.coroutines.runBlocking
@@ -27,10 +29,16 @@ import net.taler.merchantpos.config.Category
 import net.taler.merchantpos.config.ConfigProduct
 import net.taler.merchantpos.config.PosConfig
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowLooper.shadowMainLooper
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 @Config(sdk = [28]) // API 29 needs at least Java 9
 @RunWith(AndroidJUnit4::class)
@@ -98,4 +106,87 @@ class OrderManagerTest {
         assertNull(result)
     }
 
+    @Test
+    fun `all objects is selected by default and shown first`() = runBlocking {
+        orderManager.onConfigurationReceived(posConfig, "KUDOS")
+        shadowMainLooper().idle()
+
+        val categories = orderManager.categories.awaitValue()
+        val products = orderManager.products.awaitValue()
+
+        assertNotNull(categories)
+        assertNotNull(products)
+        assertEquals(app.getString(R.string.product_category_all_objects), categories[0].name)
+        assertTrue(categories[0].selected)
+        assertFalse(categories[1].selected)
+        assertEquals(posConfig.products, products)
+    }
+
+    @Test
+    fun `uncategorized is appended at the end when needed`() = runBlocking {
+        val uncategorizedProduct = ConfigProduct(
+            description = "baz",
+            price = Amount("KUDOS", 2, 0),
+            categories = emptyList()
+        )
+        val config = posConfig.copy(products = posConfig.products + uncategorizedProduct)
+
+        orderManager.onConfigurationReceived(config, "KUDOS")
+        shadowMainLooper().idle()
+
+        val categories = orderManager.categories.awaitValue()
+        val uncategorized = categories.last()
+
+        assertEquals(app.getString(R.string.product_category_uncategorized), uncategorized.name)
+        orderManager.setCurrentCategory(uncategorized)
+        shadowMainLooper().idle()
+        assertEquals(listOf(uncategorizedProduct), orderManager.products.awaitValue())
+    }
+
+    @Test
+    fun `legacy default category is hidden and mapped to uncategorized`() = runBlocking {
+        val defaultCategory = Category(3, "Default")
+        val defaultProduct = ConfigProduct(
+            description = "legacy",
+            price = Amount("KUDOS", 3, 0),
+            categories = listOf(3)
+        )
+        val config = posConfig.copy(
+            categories = posConfig.categories + defaultCategory,
+            products = posConfig.products + defaultProduct
+        )
+
+        orderManager.onConfigurationReceived(config, "KUDOS")
+        shadowMainLooper().idle()
+
+        val categories = orderManager.categories.awaitValue()
+        assertFalse(categories.any { it.name == "Default" })
+        assertEquals(app.getString(R.string.product_category_uncategorized), categories.last().name)
+
+        orderManager.setCurrentCategory(categories.last())
+        shadowMainLooper().idle()
+        assertEquals(listOf(defaultProduct), orderManager.products.awaitValue())
+    }
+
+}
+
+private fun <T> LiveData<T>.awaitValue(timeout: Long = 2, unit: TimeUnit = TimeUnit.SECONDS): T {
+    val latch = CountDownLatch(1)
+    var result: T? = null
+    val observer = object : Observer<T> {
+        override fun onChanged(value: T) {
+            result = value
+            latch.countDown()
+            removeObserver(this)
+        }
+    }
+    observeForever(observer)
+    if (this.value != null) {
+        result = this.value
+        removeObserver(observer)
+    } else if (!latch.await(timeout, unit)) {
+        removeObserver(observer)
+        throw AssertionError("LiveData value was never set.")
+    }
+    return requireNotNull(result)
 }

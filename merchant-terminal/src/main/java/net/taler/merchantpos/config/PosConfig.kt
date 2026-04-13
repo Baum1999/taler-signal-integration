@@ -105,6 +105,18 @@ data class ConfigProduct(
     val quantity: Int = 0
 ) : OrderProduct() {
     val totalPrice by lazy { price * quantity }
+    private val normalizedProductName: String?
+        get() = productName?.trim()?.takeIf { it.isNotEmpty() }
+    private val normalizedDescription: String
+        get() = localizedDescription.trim()
+    val displayName: String
+        get() = normalizedProductName ?: normalizedDescription
+    val displayDescription: String?
+        get() = normalizedProductName
+            ?.takeIf { it != normalizedDescription }
+            ?.let { normalizedDescription }
+    val displayPrice: String
+        get() = "${price.toString(showSymbol = false)} ${price.currency}"
 
     fun toContractProduct() = ContractProduct(
         productId = productId,

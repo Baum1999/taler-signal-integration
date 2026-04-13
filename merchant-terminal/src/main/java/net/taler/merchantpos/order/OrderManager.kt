@@ -33,6 +33,9 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
 
     companion object {
         val TAG: String = OrderManager::class.java.simpleName
+        private const val ALL_PRODUCTS_CATEGORY_ID = -1
+        private const val UNCATEGORIZED_CATEGORY_ID = -2
+        private const val LEGACY_DEFAULT_CATEGORY_NAME = "Default"
     }
 
     private lateinit var currency: String
@@ -56,15 +59,30 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
             Log.e(TAG, "No valid category found.")
             return context.getString(R.string.config_error_category)
         }
-        // pre-select the first category
-        posConfig.categories[0].selected = true
+        val allProductsCategory = Category(
+            ALL_PRODUCTS_CATEGORY_ID,
+            context.getString(R.string.product_category_all_objects)
+        ).apply {
+            selected = true
+        }
+        val uncategorizedCategory = Category(
+            UNCATEGORIZED_CATEGORY_ID,
+            context.getString(R.string.product_category_uncategorized)
+        )
+        val visibleCategories = posConfig.categories.filterNot(::isLegacyDefaultCategory)
+        val legacyDefaultCategoryIds = posConfig.categories
+            .filter(::isLegacyDefaultCategory)
+            .map { it.id }
+            .toSet()
 
         // group products by categories
         productsByCategory.clear()
-        val unknownCategory = Category(-1, context.getString(R.string.product_category_uncategorized))
-        posConfig.categories.forEach { category ->
+        productsByCategory[allProductsCategory] = ArrayList()
+        visibleCategories.forEach { category ->
+            category.selected = false
             productsByCategory[category] = ArrayList()
         }
+        productsByCategory[uncategorizedCategory] = ArrayList()
         posConfig.products.forEach { product ->
             val productCurrency = product.price.currency
             if (productCurrency != currency) {
@@ -73,23 +91,36 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
                     R.string.config_error_currency, product.description, productCurrency, currency
                 )
             }
+            productsByCategory.getValue(allProductsCategory).add(product)
+            if (product.categories.isEmpty()) {
+                productsByCategory.getValue(uncategorizedCategory).add(product)
+            }
             product.categories.forEach { categoryId ->
-                val category = posConfig.categories.find { it.id == categoryId } ?: let {
-                    Log.e(TAG, "Product $product has unknown category $categoryId")
-                    unknownCategory
+                if (categoryId in legacyDefaultCategoryIds) {
+                    productsByCategory.getValue(uncategorizedCategory).add(product)
+                    return@forEach
                 }
-
-                productsByCategory.getOrPut(category) { ArrayList() }.add(product)
+                val category = visibleCategories.find { it.id == categoryId }
+                if (category == null) {
+                    Log.e(TAG, "Product $product has unknown category $categoryId")
+                    productsByCategory.getValue(uncategorizedCategory).add(product)
+                } else {
+                    productsByCategory.getValue(category).add(product)
+                }
             }
         }
         this.currency = currency
-        mCategories.postValue(posConfig.categories +
-                if(productsByCategory.containsKey(unknownCategory)) {
-                    listOf(unknownCategory)
-                } else {
-                    emptyList()
-                })
-        mProducts.postValue(productsByCategory[posConfig.categories[0]] ?: emptyList())
+        val categoryList = buildList {
+            add(allProductsCategory)
+            addAll(visibleCategories)
+            if (productsByCategory.getValue(uncategorizedCategory).isNotEmpty()) {
+                add(uncategorizedCategory)
+            } else {
+                productsByCategory.remove(uncategorizedCategory)
+            }
+        }
+        mCategories.postValue(categoryList)
+        mProducts.postValue(productsByCategory[allProductsCategory] ?: emptyList())
         orders.clear()
         orderCounter = 0
         orders[0] = MutableLiveOrder(0, currency, productsByCategory)
@@ -180,6 +211,10 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
 
     private fun order(orderId: Int): MutableLiveOrder {
         return orders[orderId] ?: throw IllegalStateException()
+    }
+
+    private fun isLegacyDefaultCategory(category: Category): Boolean {
+        return category.name.equals(LEGACY_DEFAULT_CATEGORY_NAME, ignoreCase = true)
     }
 
 }
