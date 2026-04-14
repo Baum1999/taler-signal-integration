@@ -110,13 +110,21 @@ class OrderStateFragment : Fragment() {
                 if (position >= 0) {
                     ui.orderList.scrollToPosition(position)
                     ui.orderList.post { this.tracker?.select(it.id) }
+                    return@setItems
                 }
             }
-            // workaround for bug: SelectionObserver doesn't update when removing selected item
-            if (tracker.hasSelection()) {
-                val key = tracker.selection.first()
-                val product = order.products.find { it.id == key }
-                if (product == null) tracker.clearSelection()
+            val selectedKey = tracker.selection.firstOrNull()
+            val selectedProduct = selectedKey?.let { key ->
+                order.products.find { it.id == key }
+            }
+            if (selectedProduct == null) {
+                val fallbackProduct = order.products.lastOrNull()
+                tracker.clearSelection()
+                if (fallbackProduct == null) {
+                    liveOrder.selectOrderLine(null)
+                } else {
+                    ui.orderList.post { this.tracker?.select(fallbackProduct.id) }
+                }
             }
         }
     }
