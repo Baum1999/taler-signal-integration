@@ -82,14 +82,22 @@ internal class OrderAdapter : Adapter<OrderViewHolder>() {
     internal inner class OrderViewHolder(private val v: View) : RecyclerView.ViewHolder(v) {
         private val quantity: TextView = v.findViewById(R.id.quantity)
         private val name: TextView = v.findViewById(R.id.name)
+        private val description: TextView = v.findViewById(R.id.description)
         private val price: TextView = v.findViewById(R.id.price)
         private val image: ImageView = v.findViewById(R.id.image)
 
         fun bind(product: ConfigProduct, selected: Boolean) {
             v.isActivated = selected
             quantity.text = product.quantity.toString()
-            name.text = product.localizedDescription
-            price.text = product.totalPrice.amountStr
+            name.text = product.displayName
+            val productDescription = product.displayDescription
+            if (productDescription == null) {
+                description.visibility = GONE
+            } else {
+                description.visibility = VISIBLE
+                description.text = productDescription
+            }
+            price.text = product.totalPrice.toString(showSymbol = false) + " " + product.totalPrice.currency
 
             // base64 encoded image
             val bitmap = product.image?.base64Bitmap
