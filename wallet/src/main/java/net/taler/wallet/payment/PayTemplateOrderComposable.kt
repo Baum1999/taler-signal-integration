@@ -85,7 +85,6 @@ fun PayTemplateOrderComposable(
             value = summary,
             isError = templateDetails.isSummaryEditable() && summary.isBlank(),
             onValueChange = { summary = it },
-            singleLine = true,
             readOnly = !templateDetails.isSummaryEditable(),
             label = { Text(stringResource(R.string.withdraw_manual_ready_subject)) },
         )
