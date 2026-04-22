@@ -61,7 +61,6 @@ fun TransactionStateComposable(
     state: TransactionState,
     tx: Transaction? = null,
 ) {
-    val context = LocalContext.current
     val message = when (state) {
         TransactionState(Done) -> stringResource(R.string.transaction_state_done)
         TransactionState(Pending, BankConfirmTransfer) -> stringResource(R.string.transaction_state_pending_bank)
@@ -73,7 +72,7 @@ fun TransactionStateComposable(
         TransactionState(Aborted) -> if (tx is TransactionWithdrawal && tx.withdrawalDetails is ManualTransfer) {
             stringResource(
                 R.string.transaction_state_aborted_manual,
-                (tx.timestamp + tx.withdrawalDetails.reserveClosingDelay).ms.toAbsoluteTime(context).toString(),
+                (tx.timestamp + tx.withdrawalDetails.reserveClosingDelay).ms.toAbsoluteTime(LocalContext.current).toString(),
             )
         } else stringResource(R.string.transaction_state_aborted)
         TransactionState(Aborting) -> stringResource(R.string.transaction_state_aborting)

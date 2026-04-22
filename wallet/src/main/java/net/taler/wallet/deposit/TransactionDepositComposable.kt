@@ -62,21 +62,20 @@ fun TransactionDepositComposable(
     onWireTransfer: () -> Unit,
     onShowQrCodes: () -> Unit,
     onTransition: (t: TransactionAction) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberScrollState()
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        val context = LocalContext.current
-
         TransactionStateComposable(state = t.txState)
 
         Text(
             modifier = Modifier.padding(16.dp),
-            text = t.timestamp.ms.toAbsoluteTime(context).toString(),
+            text = t.timestamp.ms.toAbsoluteTime(LocalContext.current).toString(),
             style = MaterialTheme.typography.bodyLarge,
         )
 
@@ -133,6 +132,13 @@ fun TransactionDepositComposablePreview() {
         ))
     )
     Surface {
-        TransactionDepositComposable(t, true, null, {}, {}) {}
+        TransactionDepositComposable(
+            t = t,
+            devMode = true,
+            spec = null,
+            onWireTransfer = {},
+            onShowQrCodes = {},
+            onTransition = {},
+        )
     }
 }

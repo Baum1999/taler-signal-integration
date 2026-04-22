@@ -79,9 +79,10 @@ fun OutgoingPushComposable(
     getCurrencySpec: (scope: ScopeInfo) -> CurrencySpecification?,
     getFees: suspend (amount: AmountScope) -> CheckFeeResult?,
     onSend: (amount: AmountScope, summary: String, hours: Long) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     when(state) {
-        is OutgoingChecking, is OutgoingCreating, is OutgoingResponse -> LoadingScreen()
+        is OutgoingChecking, is OutgoingCreating, is OutgoingResponse -> LoadingScreen(modifier)
         is OutgoingIntro, is OutgoingChecked, is OutgoingError -> OutgoingPushIntroComposable(
             state = state,
             defaultScope = defaultScope,
@@ -90,6 +91,7 @@ fun OutgoingPushComposable(
             getCurrencySpec = getCurrencySpec,
             getFees = getFees,
             onSend = onSend,
+            modifier = modifier,
         )
     }
 }
@@ -103,6 +105,7 @@ fun OutgoingPushIntroComposable(
     getCurrencySpec: (scope: ScopeInfo) -> CurrencySpecification?,
     getFees: suspend (amount: AmountScope) -> CheckFeeResult?,
     onSend: (amount: AmountScope, summary: String, hours: Long) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     var amount by remember {
         val scope = defaultScope ?: scopes[0]
@@ -128,7 +131,7 @@ fun OutgoingPushIntroComposable(
     }
 
     Column(
-        Modifier
+        modifier
             .fillMaxSize()
             .imePadding(),
     ) {

@@ -84,6 +84,7 @@ fun WithdrawalShowInfo(
     onSelectExchange: () -> Unit,
     onTosReview: () -> Unit,
     onConfirm: (age: Int?) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val maxAmount = status.uriInfo?.maxAmount
     val editableAmount = status.uriInfo?.editableAmount ?: true
@@ -93,7 +94,7 @@ fun WithdrawalShowInfo(
     val ageRestrictionOptions = status.amountInfo?.ageRestrictionOptions ?: emptyList()
 
     if (scopes.isEmpty()) {
-        LoadingScreen()
+        LoadingScreen(modifier)
         return
     }
 
@@ -141,7 +142,7 @@ fun WithdrawalShowInfo(
     }
 
     Column(
-        Modifier
+        modifier
         .fillMaxSize()
         .imePadding(),
     ) {

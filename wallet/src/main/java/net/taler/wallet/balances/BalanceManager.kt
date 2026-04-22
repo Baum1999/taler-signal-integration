@@ -59,10 +59,9 @@ sealed class BalanceState {
         val error: TalerErrorInfo,
     ): BalanceState()
 
-    fun showWelcome() = this is None ||
-            (this is Success
-                    && balances.isEmpty()
-                    && donauSummary.isEmpty())
+    fun showWelcome() = this is Success
+            && balances.isEmpty()
+            && donauSummary.isEmpty()
 }
 
 // TODO: rename to AssetsManager

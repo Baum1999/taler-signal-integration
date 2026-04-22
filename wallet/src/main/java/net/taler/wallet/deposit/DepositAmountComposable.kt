@@ -57,6 +57,7 @@ import net.taler.wallet.useDebounce
 
 @Composable
 fun DepositAmountComposable(
+    modifier: Modifier = Modifier,
     state: DepositState.AccountSelected,
     knownCurrencies: List<String>,
     getCurrencySpec: (currency: String) -> CurrencySpecification?,
@@ -65,7 +66,7 @@ fun DepositAmountComposable(
     onClose: () -> Unit,
 ) {
     Column(
-        Modifier
+        modifier
             .fillMaxSize()
             .imePadding(),
     ) {

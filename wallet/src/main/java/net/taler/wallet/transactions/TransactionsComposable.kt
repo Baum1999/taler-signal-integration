@@ -16,7 +16,6 @@
 
 package net.taler.wallet.transactions
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -36,7 +35,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -46,14 +44,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
@@ -81,7 +72,6 @@ import net.taler.wallet.balances.ScopeInfo.Exchange
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.Banner
 import net.taler.wallet.compose.LoadingScreen
-import net.taler.wallet.compose.SelectionModeTopAppBar
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.cardPaddings
 import net.taler.wallet.main.ViewMode
@@ -99,14 +89,14 @@ import net.taler.wallet.transactions.TransactionMajorState.Failed
 import net.taler.wallet.transactions.TransactionMajorState.Pending
 import net.taler.wallet.transactions.TransactionMinorState.BalanceKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
-import net.taler.wallet.transactions.TransactionMinorState.KycRequired
 import net.taler.wallet.transactions.TransactionMinorState.KycAuthRequired
 import net.taler.wallet.transactions.TransactionMinorState.KycInit
+import net.taler.wallet.transactions.TransactionMinorState.KycRequired
 import net.taler.wallet.transactions.TransactionMinorState.Repurchase
+import net.taler.wallet.transactions.TransactionStateFilter.Nonfinal
 import net.taler.wallet.transactions.TransactionsResult.Error
 import net.taler.wallet.transactions.TransactionsResult.None
 import net.taler.wallet.transactions.TransactionsResult.Success
-import net.taler.wallet.transactions.TransactionStateFilter.*
 
 @Composable
 fun TransactionsComposable(
@@ -115,63 +105,12 @@ fun TransactionsComposable(
     balance: BalanceItem,
     txResult: TransactionsResult,
     onTransactionClick: (tx: Transaction) -> Unit,
-    onTransactionsDelete: (txIds: List<String>) -> Unit,
     onShowBalancesClicked: () -> Unit,
+    selectionMode: Boolean,
+    selectedItems: MutableList<String>,
+    onToggleSelection: (String) -> Unit,
 ) {
     Column(Modifier.fillMaxSize()) {
-        var showDeleteDialog by remember { mutableStateOf(false) }
-        var selectionMode by remember { mutableStateOf(false) }
-        val selectedItems = remember { mutableStateListOf<String>() }
-
-        if (selectionMode && txResult is Success) SelectionModeTopAppBar(
-            selectedItems = selectedItems,
-            resetSelectionMode = {
-                selectionMode = false
-                selectedItems.clear()
-            },
-            onSelectAllClicked = {
-                selectedItems.clear()
-                selectedItems += txResult.transactions.map { it.transactionId }
-            },
-            onDeleteClicked = {
-                showDeleteDialog = true
-            },
-        )
-
-        if (showDeleteDialog) AlertDialog(
-            title = { Text(stringResource(R.string.transactions_delete_selected_dialog_title)) },
-            text = { Text(stringResource(R.string.transactions_delete_selected_dialog_message)) },
-            onDismissRequest = { showDeleteDialog = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    onTransactionsDelete(selectedItems)
-                    selectedItems.clear()
-                    selectionMode = false
-                    showDeleteDialog = false
-                }) {
-                    Text(stringResource(R.string.transactions_delete))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showDeleteDialog = false
-                }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-        )
-
-        BackHandler(selectionMode) {
-            selectionMode = false
-            selectedItems.clear()
-        }
-
-        LaunchedEffect(selectionMode, selectedItems.size) {
-            if (selectionMode && selectedItems.isEmpty()) {
-                selectionMode = false
-            }
-        }
-
         LazyColumn(
             Modifier
                 .weight(1f)
@@ -216,26 +155,13 @@ fun TransactionsComposable(
                             selectionMode = selectionMode,
                             onTransactionClick = {
                                 if (selectionMode) {
-                                    if (isSelected) {
-                                        selectedItems.remove(tx.transactionId)
-                                    } else {
-                                        selectedItems.add(tx.transactionId)
-                                    }
+                                    onToggleSelection(tx.transactionId)
                                 } else {
                                     onTransactionClick(tx)
                                 }
                             },
                             onTransactionSelect = {
-                                if (selectionMode) {
-                                    if (isSelected) {
-                                        selectedItems.remove(tx.transactionId)
-                                    } else {
-                                        selectedItems.add(tx.transactionId)
-                                    }
-                                } else {
-                                    selectionMode = true
-                                    selectedItems.add(tx.transactionId)
-                                }
+                                onToggleSelection(tx.transactionId)
                             },
                         )
                     }
@@ -350,7 +276,6 @@ fun TransactionRow(
     onTransactionClick: () -> Unit,
     onTransactionSelect: () -> Unit,
 ) {
-    val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
 
     Column {
@@ -396,7 +321,7 @@ fun TransactionRow(
             },
             headlineContent = {
                 Text(
-                    tx.getTitle(context),
+                    tx.getTitle(),
                     modifier = Modifier.padding(vertical = 3.dp),
                     style = MaterialTheme.typography.titleMedium,
                 )
@@ -404,7 +329,7 @@ fun TransactionRow(
             supportingContent = {
                 TransactionExtraInfo(tx)
             },
-            overlineContent = { Text(tx.timestamp.ms.toRelativeTime(context).toString()) },
+            overlineContent = { Text(tx.timestamp.ms.toRelativeTime(LocalContext.current).toString()) },
             colors = ListItemDefaults.colors(
                 containerColor = if (isSelected) {
                     MaterialTheme.colorScheme.secondaryContainer
@@ -545,8 +470,10 @@ fun TransactionsComposableDonePreview() {
             viewMode = ViewMode.Transactions(previewBalance.scopeInfo),
             txResult = Success(transactions),
             onTransactionClick = {},
-            onTransactionsDelete = {},
             onShowBalancesClicked = {},
+            selectionMode = false,
+            selectedItems = mutableListOf(),
+            onToggleSelection = {},
         )
     }
 }
@@ -579,8 +506,10 @@ fun TransactionsComposablePendingPreview() {
             viewMode = ViewMode.Transactions(previewBalance.scopeInfo),
             txResult = Success(transactions),
             onTransactionClick = {},
-            onTransactionsDelete = {},
             onShowBalancesClicked = {},
+            selectionMode = false,
+            selectedItems = mutableListOf(),
+            onToggleSelection = {},
         )
     }
 }
@@ -595,8 +524,10 @@ fun TransactionsComposableEmptyPreview() {
             viewMode = ViewMode.Transactions(previewBalance.scopeInfo),
             txResult = Success(listOf()),
             onTransactionClick = {},
-            onTransactionsDelete = {},
             onShowBalancesClicked = {},
+            selectionMode = false,
+            selectedItems = mutableListOf(),
+            onToggleSelection = {},
         )
     }
 }
@@ -611,8 +542,10 @@ fun TransactionsComposableLoadingPreview() {
             viewMode = ViewMode.Transactions(previewBalance.scopeInfo),
             txResult = None,
             onTransactionClick = {},
-            onTransactionsDelete = {},
             onShowBalancesClicked = {},
+            selectionMode = false,
+            selectedItems = mutableListOf(),
+            onToggleSelection = {},
         )
     }
 }

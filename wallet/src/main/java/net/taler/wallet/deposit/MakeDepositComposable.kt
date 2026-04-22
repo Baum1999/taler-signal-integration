@@ -38,9 +38,10 @@ fun MakeDepositComposable(
     knownBankAccounts: List<KnownBankAccountInfo>,
     onAccountSelected: (account: KnownBankAccountInfo) -> Unit,
     onManageBankAccounts: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         if (knownBankAccounts.isEmpty()) item {

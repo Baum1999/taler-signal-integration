@@ -71,21 +71,20 @@ fun TransactionWithdrawalComposable(
     onConfirmManual: () -> Unit,
     onShowQrCodes: () -> Unit,
     onTransition: (t: TransactionAction) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberScrollState()
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        val context = LocalContext.current
-
         TransactionStateComposable(state = t.txState, tx = t)
 
         Text(
             modifier = Modifier.padding(16.dp),
-            text = t.timestamp.ms.toAbsoluteTime(context).toString(),
+            text = t.timestamp.ms.toAbsoluteTime(LocalContext.current).toString(),
             style = MaterialTheme.typography.bodyLarge,
         )
 
@@ -174,10 +173,17 @@ private val previewWithdrawalTx = TransactionWithdrawal(
 @Composable
 fun TransactionWithdrawalComposableSingleQrPreview() {
     Surface {
-        TransactionWithdrawalComposable(previewWithdrawalTx, true,
-            QrCodeSpec(QrCodeSpec.Type.SPC, "something"),
-            null,
-            {}, {}, {}, {}, {})
+        TransactionWithdrawalComposable(
+            t = previewWithdrawalTx,
+            devMode = true,
+            qrCode = QrCodeSpec(QrCodeSpec.Type.SPC, "something"),
+            spec = null,
+            onConfirmKyc = {},
+            onConfirmBank = {},
+            onConfirmManual = {},
+            onShowQrCodes = {},
+            onTransition = {},
+        )
     }
 }
 
@@ -185,9 +191,16 @@ fun TransactionWithdrawalComposableSingleQrPreview() {
 @Composable
 fun TransactionWithdrawalComposableMultiQrPreview() {
     Surface {
-        TransactionWithdrawalComposable(previewWithdrawalTx, true,
-            null,
-            null,
-            {}, {}, {}, {}, {})
+        TransactionWithdrawalComposable(
+            t = previewWithdrawalTx,
+            devMode = true,
+            qrCode = null,
+            spec = null,
+            onConfirmKyc = {},
+            onConfirmBank = {},
+            onConfirmManual = {},
+            onShowQrCodes = {},
+            onTransition = {},
+        )
     }
 }

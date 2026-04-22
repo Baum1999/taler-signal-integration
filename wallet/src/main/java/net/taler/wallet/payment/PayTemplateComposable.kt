@@ -45,7 +45,7 @@ fun PayTemplateComposable(
     getCurrencySpec: (String) -> CurrencySpecification?,
     onCreateAmount: (String, String) -> AmountResult,
     onSubmit: (params: TemplateParams) -> Unit,
-    onError: (resId: Int) -> Unit,
+    onError: (msg: String) -> Unit,
 ) {
     // If wallet is empty, there's no way the user can pay something
     if (currencies.isEmpty()) {

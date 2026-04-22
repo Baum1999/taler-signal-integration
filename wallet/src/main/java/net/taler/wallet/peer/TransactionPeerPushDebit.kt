@@ -161,7 +161,7 @@ fun TransactionPeerPushDebitPreview(loading: Boolean = false) {
     )
 
     TalerSurface {
-        TransactionPeerComposable(t, true, null, {}) {}
+        TransactionPeerComposable(t, true, null, Modifier, {}) {}
     }
 }
 

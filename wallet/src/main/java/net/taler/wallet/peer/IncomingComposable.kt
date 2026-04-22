@@ -74,11 +74,12 @@ val incomingPull = IncomingData(
 fun IncomingComposable(
     state: State<IncomingState>,
     data: IncomingData,
+    modifier: Modifier = Modifier,
     onAccept: (IncomingTerms) -> Unit,
 ) {
     val scrollState = rememberScrollState()
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .verticalScroll(scrollState),
     ) {

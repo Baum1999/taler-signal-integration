@@ -79,6 +79,7 @@ sealed class TransferContext {
 
 @Composable
 fun ScreenTransfer(
+    modifier: Modifier = Modifier,
     transfers: List<TransferData>,
     spec: CurrencySpecification?,
     showQrCodes: Boolean,
@@ -113,7 +114,7 @@ fun ScreenTransfer(
         getQrCodes(defaultTransfer)
     }
 
-    Column {
+    Column(modifier) {
         if (transfers.size > 1) {
             TransferAccountChooser(
                 accounts = transfers.map { it.withdrawalAccount },

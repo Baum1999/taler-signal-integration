@@ -68,6 +68,7 @@ import net.taler.wallet.useDebounce
 
 @Composable
 fun AddAccountComposable(
+    modifier: Modifier = Modifier,
     presetAccount: KnownBankAccountInfo? = null,
     depositWireTypes: GetDepositWireTypesResponse,
     validateIban: suspend (iban: String) -> Boolean,
@@ -154,7 +155,7 @@ fun AddAccountComposable(
     }
 
     LazyColumn(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .imePadding(),
         horizontalAlignment = CenterHorizontally,
@@ -319,6 +320,7 @@ fun MakeDepositWireTypeChooser(
 fun PreviewAddAccountComposable() {
     Surface {
         AddAccountComposable(
+            modifier = Modifier,
             depositWireTypes = GetDepositWireTypesResponse(
                 wireTypeDetails = listOf(
                     WireTypeDetails(

@@ -50,6 +50,7 @@ import net.taler.wallet.transactions.TransactionInfoComposable
 fun DonauStatementComposable(
     statements: List<DonauStatement>,
     selectedIndex: Int,
+    modifier: Modifier = Modifier,
     onSelectIndex: (index: Int) -> Unit,
 ) {
     val statement = remember(selectedIndex) {
@@ -58,7 +59,7 @@ fun DonauStatementComposable(
 
     // TODO: create common instruction + QR composable
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = CenterHorizontally,

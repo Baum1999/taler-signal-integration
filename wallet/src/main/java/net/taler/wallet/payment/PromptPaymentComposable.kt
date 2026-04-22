@@ -117,6 +117,7 @@ fun PromptPaymentComposable(
     onClickImage: (Bitmap) -> Unit,
     onSetupDonau: (donauBaseUrl: String) -> Unit,
     checkDonauStatus: suspend (choiceIndex: Int) -> DonauStatus,
+    modifier: Modifier = Modifier,
 ) {
     val contractTerms = status.contractTerms
     var showCancelDialog by rememberSaveable { mutableStateOf(false) }
@@ -128,7 +129,7 @@ fun PromptPaymentComposable(
     )
 
     Column(
-        Modifier
+        modifier
             .fillMaxSize()
             .imePadding(),
     ) {

@@ -52,7 +52,7 @@ fun PayTemplateOrderComposable(
     templateDetails: WalletTemplateDetails,
     onCreateAmount: (String, String) -> AmountResult,
     getCurrencySpec: (String) -> CurrencySpecification?,
-    onError: (msgRes: Int) -> Unit,
+    onError: (msg: String) -> Unit,
     onSubmit: (params: TemplateParams) -> Unit,
 ) {
     val defaultSummary = templateDetails.defaultSummary
@@ -70,6 +70,9 @@ fun PayTemplateOrderComposable(
     val currencySpec = remember(amount.currency) {
         getCurrencySpec(amount.currency)
     }
+
+    val balanceInsufficientError = stringResource(R.string.payment_balance_insufficient)
+    val amountInvalidError = stringResource(R.string.amount_invalid)
 
     Column(horizontalAlignment = End) {
         OutlinedTextField(
@@ -89,14 +92,12 @@ fun PayTemplateOrderComposable(
             label = { Text(stringResource(R.string.withdraw_manual_ready_subject)) },
         )
 
-        AmountCurrencyField(
+        if (templateDetails.isAmountEditable()) AmountCurrencyField(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
             amount = amount.withSpec(currencySpec),
             currencies = usableCurrencies,
-            editableCurrency = !templateDetails.isCurrencyEditable(usableCurrencies),
-            readOnly = !templateDetails.isAmountEditable(),
             onAmountChanged = { amount = it },
             label = { Text(stringResource(R.string.amount_send)) },
         )
@@ -106,8 +107,8 @@ fun PayTemplateOrderComposable(
             enabled = !templateDetails.isSummaryEditable() || summary.isNotBlank(),
             onClick = {
                 when (val res = onCreateAmount(amount.amountStr, amount.currency)) {
-                    is AmountResult.InsufficientBalance -> onError(R.string.payment_balance_insufficient)
-                    is AmountResult.InvalidAmount -> onError(R.string.amount_invalid)
+                    is AmountResult.InsufficientBalance -> onError(balanceInsufficientError)
+                    is AmountResult.InvalidAmount -> onError(amountInvalidError)
                     // NOTE: it is important to nullify non-editable values!
                     is AmountResult.Success -> onSubmit(TemplateParams(
                         summary = if (templateDetails.isSummaryEditable()) summary else null,

@@ -55,7 +55,6 @@ import net.taler.wallet.settings.SettingsManager
 import net.taler.wallet.transactions.TransactionManager
 import net.taler.wallet.transactions.TransactionStateFilter
 import net.taler.wallet.withdraw.WithdrawManager
-import androidx.core.net.toUri
 import net.taler.wallet.BuildConfig
 import net.taler.wallet.NetworkManager
 import net.taler.wallet.donau.DonauManager
@@ -70,19 +69,6 @@ private val transactionNotifications = listOf(
 private val observabilityNotifications = listOf(
     "task-observability-event",
     "request-observability-event",
-)
-
-private val sendUriActions = listOf(
-    "pay",
-    "tip",
-    "pay-pull",
-    "pay-template",
-)
-
-private val receiveUriActions = listOf(
-    "withdraw",
-    "refund",
-    "pay-push",
 )
 
 class MainViewModel(
@@ -138,14 +124,14 @@ class MainViewModel(
     private val mObservabilityLog = MutableStateFlow<List<ObservabilityEvent>>(emptyList())
     val observabilityLog: StateFlow<List<ObservabilityEvent>> = mObservabilityLog
 
+    private val mShowObservabilityLog = MutableStateFlow(false)
+    val showObservabilityLog: StateFlow<Boolean> = mShowObservabilityLog
+
     private val mScanCodeEvent = MutableLiveData<Event<Boolean>>()
     val scanCodeEvent: LiveData<Event<Boolean>> = mScanCodeEvent
 
     private val mViewMode = MutableStateFlow<ViewMode>(ViewMode.Assets)
     val viewMode: StateFlow<ViewMode> = mViewMode
-
-    @set:Synchronized
-    private var scanQrContext = ScanQrContext.Unknown
 
     fun startWallet() {
         api.startWallet()
@@ -235,7 +221,7 @@ class MainViewModel(
     }
 
     /**
-     * Navigates to the given scope info's transaction list, when [MainFragment] is shown.
+     * Navigates to the given scope info's transaction list, when [MainScreen] is shown.
      */
     @UiThread
     fun showTransactions(scopeInfo: ScopeInfo, stateFilter: TransactionStateFilter? = null) {
@@ -260,21 +246,8 @@ class MainViewModel(
     }
 
     @UiThread
-    fun scanCode(context: ScanQrContext = ScanQrContext.Unknown) {
-        scanQrContext = context
+    fun scanCode() {
         mScanCodeEvent.value = true.toEvent()
-    }
-
-    fun getScanQrContext() = scanQrContext
-
-    fun checkScanQrContext(uri: String): Boolean {
-        val parsed = uri.toUri()
-        val action = parsed.host
-        return when (scanQrContext) {
-            ScanQrContext.Send -> action in sendUriActions
-            ScanQrContext.Receive -> action in receiveUriActions
-            else -> true
-        }
     }
 
     fun setDevMode(enabled: Boolean, onError: (error: TalerErrorInfo) -> Unit) {
@@ -296,6 +269,14 @@ class MainViewModel(
         }
     }
 
+    fun showObservabilityLog() {
+        mShowObservabilityLog.value = true
+    }
+
+    fun hideObservabilityLog() {
+        mShowObservabilityLog.value = false
+    }
+
     fun hintNetworkAvailability(isAvailable: Boolean) {
         viewModelScope.launch {
             api.request<Unit>("hintNetworkAvailability") {
@@ -311,12 +292,6 @@ class MainViewModel(
             }.onError(onError)
         }
     }
-}
-
-enum class ScanQrContext {
-    Send,
-    Receive,
-    Unknown,
 }
 
 sealed class AmountResult {

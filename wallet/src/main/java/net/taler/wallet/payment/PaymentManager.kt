@@ -306,12 +306,12 @@ class PaymentManager(
 
     @UiThread
     fun resetPayStatus() {
-        mPayStatus.value = PayStatus.None
+        mPayStatus.postValue(PayStatus.None)
     }
 
     private fun handleError(operation: String, error: TalerErrorInfo) {
         Log.e(TAG, "got $operation error result $error")
-        mPayStatus.value = PayStatus.Pending(error = error)
+        mPayStatus.postValue(PayStatus.Pending(error = error))
     }
 
 }

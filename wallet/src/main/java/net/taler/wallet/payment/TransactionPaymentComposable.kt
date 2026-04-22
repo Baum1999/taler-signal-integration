@@ -64,21 +64,20 @@ fun TransactionPaymentComposable(
     spec: CurrencySpecification?,
     onFulfill: (url: String) -> Unit,
     onTransition: (t: TransactionAction) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberScrollState()
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .verticalScroll(scrollState),
         horizontalAlignment = CenterHorizontally,
     ) {
-        val context = LocalContext.current
-
         TransactionStateComposable(state = t.txState)
 
         Text(
             modifier = Modifier.padding(16.dp),
-            text = t.timestamp.ms.toAbsoluteTime(context).toString(),
+            text = t.timestamp.ms.toAbsoluteTime(LocalContext.current).toString(),
             style = MaterialTheme.typography.bodyLarge,
         )
 
@@ -181,6 +180,6 @@ fun TransactionPaymentComposablePreview() {
         ))
     )
     TalerSurface {
-        TransactionPaymentComposable(t = t, devMode = true, spec = null, onFulfill = {}) {}
+        TransactionPaymentComposable(t = t, devMode = true, spec = null, onFulfill = {}, onTransition = {})
     }
 }

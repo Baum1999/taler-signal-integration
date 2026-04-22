@@ -76,6 +76,7 @@ fun OutgoingPullComposable(
     checkPeerPullCredit: suspend (amount: AmountScope, loading: Boolean) -> CheckPeerPullCreditResult?,
     onCreateInvoice: (amount: AmountScope, subject: String, hours: Long, exchangeBaseUrl: String) -> Unit,
     onTosAccept: (exchangeBaseUrl: String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     var subject by rememberSaveable { mutableStateOf("") }
     var amount by remember {
@@ -107,7 +108,7 @@ fun OutgoingPullComposable(
     if (state is OutgoingChecking ||
         state is OutgoingCreating ||
         state is OutgoingResponse) {
-        LoadingScreen()
+        LoadingScreen(modifier)
         return
     }
 
@@ -115,7 +116,7 @@ fun OutgoingPullComposable(
     val subjectFocusRequester = remember { FocusRequester() }
 
     Column(
-        Modifier
+        modifier
             .fillMaxSize()
             .imePadding(),
     ) {
@@ -272,6 +273,7 @@ fun OutgoingPullComposable(
         }
     }
 }
+
 @Preview
 @Composable
 fun PeerPullComposableCreatingPreview() {

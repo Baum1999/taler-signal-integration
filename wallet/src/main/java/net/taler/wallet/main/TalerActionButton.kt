@@ -135,7 +135,6 @@ fun TalerActionButton(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TalerActionsModal(
-    showSheet: Boolean,
     sheetState: SheetState,
     selectedCurrency: String? = null,
     showShopping: Boolean,
@@ -150,81 +149,80 @@ fun TalerActionsModal(
     onEnterUri: () -> Unit,
     onShoppingDiscovery: () -> Unit,
 ) {
-    if (showSheet) {
-        ModalBottomSheet(
-            onDismissRequest = onDismiss,
-            sheetState = sheetState,
-        ) {
-            Column {
-                if (showShopping && selectedCurrency != null) {
-                    Box(Modifier
-                        .padding(horizontal = 12.dp)
-                        .padding(bottom = 9.dp)) {
-                        Material3MenuGroup(items = buildList {
-                            add(
-                                Material3MenuItemData(
-                                    title = { Text(stringResource(R.string.exchange_shopping_label, selectedCurrency)) },
-                                    icon = { Icon(
-                                        Icons.Default.LocationOn,
-                                        contentDescription = null
-                                    ) },
-                                    onClick = onShoppingDiscovery,
-                                )
-                            )
-                        })
-                    }
-                }
-
-                GridMenu(
-                    contentPadding = PaddingValues(
-                        start = 8.dp,
-                        end = 8.dp,
-                        bottom = 16.dp + WindowInsets
-                            .systemBars
-                            .asPaddingValues()
-                            .calculateBottomPadding(),
-                    ),
+    if (sheetState.isVisible) ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+    ) {
+        Column {
+            if (showShopping && selectedCurrency != null) {
+                Box(Modifier
+                    .padding(horizontal = 12.dp)
+                    .padding(bottom = 9.dp)
                 ) {
-                    GridMenuItem(
-                        icon = R.drawable.ic_link,
-                        title = R.string.enter_uri,
-                        onClick = { onEnterUri(); onDismiss() },
-                    )
-
-                    GridMenuItem(
-                        icon = R.drawable.transaction_deposit,
-                        title = R.string.send_deposit_button_label,
-                        onClick = { onDeposit(); onDismiss() },
-                        enabled = !disableActions
-                    )
-
-                    GridMenuItem(
-                        icon = R.drawable.ic_scan_qr,
-                        title = R.string.button_scan_qr_code_label,
-                        onClick = { onScanQr(); onDismiss() },
-                    )
-
-                    GridMenuItem(
-                        icon = R.drawable.transaction_p2p_incoming,
-                        title = R.string.transactions_receive_funds,
-                        onClick = { onReceive(); onDismiss() },
-                        enabled = !disableActions && !disablePeer,
-                    )
-
-                    GridMenuItem(
-                        icon = R.drawable.transaction_withdrawal,
-                        title = R.string.withdraw_button_label,
-                        onClick = { onWithdraw(); onDismiss() },
-                        enabled = !disableActions,
-                    )
-
-                    GridMenuItem(
-                        icon = R.drawable.transaction_p2p_outgoing,
-                        title = R.string.transactions_send_funds,
-                        onClick = { onSend(); onDismiss() },
-                        enabled = !disableActions && !disablePeer,
-                    )
+                    Material3MenuGroup(items = buildList {
+                        add(
+                            Material3MenuItemData(
+                                title = { Text(stringResource(R.string.exchange_shopping_label, selectedCurrency)) },
+                                icon = { Icon(
+                                    Icons.Default.LocationOn,
+                                    contentDescription = null
+                                ) },
+                                onClick = onShoppingDiscovery,
+                            )
+                        )
+                    })
                 }
+            }
+
+            GridMenu(
+                contentPadding = PaddingValues(
+                    start = 8.dp,
+                    end = 8.dp,
+                    bottom = 8.dp + WindowInsets
+                        .systemBars
+                        .asPaddingValues()
+                        .calculateBottomPadding(),
+                ),
+            ) {
+                GridMenuItem(
+                    icon = R.drawable.ic_link,
+                    title = R.string.enter_uri,
+                    onClick = { onEnterUri(); onDismiss() },
+                )
+
+                GridMenuItem(
+                    icon = R.drawable.transaction_deposit,
+                    title = R.string.send_deposit_button_label,
+                    onClick = { onDeposit(); onDismiss() },
+                    enabled = !disableActions
+                )
+
+                GridMenuItem(
+                    icon = R.drawable.ic_scan_qr,
+                    title = R.string.button_scan_qr_code_label,
+                    onClick = { onScanQr(); onDismiss() },
+                )
+
+                GridMenuItem(
+                    icon = R.drawable.transaction_p2p_incoming,
+                    title = R.string.transactions_receive_funds,
+                    onClick = { onReceive(); onDismiss() },
+                    enabled = !disableActions && !disablePeer,
+                )
+
+                GridMenuItem(
+                    icon = R.drawable.transaction_withdrawal,
+                    title = R.string.withdraw_button_label,
+                    onClick = { onWithdraw(); onDismiss() },
+                    enabled = !disableActions,
+                )
+
+                GridMenuItem(
+                    icon = R.drawable.transaction_p2p_outgoing,
+                    title = R.string.transactions_send_funds,
+                    onClick = { onSend(); onDismiss() },
+                    enabled = !disableActions && !disablePeer,
+                )
             }
         }
     }
@@ -236,7 +234,6 @@ fun TalerActionsModal(
 fun TalerActionsModalPreview() {
     TalerSurface {
         TalerActionsModal(
-            showSheet = true,
             sheetState = rememberModalBottomSheetState(),
             selectedCurrency = "CHF",
             showShopping = true,

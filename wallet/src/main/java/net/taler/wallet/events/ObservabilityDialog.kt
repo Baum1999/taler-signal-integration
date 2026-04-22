@@ -16,10 +16,6 @@
 
 package net.taler.wallet.events
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,55 +32,30 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.activityViewModels
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
-import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.R
 import net.taler.wallet.compose.CopyToClipboardButton
-import net.taler.wallet.events.ObservabilityDialog.Companion.json
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-class ObservabilityDialog: DialogFragment() {
-    private val model: MainViewModel by activityViewModels()
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View = ComposeView(requireContext()).apply {
-        setContent {
-            val events by model.observabilityLog.collectAsState()
-            ObservabilityComposable(events.reversed()) {
-                dismiss()
-            }
-        }
-    }
-
-    companion object {
-        @OptIn(ExperimentalSerializationApi::class)
-        val json = Json {
-            prettyPrint = true
-            prettyPrintIndent = "  "
-        }
-    }
+@OptIn(ExperimentalSerializationApi::class)
+private val observabilityJson = Json {
+    prettyPrint = true
+    prettyPrintIndent = "  "
 }
 
 @Composable
-fun ObservabilityComposable(
+fun ObservabilityDialog(
     events: List<ObservabilityEvent>,
     onDismiss: () -> Unit,
 ) {
@@ -122,7 +93,7 @@ fun ObservabilityItem(
     event: ObservabilityEvent,
     showJson: Boolean,
 ) {
-    val body = json.encodeToString(event.body)
+    val body = observabilityJson.encodeToString(event.body)
     val timestamp = DateTimeFormatter
         .ofLocalizedDateTime(FormatStyle.MEDIUM)
         .format(event.timestamp)

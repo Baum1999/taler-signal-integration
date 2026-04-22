@@ -16,12 +16,12 @@
 
 package net.taler.wallet.transactions
 
-import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.annotation.DrawableRes
-import androidx.annotation.IdRes
 import androidx.annotation.StringRes
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
@@ -47,6 +47,7 @@ import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.common.CurrencySpecification
 import net.taler.common.Merchant
 import net.taler.common.RelativeTime
+import net.taler.wallet.WalletDestination
 import net.taler.wallet.accounts.PaytoUriCyclos
 import net.taler.wallet.accounts.PaytoUriIban
 import net.taler.wallet.accounts.PaytoUriTalerBank
@@ -121,12 +122,12 @@ sealed class Transaction {
     @get:DrawableRes
     abstract val icon: Int
 
-    @get:IdRes
-    abstract val detailPageNav: Int
+    abstract val detailPageNav: WalletDestination
 
     abstract val amountType: AmountType
 
-    abstract fun getTitle(context: Context): String
+    @Composable
+    abstract fun getTitle(): String
 
     @get:StringRes
     abstract val generalTitleRes: Int
@@ -177,11 +178,12 @@ class TransactionWithdrawal(
 ) : Transaction() {
     override val icon = R.drawable.transaction_withdrawal
 
-    override val detailPageNav = R.id.action_global_transactionWithdrawal
+    override val detailPageNav = WalletDestination.TransactionWithdrawal
 
     @Transient
     override val amountType = AmountType.Positive
-    override fun getTitle(context: Context) = context.getString(R.string.withdraw_title)
+    @Composable
+    override fun getTitle() = stringResource(R.string.withdraw_title)
     override val generalTitleRes = R.string.withdraw_title
     val confirmed: Boolean
         get() = txState.major != Pending && (
@@ -395,11 +397,12 @@ class TransactionPayment(
     val posConfirmation: String? = null,
 ) : Transaction() {
     override val icon = R.drawable.transaction_payment
-    override val detailPageNav = R.id.action_global_transactionPayment
+    override val detailPageNav = WalletDestination.TransactionPayment
 
     @Transient
     override val amountType = AmountType.Negative
-    override fun getTitle(context: Context) = info.merchant.name
+    @Composable
+    override fun getTitle() = info.merchant.name
     override val generalTitleRes = R.string.payment_title
 }
 
@@ -437,11 +440,12 @@ class TransactionRefund(
     override val scopes: List<ScopeInfo>,
 ) : Transaction() {
     override val icon = R.drawable.transaction_refund
-    override val detailPageNav = R.id.action_global_transactionRefund
+    override val detailPageNav = WalletDestination.TransactionRefund
 
     @Transient
     override val amountType = AmountType.Positive
-    override fun getTitle(context: Context) = paymentInfo?.merchant?.name ?: context.getString(R.string.transaction_refund)
+    @Composable
+    override fun getTitle() = paymentInfo?.merchant?.name ?: stringResource(R.string.transaction_refund)
 
     override val generalTitleRes = R.string.refund_title
 }
@@ -459,12 +463,13 @@ class TransactionRefresh(
     override val scopes: List<ScopeInfo>,
 ) : Transaction() {
     override val icon = R.drawable.transaction_refresh
-    override val detailPageNav = R.id.action_global_transactionRefresh
+    override val detailPageNav = WalletDestination.TransactionRefresh
 
     @Transient
     override val amountType = AmountType.Negative
-    override fun getTitle(context: Context): String {
-        return context.getString(R.string.transaction_refresh)
+    @Composable
+    override fun getTitle(): String {
+        return stringResource(R.string.transaction_refresh)
     }
 
     override val generalTitleRes = R.string.transaction_refresh
@@ -487,15 +492,16 @@ class TransactionDeposit(
     val depositGroupId: String,
 ) : Transaction() {
     override val icon = R.drawable.transaction_deposit
-    override val detailPageNav = R.id.action_global_transactionDeposit
+    override val detailPageNav = WalletDestination.TransactionDeposit
 
     @Transient
     override val amountType = AmountType.Negative
-    override fun getTitle(context: Context): String {
+    @Composable
+    override fun getTitle(): String {
         val uri = Uri.parse(targetPaytoUri)
         return uri.getQueryParameter("receiver-name")?.let { receiverName ->
-            context.getString(R.string.transaction_deposit_to, receiverName)
-        } ?: context.getString(R.string.transaction_deposit)
+            stringResource(R.string.transaction_deposit_to, receiverName)
+        } ?: stringResource(R.string.transaction_deposit)
     }
 
     override val generalTitleRes = R.string.transaction_deposit
@@ -532,15 +538,16 @@ class TransactionPeerPullDebit(
     val info: PeerInfoShort,
 ) : Transaction() {
     override val icon = R.drawable.transaction_p2p_outgoing
-    override val detailPageNav = R.id.transactionPeer
+    override val detailPageNav = WalletDestination.TransactionPeer
 
     @Transient
     override val amountType = AmountType.Negative
-    override fun getTitle(context: Context): String {
+    @Composable
+    override fun getTitle(): String {
         return if (txState.major == Done) {
-            context.getString(R.string.transaction_peer_pull_debit)
+            stringResource(R.string.transaction_peer_pull_debit)
         } else {
-            context.getString(R.string.transaction_peer_pull_debit_pending)
+            stringResource(R.string.transaction_peer_pull_debit_pending)
         }
     }
 
@@ -568,11 +575,12 @@ class TransactionPeerPullCredit(
     // val completed: Boolean, maybe
 ) : Transaction() {
     override val icon = R.drawable.transaction_p2p_incoming
-    override val detailPageNav = R.id.transactionPeer
+    override val detailPageNav = WalletDestination.TransactionPeer
 
     override val amountType get() = AmountType.Positive
-    override fun getTitle(context: Context): String {
-        return context.getString(R.string.transaction_peer_pull_credit)
+    @Composable
+    override fun getTitle(): String {
+        return stringResource(R.string.transaction_peer_pull_credit)
     }
 
     override val generalTitleRes = R.string.transaction_peer_pull_credit
@@ -598,15 +606,16 @@ class TransactionPeerPushDebit(
     // val completed: Boolean, definitely
 ) : Transaction() {
     override val icon = R.drawable.transaction_p2p_outgoing
-    override val detailPageNav = R.id.transactionPeer
+    override val detailPageNav = WalletDestination.TransactionPeer
 
     @Transient
     override val amountType = AmountType.Negative
-    override fun getTitle(context: Context): String {
+    @Composable
+    override fun getTitle(): String {
         return if (txState.major == Done) {
-            context.getString(R.string.transaction_peer_push_debit)
+            stringResource(R.string.transaction_peer_push_debit)
         } else {
-            context.getString(R.string.transaction_peer_push_debit_pending)
+            stringResource(R.string.transaction_peer_push_debit_pending)
         }
     }
 
@@ -632,15 +641,16 @@ class TransactionPeerPushCredit(
     val info: PeerInfoShort,
 ) : Transaction() {
     override val icon = R.drawable.transaction_p2p_incoming
-    override val detailPageNav = R.id.transactionPeer
+    override val detailPageNav = WalletDestination.TransactionPeer
 
     @Transient
     override val amountType = AmountType.Positive
-    override fun getTitle(context: Context): String {
+    @Composable
+    override fun getTitle(): String {
         return if (txState.major == Done) {
-            context.getString(R.string.transaction_peer_push_credit)
+            stringResource(R.string.transaction_peer_push_credit)
         } else {
-            context.getString(R.string.transaction_peer_push_credit_pending)
+            stringResource(R.string.transaction_peer_push_credit_pending)
         }
     }
 
@@ -665,13 +675,14 @@ class TransactionDenomLoss(
     val lossEventType: LossEventType,
 ): Transaction() {
     override val icon: Int = R.drawable.transaction_loss
-    override val detailPageNav = R.id.transactionLoss
+    override val detailPageNav = WalletDestination.TransactionLoss
 
     @Transient
     override val amountType: AmountType = AmountType.Negative
 
-    override fun getTitle(context: Context): String {
-        return context.getString(R.string.transaction_denom_loss)
+    @Composable
+    override fun getTitle(): String {
+        return stringResource(R.string.transaction_denom_loss)
     }
 
     override val generalTitleRes: Int = R.string.transaction_denom_loss
@@ -702,14 +713,15 @@ class DummyTransaction(
     override val amountRaw: Amount = Amount.zero("TESTKUDOS")
     override val amountEffective: Amount = Amount.zero("TESTKUDOS")
     override val icon: Int = R.drawable.transaction_dummy
-    override val detailPageNav: Int = R.id.transactionDummy
+    override val detailPageNav: WalletDestination = WalletDestination.TransactionDummy
     override val amountType: AmountType = AmountType.Neutral
     override val generalTitleRes: Int = R.string.transaction_dummy_title
     override val scopes: List<ScopeInfo> = listOf(ScopeInfo.Exchange(
         currency = "TESTKUDOS",
         url = "exchange.test.taler.net",
     ))
-    override fun getTitle(context: Context): String {
-        return context.getString(R.string.transaction_dummy_title)
+    @Composable
+    override fun getTitle(): String {
+        return stringResource(R.string.transaction_dummy_title)
     }
 }

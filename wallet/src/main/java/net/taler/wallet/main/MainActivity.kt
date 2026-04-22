@@ -25,100 +25,146 @@ import android.nfc.NfcAdapter
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View.GONE
-import android.view.View.VISIBLE
-import android.view.ViewGroup.MarginLayoutParams
 import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
 import androidx.biometric.BiometricPrompt.ERROR_NO_BIOMETRICS
 import androidx.biometric.BiometricPrompt.ERROR_NO_DEVICE_CREDENTIAL
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.core.os.bundleOf
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updateLayoutParams
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.preference.Preference
-import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.PreferenceFragmentCompat.OnPreferenceStartFragmentCallback
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import androidx.navigation.compose.rememberNavController
 import com.google.zxing.client.android.Intents.Scan.MIXED_SCAN
 import com.google.zxing.client.android.Intents.Scan.SCAN_TYPE
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import com.journeyapps.barcodescanner.ScanOptions.QR_CODE
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import net.taler.common.EventObserver
 import net.taler.lib.android.TalerNfcService
 import net.taler.wallet.R
-import net.taler.wallet.databinding.ActivityMainBinding
+import net.taler.wallet.WalletDestination
+import net.taler.wallet.WalletNavHost
+import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.compose.ErrorBottomSheet
+import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.events.ObservabilityDialog
-import net.taler.wallet.showError
+import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.transactions.TransactionPeerPullCredit
 import net.taler.wallet.transactions.TransactionPeerPushDebit
 
-class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
+class MainActivity : FragmentActivity() {
     private val model: MainViewModel by viewModels()
 
-    private lateinit var ui: ActivityMainBinding
-    private lateinit var nav: NavController
+    private val launchIntentUri = MutableStateFlow<String?>(null)
+    private var nav: NavController? = null
     private lateinit var biometricPrompt: BiometricPrompt
     private lateinit var promptInfo: BiometricPrompt.PromptInfo
 
     private val barcodeLauncher = registerForActivityResult(ScanContract()) { result ->
         model.unlockWallet() // hack to prevent from locking after scanning QR
         if (result == null || result.contents == null) return@registerForActivityResult
-        if (model.checkScanQrContext(result.contents)) {
-            handleTalerUri(result.contents, "QR code")
-        } else {
-            confirmTalerUri(result.contents, "QR code")
-        }
+        nav?.navigate(WalletDestination.HandleUri(result.contents))
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        ui = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(ui.root)
-        setupInsets()
         setupBiometrics()
 
         TalerNfcService.startService(this)
 
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        nav = navHostFragment.navController
+        setContent {
+            TalerSurface {
+                val navController = rememberNavController()
+                nav = navController
+                var errorInfo by remember { mutableStateOf<TalerErrorInfo?>(null) }
+                val showObservabilityLog by model.showObservabilityLog.collectAsState(false)
+                val errorSheetState = rememberModalBottomSheetState()
+                val devMode by model.devMode.observeAsState(false)
+                val authenticated by model.authenticated.collectAsState()
+                val biometricEnabled by model.settingsManager.getBiometricLockEnabled(this).collectAsState(false)
+                val launchUri by launchIntentUri.collectAsState(null)
 
-        setSupportActionBar(ui.toolbar)
-        setupActionBarWithNavController(nav)
-        ui.toolbar.setNavigationOnClickListener {
-            if (onBackPressedDispatcher.hasEnabledCallbacks()) {
-                onBackPressedDispatcher.onBackPressed()
-            } else {
-                nav.navigateUp()
+                DisposableEffect(Unit) {
+                    onDispose {
+                        launchIntentUri.value = null
+                    }
+                }
+
+                Box(Modifier.fillMaxSize()) {
+                    WalletNavHost(
+                        navController = navController,
+                        model = model,
+                        launchUri = launchUri,
+                        onScanQr = { model.scanCode() },
+                        onFulfillPayment = { url: String -> launchInAppBrowser(this@MainActivity, url) },
+                        onShowError = { errorInfo = it }
+                    )
+
+                    if (!authenticated && biometricEnabled) {
+                        BiometricOverlay(
+                            onUnlock = { biometricPrompt.authenticate(promptInfo) }
+                        )
+                    }
+                }
+
+                if (showObservabilityLog) {
+                    val events by model.observabilityLog.collectAsState()
+                    ObservabilityDialog(events.reversed()) {
+                        model.hideObservabilityLog()
+                    }
+                }
+
+                errorInfo?.let {
+                    ErrorBottomSheet(
+                        error = it,
+                        devMode = devMode,
+                        sheetState = errorSheetState,
+                        onDismiss = { errorInfo = null }
+                    )
+                }
             }
         }
 
         model.startWallet()
-
-        // TODO: refactor and unify progress bar handling
-        // model.showProgressBar.observe(this) { show ->
-        //     ui.content.progressBar.visibility = if (show) VISIBLE else INVISIBLE
-        // }
 
         handleIntents(intent)
 
@@ -126,9 +172,7 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 model.settingsManager.getDevModeEnabled(this@MainActivity).collect { enabled ->
-                    model.setDevMode(enabled) { error ->
-                        showError(error)
-                    }
+                    model.setDevMode(enabled) {}
                 }
             }
         }
@@ -170,59 +214,11 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
         })
 
         model.networkManager.networkStatus.observe(this) { online ->
-            ui.offlineBanner.visibility = if (online) GONE else VISIBLE
             model.hintNetworkAvailability(online)
-        }
-
-        model.devMode.observe(this) {
-            invalidateMenu()
-        }
-    }
-
-    private fun setupInsets() {
-        // We really don't want to deal with cutouts!
-        ViewCompat.setOnApplyWindowInsetsListener(ui.root) { v, windowInsets ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
-            v.updateLayoutParams<MarginLayoutParams> {
-                leftMargin = insets.left
-                rightMargin = insets.right
-            }
-            windowInsets
-        }
-
-        ViewCompat.setOnApplyWindowInsetsListener(ui.toolbar) { v, windowInsets ->
-            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updateLayoutParams<MarginLayoutParams> {
-                leftMargin = insets.left
-                rightMargin = insets.right
-            }
-            windowInsets
         }
     }
 
     private fun setupBiometrics() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                combine(
-                    model.authenticated,
-                    model.settingsManager.getBiometricLockEnabled(this@MainActivity)
-                ) { a, b -> a to b }.collect { c ->
-                    val authenticated = c.first
-                    val biometricEnabled = c.second
-                    if (!authenticated && biometricEnabled) {
-                        ui.biometricOverlay.visibility = VISIBLE
-                        biometricPrompt.authenticate(promptInfo)
-                    } else {
-                        ui.biometricOverlay.visibility = GONE
-                    }
-                }
-            }
-        }
-
-        ui.unlockButton.setOnClickListener {
-            biometricPrompt.authenticate(promptInfo)
-        }
-
         biometricPrompt = BiometricPrompt(
             this,
             ContextCompat.getMainExecutor(this),
@@ -271,13 +267,13 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
         if (intent == null) return
 
         if (intent.action == ACTION_VIEW) intent.dataString?.let { uri ->
-            handleTalerUri(uri, "intent")
+            launchIntentUri.value = uri
         }
 
         if (intent.action == ACTION_SEND) {
             if (intent.type == "text/plain") {
                 intent.getStringExtra(EXTRA_TEXT)?.let { uri ->
-                    handleTalerUri(uri, "intent")
+                    launchIntentUri.value = uri
                 }
             }
         }
@@ -295,64 +291,11 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
             messages.forEach { message ->
                 message.records?.forEach { record ->
                     record.toUri()?.let { uri ->
-                        handleTalerUri(uri.toString(), "nfc")
+                        launchIntentUri.value = uri.toString()
                     }
                 }
             }
         }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        if (model.devMode.value == true) {
-            menuInflater.inflate(R.menu.global_dev, menu)
-        }
-
-        return super.onCreateOptionsMenu(menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.action_show_logs -> {
-                ObservabilityDialog().show(supportFragmentManager, "OBSERVABILITY")
-            }
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
-    private fun confirmTalerUri(uri: String, from: String) {
-        MaterialAlertDialogBuilder(this).apply {
-            setTitle(R.string.qr_scan_context_title)
-            setMessage(when (model.getScanQrContext()) {
-                ScanQrContext.Send -> R.string.qr_scan_context_send_message
-                ScanQrContext.Receive -> R.string.qr_scan_context_receive_message
-                else -> error("invalid value")
-            })
-
-            setNegativeButton(R.string.ok) { _, _ ->
-                handleTalerUri(uri, from)
-            }
-
-            setNeutralButton(R.string.cancel) { dialog, _ ->
-                dialog.dismiss()
-            }
-        }.show()
-    }
-
-    private fun handleTalerUri(uri: String, from: String) {
-        val args = bundleOf("uri" to uri, "from" to from)
-        nav.navigate(R.id.action_global_handleUri, args)
-    }
-
-    override fun onPreferenceStartFragment(
-        caller: PreferenceFragmentCompat,
-        pref: Preference,
-    ): Boolean {
-        when (pref.key) {
-            "pref_exchanges" -> nav.navigate(R.id.action_main_to_exchangeList)
-            "pref_accounts" -> nav.navigate(R.id.action_main_to_bankAccounts)
-            "pref_donau" -> nav.navigate(R.id.action_main_to_setDonau)
-        }
-        return true
     }
 
     override fun onResume() {
@@ -375,5 +318,32 @@ class MainActivity : AppCompatActivity(), OnPreferenceStartFragmentCallback {
         TalerNfcService.clearNdefPayload(this)
         TalerNfcService.stopService(this)
         model.stopWallet()
+    }
+}
+
+@Composable
+fun BiometricOverlay(onUnlock: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier.align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                imageVector = ImageVector.vectorResource(id = R.drawable.ic_shield),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(64.dp)
+                    .padding(bottom = 24.dp),
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+            )
+
+            Button(onClick = onUnlock) {
+                Text(stringResource(R.string.biometric_unlock_label))
+            }
+        }
     }
 }

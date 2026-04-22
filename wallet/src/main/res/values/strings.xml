@@ -79,6 +79,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="reload">Reload</string>
     <string name="reset">Reset</string>
     <string name="save">Save</string>
+    <string name="selection_count">%1$d selected</string>
     <string name="share_payment">Share payment link</string>
     <string name="uri_invalid">Not a valid Taler link</string>
     <string name="wallet">Wallet</string>

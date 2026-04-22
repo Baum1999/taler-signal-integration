@@ -1,6 +1,6 @@
 /*
  * This file is part of GNU Taler
- * (C) 2025 Taler Systems S.A.
+ * (C) 2026 Taler Systems S.A.
  *
  * GNU Taler is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -16,33 +16,28 @@
 
 package net.taler.wallet.compose
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
-import net.taler.wallet.R
+import net.taler.wallet.backend.TalerErrorInfo
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EmptyComposable(
-    modifier: Modifier = Modifier,
-    message: String = stringResource(R.string.empty),
+fun ErrorBottomSheet(
+    error: TalerErrorInfo,
+    devMode: Boolean,
+    sheetState: SheetState,
+    onDismiss: () -> Unit,
 ) {
-    Box(
-        modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
     ) {
-        Text(message)
-    }
-}
-
-@Preview
-@Composable
-fun EmptyComposablePreview() {
-    TalerSurface {
-        EmptyComposable()
+        ErrorComposable(
+            error = error,
+            devMode = devMode,
+            onClose = onDismiss,
+        )
     }
 }

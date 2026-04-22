@@ -177,7 +177,6 @@ class TransactionManager(
     /**
      * Returns true if given [transactionId] was found and selected, false otherwise.
      */
-    @UiThread
     suspend fun selectTransaction(transactionId: String): Boolean {
         val transaction = getTransactionById(transactionId)
         if (transaction != null) {
