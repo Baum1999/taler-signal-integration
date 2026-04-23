@@ -101,6 +101,10 @@ class ConfigFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        configManager.configUpdateResult.observe(viewLifecycleOwner) { result ->
+            onConfigUpdate(result)
+        }
+
         // 1) Views
         val neverOption       = ui.root.findViewById<RadioButton>(R.id.neverExpiresOption)
         val dateOption        = ui.root.findViewById<RadioButton>(R.id.dateExpiresOption)
@@ -181,11 +185,6 @@ class ConfigFragment : Fragment() {
                     savePassword = ui.saveTokenCheckBox.isChecked
                 )
                 configManager.fetchConfig(config, true)
-                configManager.configUpdateResult.observe(viewLifecycleOwner) { result ->
-                    if (onConfigUpdate(result)) {
-                        configManager.configUpdateResult.removeObservers(viewLifecycleOwner)
-                    }
-                }
             }
         }
 
@@ -279,14 +278,12 @@ class ConfigFragment : Fragment() {
     }
 
     private fun onConfigUpdate(result: ConfigUpdateResult?) = when (result) {
-        null -> false
+        null -> Unit
         is ConfigUpdateResult.Error -> {
             onError(result.msg)
-            true
         }
         is ConfigUpdateResult.Success -> {
             onConfigReceived(result.currency)
-            true
         }
     }
 

@@ -175,7 +175,10 @@ fun AnimatedQrCodeComposable(
                     margin = 0,
                     errorCorrection = ErrorCorrectionLevel.H,
                     centerLogo = null,
+                    centerLogoSize = null,
                     drawBackground = true,
+                    darkColor = android.graphics.Color.BLACK,
+                    lightColor = android.graphics.Color.WHITE,
                     trimQuietZone = true,
                 ).asImageBitmap()
             }

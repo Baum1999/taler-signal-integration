@@ -221,7 +221,9 @@ class ProcessPaymentFragment : Fragment() {
             margin = 0,
             errorCorrection = ErrorCorrectionLevel.H,
             centerLogo = null,
+            centerLogoSize = null,
             drawBackground = true,
+            darkColor = android.graphics.Color.BLACK,
             lightColor = ContextCompat.getColor(requireContext(), R.color.colorSurfaceVariant),
             trimQuietZone = true,
         )

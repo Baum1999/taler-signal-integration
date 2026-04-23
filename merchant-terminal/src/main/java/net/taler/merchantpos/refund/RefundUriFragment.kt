@@ -24,6 +24,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import kotlinx.coroutines.launch
 import net.taler.common.QrCodeManager.makeQrCode
 import net.taler.lib.android.TalerNfcService.Companion.hasNfc
@@ -52,7 +53,20 @@ class RefundUriFragment : Fragment() {
         if (result !is RefundResult.Success) throw IllegalStateException()
 
         lifecycleScope.launch {
-            ui.refundQrcodeView.setImageBitmap(makeQrCode(result.refundUri))
+            ui.refundQrcodeView.setImageBitmap(
+                makeQrCode(
+                    text = result.refundUri,
+                    size = 256,
+                    margin = 2,
+                    errorCorrection = ErrorCorrectionLevel.M,
+                    centerLogo = null,
+                    centerLogoSize = null,
+                    drawBackground = false,
+                    darkColor = android.graphics.Color.BLACK,
+                    lightColor = android.graphics.Color.WHITE,
+                    trimQuietZone = false,
+                )
+            )
         }
 
         val introRes =
