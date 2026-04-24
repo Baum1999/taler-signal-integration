@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.flowWithLifecycle
-import com.google.accompanist.themeadapter.material3.Mdc3Theme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.coroutines.CoroutineContext
@@ -67,9 +66,7 @@ fun Modifier.cardPaddings(): Modifier =
 
 @Composable
 fun TalerSurface(content: @Composable () -> Unit) {
-    Mdc3Theme {
-        Surface(Modifier.nestedScroll(rememberNestedScrollInteropConnection())) {
-            content()
-        }
+    Surface(Modifier.nestedScroll(rememberNestedScrollInteropConnection())) {
+        content()
     }
 }

@@ -83,11 +83,11 @@ import net.taler.wallet.WalletDestination
 import net.taler.wallet.WalletNavHost
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.compose.ErrorBottomSheet
-import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.events.ObservabilityDialog
 import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.transactions.TransactionPeerPullCredit
 import net.taler.wallet.transactions.TransactionPeerPushDebit
+import net.taler.wallet.ui.theme.TalerTheme
 
 class MainActivity : FragmentActivity() {
     private val model: MainViewModel by viewModels()
@@ -112,7 +112,7 @@ class MainActivity : FragmentActivity() {
         TalerNfcService.startService(this)
 
         setContent {
-            TalerSurface {
+            TalerTheme {
                 val navController = rememberNavController()
                 nav = navController
                 var errorInfo by remember { mutableStateOf<TalerErrorInfo?>(null) }

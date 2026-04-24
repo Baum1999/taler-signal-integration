@@ -25,6 +25,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import net.taler.common.Amount
@@ -161,5 +163,18 @@ private fun PayToComposable(
         }
 
         BottomInsetsSpacer()
+    }
+}
+
+@Preview
+@Composable
+fun PreviewPayToComposable() {
+    Surface {
+        PayToComposable(
+            currencies = listOf("KUDOS", "TESTKUDOS", "BTCBITCOIN"),
+            getAmount = { _, _ -> AmountResult.InvalidAmount },
+            onAmountChosen = {},
+            getCurrencySpec = { null }
+        )
     }
 }
