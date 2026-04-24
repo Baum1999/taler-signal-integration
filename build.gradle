@@ -1,8 +1,8 @@
 buildscript {
     ext {
-        kotlin_version = '2.2.20' // observe compatibility with compose compiler
+        kotlin_version = '2.3.21' // observe compatibility with compose compiler
         ktor_version = '3.4.0'
-        nav_version = '2.9.7'
+        nav_version = '2.9.8'
         material_version = '1.13.0'
         lifecycle_version = '2.10.0'
         constraintlayout_version = '2.2.1'
