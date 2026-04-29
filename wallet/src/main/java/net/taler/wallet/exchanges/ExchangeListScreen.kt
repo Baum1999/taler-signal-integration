@@ -57,7 +57,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import net.taler.common.Amount
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
@@ -184,10 +183,6 @@ fun ExchangeDropDownMenu(
 ) {
     DropdownMenu(expanded = expanded, onDismissRequest = onDismissRequest) {
         DropdownMenuItem(
-            text = { Text(stringResource(R.string.exchange_menu_manual_withdraw)) },
-            onClick = { onAction(ExchangeAction.ManualWithdraw) }
-        )
-        DropdownMenuItem(
             text = { Text(stringResource(R.string.exchange_reload)) },
             onClick = { onAction(ExchangeAction.Reload) }
         )
@@ -271,7 +266,6 @@ fun AddExchangeDialog(
 }
 
 enum class ExchangeAction {
-    ManualWithdraw,
     Reload,
     ViewTos,
     AcceptTos,
@@ -290,13 +284,6 @@ fun handleExchangeAction(
     onNavigate: NavigateCallback,
 ) {
     when (action) {
-        ExchangeAction.ManualWithdraw -> {
-            onNavigate(WalletDestination.PromptWithdraw(
-                editableCurrency = false,
-                exchangeBaseUrl = exchange.exchangeBaseUrl,
-                amount = exchange.currency?.let { Amount.zero(it).toJSONString() },
-            ), false)
-        }
         ExchangeAction.Reload -> exchangeManager.reload(exchange.exchangeBaseUrl)
         ExchangeAction.ViewTos -> {
             onNavigate(WalletDestination.ReviewExchangeTOS(exchange.exchangeBaseUrl, true), false)
