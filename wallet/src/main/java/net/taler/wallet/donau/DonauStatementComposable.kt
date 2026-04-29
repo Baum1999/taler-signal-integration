@@ -88,6 +88,9 @@ fun DonauStatementComposable(
         )
 
         QrCodeUriComposable(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 8.dp),
             qrData = statement.uri,
             clipboardLabel = "Donau",
             buttonText = stringResource(id = R.string.copy),
