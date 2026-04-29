@@ -112,7 +112,9 @@ fun MainScreen(
         val v = viewMode as? ViewMode.Transactions
         model.transactionManager.transactionsFlow(v?.selectedScope, stateFilter = v?.stateFilter)
     }.collectAsStateLifecycleAware()
-    val actionButtonUsed by remember { model.settingsManager.getActionButtonUsed(context) }.collectAsStateLifecycleAware(true)
+    val actionButtonUsed by remember {
+        model.settingsManager.getActionButtonUsed(context)
+    }.collectAsStateLifecycleAware(true)
 
     if (showUriInput) UriInputDialog(
         onDismiss = { showUriInput = false },
@@ -214,6 +216,10 @@ fun MainScreen(
         LaunchedEffect(Unit) {
             val viewMode = model.settingsManager.getViewMode(context).first()
             model.setViewMode(viewMode)
+        }
+
+        LaunchedEffect(viewMode) {
+            model.settingsManager.saveViewMode(context, viewMode)
         }
 
         BackHandler(selectionMode || (tab == MainTab.ASSETS && viewMode !is ViewMode.Assets)) {

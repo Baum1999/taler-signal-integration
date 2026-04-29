@@ -194,14 +194,6 @@ class MainActivity : FragmentActivity() {
             }
         }
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                model.viewMode.collect { tx ->
-                    model.settingsManager.saveViewMode(this@MainActivity, tx)
-                }
-            }
-        }
-
         model.scanCodeEvent.observe(this, EventObserver {
             val scanOptions = ScanOptions().apply {
                 setPrompt("")
