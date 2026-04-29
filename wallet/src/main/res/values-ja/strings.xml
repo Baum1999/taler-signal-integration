@@ -25,7 +25,7 @@
     <string name="error_unsupported_uri">誤り：この通貨URIはサポートされていません。</string>
     <string name="menu_settings">設定</string>
     <string name="amount_positive">+ %s</string>
-    <string name="amount_negative">- %s</string>
+    <string name="amount_negative">− %s</string>
     <string name="amount_chosen">選択した金額</string>
     <string name="transactions_title">取引履歴</string>
     <string name="transactions_empty">あなたは、取引履歴を持っていません</string>

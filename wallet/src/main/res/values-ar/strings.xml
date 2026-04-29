@@ -19,7 +19,7 @@
     <string name="error_unsupported_uri">خطأ: مُعرّف الموارد الموحد لنظام URI غير معتمد.</string>
     <string name="host_apdu_service_desc">مدفوعات الاتصال قريب المدى لنظام Taler</string>
     <string name="amount_positive">%s +</string>
-    <string name="amount_negative">%s -</string>
+    <string name="amount_negative">%s −</string>
     <string name="amount_chosen">المبلغ المختار</string>
     <string name="transactions_title">المعاملات</string>
     <string name="transactions_empty">ليس لديك معاملات</string>

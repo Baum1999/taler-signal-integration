@@ -99,7 +99,7 @@
 \n%s</string>
     <string name="exchange_tos_error">Fehler beim Anzeigen der AGB: %1$s</string>
     <string name="settings_version_protocol_exchange">Unterstützte Exchange-Versionen</string>
-    <string name="amount_negative">- %s</string>
+    <string name="amount_negative">−%s</string>
     <string name="amount_positive">+%s</string>
     <string name="exchange_add_url">Adresse des Zahlungsdienstleisters eingeben</string>
     <string name="button_back">Zurück</string>
@@ -223,7 +223,7 @@
     <string name="amount_transfer">Betrag</string>
     <string name="balances_empty_withdraw_kudos_button">Demo-Geld erhalten</string>
     <string name="balances_inbound_amount">+%1$s eingehend</string>
-    <string name="balances_outbound_amount">-%1$s abgehend</string>
+    <string name="balances_outbound_amount">−%1$s abgehend</string>
     <string name="transaction_deposit_to">Einzahlung an %1$s</string>
     <string name="transaction_peer_push_credit">Erhalten</string>
     <string name="transaction_state_aborted">Die Transaktion wurde abgebrochen</string>

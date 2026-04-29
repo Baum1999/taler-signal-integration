@@ -23,7 +23,7 @@
     <string name="menu_settings">설정</string>
     <string name="host_apdu_service_desc">탈러 NFC 결제</string>
     <string name="amount_positive">+ %s</string>
-    <string name="amount_negative">- %s</string>
+    <string name="amount_negative">− %s</string>
     <string name="amount_chosen">선택한 금액</string>
     <string name="transactions_title">거래</string>
     <string name="transactions_empty">거래가 없습니다</string>

@@ -22,12 +22,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -72,6 +75,7 @@ import net.taler.wallet.balances.ScopeInfo.Exchange
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.Banner
 import net.taler.wallet.compose.LoadingScreen
+import net.taler.wallet.compose.NewMenuItem
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.cardPaddings
 import net.taler.wallet.main.ViewMode
@@ -281,6 +285,7 @@ fun TransactionRow(
     Column {
         ListItem(
             modifier = Modifier
+                .height(IntrinsicSize.Min)
                 .defaultMinSize(minHeight = 80.dp)
                 .combinedClickable(
                     onClick = onTransactionClick,
@@ -291,7 +296,9 @@ fun TransactionRow(
                 ),
             trailingContent = {
                 Box(
-                    modifier = Modifier.padding(8.dp),
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(8.dp),
                     contentAlignment = Center,
                 ) {
                     TransactionAmountInfo(tx, spec)
@@ -299,7 +306,9 @@ fun TransactionRow(
             },
             leadingContent = {
                 Box(
-                    modifier = Modifier.padding(8.dp),
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(8.dp),
                     contentAlignment = Center,
                 ) {
                     if (!selectionMode) {
@@ -320,16 +329,26 @@ fun TransactionRow(
                 }
             },
             headlineContent = {
-                Text(
-                    tx.getTitle(),
-                    modifier = Modifier.padding(vertical = 3.dp),
-                    style = MaterialTheme.typography.titleMedium,
-                )
+                Column(Modifier.padding(vertical = 8.dp)) {
+                    Text(
+                        text = tx.timestamp.ms.toRelativeTime(LocalContext.current).toString(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        tx.getTitle(),
+                        modifier = Modifier.padding(vertical = 3.dp),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    ProvideTextStyle(
+                        MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    ) {
+                        TransactionExtraInfo(tx)
+                    }
+                }
             },
-            supportingContent = {
-                TransactionExtraInfo(tx)
-            },
-            overlineContent = { Text(tx.timestamp.ms.toRelativeTime(LocalContext.current).toString()) },
             colors = ListItemDefaults.colors(
                 containerColor = if (isSelected) {
                     MaterialTheme.colorScheme.secondaryContainer

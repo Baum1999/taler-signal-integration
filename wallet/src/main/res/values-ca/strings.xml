@@ -38,7 +38,7 @@
     <string name="menu_settings">Paràmetres</string>
     <string name="host_apdu_service_desc">Pagaments de Taler per NFC</string>
     <string name="amount_positive">+%s</string>
-    <string name="amount_negative">-%s</string>
+    <string name="amount_negative">−%s</string>
     <string name="amount_chosen">Quantitat escollida</string>
     <string name="transactions_title">Transaccions</string>
     <string name="transactions_balance">Saldo</string>
@@ -238,7 +238,7 @@
     <string name="amount_invoiced">Quantitat demanada</string>
     <string name="amount_lost">Quantitat perduda</string>
     <string name="amount_total_label">Total:</string>
-    <string name="balances_outbound_amount">-%1$s sortint</string>
+    <string name="balances_outbound_amount">−%1$s sortint</string>
     <string name="transaction_peer_push_credit_pending">Rebent</string>
     <string name="transaction_peer_push_debit_pending">Enviant</string>
     <string name="transactions_delete_selected_dialog_title">Esborrar transaccions</string>

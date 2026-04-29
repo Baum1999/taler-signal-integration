@@ -44,7 +44,7 @@
     <string name="menu_settings">Asetukset</string>
     <string name="host_apdu_service_desc">Taler NFC maksut</string>
     <string name="amount_positive">+%s</string>
-    <string name="amount_negative">-%s</string>
+    <string name="amount_negative">−%s</string>
     <string name="amount_chosen">Valittu summa</string>
     <string name="amount_sent">Summa lähetetty</string>
     <string name="amount_received">Summa saatu</string>

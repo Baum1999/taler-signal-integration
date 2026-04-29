@@ -83,7 +83,7 @@
     <string name="amount_invalid">הסכום אינו תקין</string>
     <string name="amount_invoiced">נדרש סכום</string>
     <string name="amount_lost">הסכום שאבד</string>
-    <string name="amount_negative">-%s</string>
+    <string name="amount_negative">−%s</string>
     <string name="amount_excess">הסכום גבוה מהמקסימום העומד על %1$s</string>
     <string name="amount_positive">+%s</string>
     <string name="amount_receive">סכום לקבל</string>
@@ -99,7 +99,7 @@
     <string name="balance_scope_auditor">רואה חשבון: %1$s</string>
     <string name="balance_scope_exchange">מאת %1$s</string>
     <string name="balances_inbound_amount">+%1$s נכנסים</string>
-    <string name="balances_outbound_amount">-%1$s יוצאים</string>
+    <string name="balances_outbound_amount">−%1$s יוצאים</string>
     <!-- Transactions -->
 
     <string name="transaction_action_kyc">זיהוי והכרת הלקוח (KYC) שלם</string>

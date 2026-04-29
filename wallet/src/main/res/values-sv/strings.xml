@@ -19,7 +19,7 @@
     <string name="menu_settings">Inställningar</string>
     <string name="host_apdu_service_desc">Taler NFC-betalningar</string>
     <string name="amount_positive">+ %s</string>
-    <string name="amount_negative">- %s</string>
+    <string name="amount_negative">− %s</string>
     <string name="amount_chosen">Valt belopp</string>
     <string name="transactions_title">Transaktioner</string>
     <string name="transactions_empty">Du har inga transaktioner</string>

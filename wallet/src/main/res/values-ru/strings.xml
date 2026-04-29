@@ -36,7 +36,7 @@
     <string name="payment_balance_insufficient">Недостаточно средств на балансе!</string>
     <string name="nav_exchange_tos">Условия оказания услуг биржей</string>
     <string name="paste_invalid">Неверный тип данных в буфере обмена</string>
-    <string name="amount_negative">- %s</string>
+    <string name="amount_negative">− %s</string>
     <string name="payment_fee">+%s комиссия за платёж</string>
     <string name="transaction_refresh">Комиссия за обмен монет с истёкшим сроком годности</string>
     <string name="google_play_short_desc" tools:keep="@string/google_play_short_desc">GNU Taler помогает осуществлять удобные и безопасные онлайн-транзакции быстро и просто.</string>

@@ -19,7 +19,7 @@
     <string name="error_unsupported_uri">Hata: Bu Taler URI\'si desteklenmiyor.</string>
     <string name="host_apdu_service_desc">Taler NFC ödemeleri</string>
     <string name="amount_positive">+. %s</string>
-    <string name="amount_negative">-. %s</string>
+    <string name="amount_negative">−. %s</string>
     <string name="amount_chosen">Seçilen miktar</string>
     <string name="transactions_title">İşlemler</string>
     <string name="transactions_empty">Herhangi bir işleminiz bulunmamaktadır</string>
@@ -244,7 +244,7 @@
     <string name="share_payment">Ödeme bağlantısını paylaş</string>
     <string name="amount_transfer">Aktar</string>
     <string name="balances_inbound_amount">+%1$s gelen</string>
-    <string name="balances_outbound_amount">-%1$s giden</string>
+    <string name="balances_outbound_amount">−%1$s giden</string>
     <string name="transaction_deposit">Yatır</string>
     <string name="amount_fee">Hizmet bedeli</string>
     <string name="amount_invalid">Miktar geçersiz</string>

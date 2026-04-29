@@ -70,7 +70,7 @@
     <string name="amount_invalid">Cantidade non válida</string>
     <string name="amount_invoiced">Cantidade solicitada</string>
     <string name="amount_lost">Cantidade perdida</string>
-    <string name="amount_negative">-%s</string>
+    <string name="amount_negative">−%s</string>
     <string name="amount_excess">A cantidade excede o máximo de %1$s</string>
     <string name="amount_positive">+%s</string>
     <string name="amount_receive">Cantidade a recibir</string>
@@ -86,7 +86,7 @@
     <string name="balance_scope_auditor">Auditoría: %1$s</string>
     <string name="balance_scope_exchange">De %1$s</string>
     <string name="balances_inbound_amount">+%1$s entrante</string>
-    <string name="balances_outbound_amount">-%1$s saínte</string>
+    <string name="balances_outbound_amount">−%1$s saínte</string>
     <!-- Transactions -->
 
     <string name="transaction_denom_loss">Perda de fondos</string>

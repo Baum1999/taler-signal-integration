@@ -15,7 +15,7 @@
     <string name="menu_settings">Configurações</string>
     <string name="host_apdu_service_desc">Pagamentos Taler NFC</string>
     <string name="amount_positive">+ %s</string>
-    <string name="amount_negative">- %s</string>
+    <string name="amount_negative">− %s</string>
     <string name="amount_chosen">Quantidade Selecionada</string>
     <string name="transactions_title">Transações</string>
     <string name="transactions_empty">Não tem quaisquer transações</string>

@@ -63,7 +63,7 @@
     <string name="amount_invalid">Недійсна сума</string>
     <string name="amount_invoiced">Сума виставленого рахунку</string>
     <string name="amount_lost">Втрачена сума</string>
-    <string name="amount_negative">-%s</string>
+    <string name="amount_negative">−%s</string>
     <string name="amount_excess">Сума перевищує максимум%1$s</string>
     <string name="amount_positive">+%s</string>
     <string name="amount_receive">Сума до отримання</string>
@@ -79,7 +79,7 @@
     <string name="balance_scope_auditor">Аудитор: %1$s</string>
     <string name="balance_scope_exchange">Від %1$s</string>
     <string name="balances_inbound_amount">+%1$s надійшло</string>
-    <string name="balances_outbound_amount">-%1$s витрачено</string>
+    <string name="balances_outbound_amount">−%1$s витрачено</string>
     <!-- Transactions -->
 
     <string name="transaction_action_kyc">Завершити KYC</string>

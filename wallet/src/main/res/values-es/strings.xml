@@ -87,7 +87,7 @@
     <string name="nav_error">Error</string>
     <string name="uri_invalid">Dirección taler:// inválida</string>
     <string name="offline">La operación requiere de acceso a Internet. Por favor asegúrate que tu conexión a Internet funcione y prueba de nuevo.</string>
-    <string name="amount_negative">-%s</string>
+    <string name="amount_negative">−%s</string>
     <string name="transactions_title">Transacciones</string>
     <string name="transactions_error">No se pudo cargar las transacciones
 \n
@@ -218,7 +218,7 @@
     <string name="amount_send">Monto a enviar</string>
     <string name="amount_total">Monto total</string>
     <string name="amount_total_label">Total:</string>
-    <string name="balances_outbound_amount">-%1$s saliente</string>
+    <string name="balances_outbound_amount">−%1$s saliente</string>
     <string name="amount_invoiced">Monto cobrado</string>
     <string name="amount_transfer">Transferir</string>
     <string name="transaction_deposit_to">Depósito a %1$s</string>
