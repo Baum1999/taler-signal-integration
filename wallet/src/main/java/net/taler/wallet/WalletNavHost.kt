@@ -16,6 +16,7 @@
 
 package net.taler.wallet
 
+import androidx.activity.ComponentActivity
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -99,9 +100,7 @@ fun WalletNavHost(
     }
 
     val onNavigateBack: () -> Unit = {
-        if (!navController.popBackStack()) {
-            (context as? androidx.activity.ComponentActivity)?.finish()
-        }
+        (context as? ComponentActivity)?.onBackPressedDispatcher?.onBackPressed()
     }
 
     DisposableEffect(navController) {
