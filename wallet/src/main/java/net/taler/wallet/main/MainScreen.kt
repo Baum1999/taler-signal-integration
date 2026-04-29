@@ -92,6 +92,7 @@ fun MainScreen(
 ) {
     var tab by rememberSaveable { mutableStateOf(MainTab.ASSETS) }
     var showUriInput by remember { mutableStateOf(false) }
+    var showSheet by rememberSaveable { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -188,7 +189,7 @@ fun MainScreen(
                 TalerActionButton(
                     demandAttention = !actionButtonUsed,
                     onShowSheet = {
-                        scope.launch { sheetState.expand() }
+                        showSheet = true
                     },
                     onScanQr = {
                         model.settingsManager.saveActionButtonUsed(context)
@@ -340,51 +341,48 @@ fun MainScreen(
         }
 
         TalerActionsModal(
+            showSheet = showSheet,
             sheetState = sheetState,
             selectedCurrency = selectedBalance?.currency,
             showShopping = selectedBalance?.shoppingUrls?.isNotEmpty() == true,
             onDismiss = {
-                scope.launch { sheetState.hide() }.invokeOnCompletion {
-                    if (!sheetState.isVisible) {
-                        scope.launch { sheetState.hide() }
-                    }
-                }
+                showSheet = false
             },
             disableActions = disableActions,
             disablePeer = selectedBalance?.disablePeerPayments == true,
             onSend = {
-                scope.launch { sheetState.hide() }
+                showSheet = false
                 model.settingsManager.saveActionButtonUsed(context)
                 onNavigate(WalletDestination.OutgoingPush, true)
             },
             onReceive = {
-                scope.launch { sheetState.hide() }
+                showSheet = false
                 model.settingsManager.saveActionButtonUsed(context)
                 onNavigate(WalletDestination.OutgoingPull, true)
             },
             onScanQr = {
-                scope.launch { sheetState.hide() }
+                showSheet = false
                 model.settingsManager.saveActionButtonUsed(context)
                 onScanQr()
             },
             onDeposit = {
-                scope.launch { sheetState.hide() }
+                showSheet = false
                 model.settingsManager.saveActionButtonUsed(context)
                 onNavigate(WalletDestination.Deposit(), true)
             },
             onWithdraw = {
-                scope.launch { sheetState.hide() }
+                showSheet = false
                 model.settingsManager.saveActionButtonUsed(context)
                 model.withdrawManager.resetWithdrawal()
                 onNavigate(WalletDestination.PromptWithdraw(), true)
             },
             onEnterUri = {
-                scope.launch { sheetState.hide() }
+                showSheet = false
                 model.settingsManager.saveActionButtonUsed(context)
                 showUriInput = true
             },
             onShoppingDiscovery = {
-                scope.launch { sheetState.hide() }
+                showSheet = false
                 model.settingsManager.saveActionButtonUsed(context)
                 val shoppingUrls = selectedBalance?.shoppingUrls ?: emptyList()
                 if (shoppingUrls.size == 1) {

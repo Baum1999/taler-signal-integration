@@ -33,11 +33,9 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFloatingActionButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.SheetState
@@ -135,6 +133,7 @@ fun TalerActionButton(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TalerActionsModal(
+    showSheet: Boolean,
     sheetState: SheetState,
     selectedCurrency: String? = null,
     showShopping: Boolean,
@@ -149,7 +148,7 @@ fun TalerActionsModal(
     onEnterUri: () -> Unit,
     onShoppingDiscovery: () -> Unit,
 ) {
-    if (sheetState.isVisible) ModalBottomSheet(
+    if (showSheet) ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
     ) {
@@ -234,6 +233,7 @@ fun TalerActionsModal(
 fun TalerActionsModalPreview() {
     TalerSurface {
         TalerActionsModal(
+            showSheet = true,
             sheetState = rememberModalBottomSheetState(),
             selectedCurrency = "CHF",
             showShopping = true,
