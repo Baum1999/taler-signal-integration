@@ -119,6 +119,28 @@ fun TransitionsComposable(
 
 @Composable
 fun TransitionComposable(t: TransactionAction, onClick: (t: TransactionAction) -> Unit) {
+    var showConfirmDialog by remember { mutableStateOf(false) }
+    if (showConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showConfirmDialog = false },
+            title = { Text(stringResource(R.string.transactions_delete_dialog_title)) },
+            text = { Text(stringResource(R.string.transactions_delete_dialog_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showConfirmDialog = false
+                    onClick(t)
+                }) {
+                    Text(stringResource(R.string.transactions_delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showConfirmDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
     Button(
         modifier = Modifier.padding(16.dp),
         colors = ButtonDefaults.buttonColors(
@@ -131,7 +153,13 @@ fun TransitionComposable(t: TransactionAction, onClick: (t: TransactionAction) -
                 Suspend -> MaterialTheme.colorScheme.primary
             }
         ),
-        onClick = { onClick(t) },
+        onClick = {
+            if (t == Delete) {
+                showConfirmDialog = true
+            } else {
+                onClick(t)
+            }
+        },
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(

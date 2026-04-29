@@ -504,7 +504,7 @@ private fun handleTransactionAction(
     }
 
     when (action) {
-        TransactionAction.Delete -> transactionManager.deleteTransaction(tx.transactionId) { onNavigateBack() }
+        TransactionAction.Delete -> transactionManager.deleteTransaction(tx.transactionId, onError).invokeOnCompletion { onNavigateBack() }
         TransactionAction.Retry -> transactionManager.retryTransaction(tx.transactionId, onError)
         TransactionAction.Abort -> transactionManager.abortTransaction(tx.transactionId, { onNavigateBack() }, onError)
         TransactionAction.Fail -> transactionManager.failTransaction(tx.transactionId, onError)

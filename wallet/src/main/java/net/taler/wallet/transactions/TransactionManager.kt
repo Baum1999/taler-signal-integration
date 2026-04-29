@@ -96,37 +96,36 @@ class TransactionManager(
         }
     }
 
-    @UiThread
     fun loadTransactions(
         scopeInfo: ScopeInfo? = null,
         searchQuery: String? = null,
         stateFilter: TransactionStateFilter? = null,
     ) {
         Log.d(TAG, "loadTransactions($scopeInfo, $searchQuery, $stateFilter)")
-        val s = scopeInfo ?: run {
-            MutableStateFlow(TransactionsResult.None)
-            return
-        }
+        val scopes = scopeInfo?.let { listOf(it) } ?: mTransactions.keys.toList()
+        if (scopes.isEmpty()) return
 
-        // initialize key with empty state flow
-        if (mTransactions[s] == null) {
-            mTransactions[s] = MutableStateFlow(TransactionsResult.None)
-        }
-
-        scope.launch {
-            // return cached transactions if available
-            if(searchQuery == null) allTransactions[s]?.let { txs ->
-                mTransactions[s]?.value = TransactionsResult.Success(txs)
+        scopes.forEach { s ->
+            // initialize key with empty state flow
+            if (mTransactions[s] == null) {
+                mTransactions[s] = MutableStateFlow(TransactionsResult.None)
             }
 
-            // ...then fetch new ones
-            val res = getTransactions(s, searchQuery, filterByState = stateFilter)
-            if (res is TransactionsResult.Success) {
-                allTransactions[s] = res.transactions
-            }
+            scope.launch {
+                // return cached transactions if available
+                if (searchQuery == null) allTransactions[s]?.let { txs ->
+                    mTransactions[s]?.value = TransactionsResult.Success(txs)
+                }
 
-            // ...and then emit them when available
-            mTransactions[s]?.value = res
+                // ...then fetch new ones
+                val res = getTransactions(s, searchQuery, filterByState = stateFilter)
+                if (res is TransactionsResult.Success) {
+                    allTransactions[s] = res.transactions
+                }
+
+                // ...and then emit them when available
+                mTransactions[s]?.value = res
+            }
         }
     }
 
@@ -275,15 +274,17 @@ class TransactionManager(
             }
         }
 
-    fun deleteTransactions(transactionIds: List<String>, onError: (it: TalerErrorInfo) -> Unit) {
-        allTransactions.values.flatten().filter { transaction ->
-            transaction.transactionId in transactionIds
-        }.forEach { toBeDeletedTx ->
-            if (Delete in toBeDeletedTx.txActions) {
-                deleteTransaction(toBeDeletedTx.transactionId) {
+    fun deleteTransactions(transactionIds: List<String>, onError: (it: TalerErrorInfo) -> Unit) =
+        scope.launch {
+            allTransactions.values.flatten().filter { transaction ->
+                transaction.transactionId in transactionIds && Delete in transaction.txActions
+            }.forEach { toBeDeletedTx ->
+                api.request<Unit>("deleteTransaction") {
+                    put("transactionId", toBeDeletedTx.transactionId)
+                }.onError {
                     onError(it)
                 }
             }
+            loadTransactions()
         }
-    }
 }
