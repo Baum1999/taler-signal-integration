@@ -55,7 +55,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -75,7 +74,6 @@ import net.taler.wallet.balances.ScopeInfo.Exchange
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.Banner
 import net.taler.wallet.compose.LoadingScreen
-import net.taler.wallet.compose.NewMenuItem
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.cardPaddings
 import net.taler.wallet.main.ViewMode
@@ -101,6 +99,7 @@ import net.taler.wallet.transactions.TransactionStateFilter.Nonfinal
 import net.taler.wallet.transactions.TransactionsResult.Error
 import net.taler.wallet.transactions.TransactionsResult.None
 import net.taler.wallet.transactions.TransactionsResult.Success
+import net.taler.wallet.ui.theme.TalerTheme
 
 @Composable
 fun TransactionsComposable(
@@ -376,7 +375,7 @@ fun TransactionAmountInfo(
                 Positive -> Text(
                     stringResource(R.string.amount_positive, amountStr),
                     color = if (tx.txState.major == Pending || tx.txState.major == Dialog)
-                        Color.Unspecified else colorResource(R.color.green),
+                        Color.Unspecified else TalerTheme.extraColors.success,
                 )
                 Negative -> Text(
                     stringResource(R.string.amount_negative, amountStr),

@@ -24,6 +24,10 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val lightScheme = lightColorScheme(
@@ -102,6 +106,35 @@ private val darkScheme = darkColorScheme(
     surfaceContainerHighest = surfaceContainerHighestDark,
 )
 
+@Immutable
+data class TalerColorScheme(
+    val success: Color = Color.Unspecified,
+    val onSuccess: Color = Color.Unspecified,
+    val successContainer: Color = Color.Unspecified,
+    val onSuccessContainer: Color = Color.Unspecified,
+)
+
+private val talerLightScheme = TalerColorScheme(
+    success = successLight,
+    onSuccess = onSuccessLight,
+    successContainer = successContainerLight,
+    onSuccessContainer = onSuccessContainerLight,
+)
+
+private val talerDarkScheme = TalerColorScheme(
+    success = successDark,
+    onSuccess = onSuccessDark,
+    successContainer = successContainerDark,
+    onSuccessContainer = onSuccessContainerDark,
+)
+
+val LocalTalerColorScheme = staticCompositionLocalOf { talerLightScheme }
+
+object TalerTheme {
+    val extraColors: TalerColorScheme@Composable
+        get() = LocalTalerColorScheme.current
+}
+
 @Composable
 fun TalerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -119,8 +152,16 @@ fun TalerTheme(
         else -> lightScheme
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        content = content
-    )
+    val talerColorScheme = if(darkTheme) {
+        talerDarkScheme
+    } else {
+        talerLightScheme
+    }
+
+    CompositionLocalProvider(LocalTalerColorScheme provides talerColorScheme) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            content = content
+        )
+    }
 }

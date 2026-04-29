@@ -46,7 +46,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -76,6 +75,7 @@ import net.taler.wallet.peer.TransactionPeerPullDebitComposable
 import net.taler.wallet.peer.TransactionPeerPushCreditComposable
 import net.taler.wallet.peer.TransactionPeerPushDebitComposable
 import net.taler.wallet.refund.TransactionRefundComposable
+import net.taler.wallet.ui.theme.TalerTheme
 import net.taler.wallet.withdraw.TransactionWithdrawalComposable
 
 @Composable
@@ -441,7 +441,7 @@ fun TransactionAmountComposable(
             textAlign = TextAlign.Center,
             fontSize = 24.sp,
             color = when (amountType) {
-                AmountType.Positive -> colorResource(R.color.green)
+                AmountType.Positive -> TalerTheme.extraColors.success
                 AmountType.Negative -> MaterialTheme.colorScheme.error
                 AmountType.Neutral -> Color.Unspecified
             },

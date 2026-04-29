@@ -54,6 +54,7 @@ import net.taler.wallet.transactions.TransactionMinorState.KycInit
 import net.taler.wallet.transactions.TransactionMinorState.KycRequired
 import net.taler.wallet.transactions.TransactionMinorState.Repurchase
 import net.taler.wallet.transactions.WithdrawalDetails.ManualTransfer
+import net.taler.wallet.ui.theme.TalerTheme
 
 @Composable
 fun TransactionStateComposable(
@@ -85,7 +86,7 @@ fun TransactionStateComposable(
     }
 
     val cardColor = when (state) {
-        TransactionState(Done) -> colorResource(R.color.green)
+        TransactionState(Done) -> TalerTheme.extraColors.successContainer
         TransactionState(Pending),
         TransactionState(Suspended),
         TransactionState(Failed, Repurchase),
@@ -98,7 +99,7 @@ fun TransactionStateComposable(
     }
 
     val textColor = when (state) {
-        TransactionState(Done) -> Color.White
+        TransactionState(Done) -> TalerTheme.extraColors.onSuccessContainer
         TransactionState(Pending),
         TransactionState(Suspended),
         TransactionState(Failed, Repurchase),

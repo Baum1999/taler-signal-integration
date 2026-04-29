@@ -44,7 +44,6 @@ import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -60,6 +59,7 @@ import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.cardPaddings
 import net.taler.wallet.donau.DonauSummaryItem
+import net.taler.wallet.ui.theme.TalerTheme
 
 // TODO: rename to AssetsComposable
 @Composable
@@ -252,7 +252,7 @@ fun PendingComposable(
                                 R.string.balances_inbound_amount,
                                 balance.pendingIncoming.toString(showSymbol = false),
                             ),
-                            color = colorResource(R.color.green),
+                            color = TalerTheme.extraColors.success,
                         )
                     }
 
