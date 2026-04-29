@@ -442,6 +442,7 @@ fun UriInputDialog(
                 label = { Text(stringResource(R.string.enter_uri_label)) },
                 isError = error != null,
                 supportingText = error?.let { { Text(it) } },
+                placeholder = { Text(stringResource(R.string.enter_uri_prefix)) },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 trailingIcon = {
                     IconButton(onClick = {
