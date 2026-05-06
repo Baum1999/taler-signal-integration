@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.rounded.ErrorOutline
@@ -56,12 +58,17 @@ fun ErrorComposable(
     devMode: Boolean,
     onClose: (() -> Unit)? = null,
 ) {
+    val scrollState = rememberScrollState()
     Column(
         modifier = modifier
+            .fillMaxWidth()
+            .verticalScroll(scrollState)
             .padding(16.dp),
         horizontalAlignment = CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Top,
     ) {
+        Spacer(Modifier.size(20.dp))
+
         Icon(
             Icons.Rounded.ErrorOutline,
             modifier = Modifier

@@ -117,8 +117,8 @@ class MainActivity : FragmentActivity() {
                 nav = navController
                 var errorInfo by remember { mutableStateOf<TalerErrorInfo?>(null) }
                 val showObservabilityLog by model.showObservabilityLog.collectAsState(false)
-                val errorSheetState = rememberModalBottomSheetState()
                 val devMode by model.devMode.observeAsState(false)
+                val errorSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = !devMode)
                 val authenticated by model.authenticated.collectAsState()
                 val biometricEnabled by model.settingsManager.getBiometricLockEnabled(this).collectAsState(false)
                 val launchUri by launchIntentUri.collectAsState(null)
