@@ -270,10 +270,14 @@ class PaymentManager(
         }.onError {
             handleError("checkPayForTemplate", it)
         }.onSuccess { response ->
-            mPayStatus.value = PayStatus.Checked(
-                details = response.templateDetails,
-                supportedCurrencies = response.supportedCurrencies,
-            )
+            if (response.templateDetails.templateContract.templateType == TemplateType.Paivana) {
+                scope.launch { preparePayForTemplate(url, TemplateParams()) }
+            } else {
+                mPayStatus.value = PayStatus.Checked(
+                    details = response.templateDetails,
+                    supportedCurrencies = response.supportedCurrencies,
+                )
+            }
         }
     }
 
@@ -287,6 +291,8 @@ class PaymentManager(
         }.onSuccess { response ->
             mPayStatus.value = when (response) {
                 is PaymentPossibleResponse -> response.toPayStatusPrepared()
+                is PreparePayResponse.ChoiceSelection -> response.toPayStatusPrepared()
+
                 is InsufficientBalanceResponse -> InsufficientBalance(
                     transactionId = response.transactionId,
                     contractTerms = response.contractTerms,
@@ -297,9 +303,6 @@ class PaymentManager(
                 is AlreadyConfirmedResponse -> AlreadyPaid(
                     transactionId = response.transactionId,
                 )
-
-                // only applies to regular payments
-                is PreparePayResponse.ChoiceSelection -> return@onSuccess
             }
         }
     }

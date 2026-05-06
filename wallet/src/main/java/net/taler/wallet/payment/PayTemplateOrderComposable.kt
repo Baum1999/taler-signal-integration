@@ -133,6 +133,7 @@ fun PayTemplateOrderComposable(
 
 val defaultTemplateDetails = WalletTemplateDetails(
     templateContract = TemplateContractDetails(
+        templateType = TemplateType.FixedOrder,
         minimumAge = 18,
         payDuration = RelativeTime.forever(),
     ),

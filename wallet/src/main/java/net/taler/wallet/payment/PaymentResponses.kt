@@ -79,7 +79,12 @@ sealed class PreparePayResponse {
     data class ChoiceSelection(
         val transactionId: String,
         val contractTerms: ContractTerms,
-    ) : PreparePayResponse()
+    ) : PreparePayResponse() {
+        fun toPayStatusPrepared() = PayStatus.Prepared(
+            contractTerms = contractTerms,
+            transactionId = transactionId,
+        )
+    }
 }
 
 @Serializable

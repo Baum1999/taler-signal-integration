@@ -22,7 +22,24 @@ import net.taler.common.Amount
 import net.taler.common.RelativeTime
 
 @Serializable
+enum class TemplateType {
+    @SerialName("fixed-order")
+    FixedOrder,
+
+    @SerialName("inventory-cart")
+    InventoryCart,
+
+    @SerialName("paivana")
+    Paivana,
+
+    Unknown,
+}
+
+@Serializable
 data class TemplateContractDetails(
+    @SerialName("template_type")
+    val templateType: TemplateType? = null,
+
     /**
      * Human-readable summary for the template.
      */
@@ -45,14 +62,14 @@ data class TemplateContractDetails(
      * Minimum age buyer must have (in years). Default is 0.
      */
     @SerialName("minimum_age")
-    val minimumAge: Int,
+    val minimumAge: Int? = null,
 
     /**
      * The time the customer need to pay before his order will be deleted. It
      * is deleted if the customer did not pay and if the duration is over.
      */
     @SerialName("pay_duration")
-    val payDuration: RelativeTime,
+    val payDuration: RelativeTime? = null,
 )
 
 @Serializable
