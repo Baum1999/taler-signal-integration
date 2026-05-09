@@ -149,6 +149,7 @@ class ConfigManager(
             .commit()
     }
 
+    @WorkerThread
     fun lock() {
         saveConfig(config.copy(password = ""))
     }

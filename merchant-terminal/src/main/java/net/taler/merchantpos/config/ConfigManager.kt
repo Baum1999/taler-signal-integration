@@ -36,6 +36,7 @@ import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.taler.common.Version
 import net.taler.common.getIncompatibleStringOrNull
 import net.taler.merchantlib.ConfigResponse
@@ -257,6 +258,7 @@ class ConfigManager(
         migrateLegacyPrefsIfNeeded();
     }
 
+    @Volatile
     var config: Config =
         Config.New(
             merchantUrl = prefs.getString(SETTINGS_MERCHANT_URL, "")!!,
@@ -373,13 +375,15 @@ class ConfigManager(
                 return
             }
         }
-        newConfig?.let {
-            config = it
-            saveConfig(it)
+        withContext(Dispatchers.Main) {
+            newConfig?.let {
+                config = it
+                saveConfig(it)
+            }
+            this@ConfigManager.merchantConfig = merchantConfig
+            this@ConfigManager.currency = configResponse.currency
+            mConfigUpdateResult.value = ConfigUpdateResult.Success(configResponse.currency)
         }
-        this.merchantConfig = merchantConfig
-        this.currency = configResponse.currency
-        mConfigUpdateResult.postValue(ConfigUpdateResult.Success(configResponse.currency))
     }
 
     /**

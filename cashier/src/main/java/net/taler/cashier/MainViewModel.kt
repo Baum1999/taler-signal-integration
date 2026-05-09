@@ -100,7 +100,7 @@ class MainViewModel(private val app: Application) : AndroidViewModel(app) {
         mBalance.postValue(result)
     }
 
-    fun lock() {
+    fun lock() = viewModelScope.launch(Dispatchers.IO) {
         configManager.lock()
     }
 

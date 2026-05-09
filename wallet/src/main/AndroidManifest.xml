@@ -121,7 +121,7 @@
             <data
                 android:host="iban"
                 android:scheme="payto" />
-            <action />
+            <action android:name="android.intent.action.VIEW" />
         </intent>
     </queries>
 
