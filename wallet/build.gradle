@@ -24,7 +24,7 @@ plugins {
     id "org.jetbrains.kotlin.plugin.compose" version "$kotlin_version"
 }
 
-def qtart_version = "1.5.11"
+def qtart_version = "1.5.12"
 
 static def versionCodeEpoch() {
     return (new Date().getTime() / 1000).toInteger()
@@ -36,12 +36,12 @@ def gitCommit = { ->
 
 android {
     namespace 'net.taler.wallet'
-    compileSdkVersion 36
+    compileSdkVersion 37
 
     defaultConfig {
         applicationId "net.taler.wallet"
         minSdkVersion 24
-        targetSdkVersion 36
+        targetSdkVersion 37
         versionCode 81
         versionName "1.5.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -168,7 +168,7 @@ dependencies {
     implementation("com.mikepenz:multiplatform-markdown-renderer-m3:$markdown_version")
 
     // Java Native Access (must always match JNA in qtart)
-    implementation "net.java.dev.jna:jna:5.17.0@aar"
+    implementation "net.java.dev.jna:jna:5.18.1@aar"
 
     // Shared preferences
     implementation "androidx.datastore:datastore:$datastore_version"
