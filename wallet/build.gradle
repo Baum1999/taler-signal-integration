@@ -95,6 +95,7 @@ android {
     packagingOptions {
         jniLibs {
             keepDebugSymbols += ['**/*.so']
+            useLegacyPackaging true
         }
         resources {
             excludes += ['META-INF/*.kotlin_module']
