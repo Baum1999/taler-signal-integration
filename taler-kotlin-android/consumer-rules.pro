@@ -1,5 +1,3 @@
--dontobfuscate
-
 # This is broad, but better leave a few common class and still optimize the rest out
 -keep class net.taler.common.** {*;}
 
