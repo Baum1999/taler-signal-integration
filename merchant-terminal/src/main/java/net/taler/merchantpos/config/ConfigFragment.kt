@@ -293,7 +293,7 @@ class ConfigFragment : Fragment() {
         onResultReceived()
         updateView()
         Snackbar.make(requireView(), getString(R.string.config_changed, currency), LENGTH_LONG).show()
-        findNavController().navigate(R.id.action_instanceSettings_to_order)
+        findNavController().navigate(R.id.action_instanceSettings_to_amountEntry)
         configManager.configUpdateResult.removeObservers(viewLifecycleOwner)
     }
 

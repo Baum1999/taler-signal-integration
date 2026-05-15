@@ -18,7 +18,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@+id/nav_order"
+    app:startDestination="@+id/nav_amountEntry"
     tools:ignore="UnusedNavigation">
 
     <fragment
@@ -104,8 +104,8 @@
         android:label="@string/config_label"
         tools:layout="@layout/fragment_merchant_config">
         <action
-            android:id="@+id/action_instanceSettings_to_order"
-            app:destination="@+id/nav_order"
+            android:id="@+id/action_instanceSettings_to_amountEntry"
+            app:destination="@+id/nav_amountEntry"
             app:launchSingleTop="true"
             app:popUpTo="@+id/nav_graph"
             app:popUpToInclusive="true" />
@@ -123,8 +123,8 @@
             app:popUpTo="@+id/nav_graph"
             app:popUpToInclusive="true" />
         <action
-            android:id="@+id/action_configFetcher_to_order"
-            app:destination="@+id/nav_order"
+            android:id="@+id/action_configFetcher_to_amountEntry"
+            app:destination="@+id/nav_amountEntry"
             app:launchSingleTop="true"
             app:popUpTo="@+id/nav_graph"
             app:popUpToInclusive="true" />

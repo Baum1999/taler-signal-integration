@@ -63,7 +63,7 @@ class ConfigFetcherFragment : Fragment() {
                 is ConfigUpdateResult.Success -> {
                     if (!navigating) {
                         navigating = true
-                        findNavController().navigate(R.id.action_global_order)
+                        findNavController().navigate(R.id.action_global_amountEntry)
                     }
                 }
             }

@@ -20,13 +20,13 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_order"
-            android:icon="@drawable/ic_move_money_24dp"
-            android:title="@string/menu_order" />
-        <item
             android:id="@+id/nav_amountEntry"
             android:icon="@drawable/ic_dialpad"
             android:title="@string/menu_amount_entry" />
+        <item
+            android:id="@+id/nav_order"
+            android:icon="@drawable/ic_move_money_24dp"
+            android:title="@string/menu_order" />
         <item
             android:id="@+id/nav_history"
             android:icon="@drawable/ic_history_black_24dp"
