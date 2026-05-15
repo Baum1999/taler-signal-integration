@@ -19,4 +19,12 @@
     <string name="close">Schließen</string>
     <string name="share">Teilen</string>
     <string name="copy">Kopieren</string>
+
+    <string name="mfa_challenge_title">Zwei-Faktor-Anmeldeverfahren</string>
+    <string name="mfa_challenge_message">Ein Bestätigungscode wurde über %1$s (%2$s) gesendet. Geben Sie diesen Code ein, um fortzufahren.</string>
+    <string name="mfa_challenge_code_hint">Bestätigungscode</string>
+    <string name="mfa_choose_title">Wählen Sie die Art des Bestätigungscodes</string>
+    <string name="mfa_challenge_invalid">Falscher Bestätigungscode. Bitte versuchen Sie diesen Vorgang nochmals.</string>
+    <string name="mfa_challenge_retry">Zu viele fehlgeschlagene Versuche. Ein neuer Code wurde Ihnen zugesendet.</string>
+    <string name="mfa_challenge_failed">Die Verifizierung ist fehlgeschlagen. Bitte versuchen Sie diesen Vorgang nochmals.</string>
 </resources>

@@ -92,16 +92,9 @@
     <string name="pick_time">Zeitpunkt auswählen</string>
     <string name="session_expired_toast">Die Sitzung ist abgelaufen – bitte geben Sie Ihre Anmeldedaten erneut ein</string>
     <string name="config_fragment_camera_needed_text">Für den QR-Scan müssen Sie die Berechtigung für die Kamera erteilen</string>
-    <string name="mfa_challenge_code_hint">Bestätigungscode</string>
-    <string name="mfa_choose_title">Wählen Sie die Art des Bestätigungscodes</string>
-    <string name="mfa_challenge_invalid">Falscher Bestätigungscode. Bitte versuchen Sie diesen Vorgang nochmals.</string>
-    <string name="mfa_challenge_retry">Zu viele fehlgeschlagene Versuche. Ein neuer Code wurde Ihnen zugesendet.</string>
-    <string name="mfa_challenge_failed">Die Verifizierung ist fehlgeschlagen. Bitte versuchen Sie diesen Vorgang nochmals.</string>
     <string name="amount_entry_label">Betrag</string>
     <string name="amount_entry_clear">Ausgangswert</string>
     <string name="amount_entry_product_description">Normale Bestellung</string>
     <string name="amount_entry_error_zero">Bitte geben Sie einen Betrag ein</string>
     <string name="amount_entry_error_wrong_currency">Dies ist keine unterstützte Währung</string>
-    <string name="mfa_challenge_title">Zwei-Faktor-Anmeldeverfahren</string>
-    <string name="mfa_challenge_message">Ein Bestätigungscode wurde über %1$s (%2$s) gesendet. Geben Sie diesen Code ein, um fortzufahren.</string>
 </resources>
