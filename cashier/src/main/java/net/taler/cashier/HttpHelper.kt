@@ -20,7 +20,6 @@ import android.util.Log
 import androidx.annotation.WorkerThread
 import net.taler.cashier.config.Config
 import okhttp3.Authenticator
-import okhttp3.Credentials
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -40,10 +39,13 @@ object HttpHelper {
         val request = Request.Builder()
             .addHeader("Accept", MIME_TYPE_JSON)
             .url(url)
+            .apply {
+                config.bearerAuth?.let { header("Authorization", it) }
+            }
             .get()
             .build()
         val response = try {
-            getHttpClient(config.username, config.password)
+            getHttpClient(config)
                 .newCall(request)
                 .execute()
         } catch (e: Exception) {
@@ -68,10 +70,13 @@ object HttpHelper {
         val request = Request.Builder()
             .addHeader("Accept", MIME_TYPE_JSON)
             .url(url)
+            .apply {
+                config.bearerAuth?.let { header("Authorization", it) }
+            }
             .post(body.toString().toRequestBody(MEDIA_TYPE_JSON))
             .build()
         val response = try {
-            getHttpClient(config.username, config.password)
+            getHttpClient(config)
                 .newCall(request)
                 .execute()
         } catch (e: Exception) {
@@ -89,10 +94,11 @@ object HttpHelper {
         }
     }
 
-    private fun getHttpClient(username: String, password: String) =
+    private fun getHttpClient(config: Config) =
         OkHttpClient.Builder().authenticator(object : Authenticator {
             override fun authenticate(route: Route?, response: Response): Request? {
-                val credential = Credentials.basic(username, password)
+                if (config.password.isEmpty()) return null
+                val credential = config.basicAuth
                 if (credential == response.request.header("Authorization")) {
                     // If we already failed with these credentials, don't retry
                     return null

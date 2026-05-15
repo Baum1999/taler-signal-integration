@@ -56,4 +56,12 @@
     <string name="about_supported_bank_api">Bank API Version: %s</string>
 
     <string name="host_apdu_service_desc">Taler Cashier NFC payments</string>
+
+    <string name="mfa_challenge_title">Two-factor authentication</string>
+    <string name="mfa_challenge_message">A confirmation code was sent via %1$s (%2$s). Enter the code to continue.</string>
+    <string name="mfa_challenge_code_hint">Verification code</string>
+    <string name="mfa_choose_title">Choose verification method</string>
+    <string name="mfa_challenge_invalid">Incorrect code. Please try again.</string>
+    <string name="mfa_challenge_retry">Too many attempts. A new code has been sent.</string>
+    <string name="mfa_challenge_failed">Verification failed. Please try again later.</string>
 </resources>
