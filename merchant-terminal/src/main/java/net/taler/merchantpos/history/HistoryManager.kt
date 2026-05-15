@@ -21,7 +21,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import net.taler.common.assertUiThread
+import net.taler.lib.android.assertUiThread
 import net.taler.merchantlib.MerchantApi
 import net.taler.merchantlib.OrderHistoryEntry
 import net.taler.merchantpos.config.ConfigManager

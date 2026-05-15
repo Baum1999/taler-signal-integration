@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
 import net.taler.common.RelativeTime
 import net.taler.common.Timestamp
-import net.taler.common.toAbsoluteTime
+import net.taler.lib.android.toAbsoluteTime
 import net.taler.wallet.R
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.Banner

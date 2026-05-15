@@ -22,7 +22,7 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.ResponseException
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
-import net.taler.common.isOnline
+import net.taler.lib.android.isOnline
 import java.net.UnknownHostException
 
 class Response<out T> private constructor(

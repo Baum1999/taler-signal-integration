@@ -59,7 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.core.graphics.toColorInt
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
-import net.taler.common.QrCodeManager.makeQrCode
+import net.taler.lib.android.QrCodeManager.makeQrCode
 
 const val QR_CORNER_RADIUS = 0.08f
 const val QR_STRIPE_WIDTH = 0.025f

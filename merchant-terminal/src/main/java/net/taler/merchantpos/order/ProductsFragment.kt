@@ -30,7 +30,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
-import net.taler.common.base64Bitmap
+import net.taler.lib.android.base64Bitmap
 import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.R
 import net.taler.merchantpos.config.ConfigProduct

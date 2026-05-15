@@ -25,7 +25,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_SHORT
 import com.google.android.material.snackbar.Snackbar
-import net.taler.common.navigate
+import net.taler.lib.android.navigate
 import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.config.ConfigFetcherFragmentDirections.Companion.actionConfigFetcherToMerchantSettings
 import net.taler.merchantpos.databinding.FragmentConfigFetcherBinding

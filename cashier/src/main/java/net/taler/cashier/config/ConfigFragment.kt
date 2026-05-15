@@ -24,8 +24,6 @@ import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.TextView
-import android.widget.Toast
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.text.HtmlCompat
 import androidx.core.text.HtmlCompat.FROM_HTML_MODE_LEGACY
@@ -34,21 +32,17 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG
 import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import net.taler.cashier.MainViewModel
 import net.taler.cashier.R
 import net.taler.cashier.databinding.FragmentConfigBinding
-import net.taler.common.exhaustive
-import net.taler.common.showError
-import kotlin.coroutines.resume
+import net.taler.lib.android.exhaustive
+import net.taler.lib.android.handleChallengeResponse
+import net.taler.lib.android.showError
 
 private const val URL_BANK_TEST = "https://bank.demo.taler.net"
 private const val URL_BANK_TEST_REGISTER = "https://bank.demo.taler.net/webui/#/register"
@@ -163,16 +157,26 @@ class ConfigFragment : Fragment() {
             }
             is ConfigResult.TanRequired -> {
                 lifecycleScope.launch {
+                    val baseUrl = ui.urlView.editText!!.text.toString().trim()
+                    val username = ui.usernameView.editText!!.text.toString().trim()
                     val solvedIds = handleChallengeResponse(
-                        ui.urlView.editText!!.text.toString().trim(),
-                        ui.usernameView.editText!!.text.toString().trim(),
                         result.challenges,
-                        result.combiAnd
+                        result.combiAnd,
+                        onRequestChallenge = { challengeId ->
+                            withContext(Dispatchers.IO) {
+                                configManager.requestChallenge(baseUrl, username, challengeId)
+                            }
+                        },
+                        onConfirmChallenge = { challengeId, tan ->
+                            withContext(Dispatchers.IO) {
+                                configManager.confirmChallenge(baseUrl, username, challengeId, tan)
+                            }
+                        }
                     )
                     if (solvedIds.isNotEmpty()) {
                         val config = Config(
-                            bankUrl = ui.urlView.editText!!.text.toString().trim(),
-                            username = ui.usernameView.editText!!.text.toString().trim(),
+                            bankUrl = baseUrl,
+                            username = username,
                             password = ui.passwordView.editText!!.text.toString().trim()
                         )
                         configManager.checkAndSaveConfig(config, solvedIds)
@@ -191,144 +195,6 @@ class ConfigFragment : Fragment() {
         ui.saveButton.visibility = VISIBLE
         ui.progressBar.visibility = INVISIBLE
         configManager.configResult.removeObservers(viewLifecycleOwner)
-    }
-
-    private suspend fun handleChallengeResponse(
-        baseUrl: String,
-        username: String,
-        challenges: List<Challenge>,
-        combiAnd: Boolean,
-    ): List<String> {
-        if (challenges.isEmpty()) return emptyList()
-        val challengesToSolve = if (combiAnd) {
-            challenges
-        } else {
-            val selected = selectChallenge(challenges) ?: return emptyList()
-            listOf(selected)
-        }
-
-        val solvedIds = mutableListOf<String>()
-        for (challenge in challengesToSolve) {
-            withContext(Dispatchers.IO) {
-                configManager.requestChallenge(baseUrl, username, challenge.challengeId)
-            }
-
-            while (true) {
-                val tan = promptForTan(challenge) ?: return emptyList()
-                try {
-                    withContext(Dispatchers.IO) {
-                        configManager.confirmChallenge(
-                            baseUrl,
-                            username,
-                            challenge.challengeId,
-                            tan
-                        )
-                    }
-                    solvedIds.add(challenge.challengeId)
-                    break
-                } catch (e: Exception) {
-                    when (handleChallengeConfirmError(e)) {
-                        ChallengeRetryDecision.Retry -> continue
-                        ChallengeRetryDecision.Resend -> {
-                            withContext(Dispatchers.IO) {
-                                configManager.requestChallenge(
-                                    baseUrl,
-                                    username,
-                                    challenge.challengeId
-                                )
-                            }
-                            continue
-                        }
-                        ChallengeRetryDecision.Abort -> return emptyList()
-                    }
-                }
-            }
-        }
-        return solvedIds
-    }
-
-    private suspend fun selectChallenge(challenges: List<Challenge>): Challenge? =
-        withContext(Dispatchers.Main) {
-            suspendCancellableCoroutine { cont ->
-                val labels = challenges.map { c ->
-                    "${c.tanChannel}: ${c.tanInfo}"
-                }.toTypedArray()
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle(R.string.mfa_choose_title)
-                    .setItems(labels) { _, which ->
-                        cont.resume(challenges[which])
-                    }
-                    .setOnCancelListener { cont.resume(null) }
-                    .show()
-            }
-        }
-
-    private suspend fun promptForTan(challenge: Challenge): String? =
-        withContext(Dispatchers.Main) {
-            suspendCancellableCoroutine { cont ->
-                val message = getString(
-                    R.string.mfa_challenge_message,
-                    challenge.tanChannel.name,
-                    challenge.tanInfo
-                )
-                val dialogView = layoutInflater.inflate(
-                    R.layout.dialog_mfa_challenge,
-                    null,
-                    false
-                )
-                val messageView = dialogView.findViewById<TextView>(R.id.mfaMessageView)
-                val inputLayout = dialogView.findViewById<TextInputLayout>(R.id.mfaCodeInputLayout)
-                val input = dialogView.findViewById<TextInputEditText>(R.id.mfaCodeInput)
-                messageView.text = message
-                inputLayout.isErrorEnabled = false
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle(R.string.mfa_challenge_title)
-                    .setView(dialogView)
-                    .setPositiveButton(android.R.string.ok) { _, _ ->
-                        cont.resume(input?.text?.toString()?.trim().orEmpty())
-                    }
-                    .setNegativeButton(android.R.string.cancel) { _, _ ->
-                        cont.resume(null)
-                    }
-                    .setOnCancelListener { cont.resume(null) }
-                    .show()
-            }
-        }
-
-    private suspend fun handleChallengeConfirmError(e: Exception): ChallengeRetryDecision =
-        withContext(Dispatchers.Main) {
-            if (e is io.ktor.client.plugins.ClientRequestException) {
-                when (e.response.status.value) {
-                    409 -> {
-                        Toast.makeText(
-                            requireContext(),
-                            R.string.mfa_challenge_invalid,
-                            Toast.LENGTH_LONG
-                        ).show()
-                        return@withContext ChallengeRetryDecision.Retry
-                    }
-                    429 -> {
-                        Toast.makeText(
-                            requireContext(),
-                            R.string.mfa_challenge_retry,
-                            Toast.LENGTH_LONG
-                        ).show()
-                        return@withContext ChallengeRetryDecision.Resend
-                    }
-                }
-            }
-            Toast.makeText(
-                requireContext(),
-                R.string.mfa_challenge_failed,
-                Toast.LENGTH_LONG
-            ).show()
-            ChallengeRetryDecision.Abort
-        }
-
-    private enum class ChallengeRetryDecision {
-        Retry,
-        Resend,
-        Abort
     }
 
 }

@@ -26,8 +26,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import net.taler.common.openUri
-import net.taler.common.shareText
+import net.taler.lib.android.openUri
+import net.taler.lib.android.shareText
 import net.taler.wallet.R
 import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.collectAsStateLifecycleAware

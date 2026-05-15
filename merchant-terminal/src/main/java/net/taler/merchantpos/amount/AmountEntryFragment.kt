@@ -69,7 +69,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import net.taler.common.Amount
-import net.taler.common.navigate
+import net.taler.lib.android.navigate
 import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.R
 import net.taler.merchantpos.amount.AmountEntryFragmentDirections.Companion.actionAmountEntryToProcessPayment

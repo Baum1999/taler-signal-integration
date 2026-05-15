@@ -36,7 +36,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat.startActivity
 import kotlinx.coroutines.launch
-import net.taler.common.shareAsQrCode
+import net.taler.lib.android.shareAsQrCode
 import net.taler.wallet.BuildConfig
 import net.taler.wallet.R
 

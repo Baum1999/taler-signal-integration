@@ -14,7 +14,7 @@
  * GNU Taler; see the file COPYING.  If not, see <http://www.gnu.org/licenses/>
  */
 
-package net.taler.common
+package net.taler.lib.android
 
 import android.Manifest.permission.ACCESS_NETWORK_STATE
 import android.content.ActivityNotFoundException
@@ -61,7 +61,8 @@ import androidx.navigation.NavDirections
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import net.taler.lib.android.ErrorBottomSheet
+import net.taler.common.R
+import net.taler.common.Version
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException

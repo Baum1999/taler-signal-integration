@@ -54,8 +54,8 @@ import androidx.compose.ui.unit.sp
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.common.Timestamp
-import net.taler.common.copyToClipBoard
-import net.taler.common.toAbsoluteTime
+import net.taler.lib.android.copyToClipBoard
+import net.taler.lib.android.toAbsoluteTime
 import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R

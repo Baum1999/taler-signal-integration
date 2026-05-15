@@ -65,7 +65,7 @@ import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.common.Timestamp
-import net.taler.common.toRelativeTime
+import net.taler.lib.android.toRelativeTime
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo

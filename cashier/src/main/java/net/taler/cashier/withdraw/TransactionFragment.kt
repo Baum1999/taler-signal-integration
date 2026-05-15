@@ -34,9 +34,9 @@ import net.taler.cashier.withdraw.TransactionFragmentDirections.Companion.action
 import net.taler.cashier.withdraw.WithdrawResult.Error
 import net.taler.cashier.withdraw.WithdrawResult.InsufficientBalance
 import net.taler.cashier.withdraw.WithdrawResult.Success
-import net.taler.common.exhaustive
-import net.taler.common.fadeIn
-import net.taler.common.fadeOut
+import net.taler.lib.android.exhaustive
+import net.taler.lib.android.fadeIn
+import net.taler.lib.android.fadeOut
 import net.taler.lib.android.TalerNfcService
 
 class TransactionFragment : Fragment() {

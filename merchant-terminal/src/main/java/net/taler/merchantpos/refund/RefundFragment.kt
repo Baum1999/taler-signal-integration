@@ -26,10 +26,10 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import net.taler.common.Amount
 import net.taler.common.AmountParserException
-import net.taler.common.fadeIn
-import net.taler.common.fadeOut
-import net.taler.common.navigate
-import net.taler.common.showError
+import net.taler.lib.android.fadeIn
+import net.taler.lib.android.fadeOut
+import net.taler.lib.android.navigate
+import net.taler.lib.android.showError
 import net.taler.merchantlib.OrderHistoryEntry
 import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.R

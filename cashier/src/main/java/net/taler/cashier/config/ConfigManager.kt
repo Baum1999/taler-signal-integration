@@ -47,9 +47,14 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
 import net.taler.cashier.BuildConfig
 import net.taler.cashier.Response.Companion.response
+import net.taler.common.ChallengeConfirmRequest
+import net.taler.common.ChallengesResponse
 import net.taler.common.Timestamp
+import net.taler.common.TokenDuration
+import net.taler.common.TokenRequest
+import net.taler.common.TokenSuccessResponse
 import net.taler.common.Version
-import net.taler.common.getIncompatibleStringOrNull
+import net.taler.lib.android.getIncompatibleStringOrNull
 
 val VERSION_BANK = Version.parse(BuildConfig.BACKEND_API_VERSION)!!
 private const val PREF_NAME = "net.taler.cashier.prefs"

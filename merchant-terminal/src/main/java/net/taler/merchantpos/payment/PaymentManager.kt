@@ -26,13 +26,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import net.taler.common.RelativeTime
-import net.taler.common.assertUiThread
+import net.taler.lib.android.assertUiThread
 import net.taler.merchantlib.CheckPaymentResponse
-import net.taler.merchantlib.MinimalInventoryProduct
 import net.taler.merchantlib.MerchantApi
+import net.taler.merchantlib.MinimalInventoryProduct
 import net.taler.merchantlib.PostOrderRequest
 import net.taler.merchantpos.MainActivity.Companion.TAG
 import net.taler.merchantpos.R

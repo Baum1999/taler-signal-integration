@@ -35,7 +35,7 @@ import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.common.RelativeTime
 import net.taler.common.Timestamp
-import net.taler.common.toAbsoluteTime
+import net.taler.lib.android.toAbsoluteTime
 import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
@@ -43,7 +43,6 @@ import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.transactions.AmountType
-import net.taler.wallet.transactions.WithdrawalActions
 import net.taler.wallet.transactions.ErrorTransactionButton
 import net.taler.wallet.transactions.TransactionAction
 import net.taler.wallet.transactions.TransactionAction.Abort
@@ -57,6 +56,7 @@ import net.taler.wallet.transactions.TransactionState
 import net.taler.wallet.transactions.TransactionStateComposable
 import net.taler.wallet.transactions.TransactionWithdrawal
 import net.taler.wallet.transactions.TransitionsComposable
+import net.taler.wallet.transactions.WithdrawalActions
 import net.taler.wallet.transactions.WithdrawalDetails.ManualTransfer
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
 

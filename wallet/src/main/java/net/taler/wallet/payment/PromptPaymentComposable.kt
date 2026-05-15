@@ -89,7 +89,7 @@ import net.taler.common.ContractTokenFamily
 import net.taler.common.Exchange
 import net.taler.common.Merchant
 import net.taler.common.TalerUtils
-import net.taler.common.base64Bitmap
+import net.taler.lib.android.base64Bitmap
 import net.taler.wallet.R
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.BottomButtonBox

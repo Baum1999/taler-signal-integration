@@ -34,7 +34,7 @@ import net.taler.cashier.config.ConfigManager
 import net.taler.cashier.withdraw.WithdrawManager
 import net.taler.common.Amount
 import net.taler.common.AmountParserException
-import net.taler.common.isOnline
+import net.taler.lib.android.isOnline
 
 private val TAG = MainViewModel::class.java.simpleName
 

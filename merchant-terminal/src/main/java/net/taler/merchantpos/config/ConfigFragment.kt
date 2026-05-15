@@ -48,14 +48,10 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButtonToggleGroup
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.R
@@ -65,9 +61,11 @@ import com.google.zxing.*
 import net.taler.merchantpos.MainActivity
 import android.text.format.DateFormat
 import com.google.zxing.common.HybridBinarizer
+import net.taler.common.TokenDuration
+import net.taler.lib.android.ChallengeCancelledException
+import net.taler.lib.android.handleChallengeResponse
 import java.util.Calendar
 import java.util.Locale
-import kotlin.coroutines.resume
 
 /**
  * Fragment that displays merchant settings, either by scanning a QR code
@@ -341,7 +339,20 @@ class ConfigFragment : Fragment() {
                     )
                 }
             } catch (e: ChallengeRequiredException) {
-                val solvedIds = handleChallengeResponse(baseUrl, username, e.challengeResponse)
+                val solvedIds = handleChallengeResponse(
+                    e.challengeResponse.challenges,
+                    e.challengeResponse.combiAnd,
+                    onRequestChallenge = { challengeId ->
+                        withContext(Dispatchers.IO) {
+                            configManager.requestChallenge(baseUrl, username, challengeId)
+                        }
+                    },
+                    onConfirmChallenge = { challengeId, tan ->
+                        withContext(Dispatchers.IO) {
+                            configManager.confirmChallenge(baseUrl, username, challengeId, tan)
+                        }
+                    }
+                )
                 if (solvedIds.isEmpty()) {
                     throw ChallengeCancelledException()
                 }
@@ -349,145 +360,6 @@ class ConfigFragment : Fragment() {
             }
         }
     }
-
-    private suspend fun handleChallengeResponse(
-        baseUrl: String,
-        username: String,
-        response: ChallengeResponse
-    ): List<String> {
-        if (response.challenges.isEmpty()) return emptyList()
-        val challengesToSolve = if (response.combi_and) {
-            response.challenges
-        } else {
-            val selected = selectChallenge(response.challenges) ?: return emptyList()
-            listOf(selected)
-        }
-
-        val solvedIds = mutableListOf<String>()
-        for (challenge in challengesToSolve) {
-            withContext(Dispatchers.IO) {
-                configManager.requestChallenge(baseUrl, username, challenge.challenge_id)
-            }
-
-            while (true) {
-                val tan = promptForTan(challenge) ?: return emptyList()
-                try {
-                    withContext(Dispatchers.IO) {
-                        configManager.confirmChallenge(
-                            baseUrl,
-                            username,
-                            challenge.challenge_id,
-                            tan
-                        )
-                    }
-                    solvedIds.add(challenge.challenge_id)
-                    break
-                } catch (e: Exception) {
-                    when (handleChallengeConfirmError(e)) {
-                        ChallengeRetryDecision.Retry -> continue
-                        ChallengeRetryDecision.Resend -> {
-                            withContext(Dispatchers.IO) {
-                                configManager.requestChallenge(
-                                    baseUrl,
-                                    username,
-                                    challenge.challenge_id
-                                )
-                            }
-                            continue
-                        }
-                        ChallengeRetryDecision.Abort -> return emptyList()
-                    }
-                }
-            }
-        }
-        return solvedIds
-    }
-
-    private suspend fun selectChallenge(challenges: List<Challenge>): Challenge? =
-        withContext(Dispatchers.Main) {
-            suspendCancellableCoroutine { cont ->
-                val labels = challenges.map { c ->
-                    "${c.tan_channel}: ${c.tan_info}"
-                }.toTypedArray()
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle(R.string.mfa_choose_title)
-                    .setItems(labels) { _, which ->
-                        cont.resume(challenges[which])
-                    }
-                    .setOnCancelListener { cont.resume(null) }
-                    .show()
-            }
-        }
-
-    private suspend fun promptForTan(challenge: Challenge): String? =
-        withContext(Dispatchers.Main) {
-            suspendCancellableCoroutine { cont ->
-                val message = getString(
-                    R.string.mfa_challenge_message,
-                    challenge.tan_channel,
-                    challenge.tan_info
-                )
-                val dialogView = layoutInflater.inflate(
-                    R.layout.dialog_mfa_challenge,
-                    null,
-                    false
-                )
-                val messageView = dialogView.findViewById<TextView>(R.id.mfaMessageView)
-                val inputLayout = dialogView.findViewById<TextInputLayout>(R.id.mfaCodeInputLayout)
-                val input = dialogView.findViewById<TextInputEditText>(R.id.mfaCodeInput)
-                messageView.text = message
-                inputLayout.isErrorEnabled = false
-                MaterialAlertDialogBuilder(requireContext())
-                    .setTitle(R.string.mfa_challenge_title)
-                    .setView(dialogView)
-                    .setPositiveButton(android.R.string.ok) { _, _ ->
-                        cont.resume(input?.text?.toString()?.trim().orEmpty())
-                    }
-                    .setNegativeButton(android.R.string.cancel) { _, _ ->
-                        cont.resume(null)
-                    }
-                    .setOnCancelListener { cont.resume(null) }
-                    .show()
-            }
-        }
-
-    private suspend fun handleChallengeConfirmError(e: Exception): ChallengeRetryDecision =
-        withContext(Dispatchers.Main) {
-            if (e is io.ktor.client.plugins.ClientRequestException) {
-                when (e.response.status.value) {
-                    409 -> {
-                        Toast.makeText(
-                            requireContext(),
-                            R.string.mfa_challenge_invalid,
-                            Toast.LENGTH_LONG
-                        ).show()
-                        return@withContext ChallengeRetryDecision.Retry
-                    }
-                    429 -> {
-                        Toast.makeText(
-                            requireContext(),
-                            R.string.mfa_challenge_retry,
-                            Toast.LENGTH_LONG
-                        ).show()
-                        return@withContext ChallengeRetryDecision.Resend
-                    }
-                }
-            }
-            Toast.makeText(
-                requireContext(),
-                R.string.mfa_challenge_failed,
-                Toast.LENGTH_LONG
-            ).show()
-            ChallengeRetryDecision.Abort
-        }
-
-    private enum class ChallengeRetryDecision {
-        Retry,
-        Resend,
-        Abort
-    }
-
-    private class ChallengeCancelledException : Exception()
 
 
     // ─── CameraX integration ───────────────────────────────────────────

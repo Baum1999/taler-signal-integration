@@ -35,8 +35,8 @@ import net.taler.cashier.HttpJsonResult.Success
 import net.taler.cashier.MainViewModel
 import net.taler.cashier.R
 import net.taler.common.Amount
-import net.taler.common.QrCodeManager.makeQrCode
-import net.taler.common.isOnline
+import net.taler.lib.android.QrCodeManager.makeQrCode
+import net.taler.lib.android.isOnline
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit.SECONDS
 

@@ -55,9 +55,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.core.content.ContextCompat
-import net.taler.common.QrCodeManager
-import net.taler.common.QrLogoSize
-import net.taler.common.copyToClipBoard
+import net.taler.lib.android.QrCodeManager
+import net.taler.lib.android.QrLogoSize
+import net.taler.lib.android.copyToClipBoard
 import net.taler.lib.android.AnimatedQrCodeComposable
 import net.taler.wallet.R
 

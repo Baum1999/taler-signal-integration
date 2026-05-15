@@ -60,8 +60,8 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import net.taler.common.Amount
 import net.taler.common.AmountParserException
-import net.taler.common.showError
-import net.taler.common.startActivitySafe
+import net.taler.lib.android.showError
+import net.taler.lib.android.startActivitySafe
 import net.taler.wallet.backend.TalerErrorInfo
 
 const val CURRENCY_BTC = "BITCOINBTC"

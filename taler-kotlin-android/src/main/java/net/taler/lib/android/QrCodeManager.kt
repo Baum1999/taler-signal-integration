@@ -14,7 +14,7 @@
  * GNU Taler; see the file COPYING.  If not, see <http://www.gnu.org/licenses/>
  */
 
-package net.taler.common
+package net.taler.lib.android
 
 import android.graphics.Bitmap
 import android.graphics.Bitmap.Config.ARGB_8888

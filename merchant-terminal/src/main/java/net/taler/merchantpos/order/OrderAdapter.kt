@@ -31,7 +31,7 @@ import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil.ItemCallback
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.Adapter
-import net.taler.common.base64Bitmap
+import net.taler.lib.android.base64Bitmap
 import net.taler.merchantpos.R
 import net.taler.merchantpos.config.ConfigProduct
 import net.taler.merchantpos.order.OrderAdapter.OrderViewHolder

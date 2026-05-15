@@ -34,7 +34,7 @@ import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.common.Merchant
 import net.taler.common.Timestamp
-import net.taler.common.toAbsoluteTime
+import net.taler.lib.android.toAbsoluteTime
 import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode

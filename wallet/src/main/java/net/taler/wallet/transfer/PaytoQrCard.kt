@@ -27,7 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import net.taler.common.QrLogoSize
+import net.taler.lib.android.QrLogoSize
 import net.taler.wallet.R
 import net.taler.wallet.compose.ExpandableCard
 import net.taler.wallet.compose.QrCodeParams

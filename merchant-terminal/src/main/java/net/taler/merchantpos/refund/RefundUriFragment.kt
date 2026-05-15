@@ -26,7 +26,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import kotlinx.coroutines.launch
-import net.taler.common.QrCodeManager.makeQrCode
+import net.taler.lib.android.QrCodeManager.makeQrCode
 import net.taler.lib.android.TalerNfcService.Companion.hasNfc
 import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.R
