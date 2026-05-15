@@ -99,10 +99,6 @@ class ConfigFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        configManager.configUpdateResult.observe(viewLifecycleOwner) { result ->
-            onConfigUpdate(result)
-        }
-
         // 1) Views
         val neverOption       = ui.root.findViewById<RadioButton>(R.id.neverExpiresOption)
         val dateOption        = ui.root.findViewById<RadioButton>(R.id.dateExpiresOption)
@@ -133,6 +129,11 @@ class ConfigFragment : Fragment() {
             if (!hasFocus) {
                 parseMerchantUrlAndUpdateFields()
             }
+        }
+
+        ui.forgetTokenButton.setOnClickListener {
+            configManager.forgetPassword()
+            updateView()
         }
 
         // manual configuration OK button
@@ -182,6 +183,7 @@ class ConfigFragment : Fragment() {
                     accessToken = limitedToken,
                     savePassword = ui.saveTokenCheckBox.isChecked
                 )
+                configManager.configUpdateResult.observe(viewLifecycleOwner, ::onConfigUpdate)
                 configManager.fetchConfig(config, true)
             }
         }
@@ -253,21 +255,23 @@ class ConfigFragment : Fragment() {
     }
 
     private fun updateView(isInitialization: Boolean = false) {
+        val cfg = configManager.config
         if (isInitialization) {
             ui.merchantUrlView.editText!!.setText(NEW_CONFIG_URL_DEMO)
 
-            when (val cfg = configManager.config) {
-                is Config.New -> {
-                    if (cfg.merchantUrl.isNotBlank()) {
-                        ui.merchantUrlView.editText!!.setText(cfg.merchantUrl)
-                        parseMerchantUrlAndUpdateFields()
-                    }
-                    ui.saveTokenCheckBox.isChecked = cfg.savePassword
+            if (cfg is Config.New) {
+                if (cfg.merchantUrl.isNotBlank()) {
+                    ui.merchantUrlView.editText!!.setText(cfg.merchantUrl)
+                    parseMerchantUrlAndUpdateFields()
                 }
+                ui.saveTokenCheckBox.isChecked = cfg.savePassword
+                ui.tokenView.editText!!.setText(cfg.accessToken)
             }
         }
 
-        when (configManager.config) {
+        ui.forgetTokenButton.visibility = if (cfg.isValid()) VISIBLE else GONE
+
+        when (cfg) {
             is Config.New -> {
                 ui.configToggle.check(R.id.newConfigButton)
                 showManualConfig()
@@ -290,11 +294,13 @@ class ConfigFragment : Fragment() {
         updateView()
         Snackbar.make(requireView(), getString(R.string.config_changed, currency), LENGTH_LONG).show()
         findNavController().navigate(R.id.action_instanceSettings_to_order)
+        configManager.configUpdateResult.removeObservers(viewLifecycleOwner)
     }
 
     private fun onError(msg: String) {
         onResultReceived()
         Snackbar.make(requireView(), msg, LENGTH_LONG).show()
+        configManager.configUpdateResult.removeObservers(viewLifecycleOwner)
     }
 
     private fun onResultReceived() {
