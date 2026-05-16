@@ -53,6 +53,8 @@ import net.taler.wallet.peer.IncomingPushPaymentScreen
 import net.taler.wallet.peer.OutgoingPullScreen
 import net.taler.wallet.peer.OutgoingPushScreen
 import net.taler.wallet.settings.PerformanceStatsScreen
+import net.taler.wallet.tokens.TokenListScreen
+import net.taler.wallet.tokens.TokenViewMode
 import net.taler.wallet.transactions.TransactionDetailScreen
 import net.taler.wallet.transfer.WireTransferDetailsScreen
 import net.taler.wallet.withdraw.PromptWithdrawScreen
@@ -250,6 +252,22 @@ fun WalletNavHost(
                 onNavigate = onNavigate,
                 onNavigateBack = onNavigateBack,
                 onShowError = { onShowError(it) }
+            )
+        }
+        composable<WalletDestination.DiscountList> {
+            TokenListScreen(
+                model = model,
+                onNavigate = onNavigate,
+                onNavigateBack = onNavigateBack,
+                viewMode = TokenViewMode.Discounts,
+            )
+        }
+        composable<WalletDestination.PassList> {
+            TokenListScreen(
+                model = model,
+                onNavigate = onNavigate,
+                onNavigateBack = onNavigateBack,
+                viewMode = TokenViewMode.Passes,
             )
         }
         composable<WalletDestination.SetDonau> { backStackEntry ->

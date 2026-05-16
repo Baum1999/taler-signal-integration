@@ -58,6 +58,7 @@ import net.taler.wallet.withdraw.WithdrawManager
 import net.taler.wallet.BuildConfig
 import net.taler.wallet.NetworkManager
 import net.taler.wallet.donau.DonauManager
+import net.taler.wallet.tokens.TokenManager
 
 const val TAG = "taler-wallet"
 const val OBSERVABILITY_LIMIT = 100
@@ -113,6 +114,7 @@ class MainViewModel(
     val settingsManager: SettingsManager = SettingsManager(app.applicationContext, api, viewModelScope, balanceManager)
     val accountManager: AccountManager = AccountManager(api, viewModelScope)
     val depositManager: DepositManager = DepositManager(api, viewModelScope, balanceManager)
+    val tokenManager: TokenManager = TokenManager(api)
     val donauManager: DonauManager = DonauManager(api, viewModelScope, exchangeManager)
 
     private val mAuthenticated = MutableStateFlow(false)

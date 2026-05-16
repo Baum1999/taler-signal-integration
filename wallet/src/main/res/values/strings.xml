@@ -142,6 +142,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <!-- must be minus sign! (− U+2212) -->
     <string name="balances_outbound_amount">−%1$s outgoing</string>
     <string name="balances_section_statements">Donation statements</string>
+    <string name="balances_section_tokens">Other assets</string>
     <string name="balances_title">Balances</string>
 
     <!-- Transactions -->
@@ -204,6 +205,23 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="transactions_send_funds">Send</string>
     <string name="transactions_suspend">Suspend</string>
     <string name="transactions_title">Transactions</string>
+
+    <!-- Discounts/passes -->
+    <string name="discount_issuer">Redeemable at %1$s</string>
+    <!-- must be a × (U+2A09) times character -->
+    <string name="discount_quantity">× %1$d</string>
+    <string name="discounts_empty_expired">You don\'t have any expired discounts</string>
+    <string name="discounts_empty_valid">You don\'t have any valid discounts</string>
+    <string name="discounts_title">Discounts</string>
+    <string name="pass_active">Active</string>
+    <string name="pass_issuer">Provided by %1$s</string>
+    <string name="passes_empty_expired">You don\'t have any expired passes</string>
+    <string name="passes_empty_valid">You don\'t have any valid passes</string>
+    <string name="passes_title">Passes</string>
+    <string name="token_valid_from">Valid from %1$s</string>
+    <string name="tokens_filter_available">Available</string>
+    <string name="tokens_filter_expired">Expired</string>
+    <string name="token_valid_until">Valid until %1$s</string>
 
     <!-- Donau -->
 

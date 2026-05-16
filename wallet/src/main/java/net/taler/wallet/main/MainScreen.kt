@@ -291,6 +291,12 @@ fun MainScreen(
                         onStatementClicked = {
                             onNavigate(WalletDestination.DonauStatement(it), false)
                         },
+                        onShowDiscounts = {
+                            onNavigate(WalletDestination.DiscountList, false)
+                        },
+                        onShowPasses = {
+                            onNavigate(WalletDestination.PassList, false)
+                        },
                     )
 
                     is ViewMode.Transactions -> {
@@ -416,6 +422,7 @@ fun UriInputDialog(
 
     val isValidTalerUri = { uri: String ->
         uri.trim().startsWith("taler://", ignoreCase = true) ||
+                uri.trim().startsWith("taler+http://", ignoreCase = true) ||
                 uri.trim().startsWith("payto://", ignoreCase = true)
     }
 

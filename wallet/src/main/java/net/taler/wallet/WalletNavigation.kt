@@ -51,6 +51,12 @@ sealed interface WalletDestination {
     data class AddBankAccount(val bankAccountId: String? = null) : WalletDestination
 
     @Serializable
+    data object DiscountList : WalletDestination
+
+    @Serializable
+    data object PassList : WalletDestination
+
+    @Serializable
     data class DonauStatement(val host: String) : WalletDestination
 
     @Serializable
