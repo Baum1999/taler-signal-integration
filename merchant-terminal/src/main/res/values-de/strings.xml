@@ -7,13 +7,15 @@
     <string name="menu_settings">Einstellungen</string>
     <string name="order_label_title">Bestellung #%s</string>
     <string name="order_total">Summe: %s</string>
-    <string name="order_restart">Neustart</string>
+    <string name="order_restart">Leeren</string>
     <string name="order_undo">Rückgängig machen</string>
     <string name="order_previous">Vorherige Bestellung</string>
     <string name="order_next">Nächste Bestellung</string>
-    <string name="order_complete">Vollständige Bestellung</string>
+    <string name="order_complete">Abrechnung</string>
+    <string name="order_complete_with_amount">Abrechnung %s</string>
+    <string name="settings_app_title">App-Einstellungen</string>
     <string name="config_url">Konfigurations-URL</string>
-    <string name="config_ok">Konfiguration abrufen</string>
+    <string name="config_ok">Verbinden</string>
     <string name="config_auth_error">Fehler: Benutzername oder Passwort ungültig</string>
     <string name="config_error_network">Fehler: Es konnte keine Verbindung zum Konfigurationsserver hergestellt werden</string>
     <string name="config_error_category">Fehler: Keine gültige Produktkategorie gefunden</string>
@@ -69,10 +71,10 @@
     <string name="order_custom_add_button">Hinzufügen</string>
     <string name="config_old_label">JSON-Datei (alt)</string>
     <string name="config_setup_password">Händler (neu)</string>
-    <string name="config_merchant_url">Händler-URL</string>
+    <string name="config_merchant_url">Händlerportal-URL</string>
     <string name="config_token">Passwort</string>
     <string name="order_custom">Benutzerdefinierten Artikel hinzufügen</string>
-    <string name="menu_reload">Erneut laden</string>
+    <string name="menu_reload">Inventar neu laden</string>
     <string name="order_custom_product">Bezeichnung des Einzelartikels</string>
     <string name="host_apdu_service_desc">NFC-Zahlungen mit Taler Merchant</string>
     <string name="toast_reloading">Inventar wird neu geladen</string>
@@ -97,4 +99,54 @@
     <string name="amount_entry_product_description">Normale Bestellung</string>
     <string name="amount_entry_error_zero">Bitte geben Sie einen Betrag ein</string>
     <string name="amount_entry_error_wrong_currency">Dies ist keine unterstützte Währung</string>
+    <string name="menu_amount_entry">Nach Betrag bestellen</string>
+    <string name="product_category_all_objects">Alles</string>
+    <string name="settings_language_label">Sprache</string>
+    <string name="settings_language_hint">App-Sprache</string>
+    <string name="settings_language_system_default">Systemvorgabe</string>
+    <string name="settings_subtitle">Wählen Sie die App-Sprache und verwalten Sie die Zugangsdaten der Händlerinstanz.</string>
+    <string name="settings_language_description">Wird sofort auf die App-Oberfläche angewendet.</string>
+    <string name="settings_initial_order_label">Startbildschirm für Bestellungen</string>
+    <string name="settings_initial_order_hint">Standard-Bestellmodus</string>
+    <string name="settings_initial_order_description">Wird beim Start der App oder nach dem Laden der Konfiguration angezeigt.</string>
+    <string name="settings_instance_title">Gespeicherte Instanz</string>
+    <string name="settings_instance_description">Händlerportal-URL, Benutzername, Token und weitere instanzspezifische Einstellungen ändern.</string>
+    <string name="settings_instance_button">Gespeicherte Instanz ändern</string>
+    <string name="amount_entry_charge">Berechnen</string>
+    <string name="amount_entry_create_order_charge">Bestellung erstellen (Betrag berechnen)</string>
+    <string name="amount_entry_backspace">Rücktaste</string>
+    <string-array name="settings_language_values">
+        <item></item>
+        <item>en</item>
+        <item>de</item>
+        <item>es</item>
+        <item>fi</item>
+        <item>fr</item>
+        <item>it</item>
+        <item>ru</item>
+        <item>sv</item>
+        <item>tr</item>
+        <item>uk</item>
+        <item>he</item>
+    </string-array>
+    <string-array name="settings_language_labels">
+        <item>@string/settings_language_system_default</item>
+        <item>English</item>
+        <item>Deutsch</item>
+        <item>Español</item>
+        <item>Suomi</item>
+        <item>Français</item>
+        <item>Italiano</item>
+        <item>Русский</item>
+        <item>Svenska</item>
+        <item>Türkçe</item>
+        <item>Українська</item>
+        <item>עברית</item>
+    </string-array>
+    <string name="product_unavailable">Nicht verfugbar</string>
+    <string name="product_out_of_stock">Nicht auf Lager</string>
+    <string name="order_delete">Bestellung loschen</string>
+    <string name="error_order_creation">Fehler: Bestellung konnte nicht erstellt werden</string>
+    <string name="error_inventory_unavailable">Fehler: Nicht genug Inventar verfugbar</string>
+    <string name="error_delete_order">Fehler: Bestellung konnte nicht geloscht werden</string>
 </resources>

@@ -17,10 +17,16 @@
 package net.taler.merchantpos.order
 
 import net.taler.common.Amount
+import net.taler.common.CurrencySpecification
 import net.taler.merchantpos.config.Category
 import net.taler.merchantpos.config.ConfigProduct
 
-data class Order(val id: Int, val currency: String, val availableCategories: Map<Int, Category>) {
+data class Order(
+    val id: Int,
+    val currency: String,
+    val currencySpec: CurrencySpecification?,
+    val availableCategories: Map<Int, Category>,
+) {
     val products = ArrayList<ConfigProduct>()
     val title: String = id.toString()
     val summary: String
@@ -32,11 +38,11 @@ data class Order(val id: Int, val currency: String, val availableCategories: Map
         }
     val total: Amount
         get() {
-            var total = Amount.zero(currency)
+            var total = Amount.zero(currency).withSpec(currencySpec)
             products.forEach { product ->
                 total += product.price * product.quantity
             }
-            return total
+            return total.withSpec(currencySpec)
         }
 
     operator fun plus(product: ConfigProduct): Order {

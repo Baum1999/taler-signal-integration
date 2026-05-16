@@ -111,7 +111,8 @@ class ProcessPaymentFragment : Fragment() {
             hideQrPreview()
         }
         if (payment.error != null) {
-            requireActivity().showError(R.string.error_payment, payment.error)
+            val (mainText, detailText) = getPaymentErrorDisplay(payment)
+            requireActivity().showError(mainText, detailText)
             findNavController().navigateUp()
             return
         }
@@ -227,6 +228,24 @@ class ProcessPaymentFragment : Fragment() {
             lightColor = ContextCompat.getColor(requireContext(), R.color.colorSurfaceVariant),
             trimQuietZone = true,
         )
+    }
+
+    private fun getPaymentErrorDisplay(payment: Payment): Pair<String, String> {
+        val error = payment.error.orEmpty()
+        if (payment.orderId != null) {
+            return getString(R.string.error_payment) to error
+        }
+        val normalized = error.lowercase()
+        return when {
+            "inventory" in normalized ||
+                "stock" in normalized ||
+                "insufficient" in normalized ||
+                "sold out" in normalized ||
+                "out of stock" in normalized ->
+                getString(R.string.error_inventory_unavailable) to error
+            else ->
+                getString(R.string.error_order_creation) to error
+        }
     }
 
 

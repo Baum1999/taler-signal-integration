@@ -23,6 +23,7 @@ import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.view.MenuItem
 import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
@@ -38,7 +39,6 @@ import net.taler.lib.android.TalerNfcService
 import net.taler.merchantpos.config.Config
 import net.taler.merchantpos.config.ConfigUpdateResult
 import net.taler.merchantpos.databinding.ActivityMainBinding
-import android.util.Log
 
 class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
 
@@ -94,6 +94,14 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
             ui.drawerLayout,
         )
         ui.main.toolbar.setupWithNavController(nav, appBarConfiguration)
+
+        if (savedInstanceState == null &&
+            intent.action != Intent.ACTION_VIEW &&
+            model.configManager.config.isValid() &&
+            model.configManager.merchantConfig != null
+        ) {
+            nav.navigateToInitialOrderScreen(model.configManager)
+        }
 
         handleSetupIntent(intent)
     }

@@ -21,6 +21,7 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_amountEntry"
+            android:checked="true"
             android:icon="@drawable/ic_dialpad"
             android:title="@string/menu_amount_entry" />
         <item

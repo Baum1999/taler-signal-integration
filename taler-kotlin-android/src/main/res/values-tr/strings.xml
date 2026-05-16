@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mfa_challenge_title">İki faktörlü kimlik doğrulama</string>
+    <string name="mfa_challenge_message">%1$s (%2$s) üzerinden bir onay kodu gönderildi. Devam etmek için kodu girin.</string>
+    <string name="mfa_challenge_code_hint">Doğrulama kodu</string>
+    <string name="mfa_challenge_code_incomplete">8 hanenin tümünü girin.</string>
+    <string name="mfa_choose_title">Doğrulama yöntemini seçin</string>
+    <string name="mfa_challenge_invalid">Kod yanlış. Lütfen tekrar deneyin.</string>
+    <string name="mfa_challenge_retry">Çok fazla deneme yapıldı. Yeni bir kod gönderildi.</string>
+    <string name="mfa_challenge_failed">Doğrulama başarısız oldu. Lütfen daha sonra tekrar deneyin.</string>
+</resources>

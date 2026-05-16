@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mfa_challenge_title">אימות דו-שלבי</string>
+    <string name="mfa_challenge_message">קוד אישור נשלח דרך %1$s (%2$s). הזינו את הקוד כדי להמשיך.</string>
+    <string name="mfa_challenge_code_hint">קוד אימות</string>
+    <string name="mfa_challenge_code_incomplete">יש להזין את כל 8 הספרות.</string>
+    <string name="mfa_choose_title">בחירת שיטת אימות</string>
+    <string name="mfa_challenge_invalid">קוד שגוי. נסו שוב.</string>
+    <string name="mfa_challenge_retry">יותר מדי ניסיונות. קוד חדש נשלח.</string>
+    <string name="mfa_challenge_failed">האימות נכשל. נסו שוב מאוחר יותר.</string>
+</resources>

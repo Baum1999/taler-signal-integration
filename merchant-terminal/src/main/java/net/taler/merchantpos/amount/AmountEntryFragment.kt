@@ -129,33 +129,34 @@ class AmountEntryFragment : Fragment() {
             selectedCurrency = configuredCurrency
         }
         if (amount == null) {
-            amount = Amount.zero(configuredCurrency)
+            amount = Amount.zero(configuredCurrency).withSpec(viewModel.configManager.currencySpec)
         }
     }
 
     private fun setCurrency(currency: String) {
         selectedCurrency = currency
         val currentAmount = amount
+        val spec = viewModel.configManager.currencySpec
         amount = when {
             currentAmount == null -> Amount.zero(currency)
             currentAmount.currency == currency -> currentAmount
             else -> currentAmount.withCurrency(currency)
-        }
+        }.withSpec(spec)
     }
 
     private fun onDigitPressed(digit: Char) {
         val currentAmount = amount ?: return
-        amount = currentAmount.addInputDigit(digit) ?: currentAmount
+        amount = currentAmount.addInputDigit(digit)?.withSpec(currentAmount.spec) ?: currentAmount
     }
 
     private fun onBackspacePressed() {
         val currentAmount = amount ?: return
-        amount = currentAmount.removeInputDigit() ?: currentAmount
+        amount = currentAmount.removeInputDigit()?.withSpec(currentAmount.spec) ?: currentAmount
     }
 
     private fun clearAmount() {
         val currency = selectedCurrency ?: return
-        amount = Amount.zero(currency)
+        amount = Amount.zero(currency).withSpec(viewModel.configManager.currencySpec)
     }
 
     private fun onChargePressed() {
@@ -164,7 +165,8 @@ class AmountEntryFragment : Fragment() {
             return
         }
         val enteredCurrency = selectedCurrency ?: configuredCurrency
-        val enteredAmount = amount ?: Amount.zero(enteredCurrency)
+        val enteredAmount = amount
+            ?: Amount.zero(enteredCurrency).withSpec(viewModel.configManager.currencySpec)
 
         if (enteredAmount.isZero()) {
             Toast.makeText(requireContext(), R.string.amount_entry_error_zero, Toast.LENGTH_LONG)
@@ -180,12 +182,13 @@ class AmountEntryFragment : Fragment() {
         val order = Order(
             id = QUICK_AMOUNT_ORDER_ID,
             currency = configuredCurrency,
+            currencySpec = viewModel.configManager.currencySpec,
             availableCategories = emptyMap(),
         )
         val product = ConfigProduct(
             description = getString(R.string.amount_entry_product_description),
             productId = QUICK_AMOUNT_PRODUCT_ID,
-            price = enteredAmount,
+            price = enteredAmount.withSpec(viewModel.configManager.currencySpec),
             categories = listOf(Int.MIN_VALUE),
         )
         order + product

@@ -72,7 +72,7 @@ class OrderManagerTest {
     @Test
     fun `config test missing categories`() = runBlocking {
         val config = posConfig.copy(categories = emptyList())
-        val result = orderManager.onConfigurationReceived(config, "KUDOS")
+        val result = orderManager.onConfigurationReceived(config, "KUDOS", null)
         assertEquals(app.getString(R.string.config_error_category), result)
     }
 
@@ -80,7 +80,7 @@ class OrderManagerTest {
     fun `config test currency mismatch`() = runBlocking {
         val products = listOf(posConfig.products[0].copy(price = Amount("WRONGCUR", 1, 0)))
         val config = posConfig.copy(products = products)
-        val result = orderManager.onConfigurationReceived(config, "KUDOS")
+        val result = orderManager.onConfigurationReceived(config, "KUDOS", null)
         val expectedStr = app.getString(
             R.string.config_error_currency, "foo", "WRONGCUR", "KUDOS"
         )
@@ -93,7 +93,7 @@ class OrderManagerTest {
 //    fun `config test unknown category ID`() = runBlocking {
 //        val products = listOf(posConfig.products[0].copy(categories = listOf(42)))
 //        val config = posConfig.copy(products = products)
-//        val result = orderManager.onConfigurationReceived(config, "KUDOS")
+//        val result = orderManager.onConfigurationReceived(config, "KUDOS", null)
 //        val expectedStr = app.getString(
 //            R.string.config_error_product_category_id, "foo", 42
 //        )
@@ -102,13 +102,13 @@ class OrderManagerTest {
 
     @Test
     fun `config test valid config gets accepted`() = runBlocking {
-        val result = orderManager.onConfigurationReceived(posConfig, "KUDOS")
+        val result = orderManager.onConfigurationReceived(posConfig, "KUDOS", null)
         assertNull(result)
     }
 
     @Test
     fun `all objects is selected by default and shown first`() = runBlocking {
-        orderManager.onConfigurationReceived(posConfig, "KUDOS")
+        orderManager.onConfigurationReceived(posConfig, "KUDOS", null)
         shadowMainLooper().idle()
 
         val categories = orderManager.categories.awaitValue()
@@ -131,7 +131,7 @@ class OrderManagerTest {
         )
         val config = posConfig.copy(products = posConfig.products + uncategorizedProduct)
 
-        orderManager.onConfigurationReceived(config, "KUDOS")
+        orderManager.onConfigurationReceived(config, "KUDOS", null)
         shadowMainLooper().idle()
 
         val categories = orderManager.categories.awaitValue()
@@ -156,7 +156,7 @@ class OrderManagerTest {
             products = posConfig.products + defaultProduct
         )
 
-        orderManager.onConfigurationReceived(config, "KUDOS")
+        orderManager.onConfigurationReceived(config, "KUDOS", null)
         shadowMainLooper().idle()
 
         val categories = orderManager.categories.awaitValue()

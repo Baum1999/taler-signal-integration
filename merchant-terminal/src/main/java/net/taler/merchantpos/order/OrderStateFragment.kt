@@ -26,11 +26,7 @@ import androidx.recyclerview.selection.SelectionPredicates
 import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.LinearLayoutManager
-import net.taler.common.Amount
-import net.taler.lib.android.fadeIn
-import net.taler.lib.android.fadeOut
 import net.taler.merchantpos.MainViewModel
-import net.taler.merchantpos.R
 import net.taler.merchantpos.databinding.FragmentOrderStateBinding
 import net.taler.merchantpos.order.OrderAdapter.OrderLineLookup
 
@@ -86,15 +82,6 @@ class OrderStateFragment : Fragment() {
         liveOrder.order.observe(viewLifecycleOwner) { order ->
             if (order == null) return@observe
             onOrderChanged(order, tracker)
-        }
-        liveOrder.orderTotal.observe(viewLifecycleOwner) { orderTotal: Amount ->
-            if (orderTotal.isZero()) {
-                ui.totalView.fadeOut()
-                ui.totalView.text = null
-            } else {
-                ui.totalView.text = getString(R.string.order_total, orderTotal)
-                ui.totalView.fadeIn()
-            }
         }
     }
 

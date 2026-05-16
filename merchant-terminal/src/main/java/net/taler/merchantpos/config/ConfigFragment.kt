@@ -17,8 +17,6 @@
 package net.taler.merchantpos.config
 
 import android.Manifest
-import android.app.TimePickerDialog
-import android.app.DatePickerDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.Image
@@ -30,10 +28,8 @@ import android.view.View.GONE
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.RadioButton
-import android.widget.TextView
 import android.widget.Toast
+import androidx.core.content.res.use
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector
@@ -47,7 +43,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.google.android.material.button.MaterialButtonToggleGroup
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
@@ -56,16 +52,15 @@ import kotlinx.coroutines.withContext
 import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.R
 import net.taler.merchantpos.databinding.FragmentMerchantConfigBinding
+import net.taler.merchantpos.navigateToInitialOrderScreen
 import androidx.core.view.isVisible
+import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.zxing.*
 import net.taler.merchantpos.MainActivity
-import android.text.format.DateFormat
 import com.google.zxing.common.HybridBinarizer
 import net.taler.common.TokenDuration
 import net.taler.lib.android.ChallengeCancelledException
 import net.taler.lib.android.handleChallengeResponse
-import java.util.Calendar
-import java.util.Locale
 
 /**
  * Fragment that displays merchant settings, either by scanning a QR code
@@ -77,6 +72,7 @@ class ConfigFragment : Fragment() {
     private val configManager by lazy { model.configManager }
 
     private lateinit var ui: FragmentMerchantConfigBinding
+    private var awaitingConfigUpdate = false
 
     private val cameraExecutor by lazy {
         ContextCompat.getMainExecutor(requireContext())
@@ -99,17 +95,11 @@ class ConfigFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        configManager.configUpdateResult.observe(viewLifecycleOwner) { result ->
+            onConfigUpdate(result)
+        }
+
         // 1) Views
-        val neverOption       = ui.root.findViewById<RadioButton>(R.id.neverExpiresOption)
-        val dateOption        = ui.root.findViewById<RadioButton>(R.id.dateExpiresOption)
-        val deadlineLayout    = ui.root.findViewById<View>(R.id.deadlinePickerLayout)
-        val selectDateButton  = ui.root.findViewById<Button>(R.id.selectDateButton)
-        val selectTimeButton  = ui.root.findViewById<Button>(R.id.selectTimeButton)
-        val selectedDeadline  = ui.root.findViewById<TextView>(R.id.selectedDeadline)
-
-        // 2) Shared Calendar instance for storing the deadline
-        val deadlineCal = Calendar.getInstance()
-
         // set initial toggle
         ui.configToggle.check(R.id.newConfigButton)
 
@@ -127,13 +117,8 @@ class ConfigFragment : Fragment() {
         // Only parse URL when user finishes editing (focus lost)
         ui.merchantUrlView.editText!!.setOnFocusChangeListener { v, hasFocus ->
             if (!hasFocus) {
-                parseMerchantUrlAndUpdateFields()
+                sanitizeMerchantUrlAndUpdateFields()
             }
-        }
-
-        ui.forgetTokenButton.setOnClickListener {
-            configManager.forgetPassword()
-            updateView()
         }
 
         // manual configuration OK button
@@ -145,20 +130,14 @@ class ConfigFragment : Fragment() {
                 ui.okNewButton.visibility = INVISIBLE
 
                 // normalize URL
-                val inputUrl = ui.merchantUrlView.editText!!.text.toString()
-                val url = if (inputUrl.startsWith("http")) inputUrl else "https://$inputUrl"
+                val url = sanitizeMerchantUrlAndUpdateFields()
 
                 // retrieve username (may have been set by listener)
                 val username = ui.usernameView.editText!!.text.toString().trim()
                 // initial secret/token from user
                 val initialSecret = ui.tokenView.editText!!.text.toString().trim()
 
-                val duration: TokenDuration = if (neverOption.isChecked) {
-                    TokenDuration.Forever
-                } else {
-                    val microsToDeadline = (deadlineCal.timeInMillis - System.currentTimeMillis()) * 1_000L
-                    TokenDuration.Micros(microsToDeadline)
-                }
+                val duration = TokenDuration.Forever
 
                 // fetch limited write token (with optional 2FA)
                 val limitedToken = try {
@@ -183,40 +162,9 @@ class ConfigFragment : Fragment() {
                     accessToken = limitedToken,
                     savePassword = ui.saveTokenCheckBox.isChecked
                 )
-                configManager.configUpdateResult.observe(viewLifecycleOwner, ::onConfigUpdate)
+                awaitingConfigUpdate = true
                 configManager.fetchConfig(config, true)
             }
-        }
-
-
-        fun updateDeadlineText() {
-            val fmt = java.text.SimpleDateFormat("EEE, d MMM yyyy HH:mm", Locale.getDefault())
-            selectedDeadline.text = fmt.format(deadlineCal.time)
-        }
-
-
-        ui.expiryOptionGroup.setOnCheckedChangeListener { _, checkedId ->
-            deadlineLayout.visibility = if (checkedId == R.id.dateExpiresOption) VISIBLE else GONE
-        }
-
-        selectDateButton.setOnClickListener {
-            val year  = deadlineCal.get(Calendar.YEAR)
-            val month = deadlineCal.get(Calendar.MONTH)
-            val day   = deadlineCal.get(Calendar.DAY_OF_MONTH)
-            DatePickerDialog(requireContext(), { _, y, m, d ->
-                deadlineCal.set(y, m, d)
-                updateDeadlineText()
-            }, year, month, day).show()
-        }
-
-        selectTimeButton.setOnClickListener {
-            val hour   = deadlineCal.get(Calendar.HOUR_OF_DAY)
-            val minute = deadlineCal.get(Calendar.MINUTE)
-            TimePickerDialog(requireContext(), { _, h, min ->
-                deadlineCal.set(Calendar.HOUR_OF_DAY, h)
-                deadlineCal.set(Calendar.MINUTE, min)
-                updateDeadlineText()
-            }, hour, minute, DateFormat.is24HourFormat(requireContext())).show()
         }
 
         updateView(savedInstanceState == null)
@@ -262,14 +210,13 @@ class ConfigFragment : Fragment() {
             if (cfg is Config.New) {
                 if (cfg.merchantUrl.isNotBlank()) {
                     ui.merchantUrlView.editText!!.setText(cfg.merchantUrl)
-                    parseMerchantUrlAndUpdateFields()
+                    sanitizeMerchantUrlAndUpdateFields()
                 }
                 ui.saveTokenCheckBox.isChecked = cfg.savePassword
-                ui.tokenView.editText!!.setText(cfg.accessToken)
             }
         }
 
-        ui.forgetTokenButton.visibility = if (cfg.isValid()) VISIBLE else GONE
+        ui.forgetTokenButton.visibility = GONE
 
         when (cfg) {
             is Config.New -> {
@@ -279,13 +226,18 @@ class ConfigFragment : Fragment() {
         }
     }
 
-    private fun onConfigUpdate(result: ConfigUpdateResult?) = when (result) {
+    private fun onConfigUpdate(result: ConfigUpdateResult?) {
+        if (!awaitingConfigUpdate) return
+        when (result) {
         null -> Unit
         is ConfigUpdateResult.Error -> {
+            awaitingConfigUpdate = false
             onError(result.msg)
         }
         is ConfigUpdateResult.Success -> {
+            awaitingConfigUpdate = false
             onConfigReceived(result.currency)
+        }
         }
     }
 
@@ -293,8 +245,7 @@ class ConfigFragment : Fragment() {
         onResultReceived()
         updateView()
         Snackbar.make(requireView(), getString(R.string.config_changed, currency), LENGTH_LONG).show()
-        findNavController().navigate(R.id.action_instanceSettings_to_amountEntry)
-        configManager.configUpdateResult.removeObservers(viewLifecycleOwner)
+        findNavController().navigateToInitialOrderScreen(configManager)
     }
 
     private fun onError(msg: String) {
@@ -308,22 +259,28 @@ class ConfigFragment : Fragment() {
         ui.okNewButton.visibility = VISIBLE
     }
 
-    private fun parseMerchantUrlAndUpdateFields() {
-        val input =  ui.merchantUrlView.editText!!.text.toString().trim()
-        val uri = input.toUri()
-        // Build base URL: scheme://host[:port]
-        val scheme = uri.scheme ?: ""
-        val host = uri.host ?: ""
+    private fun sanitizeMerchantUrlAndUpdateFields(): String {
+        val rawInput = ui.merchantUrlView.editText!!.text.toString().trim()
+        if (rawInput.isEmpty()) return ""
+
+        val normalizedInput = if (rawInput.startsWith("http://") || rawInput.startsWith("https://")) {
+            rawInput
+        } else {
+            "https://$rawInput"
+        }
+
+        val uri = normalizedInput.toUri()
+        val host = uri.host.orEmpty()
         val port = if (uri.port != -1) ":${uri.port}" else ""
-        val baseUrl = "$scheme://$host$port"
-        // Check for /instances/username
+        val baseHost = "$host$port"
+
         val segments = uri.pathSegments
         if (segments.size >= 2 && segments[0].equals("instances", true)) {
-            //Ensure that the username has been transferred to the username field
             ui.usernameView.editText!!.setText(segments[1])
         }
-        // Ensure merchant URL has only the base
-        ui.merchantUrlView.editText!!.setText(baseUrl)
+
+        ui.merchantUrlView.editText!!.setText(baseHost)
+        return if (baseHost.isBlank()) "" else "https://$baseHost"
     }
 
     private suspend fun fetchLimitedAccessTokenWithMfa(
@@ -366,7 +323,6 @@ class ConfigFragment : Fragment() {
             }
         }
     }
-
 
     // ─── CameraX integration ───────────────────────────────────────────
 

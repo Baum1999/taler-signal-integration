@@ -22,6 +22,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
 import net.taler.common.Amount
 import net.taler.common.CombinedLiveData
+import net.taler.common.CurrencySpecification
 import net.taler.merchantpos.config.Category
 import net.taler.merchantpos.config.ConfigProduct
 import net.taler.merchantpos.order.RestartState.DISABLED
@@ -35,6 +36,7 @@ internal interface LiveOrder {
     val orderTotal: LiveData<Amount>
     val restartState: LiveData<RestartState>
     val modifyOrderAllowed: LiveData<Boolean>
+    val increaseOrderAllowed: LiveData<Boolean>
     val lastAddedProduct: ConfigProduct?
     val selectedProductKey: String?
     fun restartOrUndo()
@@ -46,13 +48,17 @@ internal interface LiveOrder {
 internal class MutableLiveOrder(
     val id: Int,
     private val currency: String,
-    private val productsByCategory: HashMap<Category, ArrayList<ConfigProduct>>
+    private val currencySpec: CurrencySpecification?,
+    private val productsByCategory: HashMap<Category, ArrayList<ConfigProduct>>,
+    private val canAddProduct: (ConfigProduct) -> Boolean,
+    private val onChanged: () -> Unit,
 ) : LiveOrder {
     private val availableCategories: Map<Int, Category>
         get() = productsByCategory.keys.map { it.id to it }.toMap()
     override val order: MutableLiveData<Order?> =
-        MutableLiveData(Order(id, currency, availableCategories))
-    override val orderTotal: LiveData<Amount> = order.map { it?.total ?: Amount.zero(currency) }
+        MutableLiveData(Order(id, currency, currencySpec, availableCategories))
+    override val orderTotal: LiveData<Amount> =
+        order.map { it?.total ?: Amount.zero(currency).withSpec(currencySpec) }
     override val restartState = MutableLiveData(DISABLED)
     private val selectedOrderLine = MutableLiveData<ConfigProduct?>()
     override val selectedProductKey: String?
@@ -61,14 +67,20 @@ internal class MutableLiveOrder(
         CombinedLiveData(restartState, selectedOrderLine) { restartState, selectedOrderLine ->
             restartState != DISABLED && selectedOrderLine != null
         }
+    override val increaseOrderAllowed =
+        CombinedLiveData(order, selectedOrderLine) { order, selectedOrderLine ->
+            order != null && selectedOrderLine != null && canAddProduct(selectedOrderLine)
+        }
     override var lastAddedProduct: ConfigProduct? = null
     private var undoOrder: Order? = null
 
     @UiThread
     internal fun addProduct(product: ConfigProduct) {
+        if (!canAddProduct(product)) return
         lastAddedProduct = product
         order.value = order.value!! + product
         restartState.value = ENABLED
+        onChanged()
     }
 
     @UiThread
@@ -76,6 +88,7 @@ internal class MutableLiveOrder(
         val modifiedOrder = order.value!! - product
         order.value = modifiedOrder
         restartState.value = if (modifiedOrder.products.isEmpty()) DISABLED else ENABLED
+        onChanged()
     }
 
     @UiThread
@@ -89,9 +102,10 @@ internal class MutableLiveOrder(
             undoOrder = null
         } else {
             undoOrder = order.value
-            order.value = Order(id, currency, availableCategories)
+            order.value = Order(id, currency, currencySpec, availableCategories)
             restartState.value = UNDO
         }
+        onChanged()
     }
 
     @UiThread

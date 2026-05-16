@@ -24,13 +24,14 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat.getColor
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.Adapter
-import net.taler.lib.android.toRelativeTime
+import com.google.android.material.button.MaterialButton
 import net.taler.merchantlib.OrderHistoryEntry
 import net.taler.merchantpos.R
 import net.taler.merchantpos.history.HistoryItemAdapter.HistoryItemViewHolder
+import net.taler.lib.android.toRelativeTime
 
 
-internal class HistoryItemAdapter(private val listener: RefundClickListener) :
+internal class HistoryItemAdapter(private val listener: HistoryActionListener) :
     Adapter<HistoryItemViewHolder>() {
 
     private val items = ArrayList<OrderHistoryEntry>()
@@ -60,6 +61,7 @@ internal class HistoryItemAdapter(private val listener: RefundClickListener) :
         private val orderTimeView: TextView = v.findViewById(R.id.orderTimeView)
         private val orderIdView: TextView = v.findViewById(R.id.orderIdView)
         private val refundButton: ImageButton = v.findViewById(R.id.refundButton)
+        private val deleteButton: MaterialButton = v.findViewById(R.id.deleteButton)
 
         private val orderIdColor = orderIdView.currentTextColor
 
@@ -77,9 +79,19 @@ internal class HistoryItemAdapter(private val listener: RefundClickListener) :
             }
             if (item.refundable) {
                 refundButton.visibility = View.VISIBLE
+                deleteButton.visibility = View.GONE
                 refundButton.setOnClickListener { listener.onRefundClicked(item) }
+                deleteButton.setOnClickListener(null)
+            } else if (!item.paid) {
+                refundButton.visibility = View.GONE
+                deleteButton.visibility = View.VISIBLE
+                deleteButton.setOnClickListener { listener.onDeleteClicked(item) }
+                refundButton.setOnClickListener(null)
             } else {
                 refundButton.visibility = View.GONE
+                deleteButton.visibility = View.GONE
+                refundButton.setOnClickListener(null)
+                deleteButton.setOnClickListener(null)
             }
         }
 

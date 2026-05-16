@@ -22,6 +22,7 @@ import androidx.annotation.UiThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.map
+import net.taler.common.CurrencySpecification
 import net.taler.merchantpos.R
 import net.taler.merchantpos.config.Category
 import net.taler.merchantpos.config.ConfigProduct
@@ -39,12 +40,13 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
     }
 
     private lateinit var currency: String
+    private var currencySpec: CurrencySpecification? = null
     private var orderCounter: Int = 0
     private val mCurrentOrderId = MutableLiveData<Int>()
     internal val currentOrderId: LiveData<Int> = mCurrentOrderId
 
     private val productsByCategory = HashMap<Category, ArrayList<ConfigProduct>>()
-
+    private val productsById = HashMap<String, ConfigProduct>()
     private val orders = LinkedHashMap<Int, MutableLiveOrder>()
 
     private val mProducts = MutableLiveData<List<ConfigProduct>>()
@@ -52,19 +54,37 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
 
     private val mCategories = MutableLiveData<List<Category>>()
     internal val categories: LiveData<List<Category>> = mCategories
+    private var currentCategory: Category? = null
 
-    override suspend fun onConfigurationReceived(posConfig: PosConfig, currency: String): String? {
-        // parse categories
+    override suspend fun onConfigurationReceived(
+        posConfig: PosConfig,
+        currency: String,
+        currencySpec: CurrencySpecification?,
+    ): String? = applyConfiguration(posConfig, currency, currencySpec, resetOrders = true)
+
+    override suspend fun onInventoryUpdated(
+        posConfig: PosConfig,
+        currency: String,
+        currencySpec: CurrencySpecification?,
+    ): String? = applyConfiguration(posConfig, currency, currencySpec, resetOrders = false)
+
+    private fun applyConfiguration(
+        posConfig: PosConfig,
+        currency: String,
+        currencySpec: CurrencySpecification?,
+        resetOrders: Boolean,
+    ): String? {
+        val existingProductsByStableKey = productsById.values.associateBy { it.stableKey }
         if (posConfig.categories.isEmpty()) {
             Log.e(TAG, "No valid category found.")
             return context.getString(R.string.config_error_category)
         }
+
+        val selectedCategoryId = if (resetOrders) ALL_PRODUCTS_CATEGORY_ID else currentCategory?.id
         val allProductsCategory = Category(
             ALL_PRODUCTS_CATEGORY_ID,
             context.getString(R.string.product_category_all_objects)
-        ).apply {
-            selected = true
-        }
+        )
         val uncategorizedCategory = Category(
             UNCATEGORIZED_CATEGORY_ID,
             context.getString(R.string.product_category_uncategorized)
@@ -75,14 +95,15 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
             .map { it.id }
             .toSet()
 
-        // group products by categories
         productsByCategory.clear()
+        productsById.clear()
         productsByCategory[allProductsCategory] = ArrayList()
         visibleCategories.forEach { category ->
             category.selected = false
             productsByCategory[category] = ArrayList()
         }
         productsByCategory[uncategorizedCategory] = ArrayList()
+
         posConfig.products.forEach { product ->
             val productCurrency = product.price.currency
             if (productCurrency != currency) {
@@ -91,25 +112,35 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
                     R.string.config_error_currency, product.description, productCurrency, currency
                 )
             }
-            productsByCategory.getValue(allProductsCategory).add(product)
+            val remainingStock = product.stockLimit
+            val productWithSpec = product.copy(
+                id = existingProductsByStableKey[product.stableKey]?.id ?: product.id,
+                price = product.price.withSpec(currencySpec),
+                availableToSell = remainingStock == null || remainingStock > 0,
+                remainingStock = remainingStock,
+            )
+            productsById[productWithSpec.id] = productWithSpec
+            productsByCategory.getValue(allProductsCategory).add(productWithSpec)
             if (product.categories.isEmpty()) {
-                productsByCategory.getValue(uncategorizedCategory).add(product)
+                productsByCategory.getValue(uncategorizedCategory).add(productWithSpec)
             }
             product.categories.forEach { categoryId ->
                 if (categoryId in legacyDefaultCategoryIds) {
-                    productsByCategory.getValue(uncategorizedCategory).add(product)
+                    productsByCategory.getValue(uncategorizedCategory).add(productWithSpec)
                     return@forEach
                 }
                 val category = visibleCategories.find { it.id == categoryId }
                 if (category == null) {
                     Log.e(TAG, "Product $product has unknown category $categoryId")
-                    productsByCategory.getValue(uncategorizedCategory).add(product)
+                    productsByCategory.getValue(uncategorizedCategory).add(productWithSpec)
                 } else {
-                    productsByCategory.getValue(category).add(product)
+                    productsByCategory.getValue(category).add(productWithSpec)
                 }
             }
         }
+
         this.currency = currency
+        this.currencySpec = currencySpec
         val categoryList = buildList {
             add(allProductsCategory)
             addAll(visibleCategories)
@@ -119,13 +150,20 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
                 productsByCategory.remove(uncategorizedCategory)
             }
         }
+        val selectedCategory =
+            categoryList.firstOrNull { it.id == selectedCategoryId } ?: allProductsCategory
+        categoryList.forEach { it.selected = it.id == selectedCategory.id }
+        currentCategory = selectedCategory
         mCategories.postValue(categoryList)
-        mProducts.postValue(productsByCategory[allProductsCategory] ?: emptyList())
-        orders.clear()
-        orderCounter = 0
-        orders[0] = MutableLiveOrder(0, currency, productsByCategory)
-        mCurrentOrderId.postValue(0)
-        return null // success, no error string
+        mProducts.postValue(getVisibleProducts())
+
+        if (resetOrders) {
+            orders.clear()
+            orderCounter = 0
+            orders[0] = createOrder(0)
+            mCurrentOrderId.postValue(0)
+        }
+        return null
     }
 
     @UiThread
@@ -147,12 +185,13 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
         }
         if (nextId == null) {
             nextId = ++orderCounter
-            orders[nextId] = MutableLiveOrder(nextId, currency, productsByCategory)
+            orders[nextId] = createOrder(nextId)
         }
         val currentOrder = order(currentId)
         if (currentOrder.isEmpty()) orders.remove(currentId)
-        else currentOrder.lastAddedProduct = null  // not needed anymore and it would get selected
+        else currentOrder.lastAddedProduct = null
         mCurrentOrderId.value = requireNotNull(nextId)
+        updateVisibleProducts()
     }
 
     @UiThread
@@ -171,11 +210,10 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
             throw AssertionError("Could not find previous order for $currentId")
         }
         val currentOrder = order(currentId)
-        // remove current order if empty, or lastAddedProduct as it is not needed anymore
-        // and would get selected when navigating back instead of last selection
         if (currentOrder.isEmpty()) orders.remove(currentId)
         else currentOrder.lastAddedProduct = null
         mCurrentOrderId.value = requireNotNull(previousId)
+        updateVisibleProducts()
     }
 
     fun hasPreviousOrder(currentOrderId: Int): Boolean {
@@ -187,12 +225,13 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
     }
 
     internal fun setCurrentCategory(category: Category) {
+        currentCategory = category
         val newCategories = categories.value?.apply {
             forEach { if (it.selected) it.selected = false }
             category.selected = true
         }
         mCategories.postValue(newCategories ?: emptyList())
-        mProducts.postValue(productsByCategory[category])
+        updateVisibleProducts()
     }
 
     @UiThread
@@ -207,6 +246,27 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
             else nextOrder()
         }
         orders.remove(orderId)
+        updateVisibleProducts()
+    }
+
+    @UiThread
+    internal fun deleteCurrentOrder() {
+        val currentId = currentOrderId.value ?: return
+        val orderIds = orders.keys.toList()
+        val currentIndex = orderIds.indexOf(currentId)
+        if (currentIndex == -1) return
+
+        orders.remove(currentId)
+        val replacementId = when {
+            orders.isEmpty() -> {
+                orders[currentId] = createOrder(currentId)
+                currentId
+            }
+            currentIndex < orderIds.lastIndex -> orderIds[currentIndex + 1]
+            else -> orderIds[currentIndex - 1]
+        }
+        mCurrentOrderId.value = replacementId
+        updateVisibleProducts()
     }
 
     private fun order(orderId: Int): MutableLiveOrder {
@@ -217,4 +277,47 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
         return category.name.equals(LEGACY_DEFAULT_CATEGORY_NAME, ignoreCase = true)
     }
 
+    private fun createOrder(orderId: Int): MutableLiveOrder {
+        return MutableLiveOrder(
+            orderId,
+            currency,
+            currencySpec,
+            productsByCategory,
+            ::canAddProduct,
+            ::updateVisibleProducts,
+        )
+    }
+
+    private fun getVisibleProducts(): List<ConfigProduct> {
+        val category = currentCategory ?: return emptyList()
+        return productsByCategory[category].orEmpty().map(::decorateProduct)
+    }
+
+    private fun updateVisibleProducts() {
+        mProducts.postValue(getVisibleProducts())
+    }
+
+    private fun decorateProduct(product: ConfigProduct): ConfigProduct {
+        val remainingStock = remainingStock(product)
+        return product.copy(
+            availableToSell = remainingStock == null || remainingStock > 0,
+            remainingStock = remainingStock,
+        )
+    }
+
+    private fun canAddProduct(product: ConfigProduct): Boolean {
+        return remainingStock(product)?.let { it > 0 } ?: true
+    }
+
+    private fun remainingStock(product: ConfigProduct): Int? {
+        val stockLimit = productsById[product.id]?.stockLimit ?: product.stockLimit ?: return null
+        val reserved = orders.values.sumOf { liveOrder ->
+            liveOrder.order.value
+                ?.products
+                ?.find { it.id == product.id }
+                ?.quantity
+                ?: 0
+        }
+        return (stockLimit - reserved).coerceAtLeast(0)
+    }
 }

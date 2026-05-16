@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mfa_challenge_title">Двухфакторная аутентификация</string>
+    <string name="mfa_challenge_message">Код подтверждения отправлен через %1$s (%2$s). Введите код, чтобы продолжить.</string>
+    <string name="mfa_challenge_code_hint">Код подтверждения</string>
+    <string name="mfa_challenge_code_incomplete">Введите все 8 цифр.</string>
+    <string name="mfa_choose_title">Выберите способ подтверждения</string>
+    <string name="mfa_challenge_invalid">Неверный код. Повторите попытку.</string>
+    <string name="mfa_challenge_retry">Слишком много попыток. Отправлен новый код.</string>
+    <string name="mfa_challenge_failed">Проверка не удалась. Повторите попытку позже.</string>
+</resources>

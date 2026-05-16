@@ -24,8 +24,8 @@ import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import net.taler.common.Amount
 import net.taler.common.AmountParserException
+import net.taler.common.Amount
 import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.R
 import net.taler.merchantpos.config.ConfigProduct
@@ -52,12 +52,14 @@ class CustomDialogFragment : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val currency = viewModel.configManager.currency ?: error("No currency")
+        val currencySpec = viewModel.configManager.currencySpec
         ui.currencyView.text = currency
         ui.addButton.setOnClickListener {
             val currentOrderId =
                 viewModel.orderManager.currentOrderId.value ?: return@setOnClickListener
             val amount = try {
                 Amount.fromString(currency, ui.amountLayout.editText!!.text.toString())
+                    .withSpec(currencySpec)
             } catch (e: AmountParserException) {
                 Toast.makeText(requireContext(), R.string.refund_error_invalid_amount, LENGTH_LONG)
                     .show()

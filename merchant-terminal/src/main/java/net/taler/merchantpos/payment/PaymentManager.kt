@@ -95,7 +95,12 @@ class PaymentManager(
             ignoreUnknownKeys = true
         }.encodeToString(request)
         Log.d(TAG, "PostOrderRequest: $requestJson")
-        api.postOrder(merchantConfig, request).handle(::onNetworkError) { orderResponse ->
+        api.postOrder(merchantConfig, request).handle({ error ->
+            if (looksLikeInventoryError(error)) {
+                configManager.refreshInventory()
+            }
+            onNetworkError(error)
+        }) { orderResponse ->
             assertUiThread()
             mPayment.value = mPayment.value!!.copy(orderId = orderResponse.orderId)
             checkTimer.start()
@@ -132,12 +137,20 @@ class PaymentManager(
         cancelPayment(error)
     }
 
+    private fun looksLikeInventoryError(error: String): Boolean {
+        val normalized = error.lowercase()
+        return "inventory" in normalized ||
+            "stock" in normalized ||
+            "insufficient" in normalized ||
+            "sold out" in normalized ||
+            "out of stock" in normalized
+    }
+
     @UiThread
     fun cancelPayment(error: String? = null) {
-        // delete unpaid order
         val merchantConfig = configManager.merchantConfig!!
         mPayment.value?.let { payment ->
-            if (!payment.paid && payment.error != null) payment.orderId?.let { orderId ->
+            if (!payment.paid) payment.orderId?.let { orderId ->
                 Log.d(TAG, "Deleting cancelled and unpaid order $orderId")
                 scope.launch {
                     api.deleteOrder(merchantConfig, orderId)

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mfa_challenge_title">Tvåfaktorsautentisering</string>
+    <string name="mfa_challenge_message">En bekräftelsekod skickades via %1$s (%2$s). Ange koden för att fortsätta.</string>
+    <string name="mfa_challenge_code_hint">Verifieringskod</string>
+    <string name="mfa_challenge_code_incomplete">Ange alla 8 siffror.</string>
+    <string name="mfa_choose_title">Välj verifieringsmetod</string>
+    <string name="mfa_challenge_invalid">Fel kod. Försök igen.</string>
+    <string name="mfa_challenge_retry">För många försök. En ny kod har skickats.</string>
+    <string name="mfa_challenge_failed">Verifieringen misslyckades. Försök igen senare.</string>
+</resources>

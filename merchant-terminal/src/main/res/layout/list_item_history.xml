@@ -45,7 +45,7 @@
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@+id/orderSummaryView"
-        app:layout_constraintEnd_toStartOf="@+id/refundButton"
+        app:layout_constraintEnd_toStartOf="@+id/actionContainer"
         app:layout_constraintStart_toEndOf="@+id/orderSummaryView"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0"
@@ -75,22 +75,38 @@
         android:layout_marginEnd="16dp"
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/refundButton"
+        app:layout_constraintEnd_toStartOf="@+id/actionContainer"
         app:layout_constraintStart_toEndOf="@+id/orderIdView"
         app:layout_constraintTop_toBottomOf="@+id/orderAmountView"
         app:layout_constraintVertical_bias="1.0"
         tools:text="3 hrs. ago" />
 
-    <ImageButton
-        android:id="@+id/refundButton"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:backgroundTint="?colorPrimary"
-        android:contentDescription="@string/history_refund"
+    <FrameLayout
+        android:id="@+id/actionContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_cash_refund"
-        app:tint="?attr/colorOnPrimary" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/refundButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:backgroundTint="?colorPrimary"
+            android:contentDescription="@string/history_refund"
+            app:srcCompat="@drawable/ic_cash_refund"
+            app:tint="?attr/colorOnPrimary" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/deleteButton"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:minWidth="0dp"
+            android:text="@string/order_delete"
+            android:textAllCaps="false"
+            android:visibility="gone" />
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

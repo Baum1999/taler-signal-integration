@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mfa_challenge_title">Autenticazione a due fattori</string>
+    <string name="mfa_challenge_message">Un codice di conferma è stato inviato tramite %1$s (%2$s). Inserisci il codice per continuare.</string>
+    <string name="mfa_challenge_code_hint">Codice di verifica</string>
+    <string name="mfa_challenge_code_incomplete">Inserisci tutte le 8 cifre.</string>
+    <string name="mfa_choose_title">Scegli metodo di verifica</string>
+    <string name="mfa_challenge_invalid">Codice errato. Riprova.</string>
+    <string name="mfa_challenge_retry">Troppi tentativi. È stato inviato un nuovo codice.</string>
+    <string name="mfa_challenge_failed">Verifica non riuscita. Riprova più tardi.</string>
+</resources>

@@ -39,20 +39,35 @@ import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.descriptors.element
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.long
+import kotlinx.serialization.json.longOrNull
 import net.taler.common.ChallengeConfirmRequest
 import net.taler.common.ChallengesResponse
+import net.taler.common.CurrencySpecification
 import net.taler.common.TokenDuration
 import net.taler.common.TokenRequest
 import net.taler.common.Version
-import net.taler.lib.android.getIncompatibleStringOrNull
-import net.taler.merchantlib.ConfigResponse
-import net.taler.merchantlib.MerchantApi
 import net.taler.merchantlib.MerchantConfig
 import net.taler.merchantpos.BuildConfig
 import net.taler.merchantpos.R
+import net.taler.lib.android.getIncompatibleStringOrNull
 
 private const val SETTINGS_NAME = "taler-merchant-terminal"
 
@@ -76,12 +91,31 @@ internal const val OLD_CONFIG_PASSWORD_DEMO = ""
 
 private const val SETTINGS_MERCHANT_URL = "merchantUrl"
 private const val SETTINGS_ACCESS_TOKEN = "accessToken"
+private const val SETTINGS_INITIAL_ORDER_SCREEN = "initialOrderScreen"
 
 internal const val NEW_CONFIG_URL_DEMO = "https://my.taler-ops.ch"
 
 private val VERSION = Version.parse(BuildConfig.BACKEND_API_VERSION)!!
 
 private val TAG = ConfigManager::class.java.simpleName
+
+enum class InitialOrderScreen(val prefValue: String) {
+    AmountEntry("amountEntry"),
+    Inventory("inventory");
+
+    companion object {
+        fun fromPrefValue(value: String?): InitialOrderScreen {
+            return entries.firstOrNull { it.prefValue == value } ?: AmountEntry
+        }
+    }
+}
+
+@kotlinx.serialization.Serializable
+private data class MerchantBackendConfigResponse(
+    val version: String,
+    val currency: String,
+    val currencies: Map<String, CurrencySpecification> = emptyMap(),
+)
 
 /* -- Limited access token -- */
 @kotlinx.serialization.Serializable
@@ -103,14 +137,23 @@ interface ConfigurationReceiver {
     /**
      * Returns null if the configuration was valid, or a error string for user display otherwise.
      */
-    suspend fun onConfigurationReceived(posConfig: PosConfig, currency: String): String?
+    suspend fun onConfigurationReceived(
+        posConfig: PosConfig,
+        currency: String,
+        currencySpec: CurrencySpecification?,
+    ): String?
+
+    suspend fun onInventoryUpdated(
+        posConfig: PosConfig,
+        currency: String,
+        currencySpec: CurrencySpecification?,
+    ): String? = onConfigurationReceived(posConfig, currency, currencySpec)
 }
 
 class ConfigManager(
     private val context: Context,
     private val scope: CoroutineScope,
     private val httpClient: HttpClient,
-    private val api: MerchantApi,
 ) {
 
     private val _sessionExpired = MutableLiveData<Unit>()
@@ -118,6 +161,7 @@ class ConfigManager(
 
     private val prefs = context.getSharedPreferences(SETTINGS_NAME, MODE_PRIVATE)
     private val configurationReceivers = ArrayList<ConfigurationReceiver>()
+    private var inventoryRefreshJob: Job? = null
 
     init {
         migrateLegacyPrefsIfNeeded();
@@ -139,6 +183,20 @@ class ConfigManager(
     var currency: String? = null
         private set
 
+    @Volatile
+    var currencySpec: CurrencySpecification? = null
+        private set
+
+    var initialOrderScreen: InitialOrderScreen
+        get() = InitialOrderScreen.fromPrefValue(
+            prefs.getString(SETTINGS_INITIAL_ORDER_SCREEN, InitialOrderScreen.AmountEntry.prefValue),
+        )
+        set(value) {
+            prefs.edit()
+                .putString(SETTINGS_INITIAL_ORDER_SCREEN, value.prefValue)
+                .apply()
+        }
+
     private val mConfigUpdateResult = MutableLiveData<ConfigUpdateResult?>()
     val configUpdateResult: LiveData<ConfigUpdateResult?> = mConfigUpdateResult
 
@@ -155,12 +213,31 @@ class ConfigManager(
 
     @UiThread
     fun reloadConfig() {
-        fetchConfig(config, true)
+        fetchConfig(config, save = true, inventoryOnly = false, silent = false)
+    }
+
+    @UiThread
+    fun refreshInventory() {
+        inventoryRefreshJob?.cancel()
+        inventoryRefreshJob = scope.launch {
+            delay(350)
+            fetchConfig(config, save = false, inventoryOnly = true, silent = true)
+        }
     }
 
     @UiThread
     fun fetchConfig(config: Config, save: Boolean) {
-        mConfigUpdateResult.value = null
+        fetchConfig(config, save, inventoryOnly = false, silent = false)
+    }
+
+    @UiThread
+    private fun fetchConfig(
+        config: Config,
+        save: Boolean,
+        inventoryOnly: Boolean,
+        silent: Boolean,
+    ) {
+        if (!silent) mConfigUpdateResult.value = null
         val configToSave = if (save) {
             if (config.savePassword()) config else when (val c = config) {
                 //is Config.Old -> c.copy(password = "")
@@ -195,10 +272,16 @@ class ConfigManager(
                     is Config.New -> MerchantConfig(c.merchantUrl, "secret-token:${c.accessToken}")
                 }
 
-                // get config from merchant backend API
-                api.getConfig(merchantConfig.baseUrl).handleSuspend(::onNetworkError) {
-                    onMerchantConfigReceived(configToSave, posConfig, merchantConfig, it)
-                }
+                val backendConfig: MerchantBackendConfigResponse =
+                    httpClient.get(merchantConfig.urlFor("config")).body()
+                onMerchantConfigReceived(
+                    configToSave,
+                    posConfig,
+                    merchantConfig,
+                    backendConfig,
+                    inventoryOnly,
+                    silent,
+                )
             } catch (e: Exception) {
                 Log.e(TAG, "Error retrieving merchant config", e)
                 val msg = if (e is ClientRequestException) {
@@ -209,7 +292,7 @@ class ConfigManager(
                 } else {
                     context.getString(R.string.config_error_malformed)
                 }
-                onNetworkError(msg)
+                if (!silent) onNetworkError(msg)
             }
         }
     }
@@ -219,24 +302,31 @@ class ConfigManager(
         newConfig: Config?,
         posConfig: PosConfig,
         merchantConfig: MerchantConfig,
-        configResponse: ConfigResponse,
+        configResponse: MerchantBackendConfigResponse,
+        inventoryOnly: Boolean,
+        silent: Boolean,
     ) {
         val versionIncompatible =
             VERSION.getIncompatibleStringOrNull(context, configResponse.version)
         if (versionIncompatible != null) {
             Log.e(TAG, "Versions incompatible $configResponse")
-            mConfigUpdateResult.postValue(ConfigUpdateResult.Error(versionIncompatible))
+            if (!silent) mConfigUpdateResult.postValue(ConfigUpdateResult.Error(versionIncompatible))
             return
         }
+        val currencySpec = configResponse.currencies[configResponse.currency]
         for (receiver in configurationReceivers) {
             val result = try {
-                receiver.onConfigurationReceived(posConfig, configResponse.currency)
+                if (inventoryOnly) {
+                    receiver.onInventoryUpdated(posConfig, configResponse.currency, currencySpec)
+                } else {
+                    receiver.onConfigurationReceived(posConfig, configResponse.currency, currencySpec)
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "Error handling configuration by ${receiver::class.java.simpleName}", e)
                 context.getString(R.string.config_error_unknown)
             }
             if (result != null) { // error
-                mConfigUpdateResult.postValue(ConfigUpdateResult.Error(result))
+                if (!silent) mConfigUpdateResult.postValue(ConfigUpdateResult.Error(result))
                 return
             }
         }
@@ -247,7 +337,10 @@ class ConfigManager(
             }
             this@ConfigManager.merchantConfig = merchantConfig
             this@ConfigManager.currency = configResponse.currency
-            mConfigUpdateResult.value = ConfigUpdateResult.Success(configResponse.currency)
+            this@ConfigManager.currencySpec = currencySpec
+            if (!silent) {
+                mConfigUpdateResult.value = ConfigUpdateResult.Success(configResponse.currency)
+            }
         }
     }
 
@@ -342,6 +435,7 @@ class ConfigManager(
         }
         saveConfig(config)
         merchantConfig = null
+        currencySpec = null
     }
 
     @UiThread

@@ -35,7 +35,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val api = MerchantApi(httpClient)
 
     val orderManager = OrderManager(app)
-    val configManager = ConfigManager(app, viewModelScope, httpClient, api).apply {
+    val configManager = ConfigManager(app, viewModelScope, httpClient).apply {
         addConfigurationReceiver(orderManager)
     }
     val paymentManager = PaymentManager(app, configManager, viewModelScope, api)

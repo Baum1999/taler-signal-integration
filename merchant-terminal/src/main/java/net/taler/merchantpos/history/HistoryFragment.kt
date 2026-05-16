@@ -36,14 +36,15 @@ import net.taler.merchantpos.databinding.FragmentMerchantHistoryBinding
 import net.taler.merchantpos.history.HistoryFragmentDirections.Companion.actionGlobalMerchantSettings
 import net.taler.merchantpos.history.HistoryFragmentDirections.Companion.actionNavHistoryToRefundFragment
 
-internal interface RefundClickListener {
+internal interface HistoryActionListener {
     fun onRefundClicked(item: OrderHistoryEntry)
+    fun onDeleteClicked(item: OrderHistoryEntry)
 }
 
 /**
  * Fragment to display the merchant's payment history, received from the backend.
  */
-class HistoryFragment : Fragment(), RefundClickListener {
+class HistoryFragment : Fragment(), HistoryActionListener {
 
     companion object {
         const val TAG = "taler-merchant"
@@ -81,7 +82,7 @@ class HistoryFragment : Fragment(), RefundClickListener {
         })
         historyManager.items.observe(viewLifecycleOwner, { result ->
             when (result) {
-                is HistoryResult.Error -> requireActivity().showError(R.string.error_history, result.msg)
+                is HistoryResult.Error -> requireActivity().showError(result.mainResId, result.msg)
                 is HistoryResult.Success -> historyListAdapter.setData(result.items)
             }.exhaustive
         })
@@ -99,6 +100,10 @@ class HistoryFragment : Fragment(), RefundClickListener {
     override fun onRefundClicked(item: OrderHistoryEntry) {
         refundManager.startRefund(item)
         navigate(actionNavHistoryToRefundFragment())
+    }
+
+    override fun onDeleteClicked(item: OrderHistoryEntry) {
+        historyManager.deleteOrder(item.orderId)
     }
 
 }

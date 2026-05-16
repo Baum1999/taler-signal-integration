@@ -30,6 +30,7 @@ import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.config.ConfigFetcherFragmentDirections.Companion.actionConfigFetcherToMerchantSettings
 import net.taler.merchantpos.databinding.FragmentConfigFetcherBinding
 import net.taler.merchantpos.R
+import net.taler.merchantpos.navigateToInitialOrderScreen
 
 class ConfigFetcherFragment : Fragment() {
 
@@ -63,7 +64,7 @@ class ConfigFetcherFragment : Fragment() {
                 is ConfigUpdateResult.Success -> {
                     if (!navigating) {
                         navigating = true
-                        findNavController().navigate(R.id.action_global_amountEntry)
+                        findNavController().navigateToInitialOrderScreen(configManager)
                     }
                 }
             }

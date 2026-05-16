@@ -25,6 +25,7 @@ import net.taler.common.OrderProduct
 import net.taler.common.TalerUtils
 import net.taler.common.Tax
 import net.taler.merchantlib.MerchantConfig
+import java.math.RoundingMode
 import java.util.UUID
 
 sealed class Config {
@@ -102,9 +103,16 @@ data class ConfigProduct(
     override val image: String? = null,
     override val taxes: Set<Tax>? = null,
     val categories: List<Int>,
-    val quantity: Int = 0
+    val quantity: Int = 0,
+    @SerialName("total_stock")
+    val totalStock: Int? = null,
+    @SerialName("unit_total_stock")
+    val unitTotalStock: String? = null,
+    val availableToSell: Boolean = true,
+    val remainingStock: Int? = null,
 ) : OrderProduct() {
-    val totalPrice by lazy { price * quantity }
+    val totalPrice: Amount
+        get() = (price * quantity).withSpec(price.spec)
     private val normalizedProductName: String?
         get() = productName?.trim()?.takeIf { it.isNotEmpty() }
     private val normalizedDescription: String
@@ -116,7 +124,26 @@ data class ConfigProduct(
             ?.takeIf { it != normalizedDescription }
             ?.let { normalizedDescription }
     val displayPrice: String
-        get() = "${price.toString(showSymbol = false)} ${price.currency}"
+        get() = price.toString()
+    val stableKey: String
+        get() = listOf(
+            productId?.trim().orEmpty(),
+            productName?.trim().orEmpty(),
+            description.trim(),
+            price.currency,
+            price.value.toString(),
+            price.fraction.toString(),
+            categories.joinToString(","),
+        ).joinToString("|")
+    val stockLimit: Int?
+        get() {
+            if (totalStock == -1 || unitTotalStock == "-1") return null
+            totalStock?.let { return it }
+            val decimalStock = unitTotalStock ?: return null
+            return decimalStock.toBigDecimalOrNull()
+                ?.setScale(0, RoundingMode.DOWN)
+                ?.toInt()
+        }
 
     fun toContractProduct() = ContractProduct(
         productId = productId,

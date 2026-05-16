@@ -97,7 +97,7 @@ internal class OrderAdapter : Adapter<OrderViewHolder>() {
                 description.visibility = VISIBLE
                 description.text = productDescription
             }
-            price.text = product.totalPrice.toString(showSymbol = false) + " " + product.totalPrice.currency
+            price.text = product.totalPrice.toString()
 
             // base64 encoded image
             val bitmap = product.image?.base64Bitmap

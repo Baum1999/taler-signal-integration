@@ -46,6 +46,13 @@ class OrderFragment : Fragment() {
     private val paymentManager by lazy { viewModel.paymentManager }
 
     private lateinit var ui: FragmentOrderBinding
+    private var billLabel: String = ""
+    private var currentOrderId: Int? = null
+    private var currentLiveOrder: LiveOrder? = null
+    private var restartOrderItem: MenuItem? = null
+    private var deleteOrderItem: MenuItem? = null
+    private var previousOrderItem: MenuItem? = null
+    private var nextOrderItem: MenuItem? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,14 +65,40 @@ class OrderFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        billLabel = getString(R.string.order_complete)
+        ui.completeButton.text = billLabel
 
         requireActivity().addMenuProvider(object: MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.order, menu)
+                restartOrderItem = menu.findItem(R.id.orderRestart)
+                deleteOrderItem = menu.findItem(R.id.orderDelete)
+                previousOrderItem = menu.findItem(R.id.orderPrevious)
+                nextOrderItem = menu.findItem(R.id.orderNext)
+                updateOrderNavigationActions(currentOrderId)
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when(menuItem.itemId) {
+                    R.id.orderRestart -> {
+                        currentLiveOrder?.restartOrUndo()
+                        true
+                    }
+                    R.id.orderDelete -> {
+                        orderManager.deleteCurrentOrder()
+                        true
+                    }
+
+                    R.id.orderPrevious -> {
+                        orderManager.previousOrder()
+                        true
+                    }
+
+                    R.id.orderNext -> {
+                        orderManager.nextOrder()
+                        true
+                    }
+
                     R.id.reload -> {
                         viewModel.configManager.reloadConfig()
                         Toast.makeText(
@@ -90,9 +123,6 @@ class OrderFragment : Fragment() {
                 .replace(R.id.fragment1, OrderStateFragment())
                 .commit()
         }
-        ui.customButton.setOnClickListener {
-            CustomDialogFragment().show(childFragmentManager, CustomDialogFragment.TAG)
-        }
     }
 
     override fun onStart() {
@@ -105,45 +135,67 @@ class OrderFragment : Fragment() {
     }
 
     private fun onOrderSwitched(orderId: Int, liveOrder: LiveOrder) {
+        currentOrderId = orderId
+        currentLiveOrder = liveOrder
+        updateOrderNavigationActions(orderId)
         // order title
         liveOrder.order.observe(viewLifecycleOwner) { order ->
             if (order == null) return@observe
             activity?.title = getString(R.string.order_label_title, order.title)
         }
-        // restart button
-        ui.restartButton.setOnClickListener { liveOrder.restartOrUndo() }
+        // restart action
         liveOrder.restartState.observe(viewLifecycleOwner) { state ->
             beginDelayedTransition(view as ViewGroup)
             if (state == UNDO) {
-                ui.restartButton.setText(R.string.order_undo)
-                ui.restartButton.isEnabled = true
+                restartOrderItem?.setTitle(R.string.order_undo)
+                restartOrderItem?.isEnabled = true
                 ui.completeButton.isEnabled = false
             } else {
-                ui.restartButton.setText(R.string.order_restart)
-                ui.restartButton.isEnabled = state == ENABLED
+                restartOrderItem?.setTitle(R.string.order_restart)
+                restartOrderItem?.isEnabled = state == ENABLED
                 ui.completeButton.isEnabled = state == ENABLED
+            }
+            deleteOrderItem?.isEnabled =
+                state != RestartState.DISABLED ||
+                    orderManager.hasPreviousOrder(orderId) ||
+                    (orderManager.hasNextOrder(orderId).value == true)
+        }
+        liveOrder.orderTotal.observe(viewLifecycleOwner) { orderTotal ->
+            ui.completeButton.text = if (orderTotal.isZero()) {
+                billLabel
+            } else {
+                getString(R.string.order_complete_with_amount, orderTotal)
             }
         }
         // -1 and +1 buttons
         liveOrder.modifyOrderAllowed.observe(viewLifecycleOwner) { allowed ->
             ui.minusButton.isEnabled = allowed
+        }
+        liveOrder.increaseOrderAllowed.observe(viewLifecycleOwner) { allowed ->
             ui.plusButton.isEnabled = allowed
         }
         ui.minusButton.setOnClickListener { liveOrder.decreaseSelectedOrderLine() }
         ui.plusButton.setOnClickListener { liveOrder.increaseSelectedOrderLine() }
-        // previous and next button
-        ui.prevButton.isEnabled = orderManager.hasPreviousOrder(orderId)
-        orderManager.hasNextOrder(orderId).observe(viewLifecycleOwner) { hasNextOrder ->
-            ui.nextButton.isEnabled = hasNextOrder
+        ui.tipButton.setOnClickListener {
+            CustomDialogFragment().show(childFragmentManager, CustomDialogFragment.TAG)
         }
-        ui.prevButton.setOnClickListener { orderManager.previousOrder() }
-        ui.nextButton.setOnClickListener { orderManager.nextOrder() }
+        // previous and next order actions
+        orderManager.hasNextOrder(orderId).observe(viewLifecycleOwner) { hasNextOrder ->
+            if (currentOrderId == orderId) nextOrderItem?.isEnabled = hasNextOrder
+        }
         // complete button
         ui.completeButton.setOnClickListener {
             val order = liveOrder.order.value ?: return@setOnClickListener
             paymentManager.createPayment(order)
             navigate(actionOrderToProcessPayment())
         }
+    }
+
+    private fun updateOrderNavigationActions(orderId: Int?) {
+        previousOrderItem?.isEnabled = orderId?.let { orderManager.hasPreviousOrder(it) } ?: false
+        nextOrderItem?.isEnabled = orderId?.let {
+            orderManager.hasNextOrder(it).value ?: false
+        } ?: false
     }
 
 }

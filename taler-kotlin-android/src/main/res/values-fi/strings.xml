@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mfa_challenge_title">Kaksivaiheinen tunnistautuminen</string>
+    <string name="mfa_challenge_message">Vahvistuskoodi lähetettiin kanavalla %1$s (%2$s). Jatka syöttämällä koodi.</string>
+    <string name="mfa_challenge_code_hint">Vahvistuskoodi</string>
+    <string name="mfa_challenge_code_incomplete">Syötä kaikki 8 numeroa.</string>
+    <string name="mfa_choose_title">Valitse vahvistustapa</string>
+    <string name="mfa_challenge_invalid">Virheellinen koodi. Yritä uudelleen.</string>
+    <string name="mfa_challenge_retry">Liian monta yritystä. Uusi koodi on lähetetty.</string>
+    <string name="mfa_challenge_failed">Vahvistus epäonnistui. Yritä myöhemmin uudelleen.</string>
+</resources>

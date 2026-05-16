@@ -19,4 +19,12 @@
     <string name="close">Fermer</string>
     <string name="share">Partager</string>
     <string name="copy">Copier</string>
+    <string name="mfa_challenge_title">Authentification à deux facteurs</string>
+    <string name="mfa_challenge_message">Un code de confirmation a été envoyé via %1$s (%2$s). Saisissez le code pour continuer.</string>
+    <string name="mfa_challenge_code_hint">Code de vérification</string>
+    <string name="mfa_challenge_code_incomplete">Saisissez les 8 chiffres.</string>
+    <string name="mfa_choose_title">Choisir la méthode de vérification</string>
+    <string name="mfa_challenge_invalid">Code incorrect. Veuillez réessayer.</string>
+    <string name="mfa_challenge_retry">Trop de tentatives. Un nouveau code a été envoyé.</string>
+    <string name="mfa_challenge_failed">La vérification a échoué. Veuillez réessayer plus tard.</string>
 </resources>

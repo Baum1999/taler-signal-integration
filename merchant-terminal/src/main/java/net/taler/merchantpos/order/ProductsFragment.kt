@@ -25,8 +25,11 @@ import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import com.google.android.material.card.MaterialCardView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.recyclerview.widget.AsyncListDiffer
+import androidx.recyclerview.widget.DiffUtil.ItemCallback
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
@@ -76,6 +79,7 @@ class ProductsFragment : Fragment(), ProductSelectionListener {
 
     override fun onProductSelected(product: ConfigProduct) {
         orderManager.addProduct(orderManager.currentOrderId.value!!, product)
+        viewModel.configManager.refreshInventory()
     }
 
 }
@@ -83,10 +87,31 @@ class ProductsFragment : Fragment(), ProductSelectionListener {
 private class ProductAdapter(
     private val listener: ProductSelectionListener
 ) : Adapter<ProductViewHolder>() {
+    init {
+        setHasStableIds(true)
+    }
 
-    private val products = ArrayList<ConfigProduct>()
+    private val itemCallback = object : ItemCallback<ConfigProduct>() {
+        override fun areItemsTheSame(oldItem: ConfigProduct, newItem: ConfigProduct): Boolean {
+            return oldItem.stableKey == newItem.stableKey
+        }
 
-    override fun getItemCount() = products.size
+        override fun areContentsTheSame(oldItem: ConfigProduct, newItem: ConfigProduct): Boolean {
+            return oldItem.displayName == newItem.displayName &&
+                oldItem.displayDescription == newItem.displayDescription &&
+                oldItem.displayPrice == newItem.displayPrice &&
+                oldItem.image == newItem.image &&
+                oldItem.availableToSell == newItem.availableToSell &&
+                oldItem.remainingStock == newItem.remainingStock
+        }
+    }
+    private val differ = AsyncListDiffer(this, itemCallback)
+
+    override fun getItemCount() = differ.currentList.size
+
+    override fun getItemId(position: Int): Long {
+        return differ.currentList[position].stableKey.hashCode().toLong()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
         val view =
@@ -95,13 +120,11 @@ private class ProductAdapter(
     }
 
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
-        holder.bind(products[position])
+        holder.bind(differ.currentList[position])
     }
 
     fun setItems(items: List<ConfigProduct>) {
-        products.clear()
-        products.addAll(items)
-        notifyDataSetChanged()
+        differ.submitList(items.toList())
     }
 
     inner class ProductViewHolder(private val v: View) : ViewHolder(v) {
@@ -109,6 +132,8 @@ private class ProductAdapter(
         private val description: TextView = v.findViewById(R.id.description)
         private val price: TextView = v.findViewById(R.id.price)
         private val image: ImageView = v.findViewById(R.id.image)
+        private val unavailable: TextView = v.findViewById(R.id.unavailableLabel)
+        private val card: MaterialCardView = v as MaterialCardView
 
         fun bind(product: ConfigProduct) {
             name.text = product.displayName
@@ -130,7 +155,18 @@ private class ProductAdapter(
                 image.setImageBitmap(bitmap)
             }
 
-            v.setOnClickListener { listener.onProductSelected(product) }
+            unavailable.visibility = if (product.availableToSell) GONE else VISIBLE
+            unavailable.text = when {
+                product.availableToSell -> ""
+                product.remainingStock == 0 -> v.context.getString(R.string.product_out_of_stock)
+                else -> v.context.getString(R.string.product_unavailable)
+            }
+            card.isEnabled = product.availableToSell
+            v.isEnabled = product.availableToSell
+            v.alpha = if (product.availableToSell) 1f else 0.5f
+            v.setOnClickListener {
+                if (product.availableToSell) listener.onProductSelected(product)
+            }
         }
     }
 
