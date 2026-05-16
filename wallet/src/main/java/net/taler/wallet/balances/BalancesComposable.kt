@@ -29,10 +29,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Autorenew
+import androidx.compose.material.icons.filled.Percent
 import androidx.compose.material3.Badge
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -73,6 +73,8 @@ fun BalancesComposable(
     onBalanceClicked: (balance: BalanceItem) -> Unit,
     onPendingClicked: (balance: BalanceItem) -> Unit,
     onStatementClicked: (host: String) -> Unit,
+    onShowDiscounts: () -> Unit,
+    onShowPasses: () -> Unit,
 ) {
     if (state.showWelcome()) {
         EmptyBalancesComposable(
@@ -89,9 +91,7 @@ fun BalancesComposable(
         is BalanceState.Loading -> LoadingScreen()
         is BalanceState.Error -> ErrorComposable(state.error,
             devMode = devMode,
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()))
+            modifier = Modifier.fillMaxSize())
         is BalanceState.Success -> LazyColumn(
             Modifier
                 .consumeWindowInsets(innerPadding)
@@ -115,6 +115,38 @@ fun BalancesComposable(
                     statement,
                     onClick = { onStatementClicked(statement.donauBaseUrl) },
                 )
+            }
+
+            stickyHeader {
+                SectionHeader { Text(stringResource(R.string.balances_section_tokens)) }
+            }
+
+            item {
+                OutlinedCard(Modifier.cardPaddings()) {
+                    ListItem(
+                        modifier = Modifier.clickable { onShowDiscounts() },
+                        leadingContent = { Icon(Icons.Default.Percent, contentDescription = null) },
+                        headlineContent = {
+                            Text(
+                                stringResource(R.string.discounts_title),
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                        },
+                    )
+                }
+            }
+
+            item {
+                OutlinedCard(Modifier.cardPaddings()) {
+                    ListItem(
+                        modifier = Modifier.clickable { onShowPasses() },
+                        leadingContent = { Icon(Icons.Default.Autorenew, contentDescription = null) },
+                        headlineContent = {
+                            Text(stringResource(R.string.passes_title),
+                                style = MaterialTheme.typography.titleMedium)
+                        }
+                    )
+                }
             }
         }
 
@@ -325,6 +357,8 @@ fun BalancesComposablePreview() {
             onBalanceClicked = {},
             onPendingClicked = {},
             onStatementClicked = {},
+            onShowDiscounts = {},
+            onShowPasses = {},
         )
     }
 }
@@ -344,6 +378,8 @@ fun BalancesComposableErrorPreview() {
             onBalanceClicked = {},
             onPendingClicked = {},
             onStatementClicked = {},
+            onShowDiscounts = {},
+            onShowPasses = {},
         )
     }
 }
@@ -362,6 +398,8 @@ fun BalancesComposableEmptyPreview() {
             onBalanceClicked = {},
             onPendingClicked = {},
             onStatementClicked = {},
+            onShowDiscounts = {},
+            onShowPasses = {},
         )
     }
 }

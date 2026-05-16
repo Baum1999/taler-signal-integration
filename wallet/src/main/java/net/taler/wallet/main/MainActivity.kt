@@ -133,6 +133,7 @@ class MainActivity : FragmentActivity() {
                     WalletNavHost(
                         navController = navController,
                         model = model,
+                        modifier = Modifier.fillMaxSize(),
                         launchUri = launchUri,
                         onScanQr = { model.scanCode() },
                         onFulfillPayment = { url: String -> launchInAppBrowser(this@MainActivity, url) },

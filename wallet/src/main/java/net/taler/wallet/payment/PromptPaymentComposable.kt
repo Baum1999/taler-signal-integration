@@ -30,11 +30,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Autorenew
 import androidx.compose.material.icons.filled.Error
@@ -133,51 +132,56 @@ fun PromptPaymentComposable(
             .fillMaxSize()
             .imePadding(),
     ) {
-        Column(
+        var orderExpanded by rememberSaveable {
+            mutableStateOf(contractTerms is ContractTerms.V0)
+        }
+        var choicesExpanded by rememberSaveable { mutableStateOf(true) }
+        var selectedIndex by rememberSaveable { mutableIntStateOf(status.defaultChoiceIndex ?: 0) }
+        var donauStatus: DonauStatus by remember { mutableStateOf(DonauStatus.Unavailable) }
+
+        LazyColumn(
             Modifier
                 .weight(1f)
-                .verticalScroll(rememberScrollState())
                 .fillMaxWidth(),
         ) {
-            MerchantSection(contractTerms, onClickImage)
+            item { MerchantSection(contractTerms, onClickImage) }
 
             // REVIEW ORDER SECTION
-            var orderExpanded by rememberSaveable {
-                mutableStateOf(contractTerms is ContractTerms.V0)
-            }
-
-            ExpandableSection(
-                expanded = orderExpanded,
-                setExpanded = { orderExpanded = it },
-                header = { Text(stringResource(R.string.payment_section_review)) },
-            ) {
-                OrderSection(contractTerms, onClickImage)
+            item {
+                ExpandableSection(
+                    expanded = orderExpanded,
+                    setExpanded = { orderExpanded = it },
+                    header = { Text(stringResource(R.string.payment_section_review)) },
+                ) {
+                    OrderSection(contractTerms, onClickImage)
+                }
             }
 
             // PAYMENT OPTIONS SECTION
             if (contractTerms is ContractTerms.V1) {
-                var choicesExpanded by rememberSaveable { mutableStateOf(true) }
-                var selectedIndex by rememberSaveable { mutableIntStateOf(status.defaultChoiceIndex ?: 0) }
-                var donauStatus: DonauStatus by remember { mutableStateOf(DonauStatus.Unavailable) }
-                ExpandableSection(
-                    expanded = choicesExpanded,
-                    setExpanded = { choicesExpanded = it },
-                    header = { Text(stringResource(R.string.payment_section_choices)) },
-                ) {
-                    ChoicesSection(
-                        status = status,
-                        tokenFamilies = contractTerms.tokenFamilies,
-                        selectedIndex = selectedIndex,
-                        merchantBaseUrl = contractTerms.merchantBaseUrl,
-                        onSelect = { index -> selectedIndex = index },
-                        onConfirm = onConfirm,
-                        donauStatus = donauStatus,
-                        onSetupDonau = onSetupDonau,
-                    )
+                item {
+                    ExpandableSection(
+                        expanded = choicesExpanded,
+                        setExpanded = { choicesExpanded = it },
+                        header = { Text(stringResource(R.string.payment_section_choices)) },
+                    ) {
+                        ChoicesSection(
+                            status = status,
+                            tokenFamilies = contractTerms.tokenFamilies,
+                            selectedIndex = selectedIndex,
+                            merchantBaseUrl = contractTerms.merchantBaseUrl,
+                            onSelect = { index -> selectedIndex = index },
+                            onConfirm = onConfirm,
+                            donauStatus = donauStatus,
+                            onSetupDonau = onSetupDonau,
+                        )
+                    }
                 }
 
-                LaunchedEffect(selectedIndex) {
-                    donauStatus = checkDonauStatus(selectedIndex)
+                item {
+                    LaunchedEffect(selectedIndex) {
+                        donauStatus = checkDonauStatus(selectedIndex)
+                    }
                 }
             }
         }

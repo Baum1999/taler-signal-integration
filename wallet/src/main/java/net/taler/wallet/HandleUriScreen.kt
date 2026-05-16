@@ -18,9 +18,8 @@ package net.taler.wallet
 
 import android.net.Uri
 import android.util.Log
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -52,6 +51,7 @@ fun HandleUriScreen(
     uriString: String,
     onNavigate: NavigateCallback,
     onNavigateBack: () -> Unit,
+    onShowError: (error: TalerErrorInfo) -> Unit,
 ) {
     var processing by remember { mutableStateOf(false) }
     var errorInfo by remember { mutableStateOf<TalerErrorInfo?>(null) }
@@ -157,21 +157,21 @@ fun HandleUriScreen(
         }
     }
 
-    val currentError = errorInfo
-    if (currentError != null) {
-        ErrorComposable(
-            error = currentError,
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-            devMode = devMode,
-            onClose = onNavigateBack,
-        )
-    } else if (networkStatus == true) {
-        LoadingScreen()
-    } else {
-        RetryScreen {
-            processTalerUri()
+    LaunchedEffect(errorInfo) {
+        val currentError = errorInfo
+        if (currentError != null) {
+            onShowError(currentError)
+            onNavigateBack()
+        }
+    }
+
+    Box(Modifier.fillMaxSize()) {
+        if (networkStatus == true) {
+            LoadingScreen()
+        } else {
+            RetryScreen {
+                processTalerUri()
+            }
         }
     }
 }

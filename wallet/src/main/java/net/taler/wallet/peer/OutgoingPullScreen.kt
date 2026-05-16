@@ -16,6 +16,7 @@
 
 package net.taler.wallet.peer
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -83,6 +84,7 @@ fun OutgoingPullScreen(
     TalerSurface {
         GlobalScaffold(
             model = model,
+            modifier = Modifier.fillMaxSize(),
             title = { Text(stringResource(R.string.receive_peer_title)) },
             onNavigateBack = onNavigateBack,
         ) { paddingValues ->

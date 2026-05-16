@@ -17,6 +17,7 @@
 package net.taler.wallet.payment
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -87,6 +88,7 @@ fun PayTemplateScreen(
     TalerSurface {
         GlobalScaffold(
             model = model,
+            modifier = Modifier.fillMaxSize(),
             title = { Text(stringResource(R.string.payment_pay_template_title)) },
             onNavigateBack = onNavigateBack,
         ) { paddingValues ->

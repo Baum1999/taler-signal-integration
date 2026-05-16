@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -62,6 +63,7 @@ fun GlobalScaffold(
     actions: @Composable RowScope.() -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
     bottomBar: @Composable () -> Unit = {},
+    tabs: @Composable () -> Unit = {},
     snackbarHost: @Composable () -> Unit = {},
     contentWindowInsets: WindowInsets = ScaffoldDefaults.contentWindowInsets.exclude(
         WindowInsets.systemBars.only(WindowInsetsSides.Bottom),
@@ -78,6 +80,7 @@ fun GlobalScaffold(
 
     Scaffold(
         modifier = modifier
+            .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             Column {
@@ -115,6 +118,8 @@ fun GlobalScaffold(
                         scrollBehavior = scrollBehavior,
                     )
                 }
+
+                tabs()
 
                 if (online != null && !online.value) Text(
                     text = stringResource(R.string.offline_banner),

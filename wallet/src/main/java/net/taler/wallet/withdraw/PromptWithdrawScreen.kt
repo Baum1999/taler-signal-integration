@@ -38,6 +38,7 @@ import net.taler.wallet.main.ViewMode
 import androidx.compose.material3.Text
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import net.taler.wallet.NavigateCallback
 
@@ -124,6 +125,7 @@ fun PromptWithdrawScreen(
 
     GlobalScaffold(
         model = model,
+        modifier = Modifier.fillMaxSize(),
         title = {
             Text(
                 status.selectedSpec?.symbol?.let { symbol ->

@@ -20,6 +20,7 @@ import android.graphics.Bitmap
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
@@ -86,6 +87,7 @@ fun PromptPaymentScreen(
 
     GlobalScaffold(
         model = model,
+        modifier = Modifier.fillMaxSize(),
         title = { Text(stringResource(R.string.payment_title)) },
         onNavigateBack = onNavigateBack,
     ) { paddingValues ->

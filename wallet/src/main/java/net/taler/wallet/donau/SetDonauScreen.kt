@@ -80,6 +80,7 @@ fun SetDonauScreen(
     TalerSurface {
         GlobalScaffold(
             model = model,
+            modifier = Modifier.fillMaxSize(),
             onNavigateBack = onNavigateBack,
             title = { Text(stringResource(R.string.donau_title)) },
         ) { paddingValues ->

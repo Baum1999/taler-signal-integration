@@ -19,6 +19,7 @@ package net.taler.wallet.main
 import android.content.ClipboardManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -139,6 +140,7 @@ fun MainScreen(
 
     GlobalScaffold(
         model = model,
+        modifier = Modifier.fillMaxSize(),
         title = tabTitle?.let { { Text(it) } },
         navigationIcon = if (selectionMode) {
             {
@@ -259,6 +261,7 @@ fun MainScreen(
         when (tab) {
             MainTab.ASSETS -> AnimatedContent(
                 targetState = viewMode,
+                modifier = Modifier.fillMaxSize(),
                 label = "MainViewMode",
             ) { targetViewMode ->
                 when (targetViewMode) {

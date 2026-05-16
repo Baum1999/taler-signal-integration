@@ -16,6 +16,7 @@
 
 package net.taler.wallet.peer
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -69,6 +70,7 @@ fun IncomingPushPaymentScreen(
     TalerSurface {
         GlobalScaffold(
             model = model,
+            modifier = Modifier.fillMaxSize(),
             title = { Text(stringResource(R.string.receive_peer_payment_title)) },
             onNavigateBack = onNavigateBack,
         ) { paddingValues ->

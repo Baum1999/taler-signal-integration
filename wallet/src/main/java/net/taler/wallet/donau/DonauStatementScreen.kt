@@ -17,8 +17,6 @@
 package net.taler.wallet.donau
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,6 +54,7 @@ fun DonauStatementScreen(
     TalerSurface {
         GlobalScaffold(
             model = model,
+            modifier = Modifier.fillMaxSize(),
             onNavigateBack = onNavigateBack,
             title = { Text(stringResource(R.string.donau_statement_title)) },
         ) { paddingValues ->
@@ -67,8 +66,7 @@ fun DonauStatementScreen(
                     error = s.error,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues)
-                        .verticalScroll(rememberScrollState()),
+                        .padding(paddingValues),
                     devMode = devMode,
                 )
 

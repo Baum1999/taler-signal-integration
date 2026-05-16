@@ -19,9 +19,11 @@ package net.taler.wallet.transactions
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -118,142 +120,164 @@ fun TransactionDetailScreen(
         onNavigateBack = onNavigateBack,
     ) { paddingValues ->
         val t by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
-        val modifier = Modifier.padding(paddingValues)
-        when (destination) {
-            is WalletDestination.TransactionPayment -> {
-                (t as? TransactionPayment)?.let { tx ->
-                    TransactionPaymentComposable(
-                        modifier = modifier,
-                        t = tx,
-                        devMode = devMode,
-                        spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
-                        onFulfill = { url ->
-                            launchInAppBrowser(context, url)
-                        },
-                        onTransition = { action ->
-                            handleTransactionAction(tx, action, model, onNavigateBack)
-                        }
-                    )
-                }
-            }
-            is WalletDestination.TransactionWithdrawal -> {
-                (t as? TransactionWithdrawal)?.let { tx ->
-                    val qrCode = remember(tx) {
-                        (tx.withdrawalDetails as? WithdrawalDetails.ManualTransfer)?.let { details ->
-                            if (details.exchangeCreditAccountDetails?.size == 1) {
-                                val account0 = details.exchangeCreditAccountDetails[0]
-                                val qrCodes = withdrawManager.getQrCodesForPayto(account0.paytoUri)
-                                if (qrCodes.size == 1) qrCodes[0]
-                                else null
-                            } else null
-                        }
-                    }
-
-                    TransactionWithdrawalComposable(
-                        modifier = modifier,
-                        t = tx,
-                        devMode = devMode,
-                        spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
-                        qrCode = qrCode,
-                        onConfirmKyc = { url ->
-                            launchInAppBrowser(context, url)
-                        },
-                        onConfirmBank = {
-                            if (tx.withdrawalDetails is WithdrawalDetails.TalerBankIntegrationApi) {
-                                tx.withdrawalDetails.bankConfirmationUrl?.let { url ->
-                                    launchInAppBrowser(context, url)
-                                }
+        val modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+        Box(Modifier.fillMaxSize()) {
+            when (destination) {
+                is WalletDestination.TransactionPayment -> {
+                    (t as? TransactionPayment)?.let { tx ->
+                        TransactionPaymentComposable(
+                            modifier = modifier,
+                            t = tx,
+                            devMode = devMode,
+                            spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
+                            onFulfill = { url ->
+                                launchInAppBrowser(context, url)
+                            },
+                            onTransition = { action ->
+                                handleTransactionAction(tx, action, model, onNavigateBack)
                             }
-                        },
-                        onConfirmManual = {
-                            keepSelectedTx = true
-                            onNavigate(WalletDestination.WireTransferDetails(false), false)
-                        },
-                        onShowQrCodes = {
-                            keepSelectedTx = true
-                            onNavigate(WalletDestination.WireTransferDetails(true), false)
-                        },
-                        onTransition = { action ->
-                            handleTransactionAction(tx, action, model, onNavigateBack)
+                        )
+                    }
+                }
+
+                is WalletDestination.TransactionWithdrawal -> {
+                    (t as? TransactionWithdrawal)?.let { tx ->
+                        val qrCode = remember(tx) {
+                            (tx.withdrawalDetails as? WithdrawalDetails.ManualTransfer)?.let { details ->
+                                if (details.exchangeCreditAccountDetails?.size == 1) {
+                                    val account0 = details.exchangeCreditAccountDetails[0]
+                                    val qrCodes = withdrawManager.getQrCodesForPayto(account0.paytoUri)
+                                    if (qrCodes.size == 1) qrCodes[0]
+                                    else null
+                                } else null
+                            }
                         }
-                    )
+
+                        TransactionWithdrawalComposable(
+                            modifier = modifier,
+                            t = tx,
+                            devMode = devMode,
+                            spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
+                            qrCode = qrCode,
+                            onConfirmKyc = { url ->
+                                launchInAppBrowser(context, url)
+                            },
+                            onConfirmBank = {
+                                if (tx.withdrawalDetails is WithdrawalDetails.TalerBankIntegrationApi) {
+                                    tx.withdrawalDetails.bankConfirmationUrl?.let { url ->
+                                        launchInAppBrowser(context, url)
+                                    }
+                                }
+                            },
+                            onConfirmManual = {
+                                keepSelectedTx = true
+                                onNavigate(WalletDestination.WireTransferDetails(false), false)
+                            },
+                            onShowQrCodes = {
+                                keepSelectedTx = true
+                                onNavigate(WalletDestination.WireTransferDetails(true), false)
+                            },
+                            onTransition = { action ->
+                                handleTransactionAction(tx, action, model, onNavigateBack)
+                            }
+                        )
+                    }
                 }
-            }
-            is WalletDestination.TransactionDeposit -> {
-                (t as? TransactionDeposit)?.let { tx ->
-                    TransactionDepositComposable(
-                        modifier = modifier,
-                        t = tx,
-                        devMode = devMode,
-                        spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
-                        onWireTransfer = { onNavigate(WalletDestination.WireTransferDetails(false), false) },
-                        onShowQrCodes = { onNavigate(WalletDestination.WireTransferDetails(true), false) },
-                        onTransition = {
+
+                is WalletDestination.TransactionDeposit -> {
+                    (t as? TransactionDeposit)?.let { tx ->
+                        TransactionDepositComposable(
+                            modifier = modifier,
+                            t = tx,
+                            devMode = devMode,
+                            spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
+                            onWireTransfer = {
+                                onNavigate(
+                                    WalletDestination.WireTransferDetails(false),
+                                    false
+                                )
+                            },
+                            onShowQrCodes = {
+                                onNavigate(
+                                    WalletDestination.WireTransferDetails(true),
+                                    false
+                                )
+                            },
+                            onTransition = {
+                                handleTransactionAction(tx, it, model, onNavigateBack)
+                            },
+                        )
+                    }
+                }
+
+                is WalletDestination.TransactionRefund -> {
+                    (t as? TransactionRefund)?.let { tx ->
+                        TransactionRefundComposable(
+                            modifier = modifier,
+                            t = tx,
+                            devMode = devMode,
+                            spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
+                            onTransition = {
+                                handleTransactionAction(tx, it, model, onNavigateBack)
+                            },
+                        )
+                    }
+                }
+
+                is WalletDestination.TransactionRefresh -> {
+                    (t as? TransactionRefresh)?.let { tx ->
+                        TransactionRefreshComposable(
+                            modifier = modifier,
+                            t = tx,
+                            devMode = devMode,
+                            spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
+                        ) {
                             handleTransactionAction(tx, it, model, onNavigateBack)
-                        },
-                    )
+                        }
+                    }
                 }
-            }
-            is WalletDestination.TransactionRefund -> {
-                (t as? TransactionRefund)?.let { tx ->
-                    TransactionRefundComposable(
-                        modifier = modifier,
-                        t = tx,
-                        devMode = devMode,
-                        spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
-                        onTransition = {
+
+                is WalletDestination.TransactionPeer -> {
+                    val tx = t
+                    if (tx != null) {
+                        TransactionPeerComposable(
+                            modifier = modifier,
+                            t = tx,
+                            devMode = devMode,
+                            spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
+                            onConfirmKyc = { url -> launchInAppBrowser(context, url) }
+                        ) {
                             handleTransactionAction(tx, it, model, onNavigateBack)
-                        },
-                    )
-                }
-            }
-            is WalletDestination.TransactionRefresh -> {
-                (t as? TransactionRefresh)?.let { tx ->
-                    TransactionRefreshComposable(
-                        modifier = modifier,
-                        t = tx,
-                        devMode = devMode,
-                        spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
-                    ) {
-                        handleTransactionAction(tx, it, model, onNavigateBack)
+                        }
                     }
                 }
-            }
-            is WalletDestination.TransactionPeer -> {
-                val tx = t
-                if (tx != null) {
-                    TransactionPeerComposable(
-                        modifier = modifier,
-                        t = tx,
-                        devMode = devMode,
-                        spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
-                        onConfirmKyc = { url -> launchInAppBrowser(context, url) }
-                    ) {
-                        handleTransactionAction(tx, it, model, onNavigateBack)
+
+                is WalletDestination.TransactionLoss -> {
+                    (t as? TransactionDenomLoss)?.let { tx ->
+                        TransitionLossComposable(
+                            modifier = modifier,
+                            t = tx,
+                            devMode = devMode,
+                            spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes)
+                        ) {
+                            handleTransactionAction(tx, it, model, onNavigateBack)
+                        }
                     }
                 }
-            }
-            is WalletDestination.TransactionLoss -> {
-                (t as? TransactionDenomLoss)?.let { tx ->
-                    TransitionLossComposable(
-                        modifier = modifier,
-                        t = tx,
-                        devMode = devMode,
-                        spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes)
-                    ) {
-                        handleTransactionAction(tx, it, model, onNavigateBack)
+
+                is WalletDestination.TransactionDummy -> {
+                    (t as? DummyTransaction)?.let { tx ->
+                        TransactionDummyComposable(
+                            modifier = modifier,
+                            t = tx,
+                        )
                     }
                 }
+
+                else -> {}
             }
-            is WalletDestination.TransactionDummy -> {
-                (t as? DummyTransaction)?.let { tx ->
-                    TransactionDummyComposable(
-                        modifier = modifier,
-                        t = tx,
-                    )
-                }
-            }
-            else -> {}
         }
     }
 }

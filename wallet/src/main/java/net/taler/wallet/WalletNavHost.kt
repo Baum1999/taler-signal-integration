@@ -22,6 +22,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
@@ -117,7 +118,7 @@ fun WalletNavHost(
     NavHost(
         navController = navController,
         startDestination = startDestination,
-        modifier = modifier,
+        modifier = modifier.fillMaxSize(),
         enterTransition = {
             fadeIn(tween(250))
         },
@@ -147,6 +148,7 @@ fun WalletNavHost(
                 uriString = dest.uri,
                 onNavigate = onNavigate,
                 onNavigateBack = onNavigateBack,
+                onShowError = onShowError,
             )
         }
         composable<WalletDestination.PromptWithdraw> { backStackEntry ->

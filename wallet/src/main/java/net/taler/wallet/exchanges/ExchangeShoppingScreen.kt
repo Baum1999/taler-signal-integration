@@ -18,6 +18,7 @@ package net.taler.wallet.exchanges
 
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -72,6 +73,7 @@ fun ExchangeShoppingScreen(
     TalerSurface {
         GlobalScaffold(
             model = model,
+            modifier = Modifier.fillMaxSize(),
             onNavigateBack = onNavigateBack,
         ) { paddingValues ->
             Box(Modifier.padding(paddingValues)) {

@@ -82,6 +82,7 @@ fun ExchangeListScreen(
 
     GlobalScaffold(
         model = model,
+        modifier = Modifier.fillMaxSize(),
         onNavigateBack = onNavigateBack,
         title = { Text(stringResource(R.string.exchange_list_title)) },
         floatingActionButton = {

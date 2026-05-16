@@ -16,6 +16,7 @@
 
 package net.taler.wallet.transfer
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -61,6 +62,7 @@ fun WireTransferDetailsScreen(
 
     GlobalScaffold(
         model = model,
+        modifier = Modifier.fillMaxSize(),
         title = { Text(stringResource(R.string.wire_transfer)) },
         onNavigateBack = onNavigateBack,
     ) { paddingValues ->

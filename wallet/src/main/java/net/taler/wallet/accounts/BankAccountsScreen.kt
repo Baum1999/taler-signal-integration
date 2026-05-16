@@ -23,8 +23,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Add
@@ -89,6 +87,7 @@ fun BankAccountsScreen(
     TalerSurface {
         GlobalScaffold(
             model = model,
+            modifier = Modifier.fillMaxSize(),
             title = { Text(stringResource(R.string.settings_bank_accounts)) },
             onNavigateBack = onNavigateBack,
             floatingActionButton = {
@@ -131,7 +130,6 @@ fun BankAccountsScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(paddingValues)
-                        .verticalScroll(rememberScrollState())
                 )
             }
         }
