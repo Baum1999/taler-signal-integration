@@ -31,6 +31,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat.START
 import androidx.navigation.NavController
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
@@ -53,6 +54,17 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
         const val TAG = "taler-pos"
     }
 
+    private fun navigateToInstanceSettings(resetBackStack: Boolean) {
+        if (nav.currentDestination?.id == R.id.nav_instanceSettings) return
+        val options = NavOptions.Builder()
+            .setLaunchSingleTop(true)
+            .apply {
+                if (resetBackStack) setPopUpTo(R.id.nav_graph, true)
+            }
+            .build()
+        nav.navigate(R.id.nav_instanceSettings, null, options)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ui = ActivityMainBinding.inflate(layoutInflater)
@@ -68,12 +80,12 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
             }
         }
 
-        // new: if we ever see a 401, fire this and kick back to settings
+        // If the backend session expires, force the user back into instance setup.
         model.configManager.sessionExpired.observe(this) {
             Toast
                 .makeText(this, R.string.session_expired_toast, Toast.LENGTH_LONG)
                 .show()
-            nav.navigate(R.id.action_global_merchantSettings)
+            navigateToInstanceSettings(resetBackStack = true)
         }
 
         val navHostFragment =
@@ -109,8 +121,7 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
     override fun onStart() {
         super.onStart()
         if (!model.configManager.config.isValid()) {
-            if (nav.currentDestination?.id != R.id.nav_settings)
-                nav.navigate(R.id.action_global_merchantSettings)
+            navigateToInstanceSettings(resetBackStack = true)
         } else if (model.configManager.merchantConfig == null
                 && nav.currentDestination?.id != R.id.configFetcher) {
             nav.navigate(R.id.action_global_configFetcher)
@@ -137,7 +148,13 @@ class MainActivity : AppCompatActivity(), OnNavigationItemSelectedListener {
             R.id.nav_order   -> nav.navigate(R.id.action_global_order)
             R.id.nav_amountEntry -> nav.navigate(R.id.action_global_amountEntry)
             R.id.nav_history -> nav.navigate(R.id.action_global_merchantHistory)
-            R.id.nav_settings-> nav.navigate(R.id.action_global_merchantSettings)
+            R.id.nav_settings-> {
+                if (model.configManager.config.isValid()) {
+                    nav.navigate(R.id.action_global_merchantSettings)
+                } else {
+                    navigateToInstanceSettings(resetBackStack = true)
+                }
+            }
         }
         ui.drawerLayout.closeDrawer(START)
         return true

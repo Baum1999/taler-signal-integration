@@ -90,6 +90,7 @@
     <string name="settings_instance_title">Instancia guardada</string>
     <string name="settings_instance_description">Cambia la URL del portal del comercio, el nombre de usuario, el token y otros ajustes de la instancia.</string>
     <string name="settings_instance_button">Modificar instancia guardada</string>
+    <string name="settings_logout_button">Cerrar sesión</string>
     <string name="amount_entry_label">Importe</string>
     <string name="amount_entry_charge">Cobrar</string>
     <string name="amount_entry_create_order_charge">Crear pedido (cobrar importe)</string>

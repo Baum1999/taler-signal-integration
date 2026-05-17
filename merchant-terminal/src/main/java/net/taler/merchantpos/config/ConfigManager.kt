@@ -93,7 +93,7 @@ private const val SETTINGS_MERCHANT_URL = "merchantUrl"
 private const val SETTINGS_ACCESS_TOKEN = "accessToken"
 private const val SETTINGS_INITIAL_ORDER_SCREEN = "initialOrderScreen"
 
-internal const val NEW_CONFIG_URL_DEMO = "https://my.taler-ops.ch"
+internal const val NEW_CONFIG_URL_DEMO = "my.taler-ops.ch"
 
 private val VERSION = Version.parse(BuildConfig.BACKEND_API_VERSION)!!
 
@@ -435,7 +435,24 @@ class ConfigManager(
         }
         saveConfig(config)
         merchantConfig = null
+        currency = null
         currencySpec = null
+    }
+
+    @UiThread
+    fun logout() {
+        inventoryRefreshJob?.cancel()
+        val savePassword = config.savePassword()
+        config = Config.New(
+            merchantUrl = "",
+            accessToken = "",
+            savePassword = savePassword,
+        )
+        saveConfig(config)
+        merchantConfig = null
+        currency = null
+        currencySpec = null
+        mConfigUpdateResult.value = null
     }
 
     @UiThread

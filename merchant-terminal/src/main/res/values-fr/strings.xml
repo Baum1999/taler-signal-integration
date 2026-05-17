@@ -103,6 +103,7 @@
     <string name="settings_instance_title">Instance enregistrée</string>
     <string name="settings_instance_description">Modifier l’URL du portail commerçant, le nom d’utilisateur, le jeton et les autres paramètres de l’instance.</string>
     <string name="settings_instance_button">Modifier l’instance enregistrée</string>
+    <string name="settings_logout_button">Se déconnecter</string>
     <string name="amount_entry_label">Montant</string>
     <string name="amount_entry_charge">Encaisser</string>
     <string name="amount_entry_create_order_charge">Créer une commande (encaisser le montant)</string>

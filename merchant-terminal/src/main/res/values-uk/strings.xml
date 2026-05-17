@@ -90,6 +90,7 @@
     <string name="settings_instance_title">Збережений екземпляр</string>
     <string name="settings_instance_description">Змінити URL порталу продавця, ім’я користувача, токен та інші налаштування екземпляра.</string>
     <string name="settings_instance_button">Змінити збережений екземпляр</string>
+    <string name="settings_logout_button">Вийти</string>
     <string name="amount_entry_label">Сума</string>
     <string name="amount_entry_charge">Стягнути</string>
     <string name="amount_entry_create_order_charge">Створити замовлення (стягнути суму)</string>

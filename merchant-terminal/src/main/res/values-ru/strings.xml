@@ -84,6 +84,7 @@
     <string name="settings_instance_title">Сохраненный экземпляр</string>
     <string name="settings_instance_description">Изменить URL портала продавца, имя пользователя, токен и другие настройки экземпляра.</string>
     <string name="settings_instance_button">Изменить сохраненный экземпляр</string>
+    <string name="settings_logout_button">Выйти</string>
     <string name="config_merchant_url">URL портала продавца</string>
     <string name="amount_entry_label">Сумма</string>
     <string name="amount_entry_charge">Списать</string>

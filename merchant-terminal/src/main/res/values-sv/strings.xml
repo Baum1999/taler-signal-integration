@@ -80,6 +80,7 @@
     <string name="settings_instance_title">Sparad instans</string>
     <string name="settings_instance_description">Ändra handlarportalens URL, användarnamn, token och andra instansspecifika inställningar.</string>
     <string name="settings_instance_button">Ändra sparad instans</string>
+    <string name="settings_logout_button">Logga ut</string>
     <string name="config_merchant_url">Handlarportalens URL</string>
     <string name="amount_entry_label">Belopp</string>
     <string name="amount_entry_charge">Debitera</string>

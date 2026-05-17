@@ -112,6 +112,7 @@
     <string name="settings_instance_title">Gespeicherte Instanz</string>
     <string name="settings_instance_description">Händlerportal-URL, Benutzername, Token und weitere instanzspezifische Einstellungen ändern.</string>
     <string name="settings_instance_button">Gespeicherte Instanz ändern</string>
+    <string name="settings_logout_button">Abmelden</string>
     <string name="amount_entry_charge">Berechnen</string>
     <string name="amount_entry_create_order_charge">Bestellung erstellen (Betrag berechnen)</string>
     <string name="amount_entry_backspace">Rücktaste</string>

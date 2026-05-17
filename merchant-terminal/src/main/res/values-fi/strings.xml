@@ -84,6 +84,7 @@
     <string name="settings_instance_title">Tallennettu instanssi</string>
     <string name="settings_instance_description">Muuta kauppiasportaalin URL-osoitetta, käyttäjätunnusta, tokenia ja muita instanssin asetuksia.</string>
     <string name="settings_instance_button">Muokkaa tallennettua instanssia</string>
+    <string name="settings_logout_button">Kirjaudu ulos</string>
     <string name="config_merchant_url">Kauppiasportaalin URL</string>
     <string name="amount_entry_label">Summa</string>
     <string name="amount_entry_charge">Veloita</string>

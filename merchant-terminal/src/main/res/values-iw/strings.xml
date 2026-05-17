@@ -45,6 +45,7 @@
     <string name="settings_instance_title">מופע שמור</string>
     <string name="settings_instance_description">שינוי כתובת פורטל הסוחר, שם משתמש, אסימון והגדרות נוספות של המופע.</string>
     <string name="settings_instance_button">שינוי מופע שמור</string>
+    <string name="settings_logout_button">התנתק</string>
     <string name="config_old_label">קובץ JSON (ישן)</string>
     <string name="config_setup_password">סיסמה</string>
     <string name="config_old_deprecation">שיטת תצורה זו מיושנת, השתמשו בתצורת API הסוחר החדשה.</string>

@@ -59,6 +59,7 @@
     <string name="settings_instance_title">Istanza salvata</string>
     <string name="settings_instance_description">Modifica URL del portale commerciante, nome utente, token e altre impostazioni dell’istanza.</string>
     <string name="settings_instance_button">Modifica istanza salvata</string>
+    <string name="settings_logout_button">Disconnetti</string>
     <string name="config_label">Impostazioni commerciante</string>
     <string name="config_old_label">File JSON (vecchio)</string>
     <string name="config_setup_password">Password</string>

@@ -53,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.findNavController
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
@@ -104,6 +105,17 @@ class GeneralSettingsFragment : Fragment() {
                     onInitialOrderSelected = { configManager.initialOrderScreen = it },
                     onInstanceSettingsClick = {
                         findNavController().navigate(R.id.nav_instanceSettings)
+                    },
+                    onLogoutClick = {
+                        configManager.logout()
+                        findNavController().navigate(
+                            R.id.nav_instanceSettings,
+                            null,
+                            NavOptions.Builder()
+                                .setLaunchSingleTop(true)
+                                .setPopUpTo(R.id.nav_graph, true)
+                                .build(),
+                        )
                     },
                 )
             }
@@ -165,6 +177,7 @@ private fun GeneralSettingsScreen(
     initialSelectedOrderScreen: InitialOrderScreen,
     onInitialOrderSelected: (InitialOrderScreen) -> Unit,
     onInstanceSettingsClick: () -> Unit,
+    onLogoutClick: () -> Unit,
 ) {
     var languageExpanded by remember { mutableStateOf(false) }
     var selectedTag by rememberSaveable { mutableStateOf(initialSelectedTag) }
@@ -237,6 +250,19 @@ private fun GeneralSettingsScreen(
                     Spacer(Modifier.width(8.dp))
                     Text(
                         text = stringResource(R.string.settings_instance_button),
+                    )
+                }
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = onLogoutClick,
+                    shape = SettingsControlShape,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                    ),
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_logout_button),
                     )
                 }
             }

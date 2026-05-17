@@ -91,6 +91,7 @@
     <string name="settings_instance_title">Kayıtlı örnek</string>
     <string name="settings_instance_description">Satıcı portalı URL’sini, kullanıcı adını, tokeni ve diğer örneğe özel ayarları değiştirin.</string>
     <string name="settings_instance_button">Kayıtlı örneği değiştir</string>
+    <string name="settings_logout_button">Oturumu kapat</string>
     <string name="amount_entry_label">Tutar</string>
     <string name="amount_entry_charge">Ücret al</string>
     <string name="amount_entry_create_order_charge">Sipariş oluştur (tutarı ücretlendir)</string>
