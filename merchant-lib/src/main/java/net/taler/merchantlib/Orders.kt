@@ -20,6 +20,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonClassDiscriminator
+import net.taler.common.Amount
 import net.taler.common.ContractTerms
 import net.taler.common.RelativeTime
 
@@ -86,7 +87,11 @@ sealed class CheckPaymentResponse {
     @SerialName("paid")
     data class Paid(
         override val paid: Boolean = true,
-        val refunded: Boolean
+        val refunded: Boolean,
+        @SerialName("refund_pending")
+        val refundPending: Boolean = false,
+        @SerialName("refund_amount")
+        val refundAmount: Amount? = null,
     ) : CheckPaymentResponse()
 
 }

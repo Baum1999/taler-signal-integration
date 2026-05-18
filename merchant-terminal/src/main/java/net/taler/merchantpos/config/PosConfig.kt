@@ -114,15 +114,15 @@ data class ConfigProduct(
     val totalPrice: Amount
         get() = (price * quantity).withSpec(price.spec)
     private val normalizedProductName: String?
-        get() = productName?.trim()?.takeIf { it.isNotEmpty() }
+        get() = productName?.sanitizeVisibleText()?.takeIf { it.isNotEmpty() }
     private val normalizedDescription: String
-        get() = localizedDescription.trim()
+        get() = localizedDescription.sanitizeVisibleText()
     val displayName: String
         get() = normalizedProductName ?: normalizedDescription
     val displayDescription: String?
         get() = normalizedProductName
             ?.takeIf { it != normalizedDescription }
-            ?.let { normalizedDescription }
+            ?.let { normalizedDescription.takeIf(String::isNotEmpty) }
     val displayPrice: String
         get() = price.toString()
     val stableKey: String
@@ -157,7 +157,17 @@ data class ConfigProduct(
         taxes = taxes?.takeIf { it.isNotEmpty() },
         quantity = quantity
     )
+}
 
-    override fun equals(other: Any?) = other is ConfigProduct && id == other.id
-    override fun hashCode() = id.hashCode()
+private fun String.sanitizeVisibleText(): String {
+    return filterNot { char ->
+        when (Character.getType(char)) {
+            Character.FORMAT.toInt(),
+            Character.CONTROL.toInt(),
+            Character.SURROGATE.toInt(),
+            Character.PRIVATE_USE.toInt(),
+            Character.UNASSIGNED.toInt() -> true
+            else -> false
+        }
+    }.trim()
 }

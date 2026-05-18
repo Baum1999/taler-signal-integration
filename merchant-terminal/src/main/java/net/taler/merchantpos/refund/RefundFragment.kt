@@ -17,100 +17,222 @@
 package net.taler.merchantpos.refund
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.annotation.StringRes
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.navigation.fragment.findNavController
+import androidx.compose.runtime.livedata.observeAsState
+import net.taler.merchantpos.MainActivity
 import net.taler.common.Amount
 import net.taler.common.AmountParserException
-import net.taler.lib.android.fadeIn
-import net.taler.lib.android.fadeOut
-import net.taler.lib.android.navigate
-import net.taler.lib.android.showError
 import net.taler.merchantlib.OrderHistoryEntry
 import net.taler.merchantpos.MainViewModel
+import net.taler.merchantpos.PosDestination
 import net.taler.merchantpos.R
-import net.taler.merchantpos.databinding.FragmentRefundBinding
-import net.taler.merchantpos.refund.RefundFragmentDirections.Companion.actionRefundFragmentToRefundUriFragment
+import net.taler.merchantpos.compose.PosTheme
 import net.taler.merchantpos.refund.RefundResult.AlreadyRefunded
 import net.taler.merchantpos.refund.RefundResult.Error
 import net.taler.merchantpos.refund.RefundResult.PastDeadline
 import net.taler.merchantpos.refund.RefundResult.Success
+import net.taler.merchantpos.showPosError
 
 class RefundFragment : Fragment() {
 
     private val model: MainViewModel by activityViewModels()
     private val refundManager by lazy { model.refundManager }
 
-    private lateinit var ui: FragmentRefundBinding
-
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        ui = FragmentRefundBinding.inflate(inflater, container, false)
-        return ui.root
+        inflater: android.view.LayoutInflater,
+        container: android.view.ViewGroup?,
+        savedInstanceState: Bundle?,
+    ) = ComposeView(requireContext()).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent {
+            val item = refundManager.toBeRefunded
+            if (item == null) {
+                requireActivity().showPosError(R.string.refund_state_missing)
+                (requireActivity() as MainActivity).navigateBack()
+                return@setContent
+            }
+            RefundScreen(
+                item = item,
+                currencySpec = model.configManager.currencySpec,
+                onAbort = { (requireActivity() as MainActivity).navigateBack() },
+                onRefund = ::onRefundButtonClicked,
+            )
+        }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val item = refundManager.toBeRefunded ?: throw IllegalStateException()
-        val amount = item.amount.withSpec(model.configManager.currencySpec)
-        ui.amountInputView.setText(amount.toString(showSymbol = false))
-        ui.currencyView.text = item.amount.currency
-        ui.abortButton.setOnClickListener { findNavController().navigateUp() }
-        ui.refundButton.setOnClickListener { onRefundButtonClicked(item) }
-
-        refundManager.refundResult.observe(viewLifecycleOwner, { result ->
-            onRefundResultChanged(result)
-        })
+    override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
+        refundManager.refundResult.observe(viewLifecycleOwner) { result ->
+            when (result) {
+                is Error -> onError(R.string.refund_error_backend, result.msg)
+                PastDeadline -> onError(R.string.refund_error_deadline)
+                AlreadyRefunded -> onError(R.string.refund_error_already_refunded)
+                is Success -> (requireActivity() as MainActivity).navigateTo(PosDestination.RefundUri)
+                null -> Unit
+            }
+        }
     }
 
-    private fun onRefundButtonClicked(item: OrderHistoryEntry) {
-        val maxAmount = item.amount.withSpec(model.configManager.currencySpec)
+    private fun onRefundButtonClicked(item: OrderHistoryEntry, amount: Amount, reason: String) {
+        refundManager.refund(item, amount, reason)
+    }
+
+    private fun onError(mainResId: Int, details: String = "") {
+        requireActivity().showPosError(mainResId, details)
+    }
+}
+
+@Composable
+private fun RefundScreen(
+    item: OrderHistoryEntry,
+    currencySpec: net.taler.common.CurrencySpecification?,
+    onAbort: () -> Unit,
+    onRefund: (OrderHistoryEntry, Amount, String) -> Unit,
+) {
+    var amountText by remember {
+        mutableStateOf(item.amount.withSpec(currencySpec).amountStr)
+    }
+    var reason by remember { mutableStateOf("") }
+    var errorText by remember { mutableStateOf<String?>(null) }
+    val amountFocusRequester = remember { FocusRequester() }
+    val reasonFocusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val invalidAmountText = stringResource(R.string.refund_error_invalid_amount)
+    val zeroAmountText = stringResource(R.string.refund_error_zero)
+    val maxAmountTemplate = stringResource(R.string.refund_error_max_amount, "%s")
+    val submitRefund = submit@{
+        val maxAmount = item.amount.withSpec(currencySpec)
+        val normalizedAmountText = amountText.trim()
         val inputAmount = try {
-            Amount.fromString(item.amount.currency, ui.amountInputView.text.toString())
-                .withSpec(model.configManager.currencySpec)
-        } catch (e: AmountParserException) {
-            ui.amountView.error = getString(R.string.refund_error_invalid_amount)
-            return
+            if (normalizedAmountText.isEmpty()) {
+                maxAmount
+            } else {
+                Amount.fromString(item.amount.currency, normalizedAmountText).withSpec(currencySpec)
+            }
+        } catch (_: AmountParserException) {
+            errorText = invalidAmountText
+            return@submit
         }
         if (inputAmount > maxAmount) {
-            ui.amountView.error = getString(
-                R.string.refund_error_max_amount,
-                maxAmount.toString(showSymbol = false),
-            )
-            return
+            errorText = maxAmountTemplate.replace("%s", maxAmount.toString(showSymbol = false))
+            return@submit
         }
         if (inputAmount.isZero()) {
-            ui.amountView.error = getString(R.string.refund_error_zero)
-            return
+            errorText = zeroAmountText
+            return@submit
         }
-        ui.amountView.error = null
-        ui.refundButton.fadeOut()
-        // ui.progressBar.fadeIn()
-        refundManager.refund(item, inputAmount, ui.reasonInputView.text.toString())
+        focusManager.clearFocus(force = true)
+        keyboardController?.hide()
+        onRefund(item, inputAmount, reason)
     }
 
-    private fun onRefundResultChanged(result: RefundResult?): Any = when (result) {
-        is Error -> onError(R.string.refund_error_backend, result.msg)
-        PastDeadline -> onError(R.string.refund_error_deadline)
-        AlreadyRefunded -> onError(R.string.refund_error_already_refunded)
-        is Success -> {
-            ui.progressBar.fadeOut()
-            ui.refundButton.fadeIn()
-            navigate(actionRefundFragmentToRefundUriFragment())
+    PosTheme {
+        LaunchedEffect(Unit) {
+            amountFocusRequester.requestFocus()
         }
-        null -> { // no-op
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding()
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(item.summary, style = MaterialTheme.typography.bodyLarge)
+            OutlinedTextField(
+                value = amountText,
+                onValueChange = {
+                    amountText = it
+                    errorText = null
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(amountFocusRequester),
+                label = { Text(stringResource(R.string.refund_amount)) },
+                supportingText = errorText?.let { { Text(it) } },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal,
+                    imeAction = ImeAction.Next,
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { reasonFocusRequester.requestFocus() },
+                ),
+                singleLine = true,
+            )
+            OutlinedTextField(
+                value = reason,
+                onValueChange = { reason = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(reasonFocusRequester),
+                label = { Text(stringResource(R.string.refund_reason)) },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Done,
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = { submitRefund() },
+                ),
+                singleLine = true,
+            )
+            Button(
+                onClick = { submitRefund() },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.refund_confirm))
+            }
+            OutlinedButton(
+                onClick = onAbort,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.refund_abort))
+            }
+            Spacer(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onTap = {
+                                focusManager.clearFocus(force = true)
+                                keyboardController?.hide()
+                            },
+                        )
+                    },
+            )
         }
     }
-
-    private fun onError(@StringRes main: Int, details: String = "") {
-        requireActivity().showError(main, details)
-        ui.progressBar.fadeOut()
-        ui.refundButton.fadeIn()
-    }
-
 }

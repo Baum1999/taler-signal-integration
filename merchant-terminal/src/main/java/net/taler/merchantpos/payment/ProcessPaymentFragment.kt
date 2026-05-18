@@ -16,218 +16,107 @@
 
 package net.taler.merchantpos.payment
 
-import android.graphics.Bitmap
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.activity.OnBackPressedCallback
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.navigation.NavOptions
-import androidx.navigation.fragment.findNavController
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
-import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_LONG
-import com.google.android.material.snackbar.Snackbar
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
-import kotlinx.coroutines.launch
-import net.taler.lib.android.QrCodeManager.makeQrCode
-import net.taler.lib.android.copyToClipBoard
-import net.taler.lib.android.fadeIn
-import net.taler.lib.android.fadeOut
-import net.taler.lib.android.shareText
-import net.taler.lib.android.showError
+import androidx.compose.runtime.livedata.observeAsState
 import net.taler.lib.android.AnimatedQrCodeComposable
 import net.taler.lib.android.TalerNfcService.Companion.hasNfc
+import net.taler.lib.android.copyToClipBoard
+import net.taler.lib.android.shareText
+import net.taler.merchantpos.MainActivity
 import net.taler.merchantpos.MainViewModel
+import net.taler.merchantpos.PosDestination
 import net.taler.merchantpos.R
 import net.taler.merchantpos.compose.PosTheme
-import net.taler.merchantpos.databinding.FragmentProcessPaymentBinding
+import net.taler.merchantpos.showPosError
 
 class ProcessPaymentFragment : Fragment() {
 
     private val model: MainViewModel by activityViewModels()
     private val paymentManager by lazy { model.paymentManager }
 
-    private lateinit var ui: FragmentProcessPaymentBinding
-    private lateinit var qrPreviewBackCallback: OnBackPressedCallback
-    private var currentPayUri: String? = null
-    private var currentQrBitmap: Bitmap? = null
-    private var deviceHasNfc: Boolean = false
+    private var deviceHasNfc = false
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: android.view.LayoutInflater,
+        container: android.view.ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View {
-        ui = FragmentProcessPaymentBinding.inflate(inflater, container, false)
-        return ui.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        deviceHasNfc = hasNfc(requireContext())
-        ui.payIntroView.setText(R.string.payment_intro)
-        // Show only a simple loader before the first QR bitmap is rendered.
-        ui.qrcodeLayout.visibility = View.INVISIBLE
-        ui.qrcodeView.visibility = View.INVISIBLE
-        ui.progressBar.visibility = View.VISIBLE
-        ui.shareButton.isEnabled = false
-        ui.copyButton.isEnabled = false
-        paymentManager.payment.observe(viewLifecycleOwner) { payment ->
-            onPaymentStateChanged(payment)
-        }
-        ui.qrcodeView.setOnClickListener {
-            showQrPreview()
-        }
-        ui.qrPreviewOverlay.setOnClickListener {
-            hideQrPreview()
-        }
-        qrPreviewBackCallback = object : OnBackPressedCallback(false) {
-            override fun handleOnBackPressed() {
-                hideQrPreview()
+    ) = ComposeView(requireContext()).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent {
+            val payment by paymentManager.payment.observeAsState()
+            payment?.let {
+                ProcessPaymentScreen(
+                    payment = it,
+                    deviceHasNfc = deviceHasNfc,
+                    onCancel = ::onPaymentCancel,
+                    onShare = { uri -> requireContext().shareText(uri) },
+                    onCopy = { uri ->
+                        copyToClipBoard(requireContext(), "Payment URI", uri)
+                    },
+                )
             }
         }
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, qrPreviewBackCallback)
-        ui.cancelPaymentButton.setOnClickListener {
-            onPaymentCancel()
+    }
+
+    override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
+        deviceHasNfc = hasNfc(requireContext())
+        paymentManager.payment.observe(viewLifecycleOwner) { payment ->
+            onPaymentStateChanged(payment)
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        paymentManager.cancelPayment()
     }
 
     private fun onPaymentStateChanged(payment: Payment) {
-        val previewShouldClose =
-            payment.error != null ||
-                payment.paid ||
-                payment.claimed ||
-                (currentPayUri != null && payment.talerPayUri != currentPayUri)
-        if (previewShouldClose) {
-            hideQrPreview()
-        }
         if (payment.error != null) {
             val (mainText, detailText) = getPaymentErrorDisplay(payment)
-            requireActivity().showError(mainText, detailText)
-            findNavController().navigateUp()
+            requireActivity().showPosError(mainText, detailText)
+            (requireActivity() as MainActivity).navigateBack()
             return
         }
         if (payment.paid) {
             model.orderManager.onOrderPaid(payment.order.id)
-            val nav = findNavController()
-            val previousDestinationId = nav.previousBackStackEntry?.destination?.id
-            val options = previousDestinationId?.let {
-                NavOptions.Builder()
-                    .setPopUpTo(it, false)
-                    .build()
-            }
-            nav.navigate(R.id.paymentSuccess, null, options)
-            return
-        }
-        if (payment.claimed) {
-            ui.qrcodeLayout.fadeOut()
-            ui.payIntroView.setText(R.string.payment_claimed)
-        } else {
-            val introRes =
-                if (deviceHasNfc && payment.talerPayUri != null) {
-                    R.string.payment_intro_nfc
-                } else {
-                    R.string.payment_intro
-                }
-            ui.payIntroView.setText(introRes)
-            payment.talerPayUri?.let {
-                val uriChanged = it != currentPayUri
-                if (uriChanged) {
-                    currentPayUri = it
-                    renderPaymentQrCode(it) {
-                        ui.qrcodeView.visibility = View.VISIBLE
-                        if (ui.qrcodeLayout.visibility != View.VISIBLE) {
-                            ui.qrcodeLayout.fadeIn()
-                        }
-                        ui.progressBar.fadeOut()
-                    }
-                    ui.shareButton.setOnClickListener { _ ->
-                        requireContext().shareText(it)
-                    }
-                    ui.copyButton.setOnClickListener { _ ->
-                        copyToClipBoard(requireContext(), "Payment URI", it)
-                    }
-                } else {
-                    if (ui.qrcodeLayout.visibility != View.VISIBLE) {
-                        ui.qrcodeLayout.fadeIn()
-                    }
-                    ui.qrcodeView.visibility = View.VISIBLE
-                    ui.progressBar.fadeOut()
-                }
-                ui.shareButton.isEnabled = true
-                ui.copyButton.isEnabled = true
-            }
-        }
-        ui.payIntroView.fadeIn()
-        ui.amountView.text = payment.order.total.toString()
-        payment.orderId?.let {
-            ui.orderRefView.text = getString(R.string.payment_order_id, it)
-            ui.orderRefView.fadeIn()
+            (requireActivity() as MainActivity).navigateTo(PosDestination.PaymentSuccess)
         }
     }
 
     private fun onPaymentCancel() {
         paymentManager.cancelPayment()
-        findNavController().navigateUp()
-        Snackbar.make(requireView(), R.string.payment_canceled, LENGTH_LONG).show()
-    }
-
-    private fun showQrPreview() {
-        val qrBitmap = currentQrBitmap ?: return
-        ui.qrPreviewImage.setImageBitmap(qrBitmap)
-        ui.qrPreviewOverlay.visibility = View.VISIBLE
-        qrPreviewBackCallback.isEnabled = true
-    }
-
-    private fun hideQrPreview() {
-        if (ui.qrPreviewOverlay.visibility != View.VISIBLE) return
-        ui.qrPreviewOverlay.visibility = View.GONE
-        ui.qrPreviewImage.setImageDrawable(null)
-        qrPreviewBackCallback.isEnabled = false
-    }
-
-    private fun renderPaymentQrCode(text: String, onRendered: (() -> Unit)? = null) {
-        ui.qrcodeView.post {
-            val blockSize = minOf(ui.qrcodeView.width, ui.qrcodeView.height).coerceAtLeast(256)
-            val qrSize = (blockSize * 0.88f).toInt().coerceAtLeast(256)
-            lifecycleScope.launch {
-                currentQrBitmap = makePaymentQrCode(text, qrSize)
-            }
-            ui.qrcodeView.setContent {
-                PosTheme {
-                    AnimatedQrCodeComposable(
-                        link = text,
-                        logoPainter = painterResource(R.drawable.ic_taler_logo_qr),
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
-            }
-            onRendered?.invoke()
-        }
-    }
-
-    private suspend fun makePaymentQrCode(text: String, size: Int): Bitmap {
-        return makeQrCode(
-            text = text,
-            size = size,
-            margin = 0,
-            errorCorrection = ErrorCorrectionLevel.H,
-            centerLogo = null,
-            centerLogoSize = null,
-            drawBackground = true,
-            darkColor = android.graphics.Color.BLACK,
-            lightColor = ContextCompat.getColor(requireContext(), R.color.colorSurfaceVariant),
-            trimQuietZone = true,
-        )
+        (requireActivity() as MainActivity).navigateBack()
     }
 
     private fun getPaymentErrorDisplay(payment: Payment): Pair<String, String> {
@@ -243,11 +132,255 @@ class ProcessPaymentFragment : Fragment() {
                 "sold out" in normalized ||
                 "out of stock" in normalized ->
                 getString(R.string.error_inventory_unavailable) to error
+
             else ->
                 getString(R.string.error_order_creation) to error
         }
     }
+}
 
+@Composable
+private fun ProcessPaymentScreen(
+    payment: Payment,
+    deviceHasNfc: Boolean,
+    onCancel: () -> Unit,
+    onShare: (String) -> Unit,
+    onCopy: (String) -> Unit,
+) {
+    PosTheme {
+        val introText = if (payment.claimed) {
+            stringResource(R.string.payment_claimed)
+        } else if (deviceHasNfc && payment.talerPayUri != null) {
+            stringResource(R.string.payment_intro_nfc)
+        } else {
+            stringResource(R.string.payment_intro)
+        }
+        val isTabletLayout = LocalConfiguration.current.smallestScreenWidthDp >= 720
 
+        if (isTabletLayout) {
+            TabletProcessPaymentScreen(payment, introText, onCancel, onShare, onCopy)
+        } else {
+            PhoneProcessPaymentScreen(payment, introText, onCancel, onShare, onCopy)
+        }
+    }
+}
 
+@Composable
+private fun TabletProcessPaymentScreen(
+    payment: Payment,
+    introText: String,
+    onCancel: () -> Unit,
+    onShare: (String) -> Unit,
+    onCopy: (String) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(0.54f)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center,
+            ) {
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(12.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    val payUri = payment.talerPayUri
+                    val qrSize = minOf(maxWidth, maxHeight)
+                    Box(
+                        modifier = Modifier.size(qrSize),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (payUri == null) {
+                            CircularProgressIndicator()
+                        } else {
+                            AnimatedQrCodeComposable(
+                                link = payUri,
+                                logoPainter = painterResource(R.drawable.ic_taler_logo_qr),
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
+                    }
+                }
+            }
+
+            payment.talerPayUri?.let { payUri ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Button(onClick = { onShare(payUri) }, modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.share))
+                    }
+                    Button(onClick = { onCopy(payUri) }, modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.copy))
+                    }
+                }
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(0.46f)
+                .fillMaxSize()
+                .padding(horizontal = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = introText,
+                style = MaterialTheme.typography.headlineSmall,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                text = payment.order.total.toString(),
+                style = MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Center,
+            )
+            payment.orderId?.let {
+                Text(
+                    text = stringResource(R.string.payment_order_id, it),
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                )
+            }
+            OutlinedButton(
+                onClick = onCancel,
+                modifier = Modifier.align(Alignment.Start),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError,
+                ),
+            ) {
+                Text(stringResource(R.string.payment_cancel))
+            }
+        }
+    }
+}
+
+@Composable
+private fun PhoneProcessPaymentScreen(
+    payment: Payment,
+    introText: String,
+    onCancel: () -> Unit,
+    onShare: (String) -> Unit,
+    onCopy: (String) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(0.5f)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center,
+            ) {
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(12.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    val payUri = payment.talerPayUri
+                    val qrSize = minOf(maxWidth, maxHeight)
+                    Box(
+                        modifier = Modifier.size(qrSize),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (payUri == null) {
+                            CircularProgressIndicator()
+                        } else {
+                            AnimatedQrCodeComposable(
+                                link = payUri,
+                                logoPainter = painterResource(R.drawable.ic_taler_logo_qr),
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(0.5f)
+                .fillMaxSize()
+                .padding(horizontal = 8.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = introText,
+                style = MaterialTheme.typography.headlineSmall,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                text = payment.order.total.toString(),
+                style = MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Center,
+            )
+            payment.orderId?.let {
+                Text(
+                    text = stringResource(R.string.payment_order_id, it),
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            payment.talerPayUri?.let { payUri ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Button(
+                        onClick = { onShare(payUri) },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(stringResource(R.string.share))
+                    }
+                    OutlinedButton(
+                        onClick = { onCopy(payUri) },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text(stringResource(R.string.copy))
+                    }
+                }
+            }
+            OutlinedButton(
+                onClick = onCancel,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError,
+                ),
+            ) {
+                Text(stringResource(R.string.payment_cancel))
+            }
+        }
+    }
 }

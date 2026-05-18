@@ -26,8 +26,8 @@ data class Order(
     val currency: String,
     val currencySpec: CurrencySpecification?,
     val availableCategories: Map<Int, Category>,
+    val products: List<ConfigProduct> = emptyList(),
 ) {
-    val products = ArrayList<ConfigProduct>()
     val title: String = id.toString()
     val summary: String
         get() {
@@ -46,26 +46,28 @@ data class Order(
         }
 
     operator fun plus(product: ConfigProduct): Order {
-        val i = products.indexOf(product)
+        val updatedProducts = products.toMutableList()
+        val i = updatedProducts.indexOfFirst { it.id == product.id }
         if (i == -1) {
-            products.add(product.copy(quantity = 1))
+            updatedProducts.add(product.copy(quantity = 1))
         } else {
-            val quantity = products[i].quantity
-            products[i] = products[i].copy(quantity = quantity + 1)
+            val quantity = updatedProducts[i].quantity
+            updatedProducts[i] = updatedProducts[i].copy(quantity = quantity + 1)
         }
-        return this
+        return copy(products = updatedProducts)
     }
 
     operator fun minus(product: ConfigProduct): Order {
-        val i = products.indexOf(product)
+        val updatedProducts = products.toMutableList()
+        val i = updatedProducts.indexOfFirst { it.id == product.id }
         if (i == -1) return this
-        val quantity = products[i].quantity
+        val quantity = updatedProducts[i].quantity
         if (quantity <= 1) {
-            products.remove(product)
+            updatedProducts.removeAt(i)
         } else {
-            products[i] = products[i].copy(quantity = quantity - 1)
+            updatedProducts[i] = updatedProducts[i].copy(quantity = quantity - 1)
         }
-        return this
+        return copy(products = updatedProducts)
     }
 
     private fun getCategoryQuantities(): HashMap<Category, Int> {

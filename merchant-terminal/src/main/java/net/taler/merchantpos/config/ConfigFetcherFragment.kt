@@ -17,62 +17,89 @@
 package net.taler.merchantpos.config
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.navigation.fragment.findNavController
-import com.google.android.material.snackbar.BaseTransientBottomBar.LENGTH_SHORT
-import com.google.android.material.snackbar.Snackbar
-import net.taler.lib.android.navigate
 import net.taler.merchantpos.MainViewModel
-import net.taler.merchantpos.config.ConfigFetcherFragmentDirections.Companion.actionConfigFetcherToMerchantSettings
-import net.taler.merchantpos.databinding.FragmentConfigFetcherBinding
+import net.taler.merchantpos.MainActivity
+import net.taler.merchantpos.PosDestination
 import net.taler.merchantpos.R
-import net.taler.merchantpos.navigateToInitialOrderScreen
+import net.taler.merchantpos.compose.PosTheme
+import net.taler.merchantpos.showPosError
 
 class ConfigFetcherFragment : Fragment() {
 
     private val model: MainViewModel by activityViewModels()
     private val configManager by lazy { model.configManager }
 
-    private lateinit var ui: FragmentConfigFetcherBinding
-
-    private var navigating: Boolean = false
+    private var navigating = false
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: android.view.LayoutInflater,
+        container: android.view.ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View {
-        ui = FragmentConfigFetcherBinding.inflate(inflater)
-        return ui.root
+    ) = ComposeView(requireContext()).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent {
+            ConfigFetcherScreen()
+        }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
         if (configManager.config.savePassword()) {
             configManager.fetchConfig(configManager.config, false)
         } else if (!navigating) {
             navigating = true
-            navigate(actionConfigFetcherToMerchantSettings())
+            (requireActivity() as MainActivity).navigateTo(PosDestination.Config, clearBackStack = true)
         }
 
         configManager.configUpdateResult.observe(viewLifecycleOwner) { result ->
             when (result) {
                 null -> return@observe
-                is ConfigUpdateResult.Error -> onNetworkError(result.msg)
+                is ConfigUpdateResult.Error -> {
+                    requireActivity().showPosError(result.msg)
+                }
+
                 is ConfigUpdateResult.Success -> {
                     if (!navigating) {
                         navigating = true
-                        findNavController().navigateToInitialOrderScreen(configManager)
+                        (requireActivity() as MainActivity).navigateToInitialOrderScreen()
                     }
                 }
             }
         }
     }
+}
 
-    private fun onNetworkError(msg: String) {
-        Snackbar.make(requireView(), msg, LENGTH_SHORT).show()
+@Composable
+private fun ConfigFetcherScreen() {
+    PosTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top,
+        ) {
+            CircularProgressIndicator()
+            Text(
+                text = stringResource(R.string.config_fetching),
+                modifier = Modifier.padding(top = 16.dp),
+                style = MaterialTheme.typography.titleMedium,
+            )
+        }
     }
-
 }

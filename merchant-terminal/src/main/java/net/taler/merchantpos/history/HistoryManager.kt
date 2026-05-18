@@ -23,45 +23,98 @@ import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import net.taler.lib.android.assertUiThread
+import net.taler.merchantlib.CheckPaymentResponse
 import net.taler.merchantlib.MerchantApi
 import net.taler.merchantlib.OrderHistoryEntry
 import net.taler.merchantpos.R
 import net.taler.merchantpos.config.ConfigManager
 
 sealed class HistoryResult {
-    class Error(
-        @StringRes val mainResId: Int,
-        val msg: String,
-    ) : HistoryResult()
     class Success(val items: List<OrderHistoryEntry>) : HistoryResult()
 }
+
+class HistoryError(
+    @StringRes val mainResId: Int,
+    val msg: String,
+)
 
 class HistoryManager(
     private val configManager: ConfigManager,
     private val scope: CoroutineScope,
     private val api: MerchantApi
 ) {
+    companion object {
+        private const val PAGE_SIZE = 20
+        private const val LOAD_MORE_THRESHOLD = 5
+    }
 
     private val mIsLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = mIsLoading
+    private val mIsLoadingMore = MutableLiveData(false)
+    val isLoadingMore: LiveData<Boolean> = mIsLoadingMore
 
     private val mItems = MutableLiveData<HistoryResult>()
     val items: LiveData<HistoryResult> = mItems
+    private val mError = MutableLiveData<HistoryError?>(null)
+    val error: LiveData<HistoryError?> = mError
+
+    private val loadedItems = mutableListOf<OrderHistoryEntry>()
+    private var nextOffset: Long? = null
+    private var reachedEnd = false
 
     @UiThread
-    internal fun fetchHistory() = scope.launch {
-        mIsLoading.value = true
+    internal fun fetchHistory() = fetchHistoryPage(reset = true)
+
+    @UiThread
+    internal fun loadMoreHistoryIfNeeded(lastVisibleIndex: Int) {
+        val currentItems = (mItems.value as? HistoryResult.Success)?.items ?: return
+        if (mIsLoading.value == true || mIsLoadingMore.value == true || reachedEnd) return
+        if (currentItems.isEmpty()) return
+        if (lastVisibleIndex < currentItems.lastIndex - LOAD_MORE_THRESHOLD) return
+        fetchHistoryPage(reset = false)
+    }
+
+    @UiThread
+    private fun fetchHistoryPage(reset: Boolean) = scope.launch {
+        if (reset) {
+            mIsLoading.value = true
+            mIsLoadingMore.value = false
+        } else {
+            mIsLoadingMore.value = true
+        }
         val merchantConfig = configManager.merchantConfig!!
-        api.getOrderHistory(merchantConfig).handle({ onError(R.string.error_history, it) }) {
+        val offset = if (reset) null else nextOffset
+        api.getOrderHistory(
+            merchantConfig = merchantConfig,
+            limit = -PAGE_SIZE,
+            offset = offset,
+        ).handle({ onError(R.string.error_history, it) }) { response ->
             assertUiThread()
             mIsLoading.value = false
-            mItems.value = HistoryResult.Success(it.orders)
+            mIsLoadingMore.value = false
+            if (reset) {
+                loadedItems.clear()
+                reachedEnd = false
+            }
+            val page = response.orders
+            val existingOrderIds = loadedItems.mapTo(mutableSetOf()) { it.orderId }
+            val newItems = page.filterNot { it.orderId in existingOrderIds }
+            if (newItems.isNotEmpty()) {
+                loadedItems += newItems
+                nextOffset = newItems.lastOrNull()?.rowId ?: loadedItems.lastOrNull()?.rowId
+            }
+            if (page.size < PAGE_SIZE || newItems.isEmpty()) {
+                reachedEnd = true
+            }
+            publishItems()
+            enrichOrders(newItems)
         }
     }
 
     @UiThread
     internal fun deleteOrder(orderId: String) = scope.launch {
         mIsLoading.value = true
+        mIsLoadingMore.value = false
         val merchantConfig = configManager.merchantConfig!!
         api.deleteOrder(merchantConfig, orderId).handle({ onError(R.string.error_delete_order, it) }) {
             assertUiThread()
@@ -70,9 +123,49 @@ class HistoryManager(
         }
     }
 
+    @UiThread
+    internal fun clearError() {
+        mError.value = null
+    }
+
+    private fun publishItems() {
+        mItems.value = HistoryResult.Success(loadedItems.toList())
+    }
+
+    private fun enrichOrders(items: List<OrderHistoryEntry>) = scope.launch {
+        val merchantConfig = configManager.merchantConfig ?: return@launch
+        items.filter { it.paid }.forEach { item ->
+            api.checkOrder(merchantConfig, item.orderId).handle(null) { response ->
+                assertUiThread()
+                val paidResponse = response as? CheckPaymentResponse.Paid ?: return@handle
+                updateItem(
+                    orderId = item.orderId,
+                    transform = { current ->
+                        current.copy(
+                            refunded = paidResponse.refunded,
+                            refundAmount = paidResponse.refundAmount ?: current.refundAmount,
+                            refundPending = paidResponse.refundPending,
+                        )
+                    }
+                )
+            }
+        }
+    }
+
+    private fun updateItem(
+        orderId: String,
+        transform: (OrderHistoryEntry) -> OrderHistoryEntry,
+    ) {
+        val index = loadedItems.indexOfFirst { it.orderId == orderId }
+        if (index == -1) return
+        loadedItems[index] = transform(loadedItems[index])
+        publishItems()
+    }
+
     private fun onError(@StringRes mainResId: Int, msg: String) {
         assertUiThread()
         mIsLoading.value = false
-        mItems.value = HistoryResult.Error(mainResId, msg)
+        mIsLoadingMore.value = false
+        mError.value = HistoryError(mainResId, msg)
     }
 }

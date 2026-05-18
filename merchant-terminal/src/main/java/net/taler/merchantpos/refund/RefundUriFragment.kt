@@ -17,74 +17,311 @@
 package net.taler.merchantpos.refund
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
-import kotlinx.coroutines.launch
-import net.taler.lib.android.QrCodeManager.makeQrCode
+import net.taler.merchantpos.MainActivity
+import net.taler.lib.android.AnimatedQrCodeComposable
 import net.taler.lib.android.TalerNfcService.Companion.hasNfc
 import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.R
-import net.taler.merchantpos.databinding.FragmentRefundUriBinding
+import net.taler.merchantpos.compose.PosTheme
+import net.taler.merchantpos.showPosError
 
 class RefundUriFragment : Fragment() {
 
     private val model: MainViewModel by activityViewModels()
     private val refundManager by lazy { model.refundManager }
 
-    private lateinit var ui: FragmentRefundUriBinding
-
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        ui = FragmentRefundUriBinding.inflate(inflater, container, false)
-        return ui.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        val result = refundManager.refundResult.value
-        if (result !is RefundResult.Success) throw IllegalStateException()
-
-        lifecycleScope.launch {
-            ui.refundQrcodeView.setImageBitmap(
-                makeQrCode(
-                    text = result.refundUri,
-                    size = 256,
-                    margin = 2,
-                    errorCorrection = ErrorCorrectionLevel.M,
-                    centerLogo = null,
-                    centerLogoSize = null,
-                    drawBackground = false,
-                    darkColor = android.graphics.Color.BLACK,
-                    lightColor = android.graphics.Color.WHITE,
-                    trimQuietZone = false,
-                )
+        inflater: android.view.LayoutInflater,
+        container: android.view.ViewGroup?,
+        savedInstanceState: Bundle?,
+    ) = ComposeView(requireContext()).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        val result = refundManager.refundResult.value as? RefundResult.Success
+        if (result == null) {
+            requireActivity().showPosError(R.string.refund_state_missing)
+            (requireActivity() as MainActivity).navigateBack()
+            return@apply
+        }
+        setContent {
+            RefundUriScreen(
+                result = result,
+                deviceHasNfc = hasNfc(requireContext()),
+                onAbort = {
+                    refundManager.abortRefund()
+                    (requireActivity() as MainActivity).navigateBack()
+                },
             )
         }
-
-        val introRes =
-            if (hasNfc(requireContext())) R.string.refund_intro_nfc else R.string.refund_intro
-        ui.refundIntroView.setText(introRes)
-
-        ui.refundAmountView.text = result.amount.toString()
-
-        ui.refundRefView.text =
-            getString(R.string.refund_order_ref, result.item.orderId, result.reason)
-
-        ui.cancelRefundButton.setOnClickListener { findNavController().navigateUp() }
-        ui.completeButton.setOnClickListener { findNavController().navigateUp() }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        refundManager.abortRefund()
+    override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        refundManager.refundReceived.observe(viewLifecycleOwner) { received ->
+            if (received == true) {
+                refundManager.completeRefund()
+                (requireActivity() as MainActivity).apply {
+                    navigateBack()
+                    navigateBack()
+                }
+            }
+        }
     }
+}
 
+@Composable
+private fun RefundUriScreen(
+    result: RefundResult.Success,
+    deviceHasNfc: Boolean,
+    onAbort: () -> Unit,
+) {
+    PosTheme {
+        val introText = if (deviceHasNfc) {
+            stringResource(R.string.refund_intro_nfc)
+        } else {
+            stringResource(R.string.refund_intro)
+        }
+        val isTabletLayout = LocalConfiguration.current.smallestScreenWidthDp >= 720
+
+        if (isTabletLayout) {
+            TabletRefundUriScreen(result, introText, onAbort)
+        } else {
+            PhoneRefundUriScreen(result, introText, onAbort)
+        }
+    }
+}
+
+@Composable
+private fun TabletRefundUriScreen(
+    result: RefundResult.Success,
+    introText: String,
+    onAbort: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(0.54f)
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center,
+            ) {
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(12.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    val qrSize = minOf(maxWidth, maxHeight)
+                    Box(
+                        modifier = Modifier.size(qrSize),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        AnimatedQrCodeComposable(
+                            link = result.refundUri,
+                            logoPainter = painterResource(R.drawable.ic_taler_logo_qr),
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                }
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(0.46f)
+                .fillMaxSize()
+                .padding(horizontal = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = introText,
+                style = MaterialTheme.typography.headlineSmall,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                text = result.amount.toString(),
+                style = MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                text = stringResource(
+                    R.string.refund_order_ref,
+                    result.item.orderId,
+                    result.reason,
+                ),
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                OutlinedButton(
+                    onClick = onAbort,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError,
+                    ),
+                ) {
+                    Text(stringResource(R.string.refund_abort))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PhoneRefundUriScreen(
+    result: RefundResult.Success,
+    introText: String,
+    onAbort: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(0.5f)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentAlignment = Alignment.Center,
+            ) {
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(12.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    val qrSize = minOf(maxWidth, maxHeight)
+                    Box(
+                        modifier = Modifier.size(qrSize),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        AnimatedQrCodeComposable(
+                            link = result.refundUri,
+                            logoPainter = painterResource(R.drawable.ic_taler_logo_qr),
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                }
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(0.5f)
+                .fillMaxSize()
+                .padding(horizontal = 8.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            BoxWithConstraints(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                val verticalGap = (maxHeight * 0.02f).coerceIn(2.dp, 8.dp)
+                val isCompactHeight = maxHeight < 420.dp
+                val introStyle = if (isCompactHeight) {
+                    MaterialTheme.typography.titleMedium
+                } else {
+                    MaterialTheme.typography.headlineSmall
+                }
+                val amountStyle = if (isCompactHeight) {
+                    MaterialTheme.typography.titleLarge
+                } else {
+                    MaterialTheme.typography.headlineMedium
+                }
+                val detailsStyle = if (isCompactHeight) {
+                    MaterialTheme.typography.bodyMedium
+                } else {
+                    MaterialTheme.typography.bodyLarge
+                }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(verticalGap, Alignment.CenterVertically),
+                ) {
+                    Text(
+                        text = introText,
+                        style = introStyle,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = result.amount.toString(),
+                        style = amountStyle,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        text = stringResource(
+                            R.string.refund_order_ref,
+                            result.item.orderId,
+                            result.reason,
+                        ),
+                        style = detailsStyle,
+                        textAlign = TextAlign.Center,
+                    )
+                    OutlinedButton(
+                        onClick = onAbort,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError,
+                        ),
+                    ) {
+                        Text(stringResource(R.string.refund_abort))
+                    }
+                }
+            }
+        }
+    }
 }

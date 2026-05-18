@@ -18,12 +18,20 @@ package net.taler.merchantlib
 
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ResponseException
+import java.io.IOException
+import java.net.ConnectException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
+import java.nio.channels.UnresolvedAddressException
 import kotlinx.serialization.Serializable
 
 class Response<out T> private constructor(
     private val value: Any?
 ) {
     companion object {
+        private const val NETWORK_ERROR_MESSAGE =
+            "Network error: check your internet connection and merchant URL."
+
         suspend fun <T> response(request: suspend () -> T): Response<T> {
             return try {
                 success(request())
@@ -61,19 +69,51 @@ class Response<out T> private constructor(
         }
     }
 
-    private suspend fun getFailureString(failure: Failure): String = when (failure.exception) {
-        is ResponseException -> getExceptionString(failure.exception)
-        else -> failure.exception.toString()
+    private suspend fun getFailureString(failure: Failure): String = when (val exception = failure.exception) {
+        is ResponseException -> getExceptionString(exception)
+        is UnknownHostException,
+        is UnresolvedAddressException,
+        is ConnectException,
+        is SocketTimeoutException -> NETWORK_ERROR_MESSAGE
+        is IOException -> exception.message?.takeIf(String::isNotBlank) ?: NETWORK_ERROR_MESSAGE
+        else -> exception.message?.takeIf(String::isNotBlank) ?: exception.toString()
     }
 
     private suspend fun getExceptionString(e: ResponseException): String {
         val response = e.response
         return try {
             val error: Error = response.body()
-            "Error ${error.code} (${response.status.value}): ${error.hint} ${error.detail}"
+            buildString {
+                append("Error")
+                error.code?.let {
+                    append(' ')
+                    append(it)
+                }
+                append(" (")
+                append(response.status.value)
+                append(")")
+                error.hint?.takeIf(String::isNotBlank)?.let {
+                    append(": ")
+                    append(it)
+                }
+                error.detail?.takeIf(String::isNotBlank)?.let {
+                    append(" - ")
+                    append(it)
+                }
+            }
         } catch (ex: Exception) {
-            "Status code: ${response.status.value}"
+            fallbackStatusMessage(response.status.value)
         }
+    }
+
+    private fun fallbackStatusMessage(statusCode: Int): String = when (statusCode) {
+        400 -> "Bad request (400)"
+        401 -> "Unauthorized (401)"
+        403 -> "Forbidden (403)"
+        404 -> "Not found (404): check the merchant URL and instance path."
+        408 -> "Request timed out (408)"
+        in 500..599 -> "Server error ($statusCode)"
+        else -> "HTTP error ($statusCode)"
     }
 
     private class Failure(val exception: Throwable)

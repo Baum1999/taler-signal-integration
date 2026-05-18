@@ -20,7 +20,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -32,6 +31,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -61,6 +61,7 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -69,15 +70,13 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import net.taler.common.Amount
-import net.taler.lib.android.navigate
+import net.taler.merchantpos.PosDestination
 import net.taler.merchantpos.MainViewModel
 import net.taler.merchantpos.R
-import net.taler.merchantpos.amount.AmountEntryFragmentDirections.Companion.actionAmountEntryToProcessPayment
-import net.taler.merchantpos.amount.AmountEntryFragmentDirections.Companion.actionGlobalConfigFetcher
-import net.taler.merchantpos.amount.AmountEntryFragmentDirections.Companion.actionGlobalMerchantSettings
 import net.taler.merchantpos.compose.PosTheme
 import net.taler.merchantpos.config.ConfigProduct
 import net.taler.merchantpos.order.Order
+import net.taler.merchantpos.showPosError
 
 private const val QUICK_AMOUNT_ORDER_ID = -1
 private const val QUICK_AMOUNT_PRODUCT_ID = "quick_amount"
@@ -117,9 +116,9 @@ class AmountEntryFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         if (!viewModel.configManager.config.isValid()) {
-            navigate(actionGlobalMerchantSettings())
+            (requireActivity() as net.taler.merchantpos.MainActivity).navigateTo(PosDestination.Config)
         } else if (viewModel.configManager.currency == null) {
-            navigate(actionGlobalConfigFetcher())
+            (requireActivity() as net.taler.merchantpos.MainActivity).navigateTo(PosDestination.ConfigFetcher)
         }
     }
 
@@ -161,7 +160,7 @@ class AmountEntryFragment : Fragment() {
 
     private fun onChargePressed() {
         val configuredCurrency = viewModel.configManager.currency ?: run {
-            navigate(actionGlobalConfigFetcher())
+            (requireActivity() as net.taler.merchantpos.MainActivity).navigateTo(PosDestination.ConfigFetcher)
             return
         }
         val enteredCurrency = selectedCurrency ?: configuredCurrency
@@ -169,13 +168,11 @@ class AmountEntryFragment : Fragment() {
             ?: Amount.zero(enteredCurrency).withSpec(viewModel.configManager.currencySpec)
 
         if (enteredAmount.isZero()) {
-            Toast.makeText(requireContext(), R.string.amount_entry_error_zero, Toast.LENGTH_LONG)
-                .show()
+            requireActivity().showPosError(R.string.amount_entry_error_zero)
             return
         }
         if (enteredCurrency != configuredCurrency) {
-            Toast.makeText(requireContext(), R.string.amount_entry_error_wrong_currency, Toast.LENGTH_LONG)
-                .show()
+            requireActivity().showPosError(R.string.amount_entry_error_wrong_currency)
             return
         }
 
@@ -191,11 +188,11 @@ class AmountEntryFragment : Fragment() {
             price = enteredAmount.withSpec(viewModel.configManager.currencySpec),
             categories = listOf(Int.MIN_VALUE),
         )
-        order + product
+        val orderWithProduct = order + product
 
         // Backend doesn't require products; omit them for this "quick amount" flow.
-        paymentManager.createPayment(order, includeProducts = false)
-        navigate(actionAmountEntryToProcessPayment())
+        paymentManager.createPayment(orderWithProduct, includeProducts = false)
+        (requireActivity() as net.taler.merchantpos.MainActivity).navigateTo(PosDestination.ProcessPayment)
     }
 }
 
@@ -213,8 +210,13 @@ private fun AmountEntryScreen(
     onChargePressed: () -> Unit,
 ) {
     PosTheme {
-        val isTabletLayout = LocalConfiguration.current.smallestScreenWidthDp >= 600
-        Box(modifier = Modifier.fillMaxSize()) {
+        val configuration = LocalConfiguration.current
+        val isTabletLayout = configuration.smallestScreenWidthDp >= 600
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding(),
+        ) {
             if (!isTabletLayout) {
                 Row(
                     modifier = Modifier
@@ -229,8 +231,8 @@ private fun AmountEntryScreen(
                         isTabletLayout = false,
                         onCurrencySelected = onCurrencySelected,
                         modifier = Modifier
-                            .weight(0.3f)
-                            .padding(8.dp),
+                            .weight(0.32f)
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
                     )
                     KeypadPane(
                         isTabletLayout = false,
@@ -240,7 +242,7 @@ private fun AmountEntryScreen(
                         onBackspacePressed = onBackspacePressed,
                         onChargePressed = onChargePressed,
                         modifier = Modifier
-                            .weight(0.7f)
+                            .weight(0.68f)
                             .padding(4.dp),
                     )
                 }
@@ -360,7 +362,7 @@ private fun AmountPane(
 
         Column(
             modifier = modifier,
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
@@ -373,6 +375,7 @@ private fun AmountPane(
 
             Spacer(modifier = Modifier.height(12.dp))
             dropdownComposable()
+            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }
@@ -481,7 +484,10 @@ private fun KeypadPane(
                 disabledContainerColor = colorResource(R.color.colorSecondary).copy(alpha = 0.12f),
             ),
         ) {
-            Text(stringResource(R.string.amount_entry_create_order_charge))
+            Text(
+                text = stringResource(R.string.amount_entry_create_order_charge),
+                fontWeight = FontWeight.SemiBold,
+            )
         }
     }
 }
@@ -510,8 +516,14 @@ private fun KeyButton(
             maxLines = 1,
             softWrap = false,
             overflow = TextOverflow.Ellipsis,
-            style = fontSize?.let { MaterialTheme.typography.headlineMedium.copy(fontSize = it) }
-                ?: MaterialTheme.typography.headlineMedium,
+            style = fontSize?.let {
+                MaterialTheme.typography.headlineMedium.copy(
+                    fontSize = it,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            } ?: MaterialTheme.typography.headlineMedium.copy(
+                fontWeight = FontWeight.SemiBold,
+            ),
         )
     }
 }

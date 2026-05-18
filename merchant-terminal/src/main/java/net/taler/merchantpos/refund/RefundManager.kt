@@ -20,11 +20,13 @@ import androidx.annotation.UiThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.taler.common.Amount
 import net.taler.lib.android.assertUiThread
-import net.taler.merchantlib.MerchantApi
 import net.taler.merchantlib.OrderHistoryEntry
+import net.taler.merchantlib.MerchantApi
 import net.taler.merchantlib.RefundRequest
 import net.taler.merchantpos.config.ConfigManager
 
@@ -45,23 +47,55 @@ class RefundManager(
     private val scope: CoroutineScope,
     private val api: MerchantApi
 ) {
+    private var refundStatusJob: Job? = null
 
     var toBeRefunded: OrderHistoryEntry? = null
         private set
 
     private val mRefundResult = MutableLiveData<RefundResult?>()
     internal val refundResult: LiveData<RefundResult?> = mRefundResult
+    private val mPendingRefundOrderId = MutableLiveData<String?>(null)
+    internal val pendingRefundOrderId: LiveData<String?> = mPendingRefundOrderId
+    private val mRefundReceived = MutableLiveData(false)
+    internal val refundReceived: LiveData<Boolean> = mRefundReceived
 
     @UiThread
     internal fun startRefund(item: OrderHistoryEntry) {
+        refundStatusJob?.cancel()
         toBeRefunded = item
         mRefundResult.value = null
+        mPendingRefundOrderId.value = null
+        mRefundReceived.value = false
     }
 
     @UiThread
     internal fun abortRefund() {
+        refundStatusJob?.cancel()
         toBeRefunded = null
         mRefundResult.value = null
+        mPendingRefundOrderId.value = null
+        mRefundReceived.value = false
+    }
+
+    @UiThread
+    internal fun completeRefund() {
+        refundStatusJob?.cancel()
+        toBeRefunded = null
+        mRefundResult.value = null
+        mPendingRefundOrderId.value = null
+        mRefundReceived.value = false
+    }
+
+    @UiThread
+    internal fun resumeRefund(item: OrderHistoryEntry): Boolean {
+        val current = mRefundResult.value as? RefundResult.Success ?: return false
+        if (current.item.orderId != item.orderId) return false
+        toBeRefunded = item
+        mPendingRefundOrderId.value = item.orderId
+        if (mRefundReceived.value != true) {
+            observeRefundStatus(item.orderId)
+        }
+        return true
     }
 
     @UiThread
@@ -76,14 +110,46 @@ class RefundManager(
                 amount = amount,
                 reason = reason
             )
+            mPendingRefundOrderId.value = item.orderId
+            mRefundReceived.value = false
+            observeRefundStatus(item.orderId)
         }
     }
 
     @UiThread
     private fun onRefundError(msg: String) {
         assertUiThread()
+        refundStatusJob?.cancel()
+        mPendingRefundOrderId.postValue(null)
+        mRefundReceived.postValue(false)
         if (msg.contains("2602")) {
             mRefundResult.postValue(RefundResult.AlreadyRefunded)
         } else mRefundResult.postValue(RefundResult.Error(msg))
+    }
+
+    @UiThread
+    private fun observeRefundStatus(orderId: String) {
+        refundStatusJob?.cancel()
+        refundStatusJob = scope.launch {
+            val merchantConfig = configManager.merchantConfig ?: return@launch
+            while (true) {
+                var wasRefunded = false
+                api.checkOrder(merchantConfig, orderId).handle(null) { response ->
+                    assertUiThread()
+                    val paidResponse = response as? net.taler.merchantlib.CheckPaymentResponse.Paid
+                    if (
+                        paidResponse != null &&
+                        paidResponse.refunded &&
+                        !paidResponse.refundPending &&
+                        paidResponse.refundAmount?.isZero() == false
+                    ) {
+                        mRefundReceived.value = true
+                        wasRefunded = true
+                    }
+                }
+                if (wasRefunded || mRefundReceived.value == true) break
+                delay(2_000)
+            }
+        }
     }
 }

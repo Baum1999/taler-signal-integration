@@ -226,11 +226,14 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
 
     internal fun setCurrentCategory(category: Category) {
         currentCategory = category
-        val newCategories = categories.value?.apply {
-            forEach { if (it.selected) it.selected = false }
-            category.selected = true
+        val currentCategories = categories.value.orEmpty()
+        val newCategories = currentCategories.map { existing ->
+            existing.copy().also { copied ->
+                copied.selected = existing.id == category.id
+            }
         }
-        mCategories.postValue(newCategories ?: emptyList())
+        currentCategory = newCategories.firstOrNull { it.id == category.id } ?: category
+        mCategories.postValue(newCategories)
         updateVisibleProducts()
     }
 

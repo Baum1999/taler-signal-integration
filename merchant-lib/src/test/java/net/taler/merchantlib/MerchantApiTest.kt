@@ -17,6 +17,7 @@
 package net.taler.merchantlib
 
 import io.ktor.http.HttpStatusCode.Companion.NotFound
+import java.net.UnknownHostException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -128,6 +129,22 @@ class MerchantApiTest {
             assertEquals(unpaidResponse, it)
         }
 
+        httpClient.giveJsonResponse("http://example.net/instances/testInstance/private/orders/$orderId") {
+            """{
+                "order_status": "paid",
+                "paid": true,
+                "refunded": true,
+                "refund_pending": false,
+                "refund_amount": "TESTKUDOS:1.5"
+            }""".trimIndent()
+        }
+        api.checkOrder(merchantConfig, orderId).assertSuccess {
+            val paidResponse = it as CheckPaymentResponse.Paid
+            assertEquals(true, paidResponse.refunded)
+            assertEquals(false, paidResponse.refundPending)
+            assertEquals(Amount("TESTKUDOS", 1, 50000000), paidResponse.refundAmount)
+        }
+
         httpClient.giveJsonResponse(
             "http://example.net/instances/testInstance/private/orders/$orderId",
             statusCode = NotFound
@@ -168,7 +185,7 @@ class MerchantApiTest {
 
     @Test
     fun testGetOrderHistory() = runBlocking {
-        httpClient.giveJsonResponse("http://example.net/instances/testInstance/private/orders") {
+        httpClient.giveJsonResponse("http://example.net/instances/testInstance/private/orders?limit=-20") {
             """{  "orders": [
                     {
                       "order_id": "2020.217-0281FGXCS25P2",
@@ -178,6 +195,8 @@ class MerchantApiTest {
                       },
                       "amount": "TESTKUDOS:1",
                       "summary": "Chips",
+                      "refund_amount": "TESTKUDOS:0.8",
+                      "pending_refund_amount": "TESTKUDOS:0.3",
                       "refundable": true,
                       "paid": true
                     },
@@ -205,6 +224,10 @@ class MerchantApiTest {
             assertEquals(true, order1.refundable)
             assertEquals("Chips", order1.summary)
             assertEquals(Timestamp.fromMillis(1596542338000), order1.timestamp)
+            assertEquals(Amount("TESTKUDOS", 0, 80000000), order1.refundAmount)
+            assertEquals(Amount("TESTKUDOS", 0, 30000000), order1.pendingRefundAmount)
+            assertEquals(true, order1.hasRefund)
+            assertEquals(true, order1.hasPendingRefund)
 
             val order2 = it.orders[1]
             assertEquals(Amount("TESTKUDOS", 0, 80000000), order2.amount)
@@ -213,6 +236,59 @@ class MerchantApiTest {
             assertEquals(false, order2.refundable)
             assertEquals("Peanuts", order2.summary)
             assertEquals(Timestamp.fromMillis(1596468174000), order2.timestamp)
+            assertEquals(false, order2.hasRefund)
+            assertEquals(false, order2.hasPendingRefund)
+        }
+    }
+
+    @Test
+    fun testGetOrderHistoryLegacyRefundFields() = runBlocking {
+        httpClient.giveJsonResponse("http://example.net/instances/testInstance/private/orders?limit=-20") {
+            """{  "orders": [
+                    {
+                      "order_id": "legacy-refund-order",
+                      "timestamp": {
+                        "t_s": 1596542338
+                      },
+                      "amount": "TESTKUDOS:1",
+                      "summary": "Legacy refund",
+                      "refundable": false,
+                      "paid": true,
+                      "refunded_amount": "TESTKUDOS:0.8",
+                      "refund_pending_amount": "TESTKUDOS:0.2"
+                    }
+                ]
+            }""".trimIndent()
+        }
+        api.getOrderHistory(merchantConfig).assertSuccess {
+            assertEquals(1, it.orders.size)
+            val order = it.orders.single()
+            assertEquals(Amount("TESTKUDOS", 0, 80000000), order.refundAmount)
+            assertEquals(Amount("TESTKUDOS", 0, 20000000), order.pendingRefundAmount)
+            assertEquals(true, order.hasRefund)
+            assertEquals(true, order.hasPendingRefund)
+        }
+    }
+
+    @Test
+    fun testGetOrderHistoryNotFoundFallbackMessage() = runBlocking {
+        httpClient.giveJsonResponse(
+            "http://example.net/instances/testInstance/private/orders?limit=-20",
+            statusCode = NotFound
+        ) {
+            "not-json"
+        }
+        api.getOrderHistory(merchantConfig).assertFailure {
+            assertEquals("Not found (404): check the merchant URL and instance path.", it)
+        }
+    }
+
+    @Test
+    fun testResponseNetworkFailureMessage() = runBlocking {
+        Response.response<String> {
+            throw UnknownHostException("backend.int.taler.net")
+        }.assertFailure {
+            assertEquals("Network error: check your internet connection and merchant URL.", it)
         }
     }
 

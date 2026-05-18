@@ -32,10 +32,12 @@ import net.taler.lib.android.assertUiThread
 import net.taler.merchantlib.CheckPaymentResponse
 import net.taler.merchantlib.MerchantApi
 import net.taler.merchantlib.MinimalInventoryProduct
+import net.taler.merchantlib.OrderHistoryEntry
 import net.taler.merchantlib.PostOrderRequest
 import net.taler.merchantpos.MainActivity.Companion.TAG
 import net.taler.merchantpos.R
 import net.taler.merchantpos.config.ConfigManager
+import net.taler.merchantpos.config.ConfigProduct
 import net.taler.merchantpos.order.Order
 import java.util.concurrent.TimeUnit.HOURS
 import java.util.concurrent.TimeUnit.SECONDS
@@ -103,6 +105,44 @@ class PaymentManager(
         }) { orderResponse ->
             assertUiThread()
             mPayment.value = mPayment.value!!.copy(orderId = orderResponse.orderId)
+            checkTimer.start()
+        }
+    }
+
+    @UiThread
+    fun resumePayment(item: OrderHistoryEntry) {
+        val current = mPayment.value
+        if (current?.orderId == item.orderId && !current.paid && current.error == null) {
+            if (checkJob == null || checkJob?.isCompleted == true) {
+                checkJob = checkPayment(item.orderId)
+            }
+            checkTimer.start()
+            return
+        }
+
+        val order = Order(
+            id = -2,
+            currency = item.amount.currency,
+            currencySpec = item.amount.spec,
+            availableCategories = emptyMap(),
+            products = listOf(
+                ConfigProduct(
+                    description = item.summary,
+                    price = item.amount,
+                    categories = listOf(Int.MIN_VALUE),
+                    quantity = 1,
+                )
+            ),
+        )
+        mPayment.value = Payment(
+            order = order,
+            summary = item.summary,
+            currency = item.amount.currency,
+            orderId = item.orderId,
+            paid = item.paid,
+        )
+        if (!item.paid) {
+            checkJob = checkPayment(item.orderId)
             checkTimer.start()
         }
     }

@@ -44,12 +44,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.element
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonEncoder
@@ -92,10 +94,15 @@ internal const val OLD_CONFIG_PASSWORD_DEMO = ""
 private const val SETTINGS_MERCHANT_URL = "merchantUrl"
 private const val SETTINGS_ACCESS_TOKEN = "accessToken"
 private const val SETTINGS_INITIAL_ORDER_SCREEN = "initialOrderScreen"
+private const val SETTINGS_CACHED_RUNTIME_CONFIG = "cachedRuntimeConfig"
 
 internal const val NEW_CONFIG_URL_DEMO = "my.taler-ops.ch"
 
 private val VERSION = Version.parse(BuildConfig.BACKEND_API_VERSION)!!
+private val json = Json {
+    ignoreUnknownKeys = true
+    encodeDefaults = true
+}
 
 private val TAG = ConfigManager::class.java.simpleName
 
@@ -115,6 +122,14 @@ private data class MerchantBackendConfigResponse(
     val version: String,
     val currency: String,
     val currencies: Map<String, CurrencySpecification> = emptyMap(),
+)
+
+@Serializable
+private data class CachedRuntimeConfig(
+    val posConfig: PosConfig,
+    val merchantConfig: MerchantConfig,
+    val currency: String,
+    val currencySpec: CurrencySpecification? = null,
 )
 
 /* -- Limited access token -- */
@@ -162,9 +177,10 @@ class ConfigManager(
     private val prefs = context.getSharedPreferences(SETTINGS_NAME, MODE_PRIVATE)
     private val configurationReceivers = ArrayList<ConfigurationReceiver>()
     private var inventoryRefreshJob: Job? = null
+    private var cachedRuntimeConfig: CachedRuntimeConfig? = null
 
     init {
-        migrateLegacyPrefsIfNeeded();
+        migrateLegacyPrefsIfNeeded()
     }
 
     @Volatile
@@ -174,6 +190,10 @@ class ConfigManager(
             accessToken = prefs.getString(SETTINGS_ACCESS_TOKEN, "")!!,
             savePassword = prefs.getBoolean(SETTINGS_SAVE_PASSWORD, true),
         )
+
+    init {
+        restoreCachedRuntimeConfig()
+    }
 
     @Volatile
     var merchantConfig: MerchantConfig? = null
@@ -187,14 +207,20 @@ class ConfigManager(
     var currencySpec: CurrencySpecification? = null
         private set
 
-    var initialOrderScreen: InitialOrderScreen
-        get() = InitialOrderScreen.fromPrefValue(
+    private val mInitialOrderScreen = MutableLiveData(
+        InitialOrderScreen.fromPrefValue(
             prefs.getString(SETTINGS_INITIAL_ORDER_SCREEN, InitialOrderScreen.AmountEntry.prefValue),
         )
+    )
+    val initialOrderScreenLiveData: LiveData<InitialOrderScreen> = mInitialOrderScreen
+
+    var initialOrderScreen: InitialOrderScreen
+        get() = mInitialOrderScreen.value ?: InitialOrderScreen.AmountEntry
         set(value) {
             prefs.edit()
                 .putString(SETTINGS_INITIAL_ORDER_SCREEN, value.prefValue)
                 .apply()
+            mInitialOrderScreen.value = value
         }
 
     private val mConfigUpdateResult = MutableLiveData<ConfigUpdateResult?>()
@@ -202,6 +228,11 @@ class ConfigManager(
 
     fun addConfigurationReceiver(receiver: ConfigurationReceiver) {
         configurationReceivers.add(receiver)
+        cachedRuntimeConfig?.let { cached ->
+            scope.launch {
+                receiver.onConfigurationReceived(cached.posConfig, cached.currency, cached.currencySpec)
+            }
+        }
     }
 
     private fun migrateLegacyPrefsIfNeeded() {
@@ -214,6 +245,12 @@ class ConfigManager(
     @UiThread
     fun reloadConfig() {
         fetchConfig(config, save = true, inventoryOnly = false, silent = false)
+    }
+
+    @UiThread
+    fun refreshConfigInBackground() {
+        if (!config.isValid() || !config.hasPassword()) return
+        fetchConfig(config, save = false, inventoryOnly = false, silent = true)
     }
 
     @UiThread
@@ -338,6 +375,14 @@ class ConfigManager(
             this@ConfigManager.merchantConfig = merchantConfig
             this@ConfigManager.currency = configResponse.currency
             this@ConfigManager.currencySpec = currencySpec
+            saveCachedRuntimeConfig(
+                CachedRuntimeConfig(
+                    posConfig = posConfig,
+                    merchantConfig = merchantConfig,
+                    currency = configResponse.currency,
+                    currencySpec = currencySpec,
+                )
+            )
             if (!silent) {
                 mConfigUpdateResult.value = ConfigUpdateResult.Success(configResponse.currency)
             }
@@ -434,6 +479,7 @@ class ConfigManager(
             is Config.New -> c.copy(accessToken = "")
         }
         saveConfig(config)
+        clearCachedRuntimeConfig()
         merchantConfig = null
         currency = null
         currencySpec = null
@@ -449,6 +495,7 @@ class ConfigManager(
             savePassword = savePassword,
         )
         saveConfig(config)
+        clearCachedRuntimeConfig()
         merchantConfig = null
         currency = null
         currencySpec = null
@@ -476,6 +523,37 @@ class ConfigManager(
 
     private fun onNetworkError(msg: String) = scope.launch(Dispatchers.Main) {
         mConfigUpdateResult.value = ConfigUpdateResult.Error(msg)
+    }
+
+    private fun restoreCachedRuntimeConfig() {
+        if (!config.isValid() || !config.hasPassword()) {
+            clearCachedRuntimeConfig()
+            return
+        }
+        val encoded = prefs.getString(SETTINGS_CACHED_RUNTIME_CONFIG, null) ?: return
+        val restored = runCatching {
+            json.decodeFromString<CachedRuntimeConfig>(encoded)
+        }.getOrElse { error ->
+            Log.e(TAG, "Failed to restore cached runtime config", error)
+            clearCachedRuntimeConfig()
+            return
+        }
+        cachedRuntimeConfig = restored
+        merchantConfig = restored.merchantConfig
+        currency = restored.currency
+        currencySpec = restored.currencySpec
+    }
+
+    private fun saveCachedRuntimeConfig(snapshot: CachedRuntimeConfig) {
+        cachedRuntimeConfig = snapshot
+        prefs.edit()
+            .putString(SETTINGS_CACHED_RUNTIME_CONFIG, json.encodeToString(CachedRuntimeConfig.serializer(), snapshot))
+            .apply()
+    }
+
+    private fun clearCachedRuntimeConfig() {
+        cachedRuntimeConfig = null
+        prefs.edit().remove(SETTINGS_CACHED_RUNTIME_CONFIG).apply()
     }
 
     internal fun notifySessionExpired() {

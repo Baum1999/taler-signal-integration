@@ -60,6 +60,7 @@
     <string name="config_merchant_url">Merchant portal URL</string>
     <string name="config_username">Username</string>
     <string name="config_password">Password</string>
+    <string name="config_manual_label">Manual config</string>
     <string name="config_token">Access token</string>
     <string name="config_ok">Connect</string>
     <string name="config_auth_error">Error: Invalid username or password</string>
@@ -86,10 +87,21 @@
     <string name="payment_order_id">Receipt #%s</string>
     <string name="payment_process_label">Payment required</string>
     <string name="payment_canceled">Payment canceled</string>
+    <string name="payment_share_uri">Share payment URI</string>
+    <string name="payment_copy_uri">Copy payment URI</string>
 
     <string name="history_label">Payment history</string>
+    <string name="history_refresh">Refresh history</string>
     <string name="history_ref_no" translatable="false">@string/payment_order_id</string>
     <string name="history_unpaid">Unpaid</string>
+    <string name="history_status_unpaid">Unpaid</string>
+    <string name="history_status_paid">Paid</string>
+    <string name="history_status_payment_pending">Payment pending</string>
+    <string name="history_status_payment_claimed">Payment claimed</string>
+    <string name="history_status_refund_pending">Refund pending</string>
+    <string name="history_status_refunded">Refunded</string>
+    <string name="history_show_payment">Show payment</string>
+    <string name="history_show_refund">Show refund</string>
     <string name="history_refund">Refund</string>
     <string name="refund_amount">Amount</string>
     <string name="refund_reason">Refund reason</string>
@@ -102,6 +114,7 @@
     <string name="refund_error_backend">Error processing refund</string>
     <string name="refund_error_deadline">Refund deadline has passed</string>
     <string name="refund_error_already_refunded">Already refunded</string>
+    <string name="refund_state_missing">Refund state is no longer available</string>
     <string name="refund_intro_nfc">Please let customer scan QR Code or use NFC to offer refund</string>
     <string name="refund_intro">Please let customer scan QR Code to offer refund</string>
     <string name="refund_order_ref">Purchase reference: %1$s\n\n%2$s</string>

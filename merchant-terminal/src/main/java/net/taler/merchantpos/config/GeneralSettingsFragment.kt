@@ -28,9 +28,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -53,8 +53,6 @@ import androidx.compose.runtime.setValue
 import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.navigation.NavOptions
-import androidx.navigation.fragment.findNavController
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.ComposeView
@@ -66,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import net.taler.merchantpos.compose.PosOutlinedCard
 import net.taler.merchantpos.compose.PosTheme
 import net.taler.merchantpos.R
+import net.taler.merchantpos.PosDestination
 import java.util.Locale
 
 private data class LanguageOption(
@@ -104,17 +103,13 @@ class GeneralSettingsFragment : Fragment() {
                     initialSelectedOrderScreen = configManager.initialOrderScreen,
                     onInitialOrderSelected = { configManager.initialOrderScreen = it },
                     onInstanceSettingsClick = {
-                        findNavController().navigate(R.id.nav_instanceSettings)
+                        (requireActivity() as net.taler.merchantpos.MainActivity).navigateTo(PosDestination.Config)
                     },
                     onLogoutClick = {
                         configManager.logout()
-                        findNavController().navigate(
-                            R.id.nav_instanceSettings,
-                            null,
-                            NavOptions.Builder()
-                                .setLaunchSingleTop(true)
-                                .setPopUpTo(R.id.nav_graph, true)
-                                .build(),
+                        (requireActivity() as net.taler.merchantpos.MainActivity).navigateTo(
+                            PosDestination.Config,
+                            clearBackStack = true,
                         )
                     },
                 )
@@ -192,78 +187,82 @@ private fun GeneralSettingsScreen(
             ?: initialOrderOptions.firstOrNull()?.label.orEmpty()
 
     PosTheme {
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .statusBarsPadding()
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            SettingsCard(
-                title = stringResource(R.string.settings_app_title),
-            ) {
-                SettingsDropdown(
-                    expanded = languageExpanded,
-                    onExpandedChange = { languageExpanded = it },
-                    value = selectedLabel,
-                    label = stringResource(R.string.settings_language_hint),
-                    options = languageOptions,
-                    optionLabel = { it.label },
-                    onOptionSelected = { option ->
-                        selectedTag = option.languageTag
-                        languageExpanded = false
-                        onLanguageSelected(option.languageTag)
-                    },
-                )
-                SettingsDropdown(
-                    expanded = initialOrderExpanded,
-                    onExpandedChange = { initialOrderExpanded = it },
-                    value = selectedInitialOrderLabel,
-                    label = stringResource(R.string.settings_initial_order_hint),
-                    options = initialOrderOptions,
-                    optionLabel = { it.label },
-                    onOptionSelected = { option ->
-                        selectedInitialOrderScreen = option.screen
-                        initialOrderExpanded = false
-                        onInitialOrderSelected(option.screen)
-                    },
-                )
-            }
-
-            SettingsCard(
-                title = stringResource(R.string.settings_instance_title),
-                description = stringResource(R.string.settings_instance_description),
-            ) {
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = onInstanceSettingsClick,
-                    shape = SettingsControlShape,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    ),
+            item {
+                SettingsCard(
+                    title = stringResource(R.string.settings_app_title),
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_menu_manage),
-                        contentDescription = null,
+                    SettingsDropdown(
+                        expanded = languageExpanded,
+                        onExpandedChange = { languageExpanded = it },
+                        value = selectedLabel,
+                        label = stringResource(R.string.settings_language_hint),
+                        options = languageOptions,
+                        optionLabel = { it.label },
+                        onOptionSelected = { option ->
+                            selectedTag = option.languageTag
+                            languageExpanded = false
+                            onLanguageSelected(option.languageTag)
+                        },
                     )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(R.string.settings_instance_button),
+                    SettingsDropdown(
+                        expanded = initialOrderExpanded,
+                        onExpandedChange = { initialOrderExpanded = it },
+                        value = selectedInitialOrderLabel,
+                        label = stringResource(R.string.settings_initial_order_hint),
+                        options = initialOrderOptions,
+                        optionLabel = { it.label },
+                        onOptionSelected = { option ->
+                            selectedInitialOrderScreen = option.screen
+                            initialOrderExpanded = false
+                            onInitialOrderSelected(option.screen)
+                        },
                     )
                 }
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = onLogoutClick,
-                    shape = SettingsControlShape,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                    ),
+            }
+
+            item {
+                SettingsCard(
+                    title = stringResource(R.string.settings_instance_title),
+                    description = stringResource(R.string.settings_instance_description),
                 ) {
-                    Text(
-                        text = stringResource(R.string.settings_logout_button),
-                    )
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = onInstanceSettingsClick,
+                        shape = SettingsControlShape,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        ),
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_menu_manage),
+                            contentDescription = null,
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.settings_instance_button),
+                        )
+                    }
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = onLogoutClick,
+                        shape = SettingsControlShape,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        ),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_logout_button),
+                        )
+                    }
                 }
             }
         }
