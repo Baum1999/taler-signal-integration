@@ -147,6 +147,13 @@ class PaymentManager(
         }
     }
 
+    @UiThread
+    internal fun debugSetPayment(payment: Payment) {
+        checkTimer.cancel()
+        checkJob = null
+        mPayment.value = payment
+    }
+
     private fun checkPayment(orderId: String) = scope.launch {
         val merchantConfig = configManager.merchantConfig!!
         api.checkOrder(merchantConfig, orderId).handle({ error ->

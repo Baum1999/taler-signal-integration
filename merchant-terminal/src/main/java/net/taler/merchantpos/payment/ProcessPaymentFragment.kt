@@ -258,9 +258,10 @@ private fun TabletProcessPaymentScreen(
                     textAlign = TextAlign.Center,
                 )
             }
+            Spacer(modifier = Modifier.weight(1f))
             OutlinedButton(
                 onClick = onCancel,
-                modifier = Modifier.align(Alignment.Start),
+                modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.outlinedButtonColors(
                     containerColor = MaterialTheme.colorScheme.error,
                     contentColor = MaterialTheme.colorScheme.onError,

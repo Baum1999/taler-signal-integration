@@ -243,6 +243,16 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
     }
 
     @UiThread
+    internal fun debugSeedCurrentOrder(productIds: List<String>) {
+        val orderId = currentOrderId.value ?: return
+        val liveOrder = order(orderId)
+        productIds.forEach { productId ->
+            productsById[productId]?.let(liveOrder::addProduct)
+        }
+        updateVisibleProducts()
+    }
+
+    @UiThread
     internal fun onOrderPaid(orderId: Int) {
         if (currentOrderId.value == orderId) {
             if (hasPreviousOrder(orderId)) previousOrder()

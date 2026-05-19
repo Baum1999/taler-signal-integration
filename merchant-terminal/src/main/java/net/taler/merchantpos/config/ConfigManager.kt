@@ -42,6 +42,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -231,6 +232,37 @@ class ConfigManager(
         cachedRuntimeConfig?.let { cached ->
             scope.launch {
                 receiver.onConfigurationReceived(cached.posConfig, cached.currency, cached.currencySpec)
+            }
+        }
+    }
+
+    internal fun debugApplyFixture(
+        posConfig: PosConfig,
+        merchantConfig: MerchantConfig,
+        currency: String,
+        currencySpec: CurrencySpecification? = null,
+        initialOrderScreen: InitialOrderScreen = InitialOrderScreen.Inventory,
+    ) {
+        config = Config.New(
+            merchantUrl = merchantConfig.baseUrl,
+            accessToken = "",
+            savePassword = false,
+        )
+        this.merchantConfig = merchantConfig
+        this.currency = currency
+        this.currencySpec = currencySpec
+        this.initialOrderScreen = initialOrderScreen
+
+        val snapshot = CachedRuntimeConfig(
+            posConfig = posConfig,
+            merchantConfig = merchantConfig,
+            currency = currency,
+            currencySpec = currencySpec,
+        )
+        saveCachedRuntimeConfig(snapshot)
+        runBlocking {
+            configurationReceivers.forEach { receiver ->
+                receiver.onConfigurationReceived(posConfig, currency, currencySpec)
             }
         }
     }

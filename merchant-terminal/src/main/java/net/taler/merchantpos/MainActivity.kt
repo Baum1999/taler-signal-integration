@@ -87,6 +87,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import net.taler.lib.android.TalerNfcService
+import net.taler.merchantpos.debug.ScreenshotController
 import net.taler.merchantpos.compose.PosTheme
 import net.taler.merchantpos.config.Config
 import net.taler.merchantpos.config.ConfigFetcherFragment
@@ -118,6 +119,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val screenshotStartDestination = ScreenshotController.prepareScenario(intent, model)
+
         TalerNfcService.startService(this)
 
         model.paymentManager.payment.observe(this) { payment ->
@@ -137,7 +140,7 @@ class MainActivity : AppCompatActivity() {
             PosTheme {
                 MerchantTerminalApp(
                     viewModel = model,
-                    startDestination = determineStartDestination(),
+                    startDestination = determineStartDestination(screenshotStartDestination),
                     onNavControllerReady = { navController = it },
                     onExitRequested = ::handleExitRequest,
                 )
@@ -258,7 +261,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun determineStartDestination(): PosDestination {
+    private fun determineStartDestination(overrideDestination: PosDestination? = null): PosDestination {
+        overrideDestination?.let { return it }
         return when {
             !model.configManager.config.isValid() -> PosDestination.Config
             model.configManager.merchantConfig == null || model.configManager.currency == null ->
