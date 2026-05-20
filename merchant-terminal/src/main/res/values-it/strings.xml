@@ -144,8 +144,8 @@
     <string-array name="settings_language_labels"><item>@string/settings_language_system_default</item><item>English</item><item>Deutsch</item><item>Español</item><item>Suomi</item><item>Français</item><item>Italiano</item><item>Русский</item><item>Svenska</item><item>Türkçe</item><item>Українська</item><item>עברית</item></string-array>
     <string name="product_unavailable">Non disponibile</string>
     <string name="product_out_of_stock">Esaurito</string>
-    <string name="order_delete">Elimina ordine</string>
+    <string name="order_delete">Cancella ordine</string>
     <string name="error_order_creation">Errore: impossibile creare l’ordine</string>
     <string name="error_inventory_unavailable">Errore: inventario disponibile insufficiente</string>
-    <string name="error_delete_order">Errore: impossibile eliminare l’ordine</string>
+    <string name="error_delete_order">Errore: impossibile cancellare l’ordine</string>
 </resources>
