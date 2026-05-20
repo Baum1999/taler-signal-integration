@@ -13,7 +13,7 @@
     <string name="payment_copy_uri">Copia URI di pagamento</string>
 
     <!-- History -->
-    <string name="history_refresh">Aggiorna cronologia</string>
+    <string name="history_refresh">Aggiorna storico</string>
     <string name="history_show_payment">Mostra pagamento</string>
     <string name="history_show_refund">Mostra rimborso</string>
     <string name="history_status_unpaid">Non pagato</string>
@@ -31,7 +31,7 @@
     <string name="config_error_unknown">Errore: Configurazione non valida</string>
     <string name="payment_received">Pagamento ricevuto</string>
     <string name="payment_back_button">Continua</string>
-    <string name="history_label">Cronologia pagamenti</string>
+    <string name="history_label">Storico pagamenti</string>
     <string name="refund_amount">Importo</string>
     <string name="refund_error_invalid_amount">Importo non valido</string>
     <string name="project_name">GNU Taler</string>
@@ -51,7 +51,7 @@
     <string name="app_name">GNU Taler Punto vendita</string>
     <string name="app_name_short">Terminale commerciante</string>
     <string name="menu_amount_entry">Ordine per importo</string>
-    <string name="menu_history">Cronologia</string>
+    <string name="menu_history">Storico</string>
     <string name="menu_reload">Ricarica inventario</string>
     <string name="product_image">Immagine prodotto</string>
     <string name="product_category_all_objects">Tutto</string>
@@ -136,7 +136,7 @@
     <string name="refund_order_ref">Riferimento acquisto: %1$s\n\n%2$s</string>
     <string name="error_timeout">Nessun pagamento effettuato entro il periodo previsto, riprova.</string>
     <string name="error_cancelled">Pagamento annullato</string>
-    <string name="error_history">Errore durante il recupero della cronologia ordini</string>
+    <string name="error_history">Errore durante il recupero dello storico pagamenti</string>
     <string name="toast_reloading">Ricaricamento inventario</string>
     <string name="toast_back_to_exit">Premi di nuovo «indietro» per uscire</string>
     <string name="host_apdu_service_desc">Pagamenti NFC Taler Merchant</string>
