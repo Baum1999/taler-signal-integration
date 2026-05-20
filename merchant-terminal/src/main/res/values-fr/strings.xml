@@ -22,6 +22,7 @@
     <string name="order_complete">Compléter</string>
     <string name="config_label">Paramètres marchand</string>
     <string name="config_url">URL de configuration</string>
+    <string name="config_manual_label">Configuration manuelle</string>
     <string name="config_ok">Récupérer la configuration</string>
     <string name="config_auth_error">Identifiant ou Mot de passe invalide</string>
     <string name="config_error_category">Erreur : aucune catégorie de produit valide n\'a été trouvée</string>
@@ -41,7 +42,19 @@
     <string name="payment_order_id">Justificatif numéro %s</string>
     <string name="payment_process_label">Paiement requis</string>
     <string name="payment_canceled">Paiement annulé</string>
+    <string name="payment_share_uri">Partager l’URI de paiement</string>
+    <string name="payment_copy_uri">Copier l’URI de paiement</string>
     <string name="history_label">Historique des paiements</string>
+    <string name="history_refresh">Actualiser l’historique</string>
+    <string name="history_ref_no" translatable="false">@string/payment_order_id</string>
+    <string name="history_status_unpaid">Non payé</string>
+    <string name="history_status_paid">Payé</string>
+    <string name="history_status_payment_pending">Paiement en attente</string>
+    <string name="history_status_payment_claimed">Paiement réclamé</string>
+    <string name="history_status_refund_pending">Remboursement en attente</string>
+    <string name="history_status_refunded">Remboursé</string>
+    <string name="history_show_payment">Afficher le paiement</string>
+    <string name="history_show_refund">Afficher le remboursement</string>
     <string name="history_refund">Remboursement</string>
     <string name="refund_amount">Montant</string>
     <string name="refund_reason">Motif du remboursement</string>
@@ -52,6 +65,7 @@
     <string name="refund_error_zero">Doit être un montant positif</string>
     <string name="refund_error_deadline">Le délai de remboursement est dépassé</string>
     <string name="refund_error_already_refunded">Déjà remboursé</string>
+    <string name="refund_state_missing">L’état du remboursement n’est plus disponible</string>
     <string name="menu_history">Historique</string>
     <string name="refund_intro_nfc">Demandez au client de scanner le QR code ou d\'utiliser la NFC pour effectuer le remboursement</string>
     <string name="refund_intro">Demandez au client de scanner le QR code pour effectuer le remboursement</string>

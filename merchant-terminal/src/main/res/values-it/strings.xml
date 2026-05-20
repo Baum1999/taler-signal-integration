@@ -32,6 +32,7 @@
     <string name="payment_received">Pagamento ricevuto</string>
     <string name="payment_back_button">Continua</string>
     <string name="history_label">Storico pagamenti</string>
+    <string name="history_ref_no" translatable="false">@string/payment_order_id</string>
     <string name="refund_amount">Importo</string>
     <string name="refund_error_invalid_amount">Importo non valido</string>
     <string name="project_name">GNU Taler</string>

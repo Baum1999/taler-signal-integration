@@ -53,6 +53,7 @@
     <string name="config_merchant_url">כתובת פורטל הסוחר</string>
     <string name="config_username">שם משתמש</string>
     <string name="config_password">סיסמה</string>
+    <string name="config_manual_label">תצורה ידנית</string>
     <string name="config_token">אסימון גישה</string>
     <string name="config_ok">התחבר</string>
     <string name="config_auth_error">שגיאה: שם משתמש או סיסמה לא תקינים</string>
@@ -90,8 +91,20 @@
     <string name="payment_order_id">קבלה #%s</string>
     <string name="payment_process_label">נדרש תשלום</string>
     <string name="payment_canceled">התשלום בוטל</string>
+    <string name="payment_share_uri">שיתוף URI של תשלום</string>
+    <string name="payment_copy_uri">העתקת URI של תשלום</string>
     <string name="history_label">היסטוריית תשלומים</string>
+    <string name="history_refresh">רענון היסטוריה</string>
+    <string name="history_ref_no" translatable="false">@string/payment_order_id</string>
     <string name="history_unpaid">לא שולם</string>
+    <string name="history_status_unpaid">לא שולם</string>
+    <string name="history_status_paid">שולם</string>
+    <string name="history_status_payment_pending">התשלום ממתין</string>
+    <string name="history_status_payment_claimed">התשלום אושר</string>
+    <string name="history_status_refund_pending">ההחזר ממתין</string>
+    <string name="history_status_refunded">הוחזר</string>
+    <string name="history_show_payment">הצגת התשלום</string>
+    <string name="history_show_refund">הצגת ההחזר</string>
     <string name="history_refund">החזר</string>
     <string name="refund_amount">סכום</string>
     <string name="refund_reason">סיבת ההחזר</string>
@@ -104,6 +117,7 @@
     <string name="refund_error_backend">שגיאה בעיבוד ההחזר</string>
     <string name="refund_error_deadline">מועד ההחזר חלף</string>
     <string name="refund_error_already_refunded">כבר הוחזר</string>
+    <string name="refund_state_missing">מצב ההחזר אינו זמין עוד</string>
     <string name="refund_intro_nfc">בקשו מהלקוח לסרוק קוד QR או להשתמש ב-NFC כדי לקבל החזר</string>
     <string name="refund_intro">בקשו מהלקוח לסרוק קוד QR כדי לקבל החזר</string>
     <string name="refund_order_ref">אסמכתת רכישה: %1$s\n\n%2$s</string>

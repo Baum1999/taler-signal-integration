@@ -18,6 +18,7 @@
     <string name="order_custom_product_default">Чайові</string>
     <string name="order_custom_add_button">Додати</string>
     <string name="config_old_label">JSON файл (старий)</string>
+    <string name="config_manual_label">Ручна конфігурація</string>
     <string name="config_setup_password">Продавець (новий)</string>
     <string name="config_url">URL конфігурації</string>
     <string name="config_password">Пароль</string>
@@ -42,8 +43,20 @@
     <string name="payment_order_id">Квитанція #%s</string>
     <string name="payment_process_label">Необхідна оплата</string>
     <string name="payment_canceled">Оплату скасовано</string>
+    <string name="payment_share_uri">Поділитися URI платежу</string>
+    <string name="payment_copy_uri">Скопіювати URI платежу</string>
     <string name="history_label">Історія платежів</string>
+    <string name="history_refresh">Оновити історію</string>
+    <string name="history_ref_no" translatable="false">@string/payment_order_id</string>
     <string name="history_unpaid">Неоплачено</string>
+    <string name="history_status_unpaid">Неоплачено</string>
+    <string name="history_status_paid">Оплачено</string>
+    <string name="history_status_payment_pending">Платіж очікується</string>
+    <string name="history_status_payment_claimed">Платіж підтверджено</string>
+    <string name="history_status_refund_pending">Повернення очікується</string>
+    <string name="history_status_refunded">Повернено</string>
+    <string name="history_show_payment">Показати платіж</string>
+    <string name="history_show_refund">Показати повернення</string>
     <string name="history_refund">Повернення</string>
     <string name="refund_amount">Сума</string>
     <string name="refund_abort">Скасувати</string>
@@ -55,6 +68,7 @@
     <string name="refund_error_backend">Помилка обробки повернення</string>
     <string name="refund_error_deadline">Термін повернення минув</string>
     <string name="refund_error_already_refunded">Вже повернуто</string>
+    <string name="refund_state_missing">Стан повернення більше недоступний</string>
     <string name="refund_intro_nfc">Будь ласка, дозвольте клієнту відсканувати QR-код або використати NFC для пропозиції повернення</string>
     <string name="refund_intro">Будь ласка, дозвольте клієнту відсканувати QR-код для пропозиції повернення</string>
     <string name="refund_order_ref">Посилання на покупку: %1$s

@@ -15,6 +15,7 @@
     <string name="order_custom_product_default">Tip</string>
     <string name="config_label">Kauppiaan asetukset</string>
     <string name="config_url">Määrityksen URL -osoite</string>
+    <string name="config_manual_label">Manuaalinen määritys</string>
     <string name="config_username">Käyttäjänimi</string>
     <string name="config_password">Salasana</string>
     <string name="config_ok">Nouda määritykset</string>
@@ -38,9 +39,21 @@
     <string name="payment_order_id">Kuitti #%s</string>
     <string name="payment_process_label">Maksua vaaditaan</string>
     <string name="payment_canceled">Maksu peruutettu</string>
+    <string name="payment_share_uri">Jaa maksun URI</string>
+    <string name="payment_copy_uri">Kopioi maksun URI</string>
     <string name="history_label">Maksu historia</string>
+    <string name="history_refresh">Päivitä historia</string>
+    <string name="history_ref_no" translatable="false">@string/payment_order_id</string>
     <string name="history_refund">Palautus</string>
     <string name="history_unpaid">Maksamaton</string>
+    <string name="history_status_unpaid">Maksamaton</string>
+    <string name="history_status_paid">Maksettu</string>
+    <string name="history_status_payment_pending">Maksu odottaa</string>
+    <string name="history_status_payment_claimed">Maksu kuitattu</string>
+    <string name="history_status_refund_pending">Palautus odottaa</string>
+    <string name="history_status_refunded">Palautettu</string>
+    <string name="history_show_payment">Näytä maksu</string>
+    <string name="history_show_refund">Näytä palautus</string>
     <string name="refund_amount">Summa</string>
     <string name="refund_reason">Palautuksen syy</string>
     <string name="refund_abort">Keskeytä</string>
@@ -51,6 +64,7 @@
     <string name="refund_error_zero">On oltava positiivinen määrä</string>
     <string name="refund_error_backend">Hyvityksen käsittelyssä tapahtui virhe</string>
     <string name="refund_error_already_refunded">Palautettu jo</string>
+    <string name="refund_state_missing">Palautuksen tila ei ole enää saatavilla</string>
     <string name="refund_intro_nfc">Anna asiakkaan skannata QR-koodi tai käyttää NFC:tä hyvityksen tarjoamiseksi</string>
     <string name="refund_intro">Anna asiakkaan skannata QR-koodi hyvityksen tarjoamiseksi</string>
     <string name="refund_order_ref">Ostoviite: %1$s

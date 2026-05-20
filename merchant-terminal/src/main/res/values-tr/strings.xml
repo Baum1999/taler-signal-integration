@@ -11,6 +11,7 @@
     <string name="refund_error_zero">Pozitif miktar olması gerekiyor</string>
     <string name="refund_error_backend">Geri ödeme işlenirken hata oluştu</string>
     <string name="refund_error_already_refunded">Çoktan geri ödendi</string>
+    <string name="refund_state_missing">Geri ödeme durumu artık kullanılamıyor</string>
     <string name="refund_intro">Geri ödeme sunmak için lütfen müşterinin QR Kodunu taramasına izin verin</string>
     <string name="refund_order_ref">Satın alma referansı %1$s
 \n
@@ -26,12 +27,12 @@
     <string name="history_refund">Geri ödeme</string>
     <string name="refund_confirm">Geri ödemeyi onayla</string>
     <string name="refund_error_deadline">Geri ödeme süresi geçti</string>
-    <string name="refund_intro_nfc">Geri ödeme sunmak için lütfen müşterinin QR Kodunu taramasına veya NFC\'yi kullanmasına izin verin</string>
+    <string name="refund_intro_nfc">Geri ödeme sunmak için lütfen müşterinin QR Kodunu taramasına veya NFC kullanmasına izin verin</string>
     <string name="toast_back_to_exit">Çıkmak için tekrar «geri» yi tıklayın</string>
     <string name="config_changed">%s kullanılarak yeni satıcı olarak değiştirildi</string>
     <string name="config_fetching_label">Kurulum getiriliyor</string>
     <string name="config_docs">Lütfen kurulum formatı için <a href="https://docs.taler.net/taler-merchant-pos-terminal.html#apis-and-data-formats">belgelere</a> bakın.</string>
-    <string name="payment_intro_nfc">Lütfen müşterinin QR Kodunu taramasına veya ödeme yapmak için NFC\'yi kullanmasına izin verin.</string>
+    <string name="payment_intro_nfc">Lütfen müşterinin QR Kodunu taramasına veya ödeme yapmak için NFC kullanmasına izin verin.</string>
     <string name="payment_intro">Lütfen müşterinin ödeme yapmak için QR Kodunu taramasına izin verin.</string>
     <string name="payment_claimed">Müşterinin ödemeyi onaylaması bekleniyor…</string>
     <string name="payment_cancel">Ödemeyi iptal et</string>
@@ -40,8 +41,20 @@
     <string name="payment_order_id">Makbuz #%s</string>
     <string name="payment_process_label">Ödeme gerekli</string>
     <string name="payment_canceled">Ödeme iptal edildi</string>
+    <string name="payment_share_uri">Ödeme bağlantısını paylaş</string>
+    <string name="payment_copy_uri">Ödeme bağlantısını kopyala</string>
     <string name="history_label">Ödeme geçmişi</string>
+    <string name="history_refresh">Geçmişi yenile</string>
+    <string name="history_ref_no" translatable="false">@string/payment_order_id</string>
     <string name="history_unpaid">Ödenmemiş</string>
+    <string name="history_status_unpaid">Ödenmemiş</string>
+    <string name="history_status_paid">Ödendi</string>
+    <string name="history_status_payment_pending">Ödeme beklemede</string>
+    <string name="history_status_payment_claimed">Ödeme onaylandı</string>
+    <string name="history_status_refund_pending">Geri ödeme beklemede</string>
+    <string name="history_status_refunded">Geri ödendi</string>
+    <string name="history_show_payment">Ödemeyi göster</string>
+    <string name="history_show_refund">Geri ödemeyi göster</string>
     <string name="app_name">GNU Taler Satış Noktası</string>
     <string name="app_name_short">Ticari Terminal</string>
     <string name="project_name">GNU Taler</string>
@@ -55,7 +68,7 @@
     <string name="order_next">Sonraki</string>
     <string name="order_complete">Tamam</string>
     <string name="config_label">Satıcı ayarları</string>
-    <string name="config_url">Konfigürasyon URL\'i</string>
+    <string name="config_url">Yapılandırma adresi</string>
     <string name="config_ok">Konfigürasyonu getir</string>
     <string name="config_error_network">Hata: Konfigürasyon sunucusuna bağlanılamadı</string>
     <string name="config_error_category">Hata: Geçerli ürün kategorisi bulunamadı</string>
@@ -72,8 +85,9 @@
     <string name="menu_reload">Envanteri yeniden yükle</string>
     <string name="toast_reloading">Envanter yeniden yükleniyor</string>
     <string name="config_old_label">JSON dosyası (eski)</string>
+    <string name="config_manual_label">Manuel yapılandırma</string>
     <string name="config_setup_password">Satıcı (yeni)</string>
-    <string name="config_merchant_url">Satıcı URL\'si</string>
+    <string name="config_merchant_url">Satıcı adresi</string>
     <string name="config_token">Şifre</string>
     <string name="config_old_deprecation">Bu yapılandırma yöntemi kullanımdan kaldırıldı. Lütfen yeni satıcı API yapılandırmasını kullanın.</string>
     <string name="menu_amount_entry">Tutara göre sipariş</string>

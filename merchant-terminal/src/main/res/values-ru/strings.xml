@@ -10,8 +10,20 @@
     <string name="payment_back_button">Продолжить</string>
     <string name="payment_process_label">Требуется оплата</string>
     <string name="payment_canceled">Оплата отменена</string>
+    <string name="payment_share_uri">Поделиться URI платежа</string>
+    <string name="payment_copy_uri">Скопировать URI платежа</string>
     <string name="history_label">История платежей</string>
+    <string name="history_refresh">Обновить историю</string>
+    <string name="history_ref_no" translatable="false">@string/payment_order_id</string>
     <string name="history_unpaid">Неоплачено</string>
+    <string name="history_status_unpaid">Неоплачено</string>
+    <string name="history_status_paid">Оплачено</string>
+    <string name="history_status_payment_pending">Платёж ожидается</string>
+    <string name="history_status_payment_claimed">Платёж подтверждён</string>
+    <string name="history_status_refund_pending">Возврат ожидается</string>
+    <string name="history_status_refunded">Возвращено</string>
+    <string name="history_show_payment">Показать платёж</string>
+    <string name="history_show_refund">Показать возврат</string>
     <string name="history_refund">Возврат</string>
     <string name="refund_reason">Причина возврата</string>
     <string name="refund_abort">Отменить</string>
@@ -36,6 +48,7 @@
     <string name="order_custom_add_button">Добавить</string>
     <string name="config_label">Настройки Продавца</string>
     <string name="config_url">URL конфигурации</string>
+    <string name="config_manual_label">Ручная настройка</string>
     <string name="config_username">Имя пользователя</string>
     <string name="config_password">Пароль</string>
     <string name="config_ok">Получить конфигурацию</string>
@@ -59,6 +72,7 @@
     <string name="refund_error_backend">Ошибка при обработке возврата</string>
     <string name="refund_error_deadline">Возврат просрочен</string>
     <string name="refund_error_already_refunded">Уже возвращено</string>
+    <string name="refund_state_missing">Статус возврата больше недоступен</string>
     <string name="refund_intro_nfc">Пожалуйста дайте клиенту отсканировать QR-код или используйте NFC чтобы предложить возврат</string>
     <string name="refund_intro">Пожалуйста дайте клиенту отсканировать QR-код чтобы предложить возврат</string>
     <string name="refund_order_ref">Номер вашего заказа: %1$s
