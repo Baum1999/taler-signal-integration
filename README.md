@@ -48,7 +48,7 @@ etc.
 
 ### Check for Available Languages and See Translation Status
 
-Use the helper script ``check_translations.py`` to analyze the current
+Use the helper script ``check-translations.py`` to analyze the current
 translation coverage across all modules in the repository.
 
 *Note:
