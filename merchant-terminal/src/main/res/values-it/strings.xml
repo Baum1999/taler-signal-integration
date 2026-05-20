@@ -56,9 +56,9 @@
     <string name="product_image">Immagine prodotto</string>
     <string name="product_category_all_objects">Tutto</string>
     <string name="product_category_uncategorized">Senza categoria</string>
-    <string name="order_restart">Cancella</string>
-    <string name="order_previous">Prec</string>
-    <string name="order_next">Succ</string>
+    <string name="order_restart">Cancella ordine</string>
+    <string name="order_previous">Precedente</string>
+    <string name="order_next">Successivo</string>
     <string name="order_custom">Aggiungi prodotto personalizzato</string>
     <string name="order_complete">Conto</string>
     <string name="order_complete_with_amount">Conto %s</string>
@@ -69,7 +69,7 @@
     <string name="amount_entry_charge">Addebita</string>
     <string name="amount_entry_create_order_charge">Crea ordine (addebita importo)</string>
     <string name="amount_entry_clear">Cancella</string>
-    <string name="amount_entry_backspace">Backspace</string>
+    <string name="amount_entry_backspace">Cancella</string>
     <string name="amount_entry_product_description">Ordine normale</string>
     <string name="amount_entry_error_zero">Inserisci un importo</string>
     <string name="amount_entry_error_wrong_currency">Valuta non supportata</string>
