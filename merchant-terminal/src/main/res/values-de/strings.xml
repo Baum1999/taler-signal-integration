@@ -144,10 +144,10 @@
         <item>Українська</item>
         <item>עברית</item>
     </string-array>
-    <string name="product_unavailable">Nicht verfugbar</string>
+    <string name="product_unavailable">Nicht verfügbar</string>
     <string name="product_out_of_stock">Nicht auf Lager</string>
-    <string name="order_delete">Bestellung loschen</string>
+    <string name="order_delete">Bestellung löschen</string>
     <string name="error_order_creation">Fehler: Bestellung konnte nicht erstellt werden</string>
-    <string name="error_inventory_unavailable">Fehler: Nicht genug Inventar verfugbar</string>
-    <string name="error_delete_order">Fehler: Bestellung konnte nicht geloscht werden</string>
+    <string name="error_inventory_unavailable">Fehler: Nicht genug Inventar verfügbar</string>
+    <string name="error_delete_order">Fehler: Bestellung konnte nicht gelöscht werden</string>
 </resources>
