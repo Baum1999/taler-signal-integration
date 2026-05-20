@@ -2,27 +2,27 @@
 """
 check-translations.py
 
-Compares Android translation files against the English reference.
-Works when run from any directory (auto-detects project root).
+Finds all Android string resources by first locating the git root (.git folder), allowing to
+run it reliably from sub folders.
 
 Usage:
-    python3 check-translations.py                # Overview
-    python3 check-translations.py de             # Details for German
-    python3 check-translations.py --base /path/to/res
+    python3 check-translations.py           # Overview of all languages, across all repo modules
+    python3 check-translations.py de        # Show concrete missing German strings per-module
 """
 
 import argparse
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from collections import defaultdict
 
 
-def find_project_res() -> Path | None:
-    """Try to auto-detect the res/ folder by walking up from cwd."""
-    cwd = Path.cwd().resolve()
-    for parent in [cwd] + list(cwd.parents):
-        candidate = parent / "merchant-terminal" / "src" / "main" / "res"
-        if (candidate / "values" / "strings.xml").exists():
-            return candidate
+def find_git_root(start: Path) -> Path | None:
+    """Walk upwards until we find a .git directory."""
+    current = start.resolve()
+    while current != current.parent:
+        if (current / ".git").exists():
+            return current
+        current = current.parent
     return None
 
 
@@ -31,74 +31,108 @@ def get_string_names(xml_path: Path) -> set[str]:
         return set()
     try:
         tree = ET.parse(xml_path)
-        names = {
+        return {
             elem.get("name")
             for elem in tree.findall(".//string")
+            # Only propose string names which are thought to be translated.
             if elem.get("name") and elem.get("translatable") != "false"
         }
-        return names
     except ET.ParseError:
         return set()
 
 
-def find_language_files(res_dir: Path) -> dict[str, Path]:
-    lang_files = {}
-    for values_dir in sorted(res_dir.glob("values-*")):
-        strings_file = values_dir / "strings.xml"
-        if strings_file.exists():
-            lang_code = values_dir.name.removeprefix("values-")
-            lang_files[lang_code] = strings_file
-    return lang_files
+def find_all_res_directories(git_root: Path) -> list[Path]:
+    """Find all res/ folders inside the git repository."""
+    res_dirs = []
+    for values_dir in git_root.rglob("values"):
+        if (values_dir / "strings.xml").exists():
+            res_dirs.append(values_dir.parent)
+    return sorted(set(res_dirs))
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("lang", nargs="?", help="Show missing strings for this language (e.g., de, it)")
-    parser.add_argument("--base", help="Explicit path to res/ folder")
+    parser.add_argument("lang", nargs="?", help="Language code (e.g., de or it)")
     args = parser.parse_args()
 
-    # Determine res directory
-    if args.base:
-        res_dir = Path(args.base).resolve()
-    else:
-        res_dir = find_project_res()
+    git_root = find_git_root(Path.cwd())
 
-    if not res_dir or not (res_dir / "values" / "strings.xml").exists():
-        print("Could not find reference strings.xml")
-        print("Please run from the project root or use --base /path/to/res")
+    if not git_root:
+        print("Could not find a .git directory. Please run from inside a git repository.")
         return
 
-    reference_file = res_dir / "values" / "strings.xml"
-    reference_names = get_string_names(reference_file)
+    print(f"Git root: {git_root}\n")
 
-    print(f"Reference: {reference_file}")
-    print(f"Translatable strings in reference: {len(reference_names)}\n")
+    res_dirs = find_all_res_directories(git_root)
 
-    lang_files = find_language_files(res_dir)
+    if not res_dirs:
+        print("No Android string resources found in this repository.")
+        return
+
+    print(f"Found {len(res_dirs)} resource folder(s)\n")
+
+    lang_data = defaultdict(list)
+
+    for res_dir in res_dirs:
+        ref_file = res_dir / "values" / "strings.xml"
+        if not ref_file.exists():
+            continue
+
+        ref_names = get_string_names(ref_file)
+        if not ref_names:
+            continue
+
+        for values_dir in res_dir.glob("values-*"):
+            lang_code = values_dir.name.removeprefix("values-")
+            strings_file = values_dir / "strings.xml"
+            if not strings_file.exists():
+                continue
+
+            present = get_string_names(strings_file)
+            missing = ref_names - present
+
+            lang_data[lang_code].append({
+                "res_dir": res_dir,
+                "missing_count": len(missing),
+                "missing_names": sorted(missing)
+            })
 
     # Overview
-    print("Language     Present   Missing")
-    print("-" * 30)
-    for lang, fpath in sorted(lang_files.items()):
-        present = get_string_names(fpath)
-        missing = len(reference_names - present)
-        print(f"{lang:<12} {len(present):>7} {missing:>7}")
+    print("Language   Folders   Total Missing")
+    print("-" * 35)
+    for lang in sorted(lang_data.keys()):
+        entries = lang_data[lang]
+        total_missing = sum(e["missing_count"] for e in entries)
+        print(f"{lang:<10} {len(entries):>7}   {total_missing:>6}")
 
     print()
 
-    # Detailed view
     if args.lang:
         lang = args.lang
-        if lang not in lang_files:
-            print(f"Language '{lang}' not found.")
+        if lang not in lang_data:
+            print(f"No '{lang}' translations found.")
             return
 
-        present = get_string_names(lang_files[lang])
-        missing = sorted(reference_names - present)
+        print(f"=== Missing strings in '{lang}' ===\n")
 
-        print(f"=== Missing strings in '{lang}' ({len(missing)}) ===\n")
-        for name in missing:
-            print(f"  {name}")
+        for entry in lang_data[lang]:
+            res_dir = entry["res_dir"]
+            missing_names = entry["missing_names"]
+
+            # Show actual module names (merchant-terminal, cashier, wallet, ...)
+            try:
+                module = res_dir.relative_to(git_root).parts[0]
+            except Exception:
+                module = str(res_dir)
+
+            print(f"→ {module}  ({entry['missing_count']} missing)")
+
+            if missing_names:
+                for name in missing_names:
+                    print(f"   {name}")
+            else:
+                print("   (complete)")
+            print()
 
 
 if __name__ == "__main__":
