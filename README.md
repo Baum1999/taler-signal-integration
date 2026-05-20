@@ -27,3 +27,45 @@ You can get a list of possible build tasks like this:
     
 See the [Taler developer manual](https://docs.taler.net/developers-manual.html#build-apps-from-source).
 for more information about building individual apps.
+
+## I18N (Internationalization)
+
+The default source language is **English**. All translatable strings are defined in (one of
+various) locations:
+
+``res/values/strings.xml``
+
+### Folder Structure
+
+Translations follow the standard Android convention:
+
+res/values/          -> English (source / reference)
+res/values-de/       -> German
+res/values-it/       -> Italian
+res/values-fr/       -> French
+
+etc.
+
+### Check for Available Languages and See Translation Status
+
+Use the helper script ``check_translations.py`` to analyze the current
+translation coverage across all modules in the repository.
+
+*Note:
+The script automatically detects the git repos root via the .git folder
+and scans for all modules (merchant-terminal, cashier, wallet etc.), aslo
+when used from any sub folder of the git repository.*
+
+From the git repository's root path, you can run the script as follows:
+
+```bash
+# Overview of all languages
+
+./check-translations.py
+
+# Show missing strings for a specific language; various examples:
+
+./check-translations.py de     # German
+./check-translations.py it     # Italian
+./check-translations.py fr     # French
+```
