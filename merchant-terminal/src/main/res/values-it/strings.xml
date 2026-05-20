@@ -60,8 +60,8 @@
     <string name="order_previous">Precedente</string>
     <string name="order_next">Successivo</string>
     <string name="order_custom">Aggiungi prodotto personalizzato</string>
-    <string name="order_complete">Conto</string>
-    <string name="order_complete_with_amount">Conto %s</string>
+    <string name="order_complete">Totale da pagare</string>
+    <string name="order_complete_with_amount">Totale da pagare %s</string>
     <string name="order_custom_product">Nome prodotto personalizzato</string>
     <string name="order_custom_product_default">Mancia</string>
     <string name="order_custom_add_button">Aggiungi</string>
