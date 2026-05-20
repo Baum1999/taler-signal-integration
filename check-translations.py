@@ -98,7 +98,7 @@ def main():
             })
 
     # Overview
-    print("Language   Folders   Total Missing")
+    print("Language   Folders   Strings Missing")
     print("-" * 35)
     for lang in sorted(lang_data.keys()):
         entries = lang_data[lang]
