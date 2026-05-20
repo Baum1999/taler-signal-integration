@@ -1,5 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!--
+    Italian translation update - 2026-05-20
+    Added missing strings (verified no duplicates)
+    -->
+
+    <!-- Configuration -->
+    <string name="config_manual_label">Configurazione manuale</string>
+
+    <!-- Payment -->
+    <string name="payment_share_uri">Condividi URI di pagamento</string>
+    <string name="payment_copy_uri">Copia URI di pagamento</string>
+
+    <!-- History -->
+    <string name="history_refresh">Aggiorna cronologia</string>
+    <string name="history_show_payment">Mostra pagamento</string>
+    <string name="history_show_refund">Mostra rimborso</string>
+    <string name="history_status_unpaid">Non pagato</string>
+    <string name="history_status_paid">Pagato</string>
+    <string name="history_status_payment_pending">Pagamento in attesa</string>
+    <string name="history_status_payment_claimed">Pagamento reclamato</string>
+    <string name="history_status_refund_pending">Rimborso in attesa</string>
+    <string name="history_status_refunded">Rimborsato</string>
+
+    <!-- Refund -->
+    <string name="refund_state_missing">Stato rimborso non disponibile</string>
+
     <string name="order_label_title">Ordine #%s</string>
     <string name="order_total">Totale: %s</string>
     <string name="config_error_unknown">Errore: Configurazione non valida</string>
