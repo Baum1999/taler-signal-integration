@@ -36,7 +36,7 @@
     <string name="history_label">Bisher getätigte Zahlungen</string>
     <string name="refund_amount">Betrag</string>
     <string name="refund_reason">Rückerstattungsgrund</string>
-    <string name="refund_abort">Abbruch ausführen</string>
+    <string name="refund_abort">Abbrechen</string>
     <string name="refund_confirm">Rückerstattung bestätigen</string>
     <string name="refund_error_zero">Der Betrag muss positiv sein</string>
     <string name="refund_error_deadline">Die Rückerstattungsfrist ist abgelaufen</string>
@@ -95,7 +95,7 @@
     <string name="session_expired_toast">Die Sitzung ist abgelaufen – bitte geben Sie Ihre Anmeldedaten erneut ein</string>
     <string name="config_fragment_camera_needed_text">Für den QR-Scan müssen Sie die Berechtigung für die Kamera erteilen</string>
     <string name="amount_entry_label">Betrag</string>
-    <string name="amount_entry_clear">Ausgangswert</string>
+    <string name="amount_entry_clear">Zurücksetzen</string>
     <string name="amount_entry_product_description">Normale Bestellung</string>
     <string name="amount_entry_error_zero">Bitte geben Sie einen Betrag ein</string>
     <string name="amount_entry_error_wrong_currency">Dies ist keine unterstützte Währung</string>
@@ -115,7 +115,7 @@
     <string name="settings_logout_button">Abmelden</string>
     <string name="amount_entry_charge">Berechnen</string>
     <string name="amount_entry_create_order_charge">Bestellung erstellen (Betrag berechnen)</string>
-    <string name="amount_entry_backspace">Rücktaste</string>
+    <string name="amount_entry_backspace">Löschen</string>
     <string-array name="settings_language_values">
         <item></item>
         <item>en</item>
