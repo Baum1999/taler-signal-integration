@@ -1,30 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Complete German translation - 2026-05-20
-         Added missing strings (verified no duplicates)
-   -->
-
-    <!-- Configuration -->
-    <string name="config_manual_label">Manuelle Konfiguration</string>
-
-    <!-- Payment -->
-    <string name="payment_share_uri">Zahlungs-URI teilen</string>
-    <string name="payment_copy_uri">Zahlungs-URI kopieren</string>
-
-    <!-- History -->
-    <string name="history_refresh">Verlauf aktualisieren</string>
-    <string name="history_show_payment">Zahlung anzeigen</string>
-    <string name="history_show_refund">Rückerstattung anzeigen</string>
-    <string name="history_status_unpaid">Noch nicht bezahlt</string>
-    <string name="history_status_paid">Bezahlt</string>
-    <string name="history_status_payment_pending">Zahlung ausstehend</string>
-    <string name="history_status_payment_claimed">Zahlung bestätigt</string>
-    <string name="history_status_refund_pending">Rückerstattung ausstehend</string>
-    <string name="history_status_refunded">Erstattet</string>
-
-    <!-- Refund -->
-    <string name="refund_state_missing">Rückerstattung nicht mehr verfügbar</string>
-
     <string name="app_name_short">\"Merchant Terminal\"</string>
     <string name="project_name">GNU Taler</string>
     <string name="menu_order">Normale Bestellung</string>

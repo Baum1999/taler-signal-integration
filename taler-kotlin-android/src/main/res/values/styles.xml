@@ -19,7 +19,8 @@
     <style name="Widget.Taler.MfaCodeDigit" parent="@android:style/Widget.EditText">
         <item name="android:layout_width">30dp</item>
         <item name="android:layout_height">52dp</item>
-        <item name="android:layout_marginHorizontal">1dp</item>
+        <item name="android:layout_marginStart">1dp</item>
+        <item name="android:layout_marginEnd">1dp</item>
         <item name="android:background">@drawable/mfa_code_digit_background</item>
         <item name="android:gravity">center</item>
         <item name="android:imeOptions">actionNext</item>
