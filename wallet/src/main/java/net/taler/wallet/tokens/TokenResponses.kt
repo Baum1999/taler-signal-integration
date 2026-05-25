@@ -17,6 +17,7 @@
 package net.taler.wallet.tokens
 
 import kotlinx.serialization.Serializable
+import net.taler.common.Merchant
 import net.taler.common.Timestamp
 
 @Serializable
@@ -24,6 +25,7 @@ data class DiscountListDetail(
     val tokenFamilyHash: String,
     val tokenIssuePubHash: String,
     val merchantBaseUrl: String,
+    val merchantInfo: Merchant? = null,
     val name: String,
     val description: String,
     val descriptionI18n: Map<String, String>,
@@ -52,6 +54,7 @@ data class SubscriptionListDetail(
     val tokenFamilyHash: String,
     val tokenIssuePubHash: String,
     val merchantBaseUrl: String,
+    val merchantInfo: Merchant? = null,
     val name: String,
     val description: String,
     val descriptionI18n: Map<String, String>,

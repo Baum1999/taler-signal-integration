@@ -16,7 +16,6 @@
 
 package net.taler.wallet.tokens
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,9 +49,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import net.taler.common.Merchant
 import net.taler.common.RelativeTime
 import net.taler.common.TalerUtils
 import net.taler.common.Timestamp
+import net.taler.lib.android.base64Bitmap
 import net.taler.lib.android.toAbsoluteTime
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
@@ -60,6 +61,7 @@ import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.EmptyComposable
 import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.GlobalScaffold
+import net.taler.wallet.compose.MerchantAvatar
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.cardPaddings
 import net.taler.wallet.compose.collectAsStateLifecycleAware
@@ -195,6 +197,7 @@ fun DiscountCard(pass: DiscountListDetail) {
     OutlinedCard(Modifier.cardPaddings()) {
         Column {
             ListItem(
+                // leadingContent = { MerchantAvatar(pass.merchantInfo, size = 40.dp) },
                 headlineContent = {
                     Text(pass.name, style = MaterialTheme.typography.headlineMedium
                         .copy(fontWeight = FontWeight.Medium))
@@ -210,10 +213,10 @@ fun DiscountCard(pass: DiscountListDetail) {
                         )
 
                         Text(
-                            // TODO: expose merchantName in wallet-core
                             stringResource(
                                 R.string.pass_issuer,
-                                cleanExchange(pass.merchantBaseUrl)
+                                pass.merchantInfo?.name
+                                    ?: cleanExchange(pass.merchantBaseUrl),
                             ),
                             modifier = Modifier.padding(top = 5.dp),
                             style = MaterialTheme.typography.bodySmall,
@@ -255,6 +258,7 @@ fun PassCard(pass: SubscriptionListDetail) {
     OutlinedCard(Modifier.cardPaddings()) {
         Column {
             ListItem(
+                // leadingContent = { MerchantAvatar(pass.merchantInfo, size = 40.dp) },
                 headlineContent = {
                     Text(pass.name, style = MaterialTheme.typography.headlineMedium
                         .copy(fontWeight = FontWeight.Medium))
@@ -270,10 +274,10 @@ fun PassCard(pass: SubscriptionListDetail) {
                         )
 
                         Text(
-                            // TODO: expose merchantName in wallet-core
                             stringResource(
                                 R.string.pass_issuer,
-                                cleanExchange(pass.merchantBaseUrl)
+                                pass.merchantInfo?.name
+                                    ?: cleanExchange(pass.merchantBaseUrl),
                             ),
                             modifier = Modifier.padding(top = 5.dp),
                             style = MaterialTheme.typography.bodySmall,
@@ -361,6 +365,7 @@ fun DiscountListPreview() {
                             tokenFamilyHash = "",
                             tokenIssuePubHash = "",
                             merchantBaseUrl = "https://backend.demo.taler.net/",
+                            merchantInfo = Merchant(name = "Test Merchant"),
                             name = "20% off",
                             description = "valid for fruits",
                             descriptionI18n = mapOf(),
@@ -401,6 +406,7 @@ fun PassListPreview() {
                             tokenFamilyHash = "",
                             tokenIssuePubHash = "",
                             merchantBaseUrl = "https://backend.demo.taler.net/",
+                            merchantInfo = Merchant(name = "Test Merchant"),
                             name = "Premium pass",
                             description = "Provides you access to this mega description",
                             descriptionI18n = mapOf(),

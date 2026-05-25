@@ -93,6 +93,7 @@ import net.taler.wallet.R
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.BottomButtonBox
 import net.taler.wallet.compose.ExpandableSection
+import net.taler.wallet.compose.MerchantAvatar
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.cardPaddings
 import net.taler.wallet.donau.DonauInfo
@@ -265,42 +266,7 @@ fun MerchantSection(
         horizontalAlignment = CenterHorizontally,
     ) {
         // MERCHANT LOGO
-        val logo = remember(merchant.logo) {
-            merchant.logo?.base64Bitmap
-        }
-
-        Box(
-            Modifier
-                .size(60.dp)
-                .background(
-                    shape = CircleShape,
-                    color = if (logo != null) {
-                        Color.White
-                    } else {
-                        MaterialTheme.colorScheme.surfaceVariant
-                    },
-                )
-                .clip(CircleShape)
-                .clickable { if (logo != null) onClickImage(logo) },
-            contentAlignment = Alignment.Center,
-        ) {
-            if (logo != null) {
-                Image(
-                    logo.asImageBitmap(),
-                    modifier = Modifier.fillMaxSize(),
-                    contentDescription = null,
-                )
-            } else {
-                Icon(
-                    Icons.Default.Store,
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxSize(),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    contentDescription = null,
-                )
-            }
-        }
+        MerchantAvatar(contractTerms.merchant,  onClickImage = onClickImage)
 
         // MERCHANT NAME
         Text(
