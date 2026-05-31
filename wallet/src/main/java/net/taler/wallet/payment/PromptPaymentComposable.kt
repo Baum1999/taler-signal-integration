@@ -33,9 +33,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Autorenew
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Percent
+import androidx.compose.material.icons.filled.EventRepeat
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -68,6 +67,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -681,13 +681,13 @@ fun TokenCard(
             ) {
                 when (details) {
                     is ContractTokenDetails.Discount -> Icon(
-                        Icons.Default.Percent,
+                        painterResource(R.drawable.ic_discounts),
                         contentDescription = stringResource(R.string.payment_token_discount),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
 
                     is ContractTokenDetails.Subscription -> Icon(
-                        Icons.Default.Autorenew,
+                        Icons.Default.EventRepeat,
                         contentDescription = stringResource(R.string.payment_token_subscription),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

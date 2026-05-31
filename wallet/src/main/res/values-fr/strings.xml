@@ -99,6 +99,7 @@
     <string name="settings_version_protocol_merchant">Versions de Taler Merchant compatibles</string>
     <string name="settings_version_core">Version Wallet Core</string>
     <string name="settings_version_protocol_exchange">Versions des prestataires compatibles</string>
+    <string name="balances_section_tokens">Autres actifs</string>
     <string name="balances_title">Soldes</string>
     <string name="transaction_action_kyc">Compléter le KYC</string>
     <string name="transaction_deposit">Dépôt</string>
@@ -348,6 +349,7 @@
     <string name="save">Sauvegarder</string>
     <string name="warning">Avertissement</string>
     <string name="biometric_prompt_title">Déverrouillez pour utiliser le portefeuille</string>
+    <string name="token_valid_until">Valable jusqu’au %1$s</string>
     <string name="donau_id">Numéro fiscal du donateur</string>
     <string name="donau_ready">Les dons ont été configurés avec succès</string>
     <string name="donau_select_button">Sélectionner une autorité fiscale</string>
@@ -361,4 +363,16 @@
     <string name="payment_button_confirm_amount">Paier %1$s</string>
     <string name="settings_bank_accounts">Comptes bancaires</string>
     <string name="withdraw_manual_instruction_manual">Suivez les instructions pour saisir les détails du virement dans votre application bancaire</string>
+    <string name="discount_issuer">Valable chez %1$s</string>
+    <string name="discounts_empty_expired">Vous n’avez aucune réduction expiré</string>
+    <string name="discounts_empty_valid">Vous n’avez aucune réduction valide</string>
+    <string name="discounts_title">Réductions</string>
+    <string name="pass_active">Actif</string>
+    <string name="pass_issuer">Fournit par %1$s</string>
+    <string name="passes_empty_expired">Vous n\'avez aucun pass expiré</string>
+    <string name="passes_empty_valid">Vous n\'avez aucun pass valide</string>
+    <string name="passes_title">Passes</string>
+    <string name="token_valid_from">Valable dès le %1$s</string>
+    <string name="tokens_filter_available">Valide</string>
+    <string name="tokens_filter_expired">Expiré</string>
 </resources>

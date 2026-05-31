@@ -141,8 +141,8 @@ fun DiscountList(uiState: UiState<List<DiscountListDetail>>, filter: TokenFilter
         if (filtered.isEmpty()) {
             EmptyComposable(
                 message = when (filter) {
-                    is TokenFilter.Valid -> stringResource(R.string.passes_empty_valid)
-                    is TokenFilter.Expired -> stringResource(R.string.passes_empty_expired)
+                    is TokenFilter.Valid -> stringResource(R.string.discounts_empty_valid)
+                    is TokenFilter.Expired -> stringResource(R.string.discounts_empty_expired)
                 },
             )
         }

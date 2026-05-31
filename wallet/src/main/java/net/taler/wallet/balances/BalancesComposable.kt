@@ -31,8 +31,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Autorenew
-import androidx.compose.material.icons.filled.Percent
+import androidx.compose.material.icons.filled.EventRepeat
 import androidx.compose.material3.Badge
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -44,6 +43,7 @@ import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -125,7 +125,10 @@ fun BalancesComposable(
                 OutlinedCard(Modifier.cardPaddings()) {
                     ListItem(
                         modifier = Modifier.clickable { onShowDiscounts() },
-                        leadingContent = { Icon(Icons.Default.Percent, contentDescription = null) },
+                        leadingContent = { Icon(
+                            painterResource(R.drawable.ic_discounts),
+                            contentDescription = null,
+                        ) },
                         headlineContent = {
                             Text(
                                 stringResource(R.string.discounts_title),
@@ -140,7 +143,7 @@ fun BalancesComposable(
                 OutlinedCard(Modifier.cardPaddings()) {
                     ListItem(
                         modifier = Modifier.clickable { onShowPasses() },
-                        leadingContent = { Icon(Icons.Default.Autorenew, contentDescription = null) },
+                        leadingContent = { Icon(Icons.Default.EventRepeat, contentDescription = null) },
                         headlineContent = {
                             Text(stringResource(R.string.passes_title),
                                 style = MaterialTheme.typography.titleMedium)

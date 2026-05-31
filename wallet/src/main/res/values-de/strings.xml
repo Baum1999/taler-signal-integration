@@ -191,6 +191,7 @@
     <string name="send_peer_expiration_30d">30 Tage</string>
     <string name="send_peer_expiration_7d">1 Woche</string>
     <string name="balance_scope_exchange">Von: %1$s</string>
+    <string name="balances_section_tokens">Andere Guthaben</string>
     <string name="balances_title">Salden</string>
     <string name="balance_scope_auditor">Auditor %1$s</string>
     <string name="receive_peer">Geld von einem anderen Wallet anfordern</string>
@@ -362,6 +363,7 @@
     <string name="donau_select_button">Finanzamt auswählen</string>
     <string name="donau_selector_confirm">Steuernummer angeben</string>
     <string name="donau_selector_title">Finanzamt auswählen</string>
+    <string name="token_valid_until">Gültig bis %1$s</string>
     <string name="donau_id">Steuernummer des Spendenden</string>
     <string name="donau_ready">Die Spendenfunktion wurde korrekt eingerichtet</string>
     <string name="donau_statement_instruction">Zeigen Sie diesen QR-Code Ihrem Finanzamt, wenn Sie diese Spendenbescheinigung zur Bestätigung vorlegen</string>
@@ -405,4 +407,16 @@
     <string name="balances_empty_withdraw_chf_button">CHF abheben</string>
     <string name="balances_empty_withdraw_kudos_message">Mit Demo-Geld ausprobieren, wie Sie mit digitalem Geld bezahlen können.</string>
     <string name="withdraw_manual_instruction_manual">Befolgen Sie die Anleitung, um die Überweisungsdaten in Ihrer Banking-App einzugeben</string>
+    <string name="discount_issuer">Einlösbar bei %1$s</string>
+    <string name="discounts_empty_expired">Sie haben aktuell keine abgelaufenen Gutscheine</string>
+    <string name="discounts_empty_valid">Sie haben aktuell keine gültigen Gutscheine</string>
+    <string name="discounts_title">Gutscheine</string>
+    <string name="pass_active">Aktiv</string>
+    <string name="pass_issuer">Ausgestellt von %1$s</string>
+    <string name="passes_empty_expired">Sie haben aktuell keine abgelaufenen Pässe</string>
+    <string name="passes_empty_valid">Sie haben aktuell keine gültigen Pässe</string>
+    <string name="passes_title">Pässe</string>
+    <string name="token_valid_from">Gültig ab %1$s</string>
+    <string name="tokens_filter_available">Gültig</string>
+    <string name="tokens_filter_expired">Abgelaufen</string>
 </resources>
