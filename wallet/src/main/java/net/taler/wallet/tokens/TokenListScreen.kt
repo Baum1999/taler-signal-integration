@@ -53,7 +53,6 @@ import net.taler.common.Merchant
 import net.taler.common.RelativeTime
 import net.taler.common.TalerUtils
 import net.taler.common.Timestamp
-import net.taler.lib.android.base64Bitmap
 import net.taler.lib.android.toAbsoluteTime
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
@@ -61,7 +60,6 @@ import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.EmptyComposable
 import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.GlobalScaffold
-import net.taler.wallet.compose.MerchantAvatar
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.cardPaddings
 import net.taler.wallet.compose.collectAsStateLifecycleAware
