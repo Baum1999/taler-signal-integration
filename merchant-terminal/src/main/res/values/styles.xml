@@ -1,23 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="Widget.Taler.MfaCodeDigit" parent="@android:style/Widget.EditText">
-        <item name="android:layout_width">30dp</item>
-        <item name="android:layout_height">52dp</item>
-        <item name="android:layout_marginHorizontal">1dp</item>
-        <item name="android:background">@drawable/mfa_code_digit_background</item>
-        <item name="android:gravity">center</item>
-        <item name="android:imeOptions">actionNext</item>
-        <item name="android:inputType">number</item>
-        <item name="android:maxLength">1</item>
-        <item name="android:padding">0dp</item>
-        <item name="android:selectAllOnFocus">true</item>
-        <item name="android:singleLine">true</item>
-        <item name="android:textColor">?attr/colorOnSurface</item>
-        <item name="android:textColorHint">?attr/colorOnSurfaceVariant</item>
-        <item name="android:textSize">20sp</item>
-        <item name="android:textStyle">bold</item>
-    </style>
-
     <style name="AppTheme.Light" parent="Theme.Material3.Light">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorOnPrimary">@color/colorOnPrimary</item>

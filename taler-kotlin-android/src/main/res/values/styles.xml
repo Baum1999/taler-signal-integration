@@ -16,25 +16,6 @@
 
 <resources>
 
-    <style name="Widget.Taler.MfaCodeDigit" parent="@android:style/Widget.EditText">
-        <item name="android:layout_width">30dp</item>
-        <item name="android:layout_height">52dp</item>
-        <item name="android:layout_marginStart">1dp</item>
-        <item name="android:layout_marginEnd">1dp</item>
-        <item name="android:background">@drawable/mfa_code_digit_background</item>
-        <item name="android:gravity">center</item>
-        <item name="android:imeOptions">actionNext</item>
-        <item name="android:inputType">number</item>
-        <item name="android:maxLength">1</item>
-        <item name="android:padding">0dp</item>
-        <item name="android:selectAllOnFocus">true</item>
-        <item name="android:singleLine">true</item>
-        <item name="android:textColor">?attr/colorOnSurface</item>
-        <item name="android:textColorHint">?attr/colorOnSurfaceVariant</item>
-        <item name="android:textSize">20sp</item>
-        <item name="android:textStyle">bold</item>
-    </style>
-
     <style name="ErrorBottomSheet" parent="Widget.MaterialComponents.BottomSheet.Modal">
         <item name="behavior_peekHeight">@dimen/bottom_sheet_peek_height</item>
     </style>

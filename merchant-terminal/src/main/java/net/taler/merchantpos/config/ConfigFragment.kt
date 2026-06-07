@@ -101,6 +101,15 @@ import net.taler.merchantpos.showPosError
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.runtime.remember
 
 private enum class ConfigMode { Manual, Qr }
 
@@ -585,12 +594,25 @@ private fun ManualConfigScreen(
             )
         }
         item {
+            val interactionSource = remember { MutableInteractionSource() }
+            val pressed by interactionSource.collectIsPressedAsState()
             OutlinedTextField(
                 value = token,
                 onValueChange = onTokenChanged,
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(stringResource(R.string.config_password)) },
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = if (pressed) VisualTransformation.None else PasswordVisualTransformation(),
+                trailingIcon = {
+                    IconButton(
+                        onClick = {},
+                        interactionSource = interactionSource,
+                    ) {
+                        Icon(
+                            imageVector = if (pressed) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                            contentDescription = null,
+                        )
+                    }
+                },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
                     imeAction = ImeAction.Done,

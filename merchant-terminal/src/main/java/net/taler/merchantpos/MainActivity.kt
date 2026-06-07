@@ -315,7 +315,7 @@ private fun MerchantTerminalApp(
     val currentOrder = currentOrderState?.value
     val restartState by currentOrderLive?.restartState?.observeAsState(DISABLED) ?: remember { androidx.compose.runtime.mutableStateOf(DISABLED) }
     val clearOrderEnabled =
-        restartState == UNDO || currentOrder?.products?.isNotEmpty() == true
+        restartState != DISABLED || currentOrder?.products?.isNotEmpty() == true
     val hasPreviousOrder = currentOrderId?.let { viewModel.orderManager.hasPreviousOrder(it) } ?: false
     val hasNextOrder by currentOrderId?.let { viewModel.orderManager.hasNextOrder(it).observeAsState(false) }
         ?: remember { androidx.compose.runtime.mutableStateOf(false) }

@@ -16,32 +16,73 @@
 
 package net.taler.lib.android
 
-import android.content.res.ColorStateList
-import android.content.DialogInterface
-import android.text.Editable
-import android.text.InputFilter
-import android.text.TextWatcher
-import android.view.KeyEvent
-import android.view.LayoutInflater
-import android.view.View.GONE
-import android.view.View.VISIBLE
-import android.view.inputmethod.EditorInfo
-import android.widget.Button
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.app.Dialog
+import android.content.Context
+import android.content.res.Configuration.UI_MODE_NIGHT_MASK
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.graphics.Color.TRANSPARENT
+import android.graphics.drawable.ColorDrawable
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
-import androidx.core.content.res.use
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.button.MaterialButton
+import com.google.android.material.color.MaterialColors
 import io.ktor.client.plugins.ClientRequestException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import net.taler.common.Challenge
 import net.taler.common.R
-import android.graphics.drawable.GradientDrawable
 import kotlin.coroutines.resume
 
 enum class ChallengeRetryDecision {
@@ -92,106 +133,258 @@ suspend fun Fragment.handleChallengeResponse(
 }
 
 suspend fun Fragment.selectChallenge(challenges: List<Challenge>): Challenge? =
-    withContext(Dispatchers.Main) {
-        suspendCancellableCoroutine { cont ->
-            val buttonContainer = LinearLayout(requireContext()).apply {
-                orientation = LinearLayout.VERTICAL
-                val density = resources.displayMetrics.density
-                val horizontalPadding = (24 * density).toInt()
-                val verticalPadding = (8 * density).toInt()
-                setPadding(horizontalPadding, verticalPadding, horizontalPadding, 0)
-            }
-            var dialog: androidx.appcompat.app.AlertDialog? = null
-            challenges.forEach { challenge ->
-                val button = MaterialButton(requireContext()).apply {
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                    ).apply {
-                        bottomMargin = dp(8)
-                    }
-                    text = "${challenge.tanChannel}: ${challenge.tanInfo}"
-                    backgroundTintList = colorStateListFromAttr(androidx.appcompat.R.attr.colorPrimary)
-                    setTextColor(colorFromAttr(com.google.android.material.R.attr.colorOnPrimary))
-                    isAllCaps = false
-                    cornerRadius = dp(10)
-                    setOnClickListener {
-                        if (cont.isActive) cont.resume(challenge)
-                        dialog?.dismiss()
+    showMfaDialog(cancelResult = null) { finish ->
+        MfaDialogSurface {
+            Text(
+                text = stringResource(R.string.mfa_choose_title),
+                style = MaterialTheme.typography.headlineSmall,
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                challenges.forEach { challenge ->
+                    Button(
+                        onClick = { finish(challenge) },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("${challenge.tanChannel}: ${challenge.tanInfo}")
                     }
                 }
-                buttonContainer.addView(button)
             }
-            dialog = MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.mfa_choose_title)
-                .setView(buttonContainer)
-                .setNegativeButton(android.R.string.cancel) { _, _ ->
-                    if (cont.isActive) cont.resume(null)
-                }
-                .setOnCancelListener {
-                    if (cont.isActive) cont.resume(null)
-                }
-                .show()
-            styleMfaDialogActions(dialog)
+            DialogActions(
+                onCancel = { finish(null) },
+            )
         }
     }
 
 suspend fun Fragment.promptForTan(challenge: Challenge): String? =
-    withContext(Dispatchers.Main) {
-        suspendCancellableCoroutine { cont ->
-            val message = getString(
-                R.string.mfa_challenge_message,
-                challenge.tanChannel.name,
-                challenge.tanInfo
-            )
-            val dialogView = LayoutInflater.from(requireContext()).inflate(
-                R.layout.dialog_mfa_challenge,
-                null,
-                false
-            )
-            val messageView = dialogView.findViewById<TextView>(R.id.mfaMessageView)
-            val errorView = dialogView.findViewById<TextView>(R.id.mfaCodeErrorView)
-            val inputs = listOf(
-                dialogView.findViewById<EditText>(R.id.mfaCodeDigit1),
-                dialogView.findViewById<EditText>(R.id.mfaCodeDigit2),
-                dialogView.findViewById<EditText>(R.id.mfaCodeDigit3),
-                dialogView.findViewById<EditText>(R.id.mfaCodeDigit4),
-                dialogView.findViewById<EditText>(R.id.mfaCodeDigit5),
-                dialogView.findViewById<EditText>(R.id.mfaCodeDigit6),
-                dialogView.findViewById<EditText>(R.id.mfaCodeDigit7),
-                dialogView.findViewById<EditText>(R.id.mfaCodeDigit8),
-            )
-            messageView.text = message
-            errorView.visibility = GONE
-            val dialog = MaterialAlertDialogBuilder(requireContext())
-                .setTitle(R.string.mfa_challenge_title)
-                .setView(dialogView)
-                .setPositiveButton(android.R.string.ok, null)
-                .setNegativeButton(android.R.string.cancel) { _, _ ->
-                    cont.resume(null)
-                }
-                .setOnCancelListener { cont.resume(null) }
-                .show()
-            fun submitCode(): Boolean {
-                val code = collectMfaCode(inputs)
-                if (code == null) {
-                    errorView.text = getString(R.string.mfa_challenge_code_incomplete)
-                    errorView.visibility = VISIBLE
-                    return false
-                }
-                errorView.visibility = GONE
-                cont.resume(code)
-                dialog.dismiss()
-                return true
+    showMfaDialog(cancelResult = null) { finish ->
+        var code by remember { mutableStateOf("") }
+        var showIncompleteError by remember { mutableStateOf(false) }
+        val submit = {
+            val normalizedCode = normalizeMfaCode(code)
+            if (normalizedCode == null) {
+                showIncompleteError = true
+            } else {
+                finish(formatMfaCode(normalizedCode))
             }
-            setupMfaCodeInputs(inputs, errorView, ::submitCode)
-            dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener {
-                submitCode()
+        }
+
+        MfaDialogSurface {
+            Text(
+                text = stringResource(R.string.mfa_challenge_title),
+                style = MaterialTheme.typography.headlineSmall,
+            )
+            Text(
+                text = stringResource(
+                    R.string.mfa_challenge_message,
+                    challenge.tanChannel.name,
+                    challenge.tanInfo,
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            MfaCodeInput(
+                code = code,
+                isError = showIncompleteError,
+                onCodeChanged = {
+                    code = it
+                    showIncompleteError = false
+                },
+                onSubmit = submit,
+            )
+            if (showIncompleteError) {
+                Text(
+                    text = stringResource(R.string.mfa_challenge_code_incomplete),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
             }
-            styleMfaDialogActions(dialog)
-            inputs.firstOrNull()?.requestFocus()
+            DialogActions(
+                onCancel = { finish(null) },
+                onConfirm = submit,
+            )
         }
     }
+
+@Composable
+private fun MfaDialogSurface(
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(24.dp),
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 6.dp,
+        shadowElevation = 6.dp,
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+            content = content,
+        )
+    }
+}
+
+@Composable
+private fun MfaCodeInput(
+    code: String,
+    isError: Boolean,
+    onCodeChanged: (String) -> Unit,
+    onSubmit: () -> Unit,
+) {
+    val focusRequester = remember { FocusRequester() }
+    val interactionSource = remember { MutableInteractionSource() }
+    val codeHint = stringResource(R.string.mfa_challenge_code_hint)
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+
+    BasicTextField(
+        value = code,
+        onValueChange = { value ->
+            onCodeChanged(value.filter(Char::isDigit).take(MFA_CODE_DIGITS))
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .focusRequester(focusRequester)
+            .semantics { contentDescription = codeHint },
+        textStyle = TextStyle(color = Color.Transparent),
+        cursorBrush = SolidColor(Color.Transparent),
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.NumberPassword,
+            imeAction = ImeAction.Done,
+        ),
+        keyboardActions = KeyboardActions(onDone = { onSubmit() }),
+        interactionSource = interactionSource,
+        decorationBox = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                    ) { focusRequester.requestFocus() },
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                repeat(MFA_CODE_DIGITS) { index ->
+                    if (index == MFA_CODE_DIGITS / 2) {
+                        Text(
+                            text = "-",
+                            modifier = Modifier.padding(horizontal = 3.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                    MfaCodeDigit(
+                        digit = code.getOrNull(index),
+                        isActive = index == code.length.coerceAtMost(MFA_CODE_DIGITS - 1),
+                        isError = isError,
+                    )
+                }
+            }
+        },
+    )
+}
+
+@Composable
+private fun MfaCodeDigit(
+    digit: Char?,
+    isActive: Boolean,
+    isError: Boolean,
+) {
+    val borderColor = when {
+        isError -> MaterialTheme.colorScheme.error
+        isActive -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.outline
+    }
+    Box(
+        modifier = Modifier
+            .padding(horizontal = 1.dp)
+            .size(width = 30.dp, height = 52.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Surface(
+            modifier = Modifier.matchParentSize(),
+            shape = RoundedCornerShape(6.dp),
+            color = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(if (isActive) 2.dp else 1.dp, borderColor),
+        ) {}
+        Text(
+            text = digit?.toString().orEmpty(),
+            color = MaterialTheme.colorScheme.onSurface,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+        )
+    }
+}
+
+@Composable
+private fun DialogActions(
+    onCancel: () -> Unit,
+    onConfirm: (() -> Unit)? = null,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+    ) {
+        OutlinedButton(onClick = onCancel) {
+            Text(stringResource(android.R.string.cancel))
+        }
+        if (onConfirm != null) {
+            Button(onClick = onConfirm) {
+                Text(stringResource(android.R.string.ok))
+            }
+        }
+    }
+}
+
+private suspend fun <T> Fragment.showMfaDialog(
+    cancelResult: T,
+    content: @Composable ((T) -> Unit) -> Unit,
+): T = withContext(Dispatchers.Main) {
+    suspendCancellableCoroutine { continuation ->
+        val dialog = Dialog(requireContext())
+        var completed = false
+
+        fun finish(result: T) {
+            if (completed) return
+            completed = true
+            if (continuation.isActive) continuation.resume(result)
+            dialog.dismiss()
+        }
+
+        val composeView = ComposeView(requireContext()).apply {
+            setViewTreeLifecycleOwner(viewLifecycleOwner)
+            setViewTreeSavedStateRegistryOwner(this@showMfaDialog)
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+            setContent {
+                MaterialTheme(colorScheme = mfaColorScheme(context)) {
+                    content(::finish)
+                }
+            }
+        }
+        dialog.setContentView(composeView)
+        dialog.setCanceledOnTouchOutside(true)
+        dialog.setOnCancelListener { finish(cancelResult) }
+        dialog.show()
+        dialog.window?.setBackgroundDrawable(ColorDrawable(TRANSPARENT))
+        dialog.window?.setLayout(MATCH_PARENT, WRAP_CONTENT)
+
+        continuation.invokeOnCancellation {
+            composeView.post { dialog.dismiss() }
+        }
+    }
+}
 
 suspend fun Fragment.handleChallengeConfirmError(e: Exception): ChallengeRetryDecision =
     withContext(Dispatchers.Main) {
@@ -201,7 +394,7 @@ suspend fun Fragment.handleChallengeConfirmError(e: Exception): ChallengeRetryDe
                     Toast.makeText(
                         requireContext(),
                         R.string.mfa_challenge_invalid,
-                        Toast.LENGTH_LONG
+                        Toast.LENGTH_LONG,
                     ).show()
                     return@withContext ChallengeRetryDecision.Retry
                 }
@@ -209,7 +402,7 @@ suspend fun Fragment.handleChallengeConfirmError(e: Exception): ChallengeRetryDe
                     Toast.makeText(
                         requireContext(),
                         R.string.mfa_challenge_retry,
-                        Toast.LENGTH_LONG
+                        Toast.LENGTH_LONG,
                     ).show()
                     return@withContext ChallengeRetryDecision.Resend
                 }
@@ -218,143 +411,68 @@ suspend fun Fragment.handleChallengeConfirmError(e: Exception): ChallengeRetryDe
         Toast.makeText(
             requireContext(),
             R.string.mfa_challenge_failed,
-            Toast.LENGTH_LONG
+            Toast.LENGTH_LONG,
         ).show()
         ChallengeRetryDecision.Abort
     }
 
-private fun setupMfaCodeInputs(
-    inputs: List<EditText>,
-    errorView: TextView,
-    onSubmit: () -> Boolean,
-) {
-    var updatingInputs = false
-    inputs.forEachIndexed { index, input ->
-        input.filters = input.filters
-            .filterNot { it is InputFilter.LengthFilter }
-            .toTypedArray()
-        input.imeOptions = if (index == inputs.lastIndex) {
-            EditorInfo.IME_ACTION_DONE
-        } else {
-            EditorInfo.IME_ACTION_NEXT
-        }
-        input.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
-
-            override fun afterTextChanged(s: Editable?) {
-                if (updatingInputs) return
-                errorView.visibility = GONE
-                val value = s?.toString().orEmpty()
-                if (value.length > 1) {
-                    val pastedCode = normalizeMfaCode(value)
-                    updatingInputs = true
-                    try {
-                        if (pastedCode == null) {
-                            input.text?.clear()
-                        } else {
-                            inputs.forEachIndexed { digitIndex, digitInput ->
-                                digitInput.setText(pastedCode[digitIndex].toString())
-                            }
-                        }
-                    } finally {
-                        updatingInputs = false
-                    }
-                    if (pastedCode != null) {
-                        inputs.last().apply {
-                            requestFocus()
-                            setSelection(text?.length ?: 0)
-                        }
-                    }
-                } else if (value.length == 1 && index < inputs.lastIndex) {
-                    inputs[index + 1].requestFocus()
-                }
-            }
-        })
-        input.setOnKeyListener { _, keyCode, event ->
-            if (keyCode == KeyEvent.KEYCODE_DEL &&
-                event.action == KeyEvent.ACTION_DOWN &&
-                input.text.isNullOrEmpty() &&
-                index > 0
-            ) {
-                inputs[index - 1].apply {
-                    requestFocus()
-                    text?.clear()
-                }
-                true
-            } else {
-                false
-            }
-        }
-        input.setOnEditorActionListener { _, actionId, event ->
-            val isEnter = event?.keyCode == KeyEvent.KEYCODE_ENTER &&
-                event.action == KeyEvent.ACTION_UP
-            when {
-                actionId == EditorInfo.IME_ACTION_NEXT && index < inputs.lastIndex -> {
-                    inputs[index + 1].requestFocus()
-                    true
-                }
-                actionId == EditorInfo.IME_ACTION_NEXT ||
-                    actionId == EditorInfo.IME_ACTION_DONE ||
-                    isEnter -> onSubmit()
-                else -> false
-            }
-        }
-    }
-}
-
 internal fun normalizeMfaCode(value: String): String? {
     val digits = value.filter(Char::isDigit)
-    return digits.takeIf { it.length == 8 }
+    return digits.takeIf { it.length == MFA_CODE_DIGITS }
 }
 
-private fun collectMfaCode(inputs: List<EditText>): String? {
-    val digits = inputs.map { it.text?.toString().orEmpty() }
-    if (digits.any { it.length != 1 }) return null
-    return digits.take(4).joinToString("") + "-" + digits.drop(4).joinToString("")
-}
+internal fun formatMfaCode(value: String): String =
+    value.take(MFA_CODE_DIGITS / 2) + "-" + value.drop(MFA_CODE_DIGITS / 2)
 
-private fun Fragment.styleMfaDialogActions(dialog: androidx.appcompat.app.AlertDialog) {
-    styleDialogActionButton(
-        button = dialog.getButton(DialogInterface.BUTTON_POSITIVE),
-        backgroundAttr = androidx.appcompat.R.attr.colorPrimary,
-        textAttr = com.google.android.material.R.attr.colorOnPrimary,
+private fun mfaColorScheme(context: Context): ColorScheme {
+    val isDark = context.resources.configuration.uiMode and UI_MODE_NIGHT_MASK ==
+        UI_MODE_NIGHT_YES
+    val primary = context.materialColor(androidx.appcompat.R.attr.colorPrimary)
+    val onPrimary = context.materialColor(com.google.android.material.R.attr.colorOnPrimary)
+    val primaryContainer = context.materialColor(
+        com.google.android.material.R.attr.colorPrimaryContainer,
     )
-    styleDialogActionButton(
-        button = dialog.getButton(DialogInterface.BUTTON_NEGATIVE),
-        backgroundAttr = com.google.android.material.R.attr.colorPrimaryContainer,
-        textAttr = com.google.android.material.R.attr.colorOnPrimaryContainer,
+    val onPrimaryContainer = context.materialColor(
+        com.google.android.material.R.attr.colorOnPrimaryContainer,
     )
-}
+    val surface = context.materialColor(com.google.android.material.R.attr.colorSurface)
+    val onSurface = context.materialColor(com.google.android.material.R.attr.colorOnSurface)
+    val surfaceVariant = context.materialColor(
+        com.google.android.material.R.attr.colorSurfaceVariant,
+    )
+    val onSurfaceVariant = context.materialColor(
+        com.google.android.material.R.attr.colorOnSurfaceVariant,
+    )
+    val outline = context.materialColor(com.google.android.material.R.attr.colorOutline)
 
-private fun Fragment.styleDialogActionButton(
-    button: Button?,
-    backgroundAttr: Int,
-    textAttr: Int,
-) {
-    button ?: return
-    val backgroundColor = colorFromAttr(backgroundAttr)
-    button.isAllCaps = false
-    button.minHeight = dp(40)
-    button.minWidth = dp(96)
-    button.setPadding(dp(16), 0, dp(16), 0)
-    button.setTextColor(colorFromAttr(textAttr))
-    button.backgroundTintList = ColorStateList.valueOf(backgroundColor)
-    button.background = GradientDrawable().apply {
-        shape = GradientDrawable.RECTANGLE
-        cornerRadius = dp(8).toFloat()
-        setColor(backgroundColor)
+    return if (isDark) {
+        darkColorScheme(
+            primary = primary,
+            onPrimary = onPrimary,
+            primaryContainer = primaryContainer,
+            onPrimaryContainer = onPrimaryContainer,
+            surface = surface,
+            onSurface = onSurface,
+            surfaceVariant = surfaceVariant,
+            onSurfaceVariant = onSurfaceVariant,
+            outline = outline,
+        )
+    } else {
+        lightColorScheme(
+            primary = primary,
+            onPrimary = onPrimary,
+            primaryContainer = primaryContainer,
+            onPrimaryContainer = onPrimaryContainer,
+            surface = surface,
+            onSurface = onSurface,
+            surfaceVariant = surfaceVariant,
+            onSurfaceVariant = onSurfaceVariant,
+            outline = outline,
+        )
     }
 }
 
-private fun Fragment.colorFromAttr(attr: Int): Int {
-    return requireContext().obtainStyledAttributes(intArrayOf(attr)).use {
-        it.getColor(0, 0)
-    }
-}
+private fun Context.materialColor(attr: Int): Color =
+    Color(MaterialColors.getColor(this, attr, android.graphics.Color.MAGENTA))
 
-private fun Fragment.colorStateListFromAttr(attr: Int): ColorStateList {
-    return ColorStateList.valueOf(colorFromAttr(attr))
-}
-
-private fun Fragment.dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
+private const val MFA_CODE_DIGITS = 8

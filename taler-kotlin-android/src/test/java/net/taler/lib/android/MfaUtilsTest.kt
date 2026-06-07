@@ -36,4 +36,9 @@ class MfaUtilsTest {
         assertNull(normalizeMfaCode("123456789"))
         assertNull(normalizeMfaCode("no code"))
     }
+
+    @Test
+    fun formatsCodeForChallengeConfirmation() {
+        assertEquals("1234-5678", formatMfaCode("12345678"))
+    }
 }
