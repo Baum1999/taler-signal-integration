@@ -1,0 +1,9 @@
+New features:
+- Multi-factor authentication (MFA) screen updates
+- Force-delete orders that have been claimed by customer
+- Improved inventory stock tracking for products with limited availability
+- Better error messages for different errors
+- Password visibility toggle in settings
+- New app icon
+- Updated Italian and German translations
+- Bug fixing
