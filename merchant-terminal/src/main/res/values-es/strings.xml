@@ -68,8 +68,8 @@
     <string name="error_cancelled">Pago cancelado</string>
     <string name="error_history">Error obteniendo el historial de pedidos</string>
     <string name="toast_back_to_exit">Haz clic en «atrás» de nuevo para salir</string>
-    <string name="app_name">GNU Taler Punto de Venta</string>
-    <string name="app_name_short">Terminal de comercio</string>
+    <string name="app_name">Taler POS</string>
+    <string name="app_name_short">Taler POS</string>
     <string name="config_url">Configuración URL</string>
     <string name="config_error_network">Error: No se pudo conectar al servidor de configuración</string>
     <string name="config_error_currency">Error: Producto %1$s tiene una divisa %2$s, pero %3$s esperada</string>
@@ -95,15 +95,15 @@
     <string name="settings_language_label">Idioma</string>
     <string name="settings_language_hint">Idioma de la app</string>
     <string name="settings_language_system_default">Predeterminado del sistema</string>
-    <string name="settings_subtitle">Elige el idioma de la app y gestiona las credenciales de la instancia del comercio.</string>
+    <string name="settings_subtitle">Elige el idioma de la app y gestiona los ajustes de inicio de sesión.</string>
     <string name="settings_app_title">Ajustes de la app</string>
     <string name="settings_language_description">Se aplica inmediatamente a la interfaz de la app.</string>
     <string name="settings_initial_order_label">Pantalla inicial de pedido</string>
     <string name="settings_initial_order_hint">Modo de pedido predeterminado</string>
     <string name="settings_initial_order_description">Se muestra al iniciar la app o después de cargar la configuración.</string>
-    <string name="settings_instance_title">Instancia guardada</string>
-    <string name="settings_instance_description">Cambia la URL del portal del comercio, el nombre de usuario, el token y otros ajustes de la instancia.</string>
-    <string name="settings_instance_button">Modificar instancia guardada</string>
+    <string name="settings_instance_title">Ajustes de inicio de sesión</string>
+    <string name="settings_instance_description">Cambia la URL del portal del comercio, el nombre de usuario, la contraseña y otros ajustes.</string>
+    <string name="settings_instance_button">Modificar ajustes de inicio de sesión</string>
     <string name="settings_logout_button">Cerrar sesión</string>
     <string name="amount_entry_label">Importe</string>
     <string name="amount_entry_charge">Cobrar</string>
@@ -124,7 +124,7 @@
     <string name="forever">Para siempre</string>
     <string name="custom_duration">Duración personalizada</string>
     <string name="duration">Duración</string>
-    <string name="token_validity_deadline">Fecha límite de validez del token:</string>
+    <string name="token_validity_deadline">Fecha límite de validez de la contraseña:</string>
     <string name="expires_on">Caduca el…</string>
     <string name="never_expires">Nunca caduca</string>
     <string name="no_deadline_set">Sin fecha límite</string>
@@ -138,4 +138,8 @@
     <string name="error_order_creation">Error: no se pudo crear el pedido</string>
     <string name="error_inventory_unavailable">Error: no hay inventario suficiente disponible</string>
     <string name="error_delete_order">Error: no se pudo eliminar el pedido</string>
+    <string name="product_wrong_currency">Moneda incorrecta</string>
+    <string name="force_delete_dialog_title">¿Forzar la eliminación del pedido?</string>
+    <string name="force_delete_dialog_message">Este pedido ha sido reclamado por una cartera. Forzar su eliminación liberará cualquier bloqueo de inventario e impedirá que la cartera complete el pago.</string>
+    <string name="force_delete_dialog_confirm">Forzar eliminación</string>
 </resources>

@@ -85,6 +85,7 @@ import net.taler.merchantpos.compose.PosTheme
 import net.taler.merchantpos.config.Category
 import net.taler.merchantpos.config.ConfigProduct
 import net.taler.merchantpos.showPosError
+import kotlinx.coroutines.delay
 import net.taler.merchantpos.order.RestartState.DISABLED
 import androidx.compose.foundation.shape.RoundedCornerShape
 
@@ -154,6 +155,13 @@ private fun OrderRoute(
     var showCustomDialog by rememberSaveable { mutableStateOf(false) }
     val reloadingText = stringResource(R.string.toast_reloading)
 
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(30_000)
+            viewModel.configManager.refreshInventory()
+        }
+    }
+
     LaunchedEffect(order?.products, liveOrder.lastAddedProduct?.id) {
         val productsInOrder = order?.products.orEmpty()
         val selected = selectedProductKey?.let { key -> productsInOrder.find { it.id == key } }
@@ -212,7 +220,6 @@ private fun OrderRoute(
                     },
                     onProductSelected = { product ->
                         orderManager.addProduct(orderId, product)
-                        viewModel.configManager.refreshInventory()
                     },
                     onSelectProduct = {
                         selectedProductKey = it?.id
@@ -243,7 +250,6 @@ private fun OrderRoute(
                     },
                     onProductSelected = { product ->
                         orderManager.addProduct(orderId, product)
-                        viewModel.configManager.refreshInventory()
                     },
                     onSelectProduct = {
                         selectedProductKey = it?.id
@@ -600,10 +606,10 @@ private fun ProductCard(
             )
             if (!product.availableToSell) {
                 Text(
-                    text = if (product.remainingStock == 0) {
-                        stringResource(R.string.product_out_of_stock)
-                    } else {
-                        stringResource(R.string.product_unavailable)
+                    text = when {
+                        product.currencyMismatch -> stringResource(R.string.product_wrong_currency)
+                        product.remainingStock == 0 -> stringResource(R.string.product_out_of_stock)
+                        else -> stringResource(R.string.product_unavailable)
                     },
                     color = MaterialTheme.colorScheme.error,
                     style = if (compact) MaterialTheme.typography.labelSmall else MaterialTheme.typography.bodySmall,

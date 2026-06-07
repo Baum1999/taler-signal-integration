@@ -45,6 +45,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -123,6 +124,18 @@ private data class MerchantBackendConfigResponse(
     val version: String,
     val currency: String,
     val currencies: Map<String, CurrencySpecification> = emptyMap(),
+)
+
+@Serializable
+private data class ProductDetail(
+    @SerialName("total_sold")
+    val totalSold: Int? = null,
+    @SerialName("total_lost")
+    val totalLost: Int? = null,
+    @SerialName("unit_total_sold")
+    val unitTotalSold: String? = null,
+    @SerialName("unit_total_lost")
+    val unitTotalLost: String? = null,
 )
 
 @Serializable
@@ -383,12 +396,13 @@ class ConfigManager(
             return
         }
         val currencySpec = configResponse.currencies[configResponse.currency]
+        val posConfigWithCachedStock = applyCachedStockData(posConfig)
         for (receiver in configurationReceivers) {
             val result = try {
                 if (inventoryOnly) {
-                    receiver.onInventoryUpdated(posConfig, configResponse.currency, currencySpec)
+                    receiver.onInventoryUpdated(posConfigWithCachedStock, configResponse.currency, currencySpec)
                 } else {
-                    receiver.onConfigurationReceived(posConfig, configResponse.currency, currencySpec)
+                    receiver.onConfigurationReceived(posConfigWithCachedStock, configResponse.currency, currencySpec)
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error handling configuration by ${receiver::class.java.simpleName}", e)
@@ -409,7 +423,7 @@ class ConfigManager(
             this@ConfigManager.currencySpec = currencySpec
             saveCachedRuntimeConfig(
                 CachedRuntimeConfig(
-                    posConfig = posConfig,
+                    posConfig = posConfigWithCachedStock,
                     merchantConfig = merchantConfig,
                     currency = configResponse.currency,
                     currencySpec = currencySpec,
@@ -419,11 +433,82 @@ class ConfigManager(
                 mConfigUpdateResult.value = ConfigUpdateResult.Success(configResponse.currency)
             }
         }
+        scope.launch(Dispatchers.IO) {
+            val enrichedPosConfig = enrichProductsWithStockDetails(posConfig, merchantConfig)
+            if (enrichedPosConfig !== posConfig) {
+                for (receiver in configurationReceivers) {
+                    try {
+                        receiver.onInventoryUpdated(enrichedPosConfig, configResponse.currency, currencySpec)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error updating stock for ${receiver::class.java.simpleName}", e)
+                    }
+                }
+                saveCachedRuntimeConfig(
+                    CachedRuntimeConfig(
+                        posConfig = enrichedPosConfig,
+                        merchantConfig = merchantConfig,
+                        currency = configResponse.currency,
+                        currencySpec = currencySpec,
+                    )
+                )
+            }
+        }
+    }
+
+    private fun applyCachedStockData(posConfig: PosConfig): PosConfig {
+        val cached = cachedRuntimeConfig ?: return posConfig
+        val cachedByProductId = cached.posConfig.products
+            .filter { it.productId != null }
+            .associateBy { it.productId }
+        var changed = false
+        val products = posConfig.products.map { product ->
+            val cachedProduct = product.productId?.let { cachedByProductId[it] }
+                ?: return@map product
+            if (cachedProduct.totalSold == null && cachedProduct.totalLost == null &&
+                cachedProduct.unitTotalSold == null && cachedProduct.unitTotalLost == null
+            ) return@map product
+            changed = true
+            product.copy(
+                totalSold = cachedProduct.totalSold,
+                totalLost = cachedProduct.totalLost,
+                unitTotalSold = cachedProduct.unitTotalSold,
+                unitTotalLost = cachedProduct.unitTotalLost,
+            )
+        }
+        return if (changed) posConfig.copy(products = products) else posConfig
+    }
+
+    @WorkerThread
+    private suspend fun enrichProductsWithStockDetails(
+        posConfig: PosConfig,
+        merchantConfig: MerchantConfig,
+    ): PosConfig {
+        val enrichedProducts = posConfig.products.map { product ->
+            val pid = product.productId ?: return@map product
+            if (product.stockLimit == null) return@map product
+            try {
+                val url = merchantConfig.urlFor("private/products/" + pid)
+                val detail: ProductDetail = httpClient.get(url) {
+                    header(Authorization, "Bearer " + merchantConfig.apiKey)
+                }.body()
+                product.copy(
+                    totalLost = detail.totalLost ?: product.totalLost,
+                    totalSold = detail.totalSold ?: product.totalSold,
+                    unitTotalLost = detail.unitTotalLost ?: product.unitTotalLost,
+                    unitTotalSold = detail.unitTotalSold ?: product.unitTotalSold,
+                )
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to fetch stock details for " + pid, e)
+                product
+            }
+        }
+        if (enrichedProducts == posConfig.products) return posConfig
+        return posConfig.copy(products = enrichedProducts)
     }
 
     /**
      * POSTs to /instances/{username}/private/token with the user’s raw secret,
-     * returns the new “write” token (without the “secret-token:” prefix).
+     * returns the new "write" token (without the "secret-token:" prefix).
      */
     @WorkerThread
     suspend fun fetchLimitedAccessToken(

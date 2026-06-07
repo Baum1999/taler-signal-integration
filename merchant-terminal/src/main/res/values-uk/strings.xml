@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">GNU Taler Point-of-Sale</string>
-    <string name="app_name_short">Термінал продавця</string>
+    <string name="app_name">Taler POS</string>
+    <string name="app_name_short">Taler POS</string>
     <string name="project_name">GNU Taler</string>
     <string name="menu_order">Замовлення</string>
     <string name="menu_history">Історія</string>
@@ -23,7 +23,7 @@
     <string name="config_url">URL конфігурації</string>
     <string name="config_password">Пароль</string>
     <string name="config_merchant_url">URL продавця</string>
-    <string name="config_token">пароль</string>
+    <string name="config_token">Пароль</string>
     <string name="config_ok">Отримати конфігурацію</string>
     <string name="config_error_network">Помилка: не вдалося підключитися до сервера конфігурації</string>
     <string name="config_error_malformed">Помилка: конфігураційний JSON некоректний</string>
@@ -95,15 +95,15 @@
     <string name="settings_language_label">Мова</string>
     <string name="settings_language_hint">Мова застосунку</string>
     <string name="settings_language_system_default">Системна</string>
-    <string name="settings_subtitle">Виберіть мову застосунку та керуйте обліковими даними екземпляра продавця.</string>
+    <string name="settings_subtitle">Виберіть мову застосунку та керуйте налаштуваннями входу.</string>
     <string name="settings_app_title">Налаштування застосунку</string>
     <string name="settings_language_description">Застосовується до інтерфейсу застосунку негайно.</string>
     <string name="settings_initial_order_label">Початковий екран замовлення</string>
     <string name="settings_initial_order_hint">Тип замовлення за замовчуванням</string>
     <string name="settings_initial_order_description">Показується під час запуску застосунку або після завантаження конфігурації.</string>
-    <string name="settings_instance_title">Збережений екземпляр</string>
-    <string name="settings_instance_description">Змінити URL порталу продавця, ім’я користувача, токен та інші налаштування екземпляра.</string>
-    <string name="settings_instance_button">Змінити збережений екземпляр</string>
+    <string name="settings_instance_title">Налаштування входу</string>
+    <string name="settings_instance_description">Змінити URL порталу продавця, ім’я користувача, пароль та інші налаштування.</string>
+    <string name="settings_instance_button">Змінити налаштування входу</string>
     <string name="settings_logout_button">Вийти</string>
     <string name="amount_entry_label">Сума</string>
     <string name="amount_entry_charge">Стягнути</string>
@@ -124,7 +124,7 @@
     <string name="forever">Назавжди</string>
     <string name="custom_duration">Власна тривалість</string>
     <string name="duration">Тривалість</string>
-    <string name="token_validity_deadline">Кінцевий термін дії токена:</string>
+    <string name="token_validity_deadline">Кінцевий термін дії пароля:</string>
     <string name="expires_on">Закінчується…</string>
     <string name="never_expires">Ніколи не закінчується</string>
     <string name="no_deadline_set">Термін не встановлено</string>
@@ -138,4 +138,8 @@
     <string name="error_order_creation">Помилка: не вдалося створити замовлення</string>
     <string name="error_inventory_unavailable">Помилка: недостатньо доступного інвентарю</string>
     <string name="error_delete_order">Помилка: не вдалося видалити замовлення</string>
+    <string name="product_wrong_currency">Неправильна валюта</string>
+    <string name="force_delete_dialog_title">Примусово видалити замовлення?</string>
+    <string name="force_delete_dialog_message">Це замовлення було заявлено гаманцем. Примусове видалення зніме всі блокування запасів і не дозволить гаманцю завершити оплату.</string>
+    <string name="force_delete_dialog_confirm">Примусово видалити</string>
 </resources>

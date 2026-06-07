@@ -17,6 +17,7 @@
 package net.taler.merchantlib
 
 import io.ktor.http.HttpStatusCode.Companion.NotFound
+import io.ktor.http.HttpStatusCode.Companion.Gone
 import java.net.UnknownHostException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
@@ -112,6 +113,28 @@ class MerchantApiTest {
         api.postOrder(merchantConfig, request).assertFailure {
             assertTrue(it.contains("2000"))
             assertTrue(it.contains("merchant instance unknown"))
+        }
+
+        httpClient.giveJsonResponse(
+            "http://example.net/instances/testInstance/private/orders",
+            statusCode = Gone,
+        ) {
+            """
+            {
+              "product_id": "finite_quantity",
+              "requested_quantity": 10,
+              "unit_requested_quantity": "10",
+              "available_quantity": 8,
+              "unit_available_quantity": "8"
+            }
+            """.trimIndent()
+        }
+        api.postOrder(merchantConfig, request).assertFailure {
+            assertEquals(
+                "Inventory stock unavailable for product finite_quantity: " +
+                    "10 requested, 8 available.",
+                it,
+            )
         }
     }
 

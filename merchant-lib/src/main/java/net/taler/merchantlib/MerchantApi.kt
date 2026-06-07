@@ -72,10 +72,12 @@ class MerchantApi(
     suspend fun deleteOrder(
         merchantConfig: MerchantConfig,
         orderId: String,
+        force: Boolean = false,
     ): Response<Unit> = withContext(ioDispatcher) {
         response {
             httpClient.delete(merchantConfig.urlFor("private/orders/$orderId")) {
                 auth(merchantConfig)
+                if (force) parameter("force", "yes")
             }.body()
         }
     }

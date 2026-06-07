@@ -16,14 +16,15 @@
 
 package net.taler.merchantlib
 
-import io.ktor.client.call.body
 import io.ktor.client.plugins.ResponseException
+import io.ktor.client.statement.bodyAsText
 import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.nio.channels.UnresolvedAddressException
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 class Response<out T> private constructor(
     private val value: Any?
@@ -81,8 +82,10 @@ class Response<out T> private constructor(
 
     private suspend fun getExceptionString(e: ResponseException): String {
         val response = e.response
+        val responseText = response.bodyAsText()
+        parseInventoryAvailabilityError(response.status.value, responseText)?.let { return it }
         return try {
-            val error: Error = response.body()
+            val error = Json.decodeFromString<Error>(responseText)
             buildString {
                 append("Error")
                 error.code?.let {
@@ -106,6 +109,25 @@ class Response<out T> private constructor(
         }
     }
 
+    private fun parseInventoryAvailabilityError(statusCode: Int, body: String): String? {
+        if (statusCode != 410) return null
+        val error = runCatching {
+            Json { ignoreUnknownKeys = true }
+                .decodeFromString<InventoryAvailabilityError>(body)
+        }.getOrNull() ?: return null
+        val productId = error.productId?.takeIf(String::isNotBlank) ?: return null
+        val requested = error.unitRequestedQuantity
+            ?.takeIf(String::isNotBlank)
+            ?: error.requestedQuantity?.toString()
+            ?: return null
+        val available = error.unitAvailableQuantity
+            ?.takeIf(String::isNotBlank)
+            ?: error.availableQuantity?.toString()
+            ?: return null
+        return "Inventory stock unavailable for product $productId: " +
+            "$requested requested, $available available."
+    }
+
     private fun fallbackStatusMessage(statusCode: Int): String = when (statusCode) {
         400 -> "Bad request (400)"
         401 -> "Unauthorized (401)"
@@ -123,5 +145,19 @@ class Response<out T> private constructor(
         val code: Int?,
         val hint: String?,
         val detail: String? = null,
+    )
+
+    @Serializable
+    private class InventoryAvailabilityError(
+        @kotlinx.serialization.SerialName("product_id")
+        val productId: String? = null,
+        @kotlinx.serialization.SerialName("requested_quantity")
+        val requestedQuantity: Int? = null,
+        @kotlinx.serialization.SerialName("unit_requested_quantity")
+        val unitRequestedQuantity: String? = null,
+        @kotlinx.serialization.SerialName("available_quantity")
+        val availableQuantity: Int? = null,
+        @kotlinx.serialization.SerialName("unit_available_quantity")
+        val unitAvailableQuantity: String? = null,
     )
 }

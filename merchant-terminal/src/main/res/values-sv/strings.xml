@@ -64,8 +64,8 @@
     <string name="error_cancelled">Betalning Avbruten</string>
     <string name="error_history">Det gick inte att hämta orderhistoriken</string>
     <string name="toast_back_to_exit">Klicka på «tillbaka» igen för att avsluta</string>
-    <string name="app_name">GNU Taler försäljningsställe</string>
-    <string name="app_name_short">Säljarens terminal</string>
+    <string name="app_name">Taler POS</string>
+    <string name="app_name_short">Taler POS</string>
     <string name="config_label">Säljar-inställningar</string>
     <string name="config_manual_label">Manuell konfiguration</string>
     <string name="config_auth_error">Fel: Ogiltigt användarnamn eller lösenord</string>
@@ -85,15 +85,15 @@
     <string name="settings_language_label">Språk</string>
     <string name="settings_language_hint">Appspråk</string>
     <string name="settings_language_system_default">Systemstandard</string>
-    <string name="settings_subtitle">Välj appspråk och hantera inloggningsuppgifter för handlarinstansen.</string>
+    <string name="settings_subtitle">Välj appspråk och hantera inloggningsinställningar.</string>
     <string name="settings_app_title">Appinställningar</string>
     <string name="settings_language_description">Tillämpas direkt på appens gränssnitt.</string>
     <string name="settings_initial_order_label">Startskärm för beställning</string>
     <string name="settings_initial_order_hint">Standardläge för beställning</string>
     <string name="settings_initial_order_description">Visas när appen startar eller efter att konfigurationen har laddats.</string>
-    <string name="settings_instance_title">Sparad instans</string>
-    <string name="settings_instance_description">Ändra handlarportalens URL, användarnamn, token och andra instansspecifika inställningar.</string>
-    <string name="settings_instance_button">Ändra sparad instans</string>
+    <string name="settings_instance_title">Inloggningsinställningar</string>
+    <string name="settings_instance_description">Ändra handlarportalens URL, användarnamn, lösenord och andra inställningar.</string>
+    <string name="settings_instance_button">Ändra inloggningsinställningar</string>
     <string name="settings_logout_button">Logga ut</string>
     <string name="config_merchant_url">Handlarportalens URL</string>
     <string name="amount_entry_label">Belopp</string>
@@ -115,13 +115,13 @@
     <string name="config_old_label">JSON-fil (gammal)</string>
     <string name="config_setup_password">Lösenord</string>
     <string name="config_old_deprecation">Den här konfigurationsmetoden är föråldrad, använd den nya konfigurationen via handlar-API:t.</string>
-    <string name="config_token">Åtkomsttoken</string>
+    <string name="config_token">Lösenord</string>
     <string name="config_qr_label">QR-konfiguration</string>
     <string name="scan_qr_hint">Skanna QR-koden från handlarens backoffice</string>
     <string name="forever">För alltid</string>
     <string name="custom_duration">Anpassad varaktighet</string>
     <string name="duration">Varaktighet</string>
-    <string name="token_validity_deadline">Tokenens giltighetstid:</string>
+    <string name="token_validity_deadline">Lösenordets giltighetstid:</string>
     <string name="expires_on">Går ut…</string>
     <string name="never_expires">Går aldrig ut</string>
     <string name="no_deadline_set">Ingen tidsgräns angiven</string>
@@ -138,4 +138,8 @@
     <string name="error_order_creation">Fel: kunde inte skapa bestallning</string>
     <string name="error_inventory_unavailable">Fel: inte tillrackligt lager tillgangligt</string>
     <string name="error_delete_order">Fel: kunde inte ta bort bestallning</string>
+    <string name="product_wrong_currency">Fel valuta</string>
+    <string name="force_delete_dialog_title">Tvinga borttagning av beställningen?</string>
+    <string name="force_delete_dialog_message">Den här beställningen har reserverats av en plånbok. En tvingad borttagning frigör alla lagerlås och hindrar plånboken från att slutföra betalningen.</string>
+    <string name="force_delete_dialog_confirm">Tvinga borttagning</string>
 </resources>

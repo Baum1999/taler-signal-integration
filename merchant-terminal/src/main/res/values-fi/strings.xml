@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">GNU Taler -myyntipiste</string>
-    <string name="app_name_short">Kauppiasterminaali</string>
+    <string name="app_name">Taler POS</string>
+    <string name="app_name_short">Taler POS</string>
     <string name="project_name">GNU Taler</string>
     <string name="menu_order">Tilaukset</string>
     <string name="menu_history">Historia</string>
@@ -89,15 +89,15 @@
     <string name="settings_language_label">Kieli</string>
     <string name="settings_language_hint">Sovelluksen kieli</string>
     <string name="settings_language_system_default">Järjestelmän oletus</string>
-    <string name="settings_subtitle">Valitse sovelluksen kieli ja hallitse kauppiasinstanssin tunnistetietoja.</string>
+    <string name="settings_subtitle">Valitse sovelluksen kieli ja hallitse kirjautumisasetuksia.</string>
     <string name="settings_app_title">Sovelluksen asetukset</string>
     <string name="settings_language_description">Käytetään heti sovelluksen käyttöliittymässä.</string>
     <string name="settings_initial_order_label">Aloitusnäkymä tilauksille</string>
     <string name="settings_initial_order_hint">Oletustilaustapa</string>
     <string name="settings_initial_order_description">Näytetään, kun sovellus käynnistyy tai kun määritykset on ladattu.</string>
-    <string name="settings_instance_title">Tallennettu instanssi</string>
-    <string name="settings_instance_description">Muuta kauppiasportaalin URL-osoitetta, käyttäjätunnusta, tokenia ja muita instanssin asetuksia.</string>
-    <string name="settings_instance_button">Muokkaa tallennettua instanssia</string>
+    <string name="settings_instance_title">Kirjautumisasetukset</string>
+    <string name="settings_instance_description">Muuta kauppiasportaalin URL-osoitetta, käyttäjätunnusta, salasanaa ja muita asetuksia.</string>
+    <string name="settings_instance_button">Muokkaa kirjautumisasetuksia</string>
     <string name="settings_logout_button">Kirjaudu ulos</string>
     <string name="config_merchant_url">Kauppiasportaalin URL</string>
     <string name="amount_entry_label">Summa</string>
@@ -116,13 +116,13 @@
     <string name="config_old_label">JSON-tiedosto (vanha)</string>
     <string name="config_setup_password">Salasana</string>
     <string name="config_old_deprecation">Tämä määritystapa on vanhentunut, käytä uutta kauppias-API-määritystä.</string>
-    <string name="config_token">Käyttöoikeustunnus</string>
+    <string name="config_token">Salasana</string>
     <string name="config_qr_label">QR-määritys</string>
     <string name="scan_qr_hint">Skannaa QR-koodi kauppiaan backofficesta</string>
     <string name="forever">Ikuisesti</string>
     <string name="custom_duration">Mukautettu kesto</string>
     <string name="duration">Kesto</string>
-    <string name="token_validity_deadline">Tunnuksen voimassaolon määräaika:</string>
+    <string name="token_validity_deadline">Salasanan voimassaolon määräaika:</string>
     <string name="expires_on">Vanhenee…</string>
     <string name="never_expires">Ei vanhene koskaan</string>
     <string name="no_deadline_set">Määräaikaa ei ole asetettu</string>
@@ -138,4 +138,8 @@
     <string name="error_order_creation">Virhe: tilausta ei voitu luoda</string>
     <string name="error_inventory_unavailable">Virhe: varastoa ei ole riittävästi saatavilla</string>
     <string name="error_delete_order">Virhe: tilausta ei voitu poistaa</string>
+    <string name="product_wrong_currency">Väärä valuutta</string>
+    <string name="force_delete_dialog_title">Pakotetaanko tilauksen poistaminen?</string>
+    <string name="force_delete_dialog_message">Lompakko on lunastanut tämän tilauksen. Pakotettu poistaminen vapauttaa kaikki varastovaraukset ja estää lompakkoa suorittamasta maksua.</string>
+    <string name="force_delete_dialog_confirm">Pakota poisto</string>
 </resources>

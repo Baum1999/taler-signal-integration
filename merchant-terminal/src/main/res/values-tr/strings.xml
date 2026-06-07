@@ -55,8 +55,8 @@
     <string name="history_status_refunded">Geri ödendi</string>
     <string name="history_show_payment">Ödemeyi göster</string>
     <string name="history_show_refund">Geri ödemeyi göster</string>
-    <string name="app_name">GNU Taler Satış Noktası</string>
-    <string name="app_name_short">Ticari Terminal</string>
+    <string name="app_name">Taler POS</string>
+    <string name="app_name_short">Taler POS</string>
     <string name="project_name">GNU Taler</string>
     <string name="menu_order">Siparişler</string>
     <string name="menu_settings">Ayarlar</string>
@@ -96,15 +96,15 @@
     <string name="settings_language_label">Dil</string>
     <string name="settings_language_hint">Uygulama dili</string>
     <string name="settings_language_system_default">Sistem varsayılanı</string>
-    <string name="settings_subtitle">Uygulama dilini seçin ve satıcı örneği kimlik bilgilerini yönetin.</string>
+    <string name="settings_subtitle">Uygulama dilini seçin ve oturum açma ayarlarını yönetin.</string>
     <string name="settings_app_title">Uygulama ayarları</string>
     <string name="settings_language_description">Uygulama arayüzüne hemen uygulanır.</string>
     <string name="settings_initial_order_label">Başlangıç sipariş ekranı</string>
     <string name="settings_initial_order_hint">Varsayılan sipariş modu</string>
     <string name="settings_initial_order_description">Uygulama başlatıldığında veya yapılandırma yüklendikten sonra gösterilir.</string>
-    <string name="settings_instance_title">Kayıtlı örnek</string>
-    <string name="settings_instance_description">Satıcı portalı URL’sini, kullanıcı adını, tokeni ve diğer örneğe özel ayarları değiştirin.</string>
-    <string name="settings_instance_button">Kayıtlı örneği değiştir</string>
+    <string name="settings_instance_title">Oturum açma ayarları</string>
+    <string name="settings_instance_description">Satıcı portalı URL’sini, kullanıcı adını, şifreyi ve diğer ayarları değiştirin.</string>
+    <string name="settings_instance_button">Oturum açma ayarlarını değiştir</string>
     <string name="settings_logout_button">Oturumu kapat</string>
     <string name="amount_entry_label">Tutar</string>
     <string name="amount_entry_charge">Ücret al</string>
@@ -123,7 +123,7 @@
     <string name="forever">Süresiz</string>
     <string name="custom_duration">Özel süre</string>
     <string name="duration">Süre</string>
-    <string name="token_validity_deadline">Token geçerlilik son tarihi:</string>
+    <string name="token_validity_deadline">Şifre geçerlilik son tarihi:</string>
     <string name="expires_on">Bitiş tarihi…</string>
     <string name="never_expires">Asla sona ermez</string>
     <string name="no_deadline_set">Son tarih ayarlanmadı</string>
@@ -138,4 +138,8 @@
     <string name="error_order_creation">Hata: sipariş oluşturulamadı</string>
     <string name="error_inventory_unavailable">Hata: yeterli envanter mevcut değil</string>
     <string name="error_delete_order">Hata: sipariş silinemedi</string>
+    <string name="product_wrong_currency">Yanlış para birimi</string>
+    <string name="force_delete_dialog_title">Sipariş zorla silinsin mi?</string>
+    <string name="force_delete_dialog_message">Bu sipariş bir cüzdan tarafından talep edildi. Zorla silinmesi tüm envanter kilitlerini kaldıracak ve cüzdanın ödemeyi tamamlamasını engelleyecektir.</string>
+    <string name="force_delete_dialog_confirm">Zorla sil</string>
 </resources>

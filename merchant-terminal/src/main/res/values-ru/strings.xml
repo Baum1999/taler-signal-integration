@@ -29,8 +29,8 @@
     <string name="refund_abort">Отменить</string>
     <string name="refund_complete">Получено</string>
     <string name="refund_confirm">Подтвердить возврат</string>
-    <string name="app_name">GNU Taler Точка Продажи</string>
-    <string name="app_name_short">Терминал продавца</string>
+    <string name="app_name">Taler POS</string>
+    <string name="app_name_short">Taler POS</string>
     <string name="project_name">GNU Taler</string>
     <string name="menu_order">Заказы</string>
     <string name="menu_history">История</string>
@@ -89,15 +89,15 @@
     <string name="settings_language_label">Язык</string>
     <string name="settings_language_hint">Язык приложения</string>
     <string name="settings_language_system_default">Системный</string>
-    <string name="settings_subtitle">Выберите язык приложения и управляйте учетными данными экземпляра продавца.</string>
+    <string name="settings_subtitle">Выберите язык приложения и управляйте настройками входа.</string>
     <string name="settings_app_title">Настройки приложения</string>
     <string name="settings_language_description">Применяется к интерфейсу приложения сразу.</string>
     <string name="settings_initial_order_label">Начальный экран заказа</string>
     <string name="settings_initial_order_hint">Режим заказа по умолчанию</string>
     <string name="settings_initial_order_description">Показывается при запуске приложения или после загрузки конфигурации.</string>
-    <string name="settings_instance_title">Сохраненный экземпляр</string>
-    <string name="settings_instance_description">Изменить URL портала продавца, имя пользователя, токен и другие настройки экземпляра.</string>
-    <string name="settings_instance_button">Изменить сохраненный экземпляр</string>
+    <string name="settings_instance_title">Настройки входа</string>
+    <string name="settings_instance_description">Изменить URL портала продавца, имя пользователя, пароль и другие настройки.</string>
+    <string name="settings_instance_button">Изменить настройки входа</string>
     <string name="settings_logout_button">Выйти</string>
     <string name="config_merchant_url">URL портала продавца</string>
     <string name="amount_entry_label">Сумма</string>
@@ -116,13 +116,13 @@
     <string name="config_old_label">Файл JSON (старый)</string>
     <string name="config_setup_password">Пароль</string>
     <string name="config_old_deprecation">Этот способ настройки устарел, используйте новую настройку через API продавца.</string>
-    <string name="config_token">Токен доступа</string>
+    <string name="config_token">Пароль</string>
     <string name="config_qr_label">QR-конфигурация</string>
     <string name="scan_qr_hint">Отсканируйте QR-код из бэк-офиса продавца</string>
     <string name="forever">Навсегда</string>
     <string name="custom_duration">Пользовательская длительность</string>
     <string name="duration">Длительность</string>
-    <string name="token_validity_deadline">Срок действия токена:</string>
+    <string name="token_validity_deadline">Срок действия пароля:</string>
     <string name="expires_on">Истекает…</string>
     <string name="never_expires">Никогда не истекает</string>
     <string name="no_deadline_set">Срок не задан</string>
@@ -138,4 +138,8 @@
     <string name="error_order_creation">Ошибка: не удалось создать заказ</string>
     <string name="error_inventory_unavailable">Ошибка: недостаточно доступного инвентаря</string>
     <string name="error_delete_order">Ошибка: не удалось удалить заказ</string>
+    <string name="product_wrong_currency">Неверная валюта</string>
+    <string name="force_delete_dialog_title">Принудительно удалить заказ?</string>
+    <string name="force_delete_dialog_message">Этот заказ был заявлен кошельком. Принудительное удаление снимет все блокировки запасов и не позволит кошельку завершить оплату.</string>
+    <string name="force_delete_dialog_confirm">Удалить принудительно</string>
 </resources>

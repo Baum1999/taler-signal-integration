@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,7 +38,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -76,16 +81,36 @@ class ProcessPaymentFragment : Fragment() {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent {
             val payment by paymentManager.payment.observeAsState()
+            val deleteNeedsForce by paymentManager.deleteNeedsForce.observeAsState()
             payment?.let {
                 ProcessPaymentScreen(
                     payment = it,
                     deviceHasNfc = deviceHasNfc,
-                    onCancel = ::onPaymentCancel,
+                    showForceDeleteDialog = deleteNeedsForce == true,
+                    onCancel = {
+                        if (it.claimed) {
+                            paymentManager.tryDeleteOrder()
+                        } else {
+                            onPaymentCancel()
+                        }
+                    },
+                    onForceDelete = ::onForceDeleteOrder,
+                    onDismissForceDelete = {
+                        paymentManager.clearDeleteNeedsForce()
+                    },
                     onShare = { uri -> requireContext().shareText(uri) },
                     onCopy = { uri ->
                         copyToClipBoard(requireContext(), "Payment URI", uri)
                     },
                 )
+            }
+
+            // Navigate back on successful (non-force) delete
+            LaunchedEffect(deleteNeedsForce) {
+                if (deleteNeedsForce == false) {
+                    paymentManager.clearDeleteNeedsForce()
+                    (requireActivity() as MainActivity).navigateBack()
+                }
             }
         }
     }
@@ -119,6 +144,11 @@ class ProcessPaymentFragment : Fragment() {
         (requireActivity() as MainActivity).navigateBack()
     }
 
+    private fun onForceDeleteOrder() {
+        paymentManager.forceDeleteOrder()
+        (requireActivity() as MainActivity).navigateBack()
+    }
+
     private fun getPaymentErrorDisplay(payment: Payment): Pair<String, String> {
         val error = payment.error.orEmpty()
         if (payment.orderId != null) {
@@ -143,10 +173,36 @@ class ProcessPaymentFragment : Fragment() {
 private fun ProcessPaymentScreen(
     payment: Payment,
     deviceHasNfc: Boolean,
+    showForceDeleteDialog: Boolean,
     onCancel: () -> Unit,
+    onForceDelete: () -> Unit,
+    onDismissForceDelete: () -> Unit,
     onShare: (String) -> Unit,
     onCopy: (String) -> Unit,
 ) {
+    if (showForceDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = onDismissForceDelete,
+            title = { Text(stringResource(R.string.force_delete_dialog_title)) },
+            text = { Text(stringResource(R.string.force_delete_dialog_message)) },
+            confirmButton = {
+                Button(
+                    onClick = onForceDelete,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                    ),
+                ) {
+                    Text(stringResource(R.string.force_delete_dialog_confirm))
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = onDismissForceDelete) {
+                    Text(stringResource(R.string.payment_cancel))
+                }
+            },
+        )
+    }
+
     PosTheme {
         val introText = if (payment.claimed) {
             stringResource(R.string.payment_claimed)
@@ -193,32 +249,34 @@ private fun TabletProcessPaymentScreen(
                     .weight(1f),
                 contentAlignment = Alignment.Center,
             ) {
-                BoxWithConstraints(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(12.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    val payUri = payment.talerPayUri
-                    val qrSize = minOf(maxWidth, maxHeight)
-                    Box(
-                        modifier = Modifier.size(qrSize),
+                if (!payment.claimed) {
+                    BoxWithConstraints(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(12.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        if (payUri == null) {
-                            CircularProgressIndicator()
-                        } else {
-                            AnimatedQrCodeComposable(
-                                link = payUri,
-                                logoPainter = painterResource(R.drawable.ic_taler_logo_qr),
-                                modifier = Modifier.fillMaxSize(),
-                            )
+                        val payUri = payment.talerPayUri
+                        val qrSize = minOf(maxWidth, maxHeight)
+                        Box(
+                            modifier = Modifier.size(qrSize),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (payUri == null) {
+                                CircularProgressIndicator()
+                            } else {
+                                AnimatedQrCodeComposable(
+                                    link = payUri,
+                                    logoPainter = painterResource(R.drawable.ic_taler_logo_qr),
+                                    modifier = Modifier.fillMaxSize(),
+                                )
+                            }
                         }
                     }
                 }
             }
 
-            payment.talerPayUri?.let { payUri ->
+            if (!payment.claimed) payment.talerPayUri?.let { payUri ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -295,32 +353,34 @@ private fun PhoneProcessPaymentScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentAlignment = Alignment.Center,
-            ) {
-                BoxWithConstraints(
+            if (!payment.claimed) {
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(12.dp),
+                        .fillMaxWidth()
+                        .weight(1f),
                     contentAlignment = Alignment.Center,
                 ) {
-                    val payUri = payment.talerPayUri
-                    val qrSize = minOf(maxWidth, maxHeight)
-                    Box(
-                        modifier = Modifier.size(qrSize),
+                    BoxWithConstraints(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(12.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        if (payUri == null) {
-                            CircularProgressIndicator()
-                        } else {
-                            AnimatedQrCodeComposable(
-                                link = payUri,
-                                logoPainter = painterResource(R.drawable.ic_taler_logo_qr),
-                                modifier = Modifier.fillMaxSize(),
-                            )
+                        val payUri = payment.talerPayUri
+                        val qrSize = minOf(maxWidth, maxHeight)
+                        Box(
+                            modifier = Modifier.size(qrSize),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (payUri == null) {
+                                CircularProgressIndicator()
+                            } else {
+                                AnimatedQrCodeComposable(
+                                    link = payUri,
+                                    logoPainter = painterResource(R.drawable.ic_taler_logo_qr),
+                                    modifier = Modifier.fillMaxSize(),
+                                )
+                            }
                         }
                     }
                 }

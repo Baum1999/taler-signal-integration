@@ -108,8 +108,17 @@ data class ConfigProduct(
     val totalStock: Int? = null,
     @SerialName("unit_total_stock")
     val unitTotalStock: String? = null,
+    @SerialName("total_sold")
+    val totalSold: Int? = null,
+    @SerialName("unit_total_sold")
+    val unitTotalSold: String? = null,
+    @SerialName("total_lost")
+    val totalLost: Int? = null,
+    @SerialName("unit_total_lost")
+    val unitTotalLost: String? = null,
     val availableToSell: Boolean = true,
     val remainingStock: Int? = null,
+    val currencyMismatch: Boolean = false,
 ) : OrderProduct() {
     val totalPrice: Amount
         get() = (price * quantity).withSpec(price.spec)
@@ -138,11 +147,22 @@ data class ConfigProduct(
     val stockLimit: Int?
         get() {
             if (totalStock == -1 || unitTotalStock == "-1") return null
-            totalStock?.let { return it }
-            val decimalStock = unitTotalStock ?: return null
-            return decimalStock.toBigDecimalOrNull()
-                ?.setScale(0, RoundingMode.DOWN)
-                ?.toInt()
+            val total = totalStock
+                ?: unitTotalStock?.toBigDecimalOrNull()
+                    ?.setScale(0, RoundingMode.DOWN)
+                    ?.toInt()
+                ?: return null
+            val sold = totalSold
+                ?: unitTotalSold?.toBigDecimalOrNull()
+                    ?.setScale(0, RoundingMode.DOWN)
+                    ?.toInt()
+                ?: 0
+            val lost = totalLost
+                ?: unitTotalLost?.toBigDecimalOrNull()
+                    ?.setScale(0, RoundingMode.DOWN)
+                    ?.toInt()
+                ?: 0
+            return (total - sold - lost).coerceAtLeast(0)
         }
 
     fun toContractProduct() = ContractProduct(

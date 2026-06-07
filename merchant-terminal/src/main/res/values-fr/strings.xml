@@ -11,8 +11,8 @@
     <string name="refund_confirm">Approuver le remboursement</string>
     <string name="refund_error_backend">Erreur lors du traitement du remboursement</string>
     <string name="menu_settings">Paramètres</string>
-    <string name="app_name">GNU Taler Point de vente</string>
-    <string name="app_name_short">Terminal marchand</string>
+    <string name="app_name">Taler POS</string>
+    <string name="app_name_short">Taler POS</string>
     <string name="menu_order">Commandes</string>
     <string name="order_label_title">Commande numéro %s</string>
     <string name="order_restart">Effacer</string>
@@ -96,7 +96,7 @@
     <string name="forever">Toujours</string>
     <string name="custom_duration">Durée personnalisée</string>
     <string name="duration">Durée</string>
-    <string name="token_validity_deadline">Date limite de validité du jeton :</string>
+    <string name="token_validity_deadline">Date limite de validité du mot de passe :</string>
     <string name="expires_on">Expire le …</string>
     <string name="no_deadline_set">Aucune date limite</string>
     <string name="pick_date">Choisir la date</string>
@@ -108,15 +108,15 @@
     <string name="settings_language_label">Langue</string>
     <string name="settings_language_hint">Langue de l’application</string>
     <string name="settings_language_system_default">Paramètre système</string>
-    <string name="settings_subtitle">Choisissez la langue de l’application et gérez les identifiants de l’instance commerçant.</string>
+    <string name="settings_subtitle">Choisissez la langue de l’application et gérez les paramètres de connexion.</string>
     <string name="settings_app_title">Paramètres de l’application</string>
     <string name="settings_language_description">S’applique immédiatement à l’interface de l’application.</string>
     <string name="settings_initial_order_label">Écran de commande initial</string>
     <string name="settings_initial_order_hint">Mode de commande par défaut</string>
     <string name="settings_initial_order_description">Affiché au démarrage de l’application ou après le chargement de la configuration.</string>
-    <string name="settings_instance_title">Instance enregistrée</string>
-    <string name="settings_instance_description">Modifier l’URL du portail commerçant, le nom d’utilisateur, le jeton et les autres paramètres de l’instance.</string>
-    <string name="settings_instance_button">Modifier l’instance enregistrée</string>
+    <string name="settings_instance_title">Paramètres de connexion</string>
+    <string name="settings_instance_description">Modifier l’URL du portail commerçant, le nom d’utilisateur, le mot de passe et les autres paramètres.</string>
+    <string name="settings_instance_button">Modifier les paramètres de connexion</string>
     <string name="settings_logout_button">Se déconnecter</string>
     <string name="amount_entry_label">Montant</string>
     <string name="amount_entry_charge">Encaisser</string>
@@ -138,4 +138,8 @@
     <string name="error_order_creation">Erreur : impossible de créer la commande</string>
     <string name="error_inventory_unavailable">Erreur : stock disponible insuffisant</string>
     <string name="error_delete_order">Erreur : impossible de supprimer la commande</string>
+    <string name="product_wrong_currency">Devise incorrecte</string>
+    <string name="force_delete_dialog_title">Forcer la suppression de la commande ?</string>
+    <string name="force_delete_dialog_message">Cette commande a été réclamée par un portefeuille. Forcer sa suppression libérera tous les verrouillages de stock et empêchera le portefeuille de finaliser le paiement.</string>
+    <string name="force_delete_dialog_confirm">Forcer la suppression</string>
 </resources>

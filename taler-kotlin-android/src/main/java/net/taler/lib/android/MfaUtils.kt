@@ -19,6 +19,7 @@ package net.taler.lib.android
 import android.content.res.ColorStateList
 import android.content.DialogInterface
 import android.text.Editable
+import android.text.InputFilter
 import android.text.TextWatcher
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -227,7 +228,11 @@ private fun setupMfaCodeInputs(
     errorView: TextView,
     onSubmit: () -> Boolean,
 ) {
+    var updatingInputs = false
     inputs.forEachIndexed { index, input ->
+        input.filters = input.filters
+            .filterNot { it is InputFilter.LengthFilter }
+            .toTypedArray()
         input.imeOptions = if (index == inputs.lastIndex) {
             EditorInfo.IME_ACTION_DONE
         } else {
@@ -238,8 +243,30 @@ private fun setupMfaCodeInputs(
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
 
             override fun afterTextChanged(s: Editable?) {
+                if (updatingInputs) return
                 errorView.visibility = GONE
-                if (s?.length == 1 && index < inputs.lastIndex) {
+                val value = s?.toString().orEmpty()
+                if (value.length > 1) {
+                    val pastedCode = normalizeMfaCode(value)
+                    updatingInputs = true
+                    try {
+                        if (pastedCode == null) {
+                            input.text?.clear()
+                        } else {
+                            inputs.forEachIndexed { digitIndex, digitInput ->
+                                digitInput.setText(pastedCode[digitIndex].toString())
+                            }
+                        }
+                    } finally {
+                        updatingInputs = false
+                    }
+                    if (pastedCode != null) {
+                        inputs.last().apply {
+                            requestFocus()
+                            setSelection(text?.length ?: 0)
+                        }
+                    }
+                } else if (value.length == 1 && index < inputs.lastIndex) {
                     inputs[index + 1].requestFocus()
                 }
             }
@@ -274,6 +301,11 @@ private fun setupMfaCodeInputs(
             }
         }
     }
+}
+
+internal fun normalizeMfaCode(value: String): String? {
+    val digits = value.filter(Char::isDigit)
+    return digits.takeIf { it.length == 8 }
 }
 
 private fun collectMfaCode(inputs: List<EditText>): String? {

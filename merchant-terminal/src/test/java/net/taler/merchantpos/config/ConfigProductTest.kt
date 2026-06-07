@@ -50,4 +50,71 @@ class ConfigProductTest {
 
         assertEquals("Fr.2.50", product.displayPrice)
     }
+
+    @Test
+    fun `stockLimit subtracts sold and lost from total stock`() {
+        val product = ConfigProduct(
+            description = "finite_quantity",
+            price = Amount("KUDOS", 10, 0),
+            categories = emptyList(),
+            totalStock = 10,
+            unitTotalStock = "10",
+            totalSold = 0,
+            totalLost = 2,
+        )
+
+        assertEquals(8, product.stockLimit)
+    }
+
+    @Test
+    fun `stockLimit subtracts unit sold and lost`() {
+        val product = ConfigProduct(
+            description = "test",
+            price = Amount("KUDOS", 5, 0),
+            categories = emptyList(),
+            unitTotalStock = "10",
+            unitTotalSold = "2",
+            unitTotalLost = "3",
+        )
+
+        assertEquals(5, product.stockLimit)
+    }
+
+    @Test
+    fun `stockLimit with no sold or lost returns total stock`() {
+        val product = ConfigProduct(
+            description = "test",
+            price = Amount("KUDOS", 5, 0),
+            categories = emptyList(),
+            totalStock = 10,
+        )
+
+        assertEquals(10, product.stockLimit)
+    }
+
+    @Test
+    fun `stockLimit returns null for unlimited stock`() {
+        val product = ConfigProduct(
+            description = "test",
+            price = Amount("KUDOS", 5, 0),
+            categories = emptyList(),
+            totalStock = -1,
+        )
+
+        assertNull(product.stockLimit)
+    }
+
+    @Test
+    fun `stockLimit clamps to zero when sold and lost exceed stock`() {
+        val product = ConfigProduct(
+            description = "test",
+            price = Amount("KUDOS", 5, 0),
+            categories = emptyList(),
+            totalStock = 5,
+            totalSold = 3,
+            totalLost = 5,
+        )
+
+        assertEquals(0, product.stockLimit)
+    }
 }

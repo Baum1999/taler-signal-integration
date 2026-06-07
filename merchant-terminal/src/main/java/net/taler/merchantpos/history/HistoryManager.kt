@@ -111,16 +111,42 @@ class HistoryManager(
         }
     }
 
+    private val mForceDeleteOrderId = MutableLiveData<String?>(null)
+    val forceDeleteOrderId: LiveData<String?> = mForceDeleteOrderId
+
     @UiThread
     internal fun deleteOrder(orderId: String) = scope.launch {
         mIsLoading.value = true
         mIsLoadingMore.value = false
         val merchantConfig = configManager.merchantConfig!!
-        api.deleteOrder(merchantConfig, orderId).handle({ onError(R.string.error_delete_order, it) }) {
+        api.deleteOrder(merchantConfig, orderId).handle({ errorMsg ->
+            assertUiThread()
+            mIsLoading.value = false
+            mForceDeleteOrderId.value = orderId
+        }) {
             assertUiThread()
             configManager.refreshInventory()
             fetchHistory()
         }
+    }
+
+    @UiThread
+    internal fun forceDeleteOrder(orderId: String) = scope.launch {
+        mForceDeleteOrderId.postValue(null)
+        mIsLoading.value = true
+        val merchantConfig = configManager.merchantConfig!!
+        api.deleteOrder(merchantConfig, orderId, force = true).handle({ errorMsg ->
+            onError(R.string.error_delete_order, errorMsg)
+        }) {
+            assertUiThread()
+            configManager.refreshInventory()
+            fetchHistory()
+        }
+    }
+
+    @UiThread
+    internal fun clearForceDeletePrompt() {
+        mForceDeleteOrderId.value = null
     }
 
     @UiThread

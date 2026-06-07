@@ -28,7 +28,9 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -84,6 +86,7 @@ class HistoryFragment : Fragment(), HistoryActionListener {
             val result by historyManager.items.observeAsState()
             val pendingRefundOrderId by refundManager.pendingRefundOrderId.observeAsState()
             val activePayment by model.paymentManager.payment.observeAsState()
+            val forceDeleteOrderId by historyManager.forceDeleteOrderId.observeAsState()
             HistoryScreen(
                 isLoading = isLoading,
                 isLoadingMore = isLoadingMore,
@@ -97,6 +100,12 @@ class HistoryFragment : Fragment(), HistoryActionListener {
                 onShowPaymentClicked = ::onShowPaymentClicked,
                 onShowRefundClicked = ::onShowRefundClicked,
             )
+            forceDeleteOrderId?.let { orderId ->
+                ForceDeleteOrderDialog(
+                    onConfirm = { historyManager.forceDeleteOrder(orderId) },
+                    onDismiss = { historyManager.clearForceDeletePrompt() },
+                )
+            }
         }
     }
 
@@ -365,4 +374,31 @@ private fun HistoryAmountBadge(
             style = MaterialTheme.typography.labelLarge,
         )
     }
+}
+
+@Composable
+private fun ForceDeleteOrderDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.force_delete_dialog_title)) },
+        text = { Text(stringResource(R.string.force_delete_dialog_message)) },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                ),
+            ) {
+                Text(stringResource(R.string.force_delete_dialog_confirm))
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = onDismiss) {
+                Text(stringResource(R.string.payment_cancel))
+            }
+        },
+    )
 }

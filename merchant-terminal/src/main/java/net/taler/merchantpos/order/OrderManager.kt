@@ -106,18 +106,17 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
 
         posConfig.products.forEach { product ->
             val productCurrency = product.price.currency
-            if (productCurrency != currency) {
-                Log.e(TAG, "Product $product has currency $productCurrency, $currency expected")
-                return context.getString(
-                    R.string.config_error_currency, product.description, productCurrency, currency
-                )
+            val currencyMismatch = productCurrency != currency
+            if (currencyMismatch) {
+                Log.w(TAG, "Product $product has currency $productCurrency, $currency expected")
             }
             val remainingStock = product.stockLimit
             val productWithSpec = product.copy(
                 id = existingProductsByStableKey[product.stableKey]?.id ?: product.id,
                 price = product.price.withSpec(currencySpec),
-                availableToSell = remainingStock == null || remainingStock > 0,
+                availableToSell = !currencyMismatch && (remainingStock == null || remainingStock > 0),
                 remainingStock = remainingStock,
+                currencyMismatch = currencyMismatch,
             )
             productsById[productWithSpec.id] = productWithSpec
             productsByCategory.getValue(allProductsCategory).add(productWithSpec)
@@ -162,6 +161,8 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
             orderCounter = 0
             orders[0] = createOrder(0)
             mCurrentOrderId.postValue(0)
+        } else {
+            trimOrdersToStockLimits()
         }
         return null
     }
@@ -313,7 +314,7 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
     private fun decorateProduct(product: ConfigProduct): ConfigProduct {
         val remainingStock = remainingStock(product)
         return product.copy(
-            availableToSell = remainingStock == null || remainingStock > 0,
+            availableToSell = !product.currencyMismatch && (remainingStock == null || remainingStock > 0),
             remainingStock = remainingStock,
         )
     }
@@ -332,5 +333,22 @@ class OrderManager(private val context: Context) : ConfigurationReceiver {
                 ?: 0
         }
         return (stockLimit - reserved).coerceAtLeast(0)
+    }
+
+    private fun trimOrdersToStockLimits() {
+        for (liveOrder in orders.values) {
+            val order = liveOrder.order.value ?: continue
+            var modified = false
+            val trimmedProducts = order.products.mapNotNull { orderProduct ->
+                val stockLimit = productsById[orderProduct.id]?.stockLimit ?: return@mapNotNull orderProduct
+                if (orderProduct.quantity <= stockLimit) return@mapNotNull orderProduct
+                modified = true
+                if (stockLimit <= 0) null
+                else orderProduct.copy(quantity = stockLimit)
+            }
+            if (modified) {
+                liveOrder.order.postValue(order.copy(products = trimmedProducts))
+            }
+        }
     }
 }

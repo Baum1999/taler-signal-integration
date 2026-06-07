@@ -2,8 +2,8 @@
 <resources>
     <string name="menu_settings">הגדרות</string>
     <string name="config_save_password">שמירת הסיסמה</string>
-    <string name="app_name">נקודת מכירה GNU Taler</string>
-    <string name="app_name_short">מסוף סוחר</string>
+    <string name="app_name">Taler POS</string>
+    <string name="app_name_short">Taler POS</string>
     <string name="project_name">GNU Taler</string>
     <string name="menu_order">הזמנה לפי מלאי</string>
     <string name="menu_amount_entry">הזמנה לפי סכום</string>
@@ -36,15 +36,15 @@
     <string name="settings_language_label">שפה</string>
     <string name="settings_language_hint">שפת האפליקציה</string>
     <string name="settings_language_system_default">ברירת מחדל של המערכת</string>
-    <string name="settings_subtitle">בחרו את שפת האפליקציה ונהלו את פרטי הגישה של מופע הסוחר.</string>
+    <string name="settings_subtitle">בחרו את שפת האפליקציה ונהלו את הגדרות ההתחברות.</string>
     <string name="settings_app_title">הגדרות אפליקציה</string>
     <string name="settings_language_description">מוחל מיד על ממשק האפליקציה.</string>
     <string name="settings_initial_order_label">מסך הזמנה התחלתי</string>
     <string name="settings_initial_order_hint">מצב הזמנה ברירת מחדל</string>
     <string name="settings_initial_order_description">מוצג כשהאפליקציה מופעלת או אחרי טעינת התצורה.</string>
-    <string name="settings_instance_title">מופע שמור</string>
-    <string name="settings_instance_description">שינוי כתובת פורטל הסוחר, שם משתמש, אסימון והגדרות נוספות של המופע.</string>
-    <string name="settings_instance_button">שינוי מופע שמור</string>
+    <string name="settings_instance_title">הגדרות התחברות</string>
+    <string name="settings_instance_description">שינוי כתובת פורטל הסוחר, שם המשתמש, הסיסמה והגדרות נוספות.</string>
+    <string name="settings_instance_button">שינוי הגדרות התחברות</string>
     <string name="settings_logout_button">התנתק</string>
     <string name="config_old_label">קובץ JSON (ישן)</string>
     <string name="config_setup_password">סיסמה</string>
@@ -54,7 +54,7 @@
     <string name="config_username">שם משתמש</string>
     <string name="config_password">סיסמה</string>
     <string name="config_manual_label">תצורה ידנית</string>
-    <string name="config_token">אסימון גישה</string>
+    <string name="config_token">סיסמה</string>
     <string name="config_ok">התחבר</string>
     <string name="config_auth_error">שגיאה: שם משתמש או סיסמה לא תקינים</string>
     <string name="config_error_network">שגיאה: לא ניתן להתחבר לשרת התצורה</string>
@@ -74,7 +74,7 @@
     <string name="forever">לתמיד</string>
     <string name="custom_duration">משך מותאם</string>
     <string name="duration">משך</string>
-    <string name="token_validity_deadline">מועד תוקף האסימון:</string>
+    <string name="token_validity_deadline">מועד תפוגת הסיסמה:</string>
     <string name="expires_on">פג בתאריך…</string>
     <string name="never_expires">לעולם לא פג</string>
     <string name="no_deadline_set">לא נקבע מועד תפוגה</string>
@@ -136,4 +136,8 @@
     <string name="error_order_creation">שגיאה: לא ניתן ליצור הזמנה</string>
     <string name="error_inventory_unavailable">שגיאה: אין מספיק מלאי זמין</string>
     <string name="error_delete_order">שגיאה: לא ניתן למחוק את ההזמנה</string>
+    <string name="product_wrong_currency">מטבע שגוי</string>
+    <string name="force_delete_dialog_title">לכפות את מחיקת ההזמנה?</string>
+    <string name="force_delete_dialog_message">ההזמנה נתבעה על ידי ארנק. מחיקה כפויה שלה תשחרר את כל נעילות המלאי ותמנע מהארנק להשלים את התשלום.</string>
+    <string name="force_delete_dialog_confirm">מחיקה כפויה</string>
 </resources>

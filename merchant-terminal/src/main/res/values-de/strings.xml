@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name_short">\"Merchant Terminal\"</string>
+    <string name="app_name_short">Taler POS</string>
     <string name="project_name">GNU Taler</string>
     <string name="menu_order">Normale Bestellung</string>
     <string name="menu_history">Verlauf</string>
@@ -49,7 +49,7 @@
 \n
 \n%2$s</string>
     <string name="toast_back_to_exit">Klicken Sie zum Beenden erneut auf «Zurück»</string>
-    <string name="app_name">GNU Taler Point-of-Sale</string>
+    <string name="app_name">Taler POS</string>
     <string name="config_label">Händlereinstellungen</string>
     <string name="config_username">Benutzername</string>
     <string name="config_password">Passwort</string>
@@ -100,7 +100,7 @@
     <string name="config_qr_label">QR-Code-Konfiguration</string>
     <string name="scan_qr_hint">Scannen Sie den QR-Code, den das Taler Merchant Backoffice erzeugt hat</string>
     <string name="duration">Gültigkeitszeitraum</string>
-    <string name="token_validity_deadline">Gültigkeitszeitraum des Passworts:</string>
+    <string name="token_validity_deadline">Gültigkeitsfrist des Passworts:</string>
     <string name="expires_on">Gültig bis…</string>
     <string name="never_expires">Unbegrenzte Gültigkeit</string>
     <string name="no_deadline_set">Es wurde keine Verfallsfrist festgelegt</string>
@@ -118,18 +118,22 @@
     <string name="settings_language_label">Sprache</string>
     <string name="settings_language_hint">App-Sprache</string>
     <string name="settings_language_system_default">Systemvorgabe</string>
-    <string name="settings_subtitle">Wählen Sie die App-Sprache und verwalten Sie die Zugangsdaten der Händlerinstanz.</string>
+    <string name="settings_subtitle">Wählen Sie die App-Sprache und verwalten Sie die Anmeldeeinstellungen.</string>
     <string name="settings_language_description">Wird sofort auf die App-Oberfläche angewendet.</string>
     <string name="settings_initial_order_label">Startbildschirm für Bestellungen</string>
     <string name="settings_initial_order_hint">Standard-Bestellmodus</string>
     <string name="settings_initial_order_description">Wird beim Start der App oder nach dem Laden der Konfiguration angezeigt.</string>
-    <string name="settings_instance_title">Gespeicherte Instanz</string>
-    <string name="settings_instance_description">Händlerportal-URL, Benutzername, Token und weitere instanzspezifische Einstellungen ändern.</string>
-    <string name="settings_instance_button">Gespeicherte Instanz ändern</string>
+    <string name="settings_instance_title">Anmeldeeinstellungen</string>
+    <string name="settings_instance_description">Händlerportal-URL, Benutzername, Passwort und weitere Einstellungen ändern.</string>
+    <string name="settings_instance_button">Anmeldeeinstellungen ändern</string>
     <string name="settings_logout_button">Abmelden</string>
     <string name="amount_entry_charge">Berechnen</string>
     <string name="amount_entry_create_order_charge">Bestellung erstellen (Betrag berechnen)</string>
     <string name="amount_entry_backspace">Löschen</string>
+    <string name="product_wrong_currency">Falsche Währung</string>
+    <string name="force_delete_dialog_title">Löschen der Bestellung erzwingen?</string>
+    <string name="force_delete_dialog_message">Diese Bestellung wurde von einer Wallet beansprucht. Durch das erzwungene Löschen werden alle Bestandssperren aufgehoben und die Wallet kann die Zahlung nicht mehr abschließen.</string>
+    <string name="force_delete_dialog_confirm">Löschen erzwingen</string>
     <string-array name="settings_language_values">
         <item></item>
         <item>en</item>

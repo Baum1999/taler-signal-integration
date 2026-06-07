@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">GNU Taler Point-of-Sale</string>
-    <string name="app_name_short">Merchant Terminal</string>
+    <string name="app_name">Taler POS</string>
+    <string name="app_name_short">Taler POS</string>
     <string name="project_name">GNU Taler</string>
 
     <string name="menu_order">Order by inventory</string>
@@ -14,6 +14,7 @@
     <string name="product_category_uncategorized">Uncategorized</string>
     <string name="product_unavailable">Unavailable</string>
     <string name="product_out_of_stock">Out of stock</string>
+    <string name="product_wrong_currency">Wrong currency</string>
 
     <string name="order_label_title">Order #%s</string>
     <!-- The placeholder is the total order amount with currency -->
@@ -43,15 +44,15 @@
     <string name="settings_language_label">Language</string>
     <string name="settings_language_hint">App language</string>
     <string name="settings_language_system_default">System default</string>
-    <string name="settings_subtitle">Choose the app language and manage merchant instance credentials.</string>
+    <string name="settings_subtitle">Choose the app language and manage login settings.</string>
     <string name="settings_app_title">App settings</string>
     <string name="settings_language_description">Applied immediately to the app interface.</string>
     <string name="settings_initial_order_label">Initial order screen</string>
     <string name="settings_initial_order_hint">Default order mode</string>
     <string name="settings_initial_order_description">Shown when the app starts or after configuration is loaded.</string>
-    <string name="settings_instance_title">Saved instance</string>
-    <string name="settings_instance_description">Change merchant portal URL, username, token, and other instance-specific settings.</string>
-    <string name="settings_instance_button">Modify saved instance</string>
+    <string name="settings_instance_title">Login settings</string>
+    <string name="settings_instance_description">Change merchant portal URL, username, password, and other settings.</string>
+    <string name="settings_instance_button">Modify login settings</string>
     <string name="settings_logout_button">Log out</string>
     <string name="config_old_label">JSON file (old)</string>
     <string name="config_setup_password">Password</string>
@@ -61,7 +62,7 @@
     <string name="config_username">Username</string>
     <string name="config_password">Password</string>
     <string name="config_manual_label">Manual config</string>
-    <string name="config_token">Access token</string>
+    <string name="config_token">Password</string>
     <string name="config_ok">Connect</string>
     <string name="config_auth_error">Error: Invalid username or password</string>
     <string name="config_error_network">Error: Could not connect to configuration server</string>
@@ -87,6 +88,9 @@
     <string name="payment_order_id">Receipt #%s</string>
     <string name="payment_process_label">Payment required</string>
     <string name="payment_canceled">Payment canceled</string>
+    <string name="force_delete_dialog_title">Force delete order?</string>
+    <string name="force_delete_dialog_message">This order has been claimed by a wallet. Force deleting it will release any inventory locks and prevent the wallet from completing the payment.</string>
+    <string name="force_delete_dialog_confirm">Force delete</string>
     <string name="payment_share_uri">Share payment URI</string>
     <string name="payment_copy_uri">Copy payment URI</string>
 
@@ -137,7 +141,7 @@
     <string name="forever">Forever</string>
     <string name="custom_duration">Custom duration</string>
     <string name="duration">Duration</string>
-    <string name="token_validity_deadline">Token validity deadline:</string>
+    <string name="token_validity_deadline">Password validity deadline:</string>
     <string name="expires_on">Expires on…</string>
     <string name="never_expires">Never expires</string>
     <string name="no_deadline_set">No deadline set</string>

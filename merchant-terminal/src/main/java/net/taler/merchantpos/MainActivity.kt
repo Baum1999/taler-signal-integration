@@ -46,6 +46,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.Image
@@ -313,6 +314,8 @@ private fun MerchantTerminalApp(
     val currentOrderState = currentOrderLive?.order?.observeAsState()
     val currentOrder = currentOrderState?.value
     val restartState by currentOrderLive?.restartState?.observeAsState(DISABLED) ?: remember { androidx.compose.runtime.mutableStateOf(DISABLED) }
+    val clearOrderEnabled =
+        restartState == UNDO || currentOrder?.products?.isNotEmpty() == true
     val hasPreviousOrder = currentOrderId?.let { viewModel.orderManager.hasPreviousOrder(it) } ?: false
     val hasNextOrder by currentOrderId?.let { viewModel.orderManager.hasNextOrder(it).observeAsState(false) }
         ?: remember { androidx.compose.runtime.mutableStateOf(false) }
@@ -429,7 +432,7 @@ private fun MerchantTerminalApp(
                                     Icon(Icons.Default.Menu, contentDescription = null)
                                 }
                             } else {
-                                Spacer(modifier = Modifier.width(48.dp))
+                                Spacer(modifier = Modifier.size(48.dp))
                             }
                             Text(
                                 text = screenTitle,
@@ -442,7 +445,7 @@ private fun MerchantTerminalApp(
                             ) {
                                 Button(
                                     onClick = { currentOrderLive?.restartOrUndo() },
-                                    enabled = restartState != DISABLED,
+                                    enabled = clearOrderEnabled,
                                     colors = topBarOrderButtonColors(),
                                     modifier = Modifier.heightIn(min = 40.dp),
                                 ) {
@@ -502,7 +505,7 @@ private fun MerchantTerminalApp(
                                     Icon(Icons.Default.Menu, contentDescription = null)
                                 }
                             } else {
-                                Spacer(modifier = Modifier.width(48.dp))
+                                Spacer(modifier = Modifier.size(48.dp))
                             }
                             Text(
                                 text = screenTitle,
@@ -533,7 +536,7 @@ private fun MerchantTerminalApp(
                                     Icon(Icons.Default.Menu, contentDescription = null)
                                 }
                             } else {
-                                Spacer(modifier = Modifier.width(48.dp))
+                                Spacer(modifier = Modifier.size(48.dp))
                             }
                             Text(
                                 text = screenTitle,

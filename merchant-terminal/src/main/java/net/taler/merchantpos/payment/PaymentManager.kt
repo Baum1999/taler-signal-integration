@@ -195,6 +195,7 @@ class PaymentManager(
 
     @UiThread
     fun cancelPayment(error: String? = null) {
+        stopPaymentChecks()
         val merchantConfig = configManager.merchantConfig!!
         mPayment.value?.let { payment ->
             if (!payment.paid) payment.orderId?.let { orderId ->
@@ -207,6 +208,52 @@ class PaymentManager(
         mPayment.value?.copy(error = error)?.let {
             mPayment.value = it
         }
+    }
+
+    private val mDeleteNeedsForce = MutableLiveData<Boolean?>(null)
+    val deleteNeedsForce: LiveData<Boolean?> = mDeleteNeedsForce
+
+    @UiThread
+    fun tryDeleteOrder() {
+        stopPaymentChecks()
+        val merchantConfig = configManager.merchantConfig!!
+        val orderId = mPayment.value?.orderId ?: return
+        scope.launch {
+            val result = api.deleteOrder(merchantConfig, orderId)
+            result.handle(
+                onFailure = { errorStr ->
+                    Log.w(TAG, "Delete order $orderId failed: $errorStr")
+                    mDeleteNeedsForce.postValue(true)
+                },
+                onSuccess = {
+                    Log.d(TAG, "Delete order $orderId succeeded")
+                    mPayment.postValue(mPayment.value?.copy(error = null))
+                    mDeleteNeedsForce.postValue(false)
+                },
+            )
+        }
+    }
+
+    @UiThread
+    fun forceDeleteOrder() {
+        val merchantConfig = configManager.merchantConfig!!
+        val orderId = mPayment.value?.orderId ?: return
+        Log.d(TAG, "Force deleting claimed order $orderId")
+        scope.launch {
+            api.deleteOrder(merchantConfig, orderId, force = true).handle(
+                onFailure = { err -> Log.w(TAG, "Force delete of order $orderId failed: $err") },
+                onSuccess = { Log.d(TAG, "Force delete of order $orderId succeeded") },
+            )
+        }
+        mPayment.value = mPayment.value?.copy(error = null)
+        mDeleteNeedsForce.value = null
+    }
+
+    fun clearDeleteNeedsForce() {
+        mDeleteNeedsForce.value = null
+    }
+
+    private fun stopPaymentChecks() {
         checkTimer.cancel()
         checkJob?.isCancelled
         checkJob = null

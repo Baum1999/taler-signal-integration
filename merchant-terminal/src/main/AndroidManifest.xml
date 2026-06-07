@@ -33,9 +33,9 @@
     <application
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_descriptor"
-        android:icon="@mipmap/ic_taler_logo"
+        android:icon="@mipmap/ic_taler_pos_logo"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_taler_logo_round"
+        android:roundIcon="@mipmap/ic_taler_pos_logo_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:enableOnBackInvokedCallback="false"
