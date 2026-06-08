@@ -47,7 +47,6 @@ import net.taler.wallet.exchanges.ReviewExchangeTosScreen
 import net.taler.wallet.main.MainScreen
 import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.payment.PayTemplateScreen
-import net.taler.wallet.payment.PromptPaymentScreen
 import net.taler.wallet.peer.IncomingPullPaymentScreen
 import net.taler.wallet.peer.IncomingPushPaymentScreen
 import net.taler.wallet.peer.OutgoingPullScreen
@@ -160,14 +159,6 @@ fun WalletNavHost(
                 dest = dest,
                 onNavigate = onNavigate,
                 onNavigateBack = onNavigateBack,
-            )
-        }
-        composable<WalletDestination.PromptPayment> {
-            PromptPaymentScreen(
-                model = model,
-                onNavigate = onNavigate,
-                onNavigateBack = onNavigateBack,
-                onShowError = onShowError,
             )
         }
         composable<WalletDestination.ExchangeList> {

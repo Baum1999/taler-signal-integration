@@ -112,36 +112,24 @@ class PaymentManager(
     private val scope: CoroutineScope,
     private val exchangeManager: ExchangeManager,
 ) {
-
     private val mPayStatus = MutableLiveData<PayStatus>(PayStatus.None)
     internal val payStatus: LiveData<PayStatus> = mPayStatus
 
-    @UiThread
-    fun preparePay(url: String) = scope.launch {
+    suspend fun preparePay(url: String): String? {
+        var transactionId: String? = null
         mPayStatus.value = PayStatus.Loading
-        api.request("preparePayForUri", PreparePayResponse.serializer()) {
+        api.request("preparePayForUriV2", PreparePayV2Response.serializer()) {
             put("talerPayUri", url)
         }.onError {
-            handleError("preparePayForUri", it)
+            handleError("preparePayForUriV2", it)
         }.onSuccess { response ->
-            if (response is AlreadyConfirmedResponse) {
-                mPayStatus.value = AlreadyPaid(response.transactionId)
-                return@onSuccess
-            }
-
-            val transactionId = when (response) {
-                is PaymentPossibleResponse -> response.transactionId
-                is InsufficientBalanceResponse -> response.transactionId
-                is PreparePayResponse.ChoiceSelection -> response.transactionId
-                else -> return@onSuccess
-            }
-
-            preparePay(transactionId) {}
+            transactionId = response.transactionId
         }
+        return transactionId
     }
 
     @UiThread
-    fun preparePay(
+    fun getPaymentChoices(
         transactionId: String,
         onSuccess: () -> Unit,
     ) = scope.launch {

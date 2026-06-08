@@ -30,9 +30,6 @@ sealed interface WalletDestination {
     data class PaytoUri(val uri: String) : WalletDestination
 
     @Serializable
-    data object PromptPayment : WalletDestination
-
-    @Serializable
     data class PromptWithdraw(
         val withdrawUri: String? = null,
         val withdrawExchangeUri: String? = null,

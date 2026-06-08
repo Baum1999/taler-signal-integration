@@ -88,6 +88,11 @@ sealed class PreparePayResponse {
 }
 
 @Serializable
+data class PreparePayV2Response (
+    val transactionId: String,
+)
+
+@Serializable
 data class GetChoicesForPaymentResponse(
     val choices: List<ChoiceSelectionDetail>,
     val contractTerms: ContractTerms,

@@ -186,6 +186,12 @@ class TransactionManager(
         }
     }
 
+    fun selectTransactionSync(transactionId: String, onSuccess: () -> Unit) = scope.launch {
+        if (selectTransaction(transactionId)) {
+            onSuccess()
+        }
+    }
+
     @UiThread
     fun updateTransactionIfSelected(id: String) = scope.launch {
         val selectedTransaction = selectedTransaction.value

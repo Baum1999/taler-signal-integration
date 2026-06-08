@@ -510,10 +510,10 @@ private fun onTransactionClicked(
     when (tx.txState) {
         // unfinished transactions (dialog)
         TransactionState(TransactionMajorState.Dialog) -> when (tx) {
-            is TransactionPayment -> {
-                model.paymentManager.preparePay(tx.transactionId) {}
-                onNavigate(WalletDestination.PromptPayment, true)
-            }
+//            is TransactionPayment -> {
+//                model.paymentManager.preparePay(tx.transactionId) {}
+//                onNavigate(WalletDestination.PromptPayment, true)
+//            }
 
             is TransactionPeerPushCredit -> {
                 model.peerManager.preparePeerPushCredit(transactionId = tx.transactionId)

@@ -50,6 +50,7 @@ fun PayTemplateScreen(
     val paymentManager = model.paymentManager
     val balanceManager = model.balanceManager
     val exchangeManager = model.exchangeManager
+    val transactionManager = model.transactionManager
 
     val payStatus by paymentManager.payStatus.asFlow().collectAsStateLifecycleAware(PayStatus.None)
     val balanceState by balanceManager.state.observeAsState(BalanceState.None)
@@ -63,8 +64,8 @@ fun PayTemplateScreen(
     LaunchedEffect(payStatus) {
         when (val s = payStatus) {
             is PayStatus.Prepared -> {
-                paymentManager.preparePay(s.transactionId) {
-                    onNavigate(WalletDestination.PromptPayment, false)
+                if (transactionManager.selectTransaction(s.transactionId)) {
+                    onNavigate(WalletDestination.TransactionPayment, true)
                 }
             }
 

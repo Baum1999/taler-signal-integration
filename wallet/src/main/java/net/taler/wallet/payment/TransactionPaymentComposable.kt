@@ -16,20 +16,31 @@
 
 package net.taler.wallet.payment
 
+import android.graphics.Bitmap
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.common.Merchant
@@ -40,6 +51,7 @@ import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo
+import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.ErrorTransactionButton
@@ -51,7 +63,9 @@ import net.taler.wallet.transactions.TransactionAmountComposable
 import net.taler.wallet.transactions.TransactionInfo
 import net.taler.wallet.transactions.TransactionInfoComposable
 import net.taler.wallet.transactions.TransactionLinkComposable
+import net.taler.wallet.transactions.TransactionMajorState
 import net.taler.wallet.transactions.TransactionMajorState.Pending
+import net.taler.wallet.transactions.TransactionMinorState
 import net.taler.wallet.transactions.TransactionPayment
 import net.taler.wallet.transactions.TransactionState
 import net.taler.wallet.transactions.TransactionStateComposable
@@ -60,12 +74,28 @@ import net.taler.wallet.transactions.TransitionsComposable
 @Composable
 fun TransactionPaymentComposable(
     t: TransactionPayment,
+    payStatus: PayStatus,
     devMode: Boolean,
     spec: CurrencySpecification?,
+    modifier: Modifier = Modifier,
     onFulfill: (url: String) -> Unit,
     onTransition: (t: TransactionAction) -> Unit,
-    modifier: Modifier = Modifier,
+    onConfirmPay: (Int?, useDonau: Boolean) -> Unit,
+    onSetupDonau: (donauBaseUrl: String) -> Unit,
+    checkDonauForChoice: suspend (PayChoiceDetails) -> DonauStatus?,
 ) {
+    if (t.txState.minor == TransactionMinorState.ClaimProposal && t.error == null) {
+        return LoadingScreen()
+    } else if (t.txState.major == TransactionMajorState.Dialog) {
+        return TransactionPaymentPrompt(
+            payStatus = payStatus,
+            onConfirmPay = onConfirmPay,
+            onAbortPay = { onTransition(Abort) },
+            onSetupDonau = onSetupDonau,
+            checkDonauForChoice = checkDonauForChoice,
+        )
+    }
+
     val scrollState = rememberScrollState()
     Column(
         modifier = modifier
@@ -109,7 +139,7 @@ fun TransactionPaymentComposable(
             )
         }
 
-        PurchaseDetails(info = t.info) {
+        if (t.info != null) PurchaseDetails(info = t.info) {
             onFulfill(t.info.fulfillmentUrl ?: "")
         }
 
@@ -119,6 +149,47 @@ fun TransactionPaymentComposable(
         }
 
         BottomInsetsSpacer()
+    }
+}
+
+@Composable
+fun TransactionPaymentPrompt(
+    payStatus: PayStatus,
+    onConfirmPay: (Int?, useDonau: Boolean) -> Unit,
+    onAbortPay: () -> Unit,
+    onSetupDonau: (donauBaseUrl: String) -> Unit,
+    checkDonauForChoice: suspend (PayChoiceDetails) -> DonauStatus?,
+) {
+    var showImage by remember { mutableStateOf<Bitmap?>(null) }
+    when (val status = payStatus) {
+        is PayStatus.None,
+        is PayStatus.Loading,
+        is PayStatus.Prepared -> LoadingScreen()
+        is PayStatus.Choices -> PromptPaymentComposable(
+            status = status,
+            onConfirm = { index, useDonau ->
+                onConfirmPay(index, useDonau)
+            },
+            onCancel = {
+                onAbortPay()
+            },
+            onClickImage = { bitmap ->
+                showImage = bitmap
+            },
+            checkDonauStatus = { index ->
+                status.choices.find { it.choiceIndex == index }?.let { choice ->
+                    checkDonauForChoice(choice)
+                } ?: DonauStatus.Unavailable
+            },
+            onSetupDonau = { donauBaseUrl ->
+                onSetupDonau(donauBaseUrl)
+            },
+        )
+        else -> {}
+    }
+
+    if (showImage != null) {
+        ProductImageDialog(showImage!!) { showImage = null }
     }
 }
 
@@ -155,6 +226,26 @@ fun PurchaseDetails(
     }
 }
 
+@Composable
+fun ProductImageDialog(bitmap: Bitmap, onDismiss: () -> Unit) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = MaterialTheme.shapes.medium,
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+        ) {
+            Image(
+                bitmap = bitmap.asImageBitmap(),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onDismiss() }
+            )
+        }
+    }
+}
+
 @Preview
 @Composable
 fun TransactionPaymentComposablePreview() {
@@ -180,6 +271,16 @@ fun TransactionPaymentComposablePreview() {
         ))
     )
     TalerSurface {
-        TransactionPaymentComposable(t = t, devMode = true, spec = null, onFulfill = {}, onTransition = {})
+        TransactionPaymentComposable(
+            t = t,
+            payStatus = PayStatus.None,
+            devMode = true,
+            spec = null,
+            onFulfill = {},
+            onTransition = {},
+            onConfirmPay = { _, _ ->},
+            onSetupDonau = {},
+            checkDonauForChoice = { _ -> DonauStatus.Available },
+        )
     }
 }

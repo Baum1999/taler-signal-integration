@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.net.toUri
@@ -34,7 +35,6 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.taler.wallet.backend.TalerErrorInfo
-import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.RetryScreen
 import net.taler.wallet.main.MainViewModel
@@ -57,6 +57,7 @@ fun HandleUriScreen(
     var errorInfo by remember { mutableStateOf<TalerErrorInfo?>(null) }
     val networkStatus by model.networkManager.networkStatus.observeAsState()
     val devMode by model.devMode.observeAsState(false)
+    val scope = rememberCoroutineScope()
 
     fun processTalerUri() {
         if (processing) return
@@ -96,8 +97,13 @@ fun HandleUriScreen(
 
             when {
                 action.startsWith("pay/", ignoreCase = true) -> {
-                    model.paymentManager.preparePay(u2)
-                    onNavigate(WalletDestination.PromptPayment, true)
+                    scope.launch {
+                        model.paymentManager.preparePay(u2)?.let { transactionId ->
+                            if (model.transactionManager.selectTransaction(transactionId)) {
+                                onNavigate(WalletDestination.TransactionPayment, true)
+                            }
+                        }
+                    }
                 }
                 action.startsWith("withdraw/", ignoreCase = true) -> {
                     model.withdrawManager.resetWithdrawal()

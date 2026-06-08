@@ -39,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -71,6 +72,7 @@ import net.taler.wallet.deposit.TransactionDepositComposable
 import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.main.TAG
+import net.taler.wallet.payment.PayStatus
 import net.taler.wallet.payment.TransactionPaymentComposable
 import net.taler.wallet.peer.TransactionPeerPullCreditComposable
 import net.taler.wallet.peer.TransactionPeerPullDebitComposable
@@ -127,16 +129,37 @@ fun TransactionDetailScreen(
             when (destination) {
                 is WalletDestination.TransactionPayment -> {
                     (t as? TransactionPayment)?.let { tx ->
+                        LaunchedEffect(tx.txState) {
+                            if (tx.txState.major == TransactionMajorState.Dialog) {
+                                model.paymentManager.getPaymentChoices(tx.transactionId) {}
+                            }
+                        }
+
                         TransactionPaymentComposable(
-                            modifier = modifier,
                             t = tx,
+                            payStatus = model.paymentManager.payStatus
+                                .observeAsState(PayStatus.None).value,
                             devMode = devMode,
                             spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
+                            modifier = modifier,
                             onFulfill = { url ->
                                 launchInAppBrowser(context, url)
                             },
                             onTransition = { action ->
                                 handleTransactionAction(tx, action, model, onNavigateBack)
+                            },
+                            onConfirmPay = { choiceIndex, useDonau ->
+                                model.paymentManager.confirmPay(
+                                    transactionId = tx.transactionId,
+                                    choiceIndex = choiceIndex,
+                                    useDonau = useDonau,
+                                )
+                            },
+                            onSetupDonau = { donauBaseUrl ->
+                                onNavigate(WalletDestination.SetDonau(donauBaseUrl), false)
+                            },
+                            checkDonauForChoice = { choice ->
+                                model.paymentManager.checkDonauForChoice(choice)
                             }
                         )
                     }

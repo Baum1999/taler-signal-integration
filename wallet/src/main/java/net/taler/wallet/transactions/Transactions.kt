@@ -388,8 +388,7 @@ class TransactionPayment(
     override val timestamp: Timestamp,
     override val txState: TransactionState,
     override val txActions: List<TransactionAction>,
-    val info: TransactionInfo,
-    val contractTerms: ContractTerms? = null,
+    val info: TransactionInfo? = null,
     override val error: TalerErrorInfo? = null,
     override val amountRaw: Amount,
     override val amountEffective: Amount,
@@ -402,7 +401,8 @@ class TransactionPayment(
     @Transient
     override val amountType = AmountType.Negative
     @Composable
-    override fun getTitle() = info.merchant.name
+    override fun getTitle() = info?.merchant?.name
+        ?: stringResource(R.string.payment_title)
     override val generalTitleRes = R.string.payment_title
 }
 
