@@ -1,0 +1,6 @@
+- New animations and UI improvements
+- Fixed error when paying at some merchants
+- Initial support for discounts and passes
+- Support for Paivana paywalls
+- Upgraded wallet-core to 1.6.0
+- Updated translations
