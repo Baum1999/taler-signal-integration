@@ -20,11 +20,13 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -84,9 +86,7 @@ fun TransactionPaymentComposable(
     onSetupDonau: (donauBaseUrl: String) -> Unit,
     checkDonauForChoice: suspend (PayChoiceDetails) -> DonauStatus?,
 ) {
-    if (t.txState.minor == TransactionMinorState.ClaimProposal && t.error == null) {
-        return LoadingScreen()
-    } else if (t.txState.major == TransactionMajorState.Dialog) {
+    if (t.txState.major == TransactionMajorState.Dialog) {
         return TransactionPaymentPrompt(
             payStatus = payStatus,
             onConfirmPay = onConfirmPay,
@@ -111,26 +111,36 @@ fun TransactionPaymentComposable(
             style = MaterialTheme.typography.bodyLarge,
         )
 
-        TransactionAmountComposable(
-            label = stringResource(id = R.string.transaction_order_total),
-            amount = t.amountRaw.withSpec(spec),
-            amountType = AmountType.Neutral,
-        )
-
-        if (t.amountEffective > t.amountRaw) {
-            val fee = t.amountEffective - t.amountRaw
+        if (t.txState.minor == TransactionMinorState.ClaimProposal) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .padding(45.dp)
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .align(CenterHorizontally)
+            )
+        } else {
             TransactionAmountComposable(
-                label = stringResource(id = R.string.amount_fee),
-                amount = fee.withSpec(spec),
+                label = stringResource(id = R.string.transaction_order_total),
+                amount = t.amountRaw.withSpec(spec),
+                amountType = AmountType.Neutral,
+            )
+
+            if (t.amountEffective > t.amountRaw) {
+                val fee = t.amountEffective - t.amountRaw
+                TransactionAmountComposable(
+                    label = stringResource(id = R.string.amount_fee),
+                    amount = fee.withSpec(spec),
+                    amountType = AmountType.Negative,
+                )
+            }
+
+            TransactionAmountComposable(
+                label = stringResource(id = R.string.transaction_paid),
+                amount = t.amountEffective.withSpec(spec),
                 amountType = AmountType.Negative,
             )
         }
-
-        TransactionAmountComposable(
-            label = stringResource(id = R.string.transaction_paid),
-            amount = t.amountEffective.withSpec(spec),
-            amountType = AmountType.Negative,
-        )
 
         if (t.posConfirmation != null) {
             TransactionInfoComposable(
