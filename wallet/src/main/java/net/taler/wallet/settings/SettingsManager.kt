@@ -50,33 +50,28 @@ class SettingsManager(
     private val mPerformanceTable = MutableStateFlow<PerformanceTable?>(null)
     val performanceTable: StateFlow<PerformanceTable?> = mPerformanceTable
 
-    fun getViewMode(c: Context) = c.userPreferencesDataStore.data.map { prefs ->
-        if (prefs.hasViewMode()) {
-            ViewMode.fromPrefs(prefs.viewMode)
+    fun getViewMode() = context.userPreferencesDataStore.data.map { prefs ->
+        if (prefs.hasViewMode2()) {
+            ViewMode.fromPrefs(prefs.viewMode2)
         } else {
             null
         }
     }
 
-    fun saveViewMode(c: Context, viewMode: ViewMode?) = scope.launch {
-        c.userPreferencesDataStore.updateData { current ->
+    fun saveViewMode(viewMode: ViewMode?) = scope.launch {
+        context.userPreferencesDataStore.updateData { current ->
+            val builder = current.toBuilder()
+                // Drop the deprecated pre-viewMode2 field if it lingers.
+                .clearViewMode()
             if (viewMode != null) {
-                current.toBuilder()
-                    .setViewMode(viewMode.toPrefs())
+                builder
+                    .setViewMode2(viewMode.toPrefs())
                     .build()
             } else {
-                current.toBuilder()
-                    .clearViewMode()
+                builder
+                    .clearViewMode2()
                     .build()
             }
-        }
-    }
-
-    fun getActionButtonUsed(c: Context) = c.userPreferencesDataStore.data.map { prefs ->
-        if (prefs.hasActionButtonUsed()) {
-            prefs.actionButtonUsed
-        } else {
-            false
         }
     }
 

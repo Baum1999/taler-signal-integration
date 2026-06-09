@@ -18,6 +18,7 @@ package net.taler.wallet
 
 import kotlinx.serialization.Serializable
 import net.taler.wallet.scan.ScanTab
+import net.taler.wallet.transactions.TransactionStateFilter
 
 @Serializable
 sealed interface WalletDestination {
@@ -26,6 +27,14 @@ sealed interface WalletDestination {
 
     @Serializable
     data class ScanQr(val initialTab: ScanTab = ScanTab.SCAN_QR) : WalletDestination
+
+    @Serializable
+    data class Transactions(
+        val filter: TransactionStateFilter? = null,
+    ) : WalletDestination
+
+    @Serializable
+    data object Settings : WalletDestination
 
     @Serializable
     data class HandleUri(val uri: String) : WalletDestination

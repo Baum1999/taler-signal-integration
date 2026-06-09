@@ -52,7 +52,6 @@ import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.getAttrColor
 import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.main.MainViewModel
-import net.taler.wallet.main.ViewMode
 
 @Composable
 fun ExchangeShoppingScreen(
@@ -60,7 +59,7 @@ fun ExchangeShoppingScreen(
     onNavigateBack: () -> Unit,
 ) {
     val viewMode by model.viewMode.collectAsStateLifecycleAware()
-    val selectedScope = (viewMode as? ViewMode.Transactions)?.selectedScope
+    val selectedScope = viewMode.selectedScope
     val balanceState by model.balanceManager.state.observeAsState(BalanceState.None)
 
     val selectedBalance = remember(balanceState, selectedScope) {

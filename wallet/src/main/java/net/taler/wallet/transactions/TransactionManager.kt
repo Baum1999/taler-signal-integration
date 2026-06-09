@@ -17,8 +17,8 @@
 package net.taler.wallet.transactions
 
 import android.util.Log
-import androidx.annotation.UiThread
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,7 +29,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonPrimitive
-import net.taler.wallet.PrefsStateFilter
 import net.taler.wallet.main.TAG
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
@@ -54,30 +53,38 @@ enum class TransactionStateFilter {
 
     @SerialName("done")
     Done;
-
-    fun toPrefs(): PrefsStateFilter = when(this) {
-        Done -> PrefsStateFilter.DONE
-        Final -> PrefsStateFilter.FINAL
-        Nonfinal -> PrefsStateFilter.NONFINAL
-    }
-
-    companion object {
-        fun fromPrefs(prefs: PrefsStateFilter): TransactionStateFilter? = when(prefs) {
-            PrefsStateFilter.DONE -> Done
-            PrefsStateFilter.FINAL -> Final
-            PrefsStateFilter.NONFINAL -> Nonfinal
-            PrefsStateFilter.NONE,
-            PrefsStateFilter.UNRECOGNIZED -> null
-        }
-    }
 }
 
 class TransactionManager(
     private val api: WalletBackendApi,
     private val scope: CoroutineScope,
 ) {
-    private val allTransactions = HashMap<ScopeInfo, List<Transaction>>()
+    private companion object {
+        /**
+         * Number of most recent transactions shown on the balances screen.
+         * Negative values mean "the last N transactions" in wallet-core.
+         */
+        const val RECENT_LIMIT = -4
+    }
+
+    private data class FullListParams(
+        val searchQuery: String?,
+        val stateFilter: TransactionStateFilter?,
+    )
+
+    private val recentTransactions = HashMap<ScopeInfo, List<Transaction>>()
+    private val fullTransactions = HashMap<ScopeInfo, List<Transaction>>()
+
+    private val mRecentTransactions = HashMap<ScopeInfo, MutableStateFlow<TransactionsResult>>()
     private val mTransactions = HashMap<ScopeInfo, MutableStateFlow<TransactionsResult>>()
+
+    /** In-flight loads per scope, so a newer request cancels an older one. */
+    private val recentLoadJobs = HashMap<ScopeInfo, Job>()
+    private val fullLoadJobs = HashMap<ScopeInfo, Job>()
+
+    /** Parameters of the full list requested per scope, used to refresh it later. */
+    private val fullListParams = HashMap<ScopeInfo, FullListParams>()
+
     private val mSelectedTransaction = MutableStateFlow<Transaction?>(null)
     private val mSelectedTransactionId = MutableStateFlow<String?>(null)
     private val selectionMutex = Mutex()
@@ -86,52 +93,96 @@ class TransactionManager(
     val selectedTransaction = mSelectedTransaction.asStateFlow()
     val selectedTransferOption = mSelectedTransferOption.asStateFlow()
 
-    // This function must be called ONLY when scopeInfo / searchQuery change!
-    // Use remember() {} in Compose to prevent multiple calls during recomposition
+    /**
+     * Streams the [RECENT_LIMIT] most recent transactions for [scopeInfo], as
+     * shown on the balances screen.
+     */
+    fun recentTransactionsFlow(scopeInfo: ScopeInfo): StateFlow<TransactionsResult> {
+        val flow = mRecentTransactions.getOrPut(scopeInfo) {
+            MutableStateFlow(TransactionsResult.None)
+        }
+        loadRecentTransactions(scopeInfo)
+        return flow.asStateFlow()
+    }
+
+    /**
+     * Streams the full transaction list for [scopeInfo], as shown on the
+     * transactions screen. [searchQuery] and [stateFilter] narrow the request.
+     */
     fun transactionsFlow(
-        scopeInfo: ScopeInfo? = null,
+        scopeInfo: ScopeInfo?,
         searchQuery: String? = null,
         stateFilter: TransactionStateFilter? = null,
     ): StateFlow<TransactionsResult> {
-        return if (scopeInfo != null) {
-            loadTransactions(scopeInfo, searchQuery, stateFilter)
-            mTransactions[scopeInfo]?.asStateFlow()
-                ?: MutableStateFlow(TransactionsResult.None)
-        } else {
+        if (scopeInfo == null) return MutableStateFlow(TransactionsResult.None)
+        fullListParams[scopeInfo] = FullListParams(searchQuery, stateFilter)
+        val flow = mTransactions.getOrPut(scopeInfo) {
             MutableStateFlow(TransactionsResult.None)
+        }
+        loadFullTransactions(scopeInfo, searchQuery, stateFilter)
+        return flow.asStateFlow()
+    }
+
+    private fun loadRecentTransactions(scopeInfo: ScopeInfo) {
+        val flow = mRecentTransactions[scopeInfo] ?: return
+        recentLoadJobs[scopeInfo]?.cancel()
+        recentLoadJobs[scopeInfo] = scope.launch {
+            // show cached data immediately...
+            recentTransactions[scopeInfo]?.let {
+                flow.value = TransactionsResult.Success(it)
+            }
+            // ...then fetch the latest and update the cache
+            val result = getTransactions(scopeInfo, searchQuery = null, limit = RECENT_LIMIT)
+            if (result is TransactionsResult.Success) {
+                recentTransactions[scopeInfo] = result.transactions
+            }
+            flow.value = result
         }
     }
 
-    fun loadTransactions(
-        scopeInfo: ScopeInfo? = null,
-        searchQuery: String? = null,
-        stateFilter: TransactionStateFilter? = null,
+    private fun loadFullTransactions(
+        scopeInfo: ScopeInfo,
+        searchQuery: String?,
+        stateFilter: TransactionStateFilter?,
     ) {
-        Log.d(TAG, "loadTransactions($scopeInfo, $searchQuery, $stateFilter)")
-        val scopes = scopeInfo?.let { listOf(it) } ?: mTransactions.keys.toList()
-        if (scopes.isEmpty()) return
-
-        scopes.forEach { s ->
-            // initialize key with empty state flow
-            if (mTransactions[s] == null) {
-                mTransactions[s] = MutableStateFlow(TransactionsResult.None)
+        val flow = mTransactions[scopeInfo] ?: return
+        // Only the unfiltered list is cached, since filters can change.
+        val cacheable = searchQuery == null && stateFilter == null
+        fullLoadJobs[scopeInfo]?.cancel()
+        fullLoadJobs[scopeInfo] = scope.launch {
+            if (cacheable) fullTransactions[scopeInfo]?.let {
+                flow.value = TransactionsResult.Success(it)
             }
-
-            scope.launch {
-                // return cached transactions if available
-                if (searchQuery == null) allTransactions[s]?.let { txs ->
-                    mTransactions[s]?.value = TransactionsResult.Success(txs)
-                }
-
-                // ...then fetch new ones
-                val res = getTransactions(s, searchQuery, filterByState = stateFilter)
-                if (res is TransactionsResult.Success) {
-                    allTransactions[s] = res.transactions
-                }
-
-                // ...and then emit them when available
-                mTransactions[s]?.value = res
+            val result = getTransactions(scopeInfo, searchQuery, stateFilter)
+            if (result is TransactionsResult.Success && cacheable) {
+                fullTransactions[scopeInfo] = result.transactions
             }
+            flow.value = result
+        }
+    }
+
+    /**
+     * Handles a transaction-state-transition notification for [transactionId] by
+     * refreshing the selected transaction (if it is being viewed) and both the
+     * recent and full transaction lists of the affected scopes. Lists that have
+     * not been requested yet are left untouched.
+     */
+    fun onTransactionStateTransition(transactionId: String) = scope.launch {
+        val transaction = getTransactionById(transactionId)
+
+        if (transaction != null && mSelectedTransactionId.value == transactionId) {
+            selectionMutex.withLock {
+                if (mSelectedTransactionId.value == transactionId) {
+                    mSelectedTransaction.value = transaction
+                }
+            }
+        }
+
+        if (transaction == null) return@launch
+        transaction.scopes.forEach { scopeInfo ->
+            loadRecentTransactions(scopeInfo)
+            val params = fullListParams[scopeInfo]
+            loadFullTransactions(scopeInfo, params?.searchQuery, params?.stateFilter)
         }
     }
 
@@ -211,12 +262,6 @@ class TransactionManager(
         mSelectedTransferOption.value = option
     }
 
-    @UiThread
-    fun updateTransactionIfSelected(id: String) = scope.launch {
-        if (mSelectedTransactionId.value != id) return@launch
-        refreshSelectedTransaction()
-    }
-
     fun selectTransaction(tx: Transaction?) = scope.launch {
         if (tx == null) {
             mSelectedTransactionId.value = null
@@ -235,7 +280,7 @@ class TransactionManager(
                 onError(it)
             }.onSuccess {
                 // re-load transactions as our list is stale otherwise
-                loadTransactions()
+                refreshAllTransactions()
             }
         }
 
@@ -246,7 +291,7 @@ class TransactionManager(
             }.onError {
                 onError(it)
             }.onSuccess {
-                loadTransactions()
+                refreshAllTransactions()
             }
         }
 
@@ -262,7 +307,7 @@ class TransactionManager(
                 onError(it)
             }.onSuccess {
                 onSuccess()
-                loadTransactions()
+                refreshAllTransactions()
             }
         }
 
@@ -273,7 +318,7 @@ class TransactionManager(
             }.onError {
                 onError(it)
             }.onSuccess {
-                loadTransactions()
+                refreshAllTransactions()
             }
         }
 
@@ -284,7 +329,7 @@ class TransactionManager(
             }.onError {
                 onError(it)
             }.onSuccess {
-                loadTransactions()
+                refreshAllTransactions()
             }
         }
 
@@ -295,13 +340,13 @@ class TransactionManager(
             }.onError {
                 onError(it)
             }.onSuccess {
-                loadTransactions()
+                refreshAllTransactions()
             }
         }
 
     fun deleteTransactions(transactionIds: List<String>, onError: (it: TalerErrorInfo) -> Unit) =
         scope.launch {
-            allTransactions.values.flatten().filter { transaction ->
+            fullTransactions.values.flatten().filter { transaction ->
                 transaction.transactionId in transactionIds && Delete in transaction.txActions
             }.forEach { toBeDeletedTx ->
                 api.request<Unit>("deleteTransaction") {
@@ -310,6 +355,15 @@ class TransactionManager(
                     onError(it)
                 }
             }
-            loadTransactions()
+            refreshAllTransactions()
         }
+
+    /** Reloads every transaction list that has been requested so far. */
+    private fun refreshAllTransactions() {
+        mRecentTransactions.keys.toList().forEach { loadRecentTransactions(it) }
+        mTransactions.keys.toList().forEach { scopeInfo ->
+            val params = fullListParams[scopeInfo]
+            loadFullTransactions(scopeInfo, params?.searchQuery, params?.stateFilter)
+        }
+    }
 }

@@ -38,7 +38,6 @@ import androidx.biometric.BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED
 import androidx.biometric.BiometricManager.BIOMETRIC_SUCCESS
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -60,6 +59,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -80,12 +80,14 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
+import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.BuildConfig
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletDatabaseBackend
+import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.withdraw.TestWithdrawStatus
 
@@ -93,12 +95,12 @@ import net.taler.wallet.withdraw.TestWithdrawStatus
 @Composable
 fun SettingsScreen(
     model: MainViewModel,
-    innerPadding: PaddingValues,
-    snackbarHostState: SnackbarHostState,
     onNavigate: NavigateCallback,
+    onNavigateBack: () -> Unit,
     onShowError: (TalerErrorInfo) -> Unit,
 ) {
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
     val dbExportMessage = stringResource(R.string.settings_db_export_message)
     val dbImportMessage = stringResource(R.string.settings_db_import_message)
     val testWithdrawalMessage = stringResource(R.string.settings_test_withdrawal)
@@ -148,240 +150,255 @@ fun SettingsScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding)
-            .verticalScroll(rememberScrollState())
-    ) {
-        SettingsItem(
-            title = stringResource(R.string.exchange_settings_title),
-            summary = stringResource(R.string.exchange_settings_summary),
-            icon = Icons.Default.Dns,
-            onClick = { onNavigate(WalletDestination.ExchangeList, false) }
-        )
+    GlobalScaffold(
+        model = model,
+        modifier = Modifier.fillMaxSize(),
+        title = { Text(stringResource(R.string.menu_settings)) },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        onNavigateBack = onNavigateBack,
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+        ) {
+            SettingsItem(
+                title = stringResource(R.string.exchange_settings_title),
+                summary = stringResource(R.string.exchange_settings_summary),
+                icon = Icons.Default.Dns,
+                onClick = { onNavigate(WalletDestination.ExchangeList, false) }
+            )
 
-        SettingsItem(
-            title = stringResource(R.string.settings_bank_accounts),
-            summary = stringResource(R.string.settings_bank_accounts_summary),
-            icon = Icons.Default.AccountBalance,
-            onClick = { onNavigate(WalletDestination.BankAccounts(), false) }
-        )
+            SettingsItem(
+                title = stringResource(R.string.settings_bank_accounts),
+                summary = stringResource(R.string.settings_bank_accounts_summary),
+                icon = Icons.Default.AccountBalance,
+                onClick = { onNavigate(WalletDestination.BankAccounts(), false) }
+            )
 
-        SettingsItem(
-            title = stringResource(R.string.settings_donau),
-            summary = stringResource(R.string.settings_donau_summary),
-            icon = ImageVector.vectorResource(R.drawable.ic_donau),
-            onClick = { onNavigate(WalletDestination.SetDonau(), false) }
-        )
+            SettingsItem(
+                title = stringResource(R.string.settings_donau),
+                summary = stringResource(R.string.settings_donau_summary),
+                icon = ImageVector.vectorResource(R.drawable.ic_donau),
+                onClick = { onNavigate(WalletDestination.SetDonau(), false) }
+            )
 
-        SettingsSwitchItem(
-            title = stringResource(R.string.settings_lock_auth),
-            summary = stringResource(R.string.settings_lock_auth_summary),
-            icon = ImageVector.vectorResource(R.drawable.ic_shield),
-            checked = biometricLockEnabled,
-            onCheckedChange = { enabled ->
-                if (enabled) {
-                    enableBiometrics(context, settingsManager, true, biometricAuthUnavailableMessage) {
-                        biometricEnrollLauncher.launch(it)
+            SettingsSwitchItem(
+                title = stringResource(R.string.settings_lock_auth),
+                summary = stringResource(R.string.settings_lock_auth_summary),
+                icon = ImageVector.vectorResource(R.drawable.ic_shield),
+                checked = biometricLockEnabled,
+                onCheckedChange = { enabled ->
+                    if (enabled) {
+                        enableBiometrics(
+                            context,
+                            settingsManager,
+                            true,
+                            biometricAuthUnavailableMessage
+                        ) {
+                            biometricEnrollLauncher.launch(it)
+                        }
+                    } else {
+                        settingsManager.setBiometricLockEnabled(context, false)
                     }
-                } else {
-                    settingsManager.setBiometricLockEnabled(context, false)
-                }
-            }
-        )
-
-        SettingsSwitchItem(
-            title = stringResource(R.string.settings_dev_mode),
-            summary = stringResource(R.string.settings_dev_mode_summary),
-            icon = ImageVector.vectorResource(R.drawable.ic_developer_mode),
-            checked = devModeEnabled,
-            onCheckedChange = { enabled ->
-                settingsManager.setDevModeEnabled(context, enabled)
-            }
-        )
-
-        if (devModeEnabled) {
-            HorizontalDivider()
-
-            SettingsItem(
-                title = stringResource(R.string.exchange_list_add_dev),
-                icon = Icons.Default.DomainAdd,
-                onClick = {
-                    model.exchangeManager.addDevExchanges()
-                    onNavigate(WalletDestination.ExchangeList, false)
                 }
             )
 
-            SettingsItem(
-                title = stringResource(R.string.settings_withdraw_testkudos),
-                summary = stringResource(R.string.settings_withdraw_testkudos_summary),
-                icon = Icons.Default.LocalAtm,
-                enabled = withdrawTestStatus !is TestWithdrawStatus.Withdrawing,
-                onClick = {
-                    withdrawManager.withdrawTestBalance()
-                    scope.launch { snackbarHostState.showSnackbar(testWithdrawalMessage) }
-                    onNavigate(WalletDestination.Main, true)
+            SettingsSwitchItem(
+                title = stringResource(R.string.settings_dev_mode),
+                summary = stringResource(R.string.settings_dev_mode_summary),
+                icon = ImageVector.vectorResource(R.drawable.ic_developer_mode),
+                checked = devModeEnabled,
+                onCheckedChange = { enabled ->
+                    settingsManager.setDevModeEnabled(context, enabled)
                 }
             )
 
-            SettingsItem(
-                title = stringResource(R.string.settings_logcat),
-                summary = stringResource(R.string.settings_logcat_summary),
-                icon = ImageVector.vectorResource(R.drawable.ic_bug_report),
-                onClick = { logLauncher.launch("taler-wallet-log-${System.currentTimeMillis()}.txt") }
-            )
+            if (devModeEnabled) {
+                HorizontalDivider()
 
-            SettingsItem(
-                title = stringResource(R.string.settings_stats),
-                summary = stringResource(R.string.settings_stats_summary),
-                icon = ImageVector.vectorResource(R.drawable.ic_stats),
-                onClick = { onNavigate(WalletDestination.PerformanceStats, false) }
-            )
-
-            SettingsItem(
-                title = "Contacts",
-                summary = "Contacts",
-                icon = Icons.Default.Person,
-                onClick = { onNavigate(WalletDestination.Contacts(), false) }
-            )
-
-            SettingsItem(
-                title = "Mailbox",
-                summary = "P2P Messaging",
-                icon = ImageVector.vectorResource(R.drawable.ic_adjust),
-                onClick = { onNavigate(WalletDestination.Mailbox, false) }
-            )
-
-            SettingsItem(
-                title = stringResource(R.string.alias_registration_title),
-                summary = "Taldir Registration",
-                icon = Icons.Default.Person,
-                onClick = { onNavigate(WalletDestination.AliasRegistration, false) }
-            )
-
-            SettingsItem(
-                title = stringResource(R.string.settings_db_export),
-                summary = stringResource(R.string.settings_db_export_summary),
-                icon = ImageVector.vectorResource(R.drawable.ic_unarchive),
-                onClick = { pendingDbExport = DbExportType.Json }
-            )
-
-            SettingsItem(
-                title = stringResource(R.string.settings_db_export_raw),
-                summary = stringResource(R.string.settings_db_export_raw_summary),
-                icon = ImageVector.vectorResource(R.drawable.ic_database),
-                onClick = { pendingDbExport = DbExportType.Raw }
-            )
-
-            SettingsItem(
-                title = stringResource(R.string.settings_db_import),
-                summary = stringResource(R.string.settings_db_import_summary),
-                icon = ImageVector.vectorResource(R.drawable.ic_archive),
-                onClick = {
-                    MaterialAlertDialogBuilder(context)
-                        .setMessage(R.string.settings_dialog_import_message)
-                        .setNegativeButton(R.string.import_db) { _, _ ->
-                            dbImportLauncher.launch(arrayOf("application/json"))
-                        }
-                        .setPositiveButton(R.string.cancel) { _, _ ->
-                            scope.launch { snackbarHostState.showSnackbar(importCanceledMessage) }
-                        }
-                        .show()
-                }
-            )
-
-            if (databaseBackend == WalletDatabaseBackend.IndexedDB) SettingsItem(
-                title = stringResource(R.string.settings_migrate_db),
-                summary = stringResource(R.string.settings_migrate_db_summary),
-                icon = Icons.Default.Memory,
-                onClick = model::offerDatabaseMigration,
-            )
-
-            SettingsItem(
-                title = stringResource(R.string.settings_version_app),
-                summary = "${BuildConfig.VERSION_NAME} (${BuildConfig.FLAVOR} ${BuildConfig.VERSION_CODE})",
-                icon = ImageVector.vectorResource(R.drawable.ic_account_balance_wallet),
-            )
-
-            SettingsItem(
-                title = stringResource(R.string.settings_version_core),
-                summary = "$walletVersion ($walletVersionHash)",
-                icon = ImageVector.vectorResource(R.drawable.ic_adjust),
-            )
-
-            if (exchangeVersion != null) {
                 SettingsItem(
-                    title = stringResource(R.string.settings_version_protocol_exchange),
-                    summary = exchangeVersion,
-                    icon = ImageVector.vectorResource(R.drawable.ic_account_balance),
-                )
-            }
-
-            if (merchantVersion != null) {
-                SettingsItem(
-                    title = stringResource(R.string.settings_version_protocol_merchant),
-                    summary = merchantVersion,
-                    icon = ImageVector.vectorResource(R.drawable.ic_store_mall),
-                )
-            }
-
-            SettingsItem(
-                title = stringResource(R.string.settings_test),
-                summary = stringResource(R.string.settings_test_summary),
-                icon = Icons.Default.VideoLibrary,
-                onClick = {
-                    settingsManager.runIntegrationTest { onShowError(it) }
-                    scope.launch { snackbarHostState.showSnackbar(testRunningMessage) }
-                    onNavigate(WalletDestination.Main, true)
-                }
-            )
-
-            SettingsItem(
-                title = stringResource(R.string.settings_reset),
-                summary = stringResource(R.string.settings_reset_summary),
-                icon = ImageVector.vectorResource(R.drawable.ic_nuke),
-                onClick = {
-                    MaterialAlertDialogBuilder(context)
-                        .setMessage(R.string.settings_dialog_reset_message)
-                        .setNegativeButton(R.string.reset) { _, _ ->
-                            settingsManager.clearDb {
-                                model.dangerouslyReset()
-                            }
-                            scope.launch { snackbarHostState.showSnackbar(resetDoneMessage) }
-                        }
-                        .setPositiveButton(R.string.cancel) { _, _ ->
-                            scope.launch { snackbarHostState.showSnackbar(resetCanceledMessage) }
-                        }
-                        .show()
-                }
-            )
-
-            pendingDbExport?.let { exportType ->
-                AlertDialog(
-                    onDismissRequest = { pendingDbExport = null },
-                    title = { Text(stringResource(R.string.wallet_export_database)) },
-                    text = { Text(stringResource(R.string.wallet_export_database_warning)) },
-                    confirmButton = {
-                        Button(onClick = {
-                            pendingDbExport = null
-                            when (exportType) {
-                                DbExportType.Json ->
-                                    dbExportLauncher.launch("taler-wallet-db-${System.currentTimeMillis()}.json")
-                                DbExportType.Raw ->
-                                    rawDbExportLauncher.launch("taler-wallet-db-${System.currentTimeMillis()}.sqlite3")
-                            }
-                        }) {
-                            Text(stringResource(R.string.wallet_export_database_confirm))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { pendingDbExport = null }) {
-                            Text(stringResource(R.string.cancel))
-                        }
+                    title = stringResource(R.string.exchange_list_add_dev),
+                    icon = Icons.Default.DomainAdd,
+                    onClick = {
+                        model.exchangeManager.addDevExchanges()
+                        onNavigate(WalletDestination.ExchangeList, false)
                     }
                 )
+
+                SettingsItem(
+                    title = stringResource(R.string.settings_withdraw_testkudos),
+                    summary = stringResource(R.string.settings_withdraw_testkudos_summary),
+                    icon = Icons.Default.LocalAtm,
+                    enabled = withdrawTestStatus !is TestWithdrawStatus.Withdrawing,
+                    onClick = {
+                        withdrawManager.withdrawTestBalance()
+                        scope.launch { snackbarHostState.showSnackbar(testWithdrawalMessage) }
+                        onNavigate(WalletDestination.Main, true)
+                    }
+                )
+
+                SettingsItem(
+                    title = stringResource(R.string.settings_logcat),
+                    summary = stringResource(R.string.settings_logcat_summary),
+                    icon = ImageVector.vectorResource(R.drawable.ic_bug_report),
+                    onClick = { logLauncher.launch("taler-wallet-log-${System.currentTimeMillis()}.txt") }
+                )
+
+                SettingsItem(
+                    title = stringResource(R.string.settings_stats),
+                    summary = stringResource(R.string.settings_stats_summary),
+                    icon = ImageVector.vectorResource(R.drawable.ic_stats),
+                    onClick = { onNavigate(WalletDestination.PerformanceStats, false) }
+                )
+
+                SettingsItem(
+                    title = "Contacts",
+                    summary = "Contacts",
+                    icon = Icons.Default.Person,
+                    onClick = { onNavigate(WalletDestination.Contacts(), false) }
+                )
+
+                SettingsItem(
+                    title = "Mailbox",
+                    summary = "P2P Messaging",
+                    icon = ImageVector.vectorResource(R.drawable.ic_adjust),
+                    onClick = { onNavigate(WalletDestination.Mailbox, false) }
+                )
+
+                SettingsItem(
+                    title = stringResource(R.string.alias_registration_title),
+                    summary = "Taldir Registration",
+                    icon = Icons.Default.Person,
+                    onClick = { onNavigate(WalletDestination.AliasRegistration, false) }
+                )
+
+                SettingsItem(
+                    title = stringResource(R.string.settings_db_export),
+                    summary = stringResource(R.string.settings_db_export_summary),
+                    icon = ImageVector.vectorResource(R.drawable.ic_unarchive),
+                    onClick = { pendingDbExport = DbExportType.Json }
+                )
+
+                SettingsItem(
+                    title = stringResource(R.string.settings_db_export_raw),
+                    summary = stringResource(R.string.settings_db_export_raw_summary),
+                    icon = ImageVector.vectorResource(R.drawable.ic_database),
+                    onClick = { pendingDbExport = DbExportType.Raw }
+                )
+
+                SettingsItem(
+                    title = stringResource(R.string.settings_db_import),
+                    summary = stringResource(R.string.settings_db_import_summary),
+                    icon = ImageVector.vectorResource(R.drawable.ic_archive),
+                    onClick = {
+                        MaterialAlertDialogBuilder(context)
+                            .setMessage(R.string.settings_dialog_import_message)
+                            .setNegativeButton(R.string.import_db) { _, _ ->
+                                dbImportLauncher.launch(arrayOf("application/json"))
+                            }
+                            .setPositiveButton(R.string.cancel) { _, _ ->
+                                scope.launch { snackbarHostState.showSnackbar(importCanceledMessage) }
+                            }
+                            .show()
+                    }
+                )
+
+                if (databaseBackend == WalletDatabaseBackend.IndexedDB) SettingsItem(
+                    title = stringResource(R.string.settings_migrate_db),
+                    summary = stringResource(R.string.settings_migrate_db_summary),
+                    icon = Icons.Default.Memory,
+                    onClick = model::offerDatabaseMigration,
+                )
+
+                SettingsItem(
+                    title = stringResource(R.string.settings_version_app),
+                    summary = "${BuildConfig.VERSION_NAME} (${BuildConfig.FLAVOR} ${BuildConfig.VERSION_CODE})",
+                    icon = ImageVector.vectorResource(R.drawable.ic_account_balance_wallet),
+                )
+
+                SettingsItem(
+                    title = stringResource(R.string.settings_version_core),
+                    summary = "$walletVersion ($walletVersionHash)",
+                    icon = ImageVector.vectorResource(R.drawable.ic_adjust),
+                )
+
+                if (exchangeVersion != null) {
+                    SettingsItem(
+                        title = stringResource(R.string.settings_version_protocol_exchange),
+                        summary = exchangeVersion,
+                        icon = ImageVector.vectorResource(R.drawable.ic_account_balance),
+                    )
+                }
+
+                if (merchantVersion != null) {
+                    SettingsItem(
+                        title = stringResource(R.string.settings_version_protocol_merchant),
+                        summary = merchantVersion,
+                        icon = ImageVector.vectorResource(R.drawable.ic_store_mall),
+                    )
+                }
+
+                SettingsItem(
+                    title = stringResource(R.string.settings_test),
+                    summary = stringResource(R.string.settings_test_summary),
+                    icon = Icons.Default.VideoLibrary,
+                    onClick = {
+                        settingsManager.runIntegrationTest { onShowError(it) }
+                        scope.launch { snackbarHostState.showSnackbar(testRunningMessage) }
+                        onNavigate(WalletDestination.Main, true)
+                    }
+                )
+
+                SettingsItem(
+                    title = stringResource(R.string.settings_reset),
+                    summary = stringResource(R.string.settings_reset_summary),
+                    icon = ImageVector.vectorResource(R.drawable.ic_nuke),
+                    onClick = {
+                        MaterialAlertDialogBuilder(context)
+                            .setMessage(R.string.settings_dialog_reset_message)
+                            .setNegativeButton(R.string.reset) { _, _ ->
+                                settingsManager.clearDb {
+                                    model.dangerouslyReset()
+                                }
+                                scope.launch { snackbarHostState.showSnackbar(resetDoneMessage) }
+                            }
+                            .setPositiveButton(R.string.cancel) { _, _ ->
+                                scope.launch { snackbarHostState.showSnackbar(resetCanceledMessage) }
+                            }
+                            .show()
+                    }
+                )
+
+                pendingDbExport?.let { exportType ->
+                    AlertDialog(
+                        onDismissRequest = { pendingDbExport = null },
+                        title = { Text(stringResource(R.string.wallet_export_database)) },
+                        text = { Text(stringResource(R.string.wallet_export_database_warning)) },
+                        confirmButton = {
+                            Button(onClick = {
+                                pendingDbExport = null
+                                when (exportType) {
+                                    DbExportType.Json ->
+                                        dbExportLauncher.launch("taler-wallet-db-${System.currentTimeMillis()}.json")
+                                    DbExportType.Raw ->
+                                        rawDbExportLauncher.launch("taler-wallet-db-${System.currentTimeMillis()}.sqlite3")
+                                }
+                            }) {
+                                Text(stringResource(R.string.wallet_export_database_confirm))
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { pendingDbExport = null }) {
+                                Text(stringResource(R.string.cancel))
+                            }
+                        }
+                    )
+                }
             }
+
+            BottomInsetsSpacer()
         }
     }
 }

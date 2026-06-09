@@ -67,7 +67,6 @@ import net.taler.wallet.WalletDestination
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.main.MainViewModel
-import net.taler.wallet.transactions.TransactionStateFilter.Nonfinal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -203,7 +202,7 @@ fun ContactScreen(
                 TextButton(onClick = {
                     model.mailboxManager.sendMessage(contact, sendUri!!)
                     scopeInfo?.let {
-                        model.showTransactions(it, Nonfinal)
+                        model.displayScope(it)
                     }
                     onNavigate(WalletDestination.Main, true)
                     contactToConfirm = null

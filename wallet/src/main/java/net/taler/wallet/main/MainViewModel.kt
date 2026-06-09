@@ -26,6 +26,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.launch
 import net.taler.common.Amount
@@ -53,7 +54,6 @@ import net.taler.wallet.peer.PeerManager
 import net.taler.wallet.refund.RefundManager
 import net.taler.wallet.settings.SettingsManager
 import net.taler.wallet.transactions.TransactionManager
-import net.taler.wallet.transactions.TransactionStateFilter
 import net.taler.wallet.withdraw.WithdrawManager
 import net.taler.wallet.BuildConfig
 import net.taler.wallet.NetworkManager
@@ -155,7 +155,7 @@ class MainViewModel(
 
     private val mShowMessageEvent = MutableLiveData<Event<NotifyMessage>>()
     val showMessageEvent: LiveData<Event<NotifyMessage>> = mShowMessageEvent
-    private val mViewMode = MutableStateFlow<ViewMode>(ViewMode.Assets)
+    private val mViewMode = MutableStateFlow(ViewMode())
     val viewMode: StateFlow<ViewMode> = mViewMode
 
     private val mInitError = MutableStateFlow<TalerErrorInfo?>(null)
@@ -207,18 +207,8 @@ class MainViewModel(
 
             is NotificationPayload.TransactionStateTransition -> {
                 paymentManager.onTransactionStateTransition(payload)
-                viewModelScope.launch(Dispatchers.Main) {
-                    payload.transactionId?.let { id ->
-                        // update currently selected transaction
-                        transactionManager.updateTransactionIfSelected(id)
-                        // update currently selected transaction list
-                        transactionManager.getTransactionById(id)?.let { tx ->
-                            val v = viewMode.value
-                            if (v is ViewMode.Transactions && v.selectedScope in tx.scopes) {
-                                transactionManager.loadTransactions(v.selectedScope)
-                            }
-                        }
-                    }
+                payload.transactionId?.let { id ->
+                    transactionManager.onTransactionStateTransition(id)
                 }
             }
 
@@ -256,37 +246,39 @@ class MainViewModel(
         mAuthenticated.value = true
     }
 
-    fun setViewMode(v: ViewMode?) = viewModelScope.launch {
-        mViewMode.value = when(v) {
-            null -> ViewMode.Assets
-            is ViewMode.Transactions -> v.copy(
-                // fill-in currency spec from DB
-                selectedSpec = exchangeManager.getCurrencySpecification(v.selectedScope),
-            )
-            else -> v
+    fun setViewMode(v: ViewMode?) {
+        val newMode = v ?: ViewMode()
+        val current = mViewMode.value
+        // Guard against redundant updates: recompositions from the pager, the
+        // balances list and other screens all funnel through here, and each
+        // change is persisted immediately.
+        if (current.selectedScope == newMode.selectedScope) return
+        mViewMode.value = newMode
+        if (newMode.selectedScope != null) {
+            viewModelScope.launch {
+                val spec = exchangeManager.getCurrencySpecification(newMode.selectedScope)
+                mViewMode.getAndUpdate { vm ->
+                    if (vm.selectedScope == newMode.selectedScope) {
+                        vm.copy(selectedSpec = spec)
+                    } else {
+                        vm
+                    }
+                }
+            }
         }
+        settingsManager.saveViewMode(newMode)
     }
 
-    fun selectScope(scopeInfo: ScopeInfo?) {
+    fun displayScope(scopeInfo: ScopeInfo?) {
         if (scopeInfo != null) {
-            setViewMode(ViewMode.Transactions(scopeInfo))
+            setViewMode(ViewMode(scopeInfo))
         } else {
-            setViewMode(ViewMode.Assets)
+            setViewMode(ViewMode())
         }
     }
 
     fun showAssets() {
-        if (viewMode.value != ViewMode.Assets) {
-            selectScope(null)
-        }
-    }
-
-    /**
-     * Navigates to the given scope info's transaction list, when [MainScreen] is shown.
-     */
-    @UiThread
-    fun showTransactions(scopeInfo: ScopeInfo, stateFilter: TransactionStateFilter? = null) {
-        mViewMode.value = ViewMode.Transactions(scopeInfo, stateFilter = stateFilter)
+        displayScope(null)
     }
 
     // FIXME: get rid of this ugliness! use wallet-core!
@@ -435,6 +427,13 @@ class MainViewModel(
 
     fun showInfoMessage(content: String, actionLabel: String? = null, onAction: (() -> Unit)? = null) {
         mShowMessageEvent.value = Event(NotifyMessage(content, actionLabel, onAction))
+    }
+
+    init {
+        viewModelScope.launch {
+            val viewMode = settingsManager.getViewMode().first()
+            if (mViewMode.value.selectedScope == null) setViewMode(viewMode)
+        }
     }
 }
 

@@ -35,7 +35,6 @@ import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.main.MainViewModel
-import net.taler.wallet.main.ViewMode
 
 @Composable
 fun OutgoingPushScreen(
@@ -84,12 +83,12 @@ fun OutgoingPushScreen(
             OutgoingPushComposable(
                 modifier = Modifier.padding(paddingValues),
                 state = state,
-                defaultScope = remember { (viewMode as? ViewMode.Transactions)?.selectedScope },
+                defaultScope = remember { viewMode.selectedScope },
                 scopes = balanceManager.getScopes(true),
                 devMode = devMode,
                 getCurrencySpec = exchangeManager::getSpecForScopeInfo,
                 getFees = {
-                    model.selectScope(it.scope)
+                    model.displayScope(it.scope)
                     peerManager.checkPeerPushFees(it.amount, restrictScope = it.scope)
                 },
                 onSend = { amount, summary, hours ->

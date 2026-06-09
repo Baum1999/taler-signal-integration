@@ -35,7 +35,6 @@ import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.main.MainViewModel
-import net.taler.wallet.main.ViewMode
 
 @Composable
 fun OutgoingPullScreen(
@@ -90,12 +89,12 @@ fun OutgoingPullScreen(
                 onTosAccept = { exchangeBaseUrl ->
                     onNavigate(WalletDestination.ReviewExchangeTOS(exchangeBaseUrl), false)
                 },
-                defaultScope = remember { (viewMode as? ViewMode.Transactions)?.selectedScope },
+                defaultScope = remember { viewMode.selectedScope },
                 scopes = balanceManager.getScopes(true),
                 devMode = devMode,
                 getCurrencySpec = exchangeManager::getSpecForScopeInfo,
                 checkPeerPullCredit = { amount, loading ->
-                    model.selectScope(amount.scope)
+                    model.displayScope(amount.scope)
                     peerManager.checkPeerPullCredit(
                         amount.amount,
                         scopeInfo = amount.scope,

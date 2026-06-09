@@ -16,54 +16,39 @@
 
 package net.taler.wallet.balances
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.EventRepeat
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Badge
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipAnchorPosition
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import net.taler.common.Amount
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo.Auditor
 import net.taler.wallet.balances.ScopeInfo.Exchange
-import net.taler.wallet.balances.ScopeInfo.ExchangeLegacyKeys
 import net.taler.wallet.balances.ScopeInfo.Global
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.ErrorComposable
@@ -71,22 +56,18 @@ import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.cardPaddings
 import net.taler.wallet.donau.DonauSummaryItem
-import net.taler.wallet.ui.theme.TalerTheme
 
-// TODO: rename to AssetsComposable
 @Composable
-fun BalancesComposable(
+fun BalancesListComposable(
     innerPadding: PaddingValues,
+    bottomFabSkip: Dp,
     state: BalanceState,
     devMode: Boolean,
     networkStatus: Boolean,
     onWithdrawMoneyClicked: () -> Unit,
     onGetDemoMoneyClicked: () -> Unit,
     onBalanceClicked: (balance: BalanceItem) -> Unit,
-    onPendingClicked: (balance: BalanceItem) -> Unit,
     onStatementClicked: (host: String) -> Unit,
-    onShowDiscounts: () -> Unit,
-    onShowPasses: () -> Unit,
 ) {
     if (state.showWelcome()) {
         EmptyBalancesComposable(
@@ -114,7 +95,6 @@ fun BalancesComposable(
                 BalanceRow(
                     balance,
                     onClick = { onBalanceClicked(balance) },
-                    onPendingClick = { onPendingClicked(balance) },
                 )
             }
 
@@ -129,39 +109,8 @@ fun BalancesComposable(
                 )
             }
 
-            stickyHeader {
-                SectionHeader { Text(stringResource(R.string.balances_section_tokens)) }
-            }
-
             item {
-                OutlinedCard(Modifier.cardPaddings()) {
-                    ListItem(
-                        modifier = Modifier.clickable { onShowDiscounts() },
-                        leadingContent = { Icon(
-                            painterResource(R.drawable.ic_discounts),
-                            contentDescription = null,
-                        ) },
-                        headlineContent = {
-                            Text(
-                                stringResource(R.string.discounts_title),
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                        },
-                    )
-                }
-            }
-
-            item {
-                OutlinedCard(Modifier.cardPaddings()) {
-                    ListItem(
-                        modifier = Modifier.clickable { onShowPasses() },
-                        leadingContent = { Icon(Icons.Default.EventRepeat, contentDescription = null) },
-                        headlineContent = {
-                            Text(stringResource(R.string.passes_title),
-                                style = MaterialTheme.typography.titleMedium)
-                        }
-                    )
-                }
+                Spacer(Modifier.height(bottomFabSkip))
             }
         }
 
@@ -189,24 +138,19 @@ fun SectionHeader(
 fun BalanceRow(
     balance: BalanceItem,
     onClick: () -> Unit,
-    onPendingClick: () -> Unit,
 ) {
-    OutlinedCard(Modifier.cardPaddings()) {
+    ElevatedCard(Modifier.cardPaddings()) {
         Column {
             ListItem(
                 modifier = Modifier
                     .animateContentSize()
                     .clickable { onClick() }
                     .padding(vertical = 6.dp),
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                 headlineContent = {
                     Text(
                         balance.available.toString(),
                         style = MaterialTheme.typography.displaySmall,
-                        textDecoration = if (balance.scopeInfo is ExchangeLegacyKeys) {
-                            TextDecoration.LineThrough
-                        } else {
-                            TextDecoration.None
-                        },
                     )
                 },
                 overlineContent = {
@@ -226,52 +170,10 @@ fun BalanceRow(
                                 ),
                             )
 
-                            is ExchangeLegacyKeys -> Text(
-                                stringResource(
-                                    R.string.balance_scope_exchange,
-                                    cleanExchange(balance.scopeInfo.url)
-                                ),
-                            )
-
                             else -> {}
                         }
                     }
                 },
-                trailingContent = {
-                    if (balance.scopeInfo is ExchangeLegacyKeys) {
-                        LegacyBalanceWarningTooltip()
-                    }
-                }
-            )
-
-            if (!balance.pendingIncoming.isZero() || !balance.pendingOutgoing.isZero()) {
-                HorizontalDivider()
-                PendingComposable(balance, onPendingClick)
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun LegacyBalanceWarningTooltip() {
-    val tooltipState = rememberTooltipState()
-    val coroutineScope = rememberCoroutineScope()
-
-    TooltipBox(
-        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above, 4.dp),
-        tooltip = { PlainTooltip { Text(stringResource(R.string.balances_legacy_unavailable)) } },
-        state = tooltipState,
-    ) {
-        Box(
-            modifier = Modifier
-                .clickable { coroutineScope.launch { tooltipState.show() } },
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                Icons.Default.Warning,
-                tint = MaterialTheme.colorScheme.error,
-                contentDescription = stringResource(R.string.balances_legacy_unavailable),
             )
         }
     }
@@ -282,13 +184,14 @@ fun StatementRow(
     summaryItem: DonauSummaryItem,
     onClick: () -> Unit,
 ) {
-    OutlinedCard(Modifier.cardPaddings()) {
+    ElevatedCard(Modifier.cardPaddings()) {
         Column {
             ListItem(
                 modifier = Modifier
                     .animateContentSize()
                     .clickable { onClick() }
                     .padding(vertical = 6.dp),
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                 headlineContent = {
                     Text(
                         summaryItem.amountReceiptsAvailable.toString(),
@@ -320,55 +223,9 @@ fun StatementRow(
     }
 }
 
-@Composable
-fun PendingComposable(
-    balance: BalanceItem,
-    onClick: () -> Unit,
-) {
-    ListItem(
-        modifier = Modifier
-            .animateContentSize()
-            .clickable { onClick() },
-        colors = ListItemDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-        ),
-        headlineContent = {
-            Column(modifier = Modifier.padding(vertical = 5.dp)) {
-                ProvideTextStyle(MaterialTheme.typography.bodyLarge) {
-                    AnimatedVisibility(!balance.pendingIncoming.isZero()) {
-                        Text(
-                            stringResource(
-                                R.string.balances_inbound_amount,
-                                balance.pendingIncoming.toString(showSymbol = false),
-                            ),
-                            color = TalerTheme.extraColors.success,
-                        )
-                    }
-
-                    AnimatedVisibility(!balance.pendingOutgoing.isZero()) {
-                        Text(
-                            stringResource(
-                                R.string.balances_outbound_amount,
-                                balance.pendingOutgoing.toString(showSymbol = false)
-                            ),
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                    }
-                }
-            }
-        },
-        trailingContent = {
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                contentDescription = null,
-            )
-        }
-    )
-}
-
 @Preview
 @Composable
-fun BalancesComposablePreview() {
+fun BalancesListComposablePreview() {
     val balances = listOf(
         BalanceItem(
             scopeInfo = Global("CHF"),
@@ -385,17 +242,10 @@ fun BalancesComposablePreview() {
             disablePeerPayments = false,
         ),
         BalanceItem(
-            scopeInfo = Auditor("MXN", "https://auditor.taler.mx"),
+            scopeInfo = Auditor("MXN", "https://auditor.taler.banxico.org.mx"),
             available = Amount.fromJSONString("MXN:5.50"),
             pendingIncoming = Amount.fromJSONString("MXN:1.40"),
             pendingOutgoing = Amount.fromJSONString("MXN:0"),
-            disablePeerPayments = false,
-        ),
-        BalanceItem(
-            scopeInfo = ExchangeLegacyKeys("KUDOS", "https://legacy.taler.net", masterPub = "123"),
-            available = Amount.fromJSONString("KUDOS:5.50"),
-            pendingIncoming = Amount.fromJSONString("KUDOS:1.40"),
-            pendingOutgoing = Amount.fromJSONString("KUDOS:0"),
             disablePeerPayments = false,
         ),
     )
@@ -411,28 +261,27 @@ fun BalancesComposablePreview() {
     )
 
     TalerSurface {
-        BalancesComposable(
+        BalancesListComposable(
             innerPadding = PaddingValues(0.dp),
+            bottomFabSkip = 0.dp,
             state = BalanceState.Success(balances, donauSummary),
             devMode = false,
             networkStatus = true,
             onWithdrawMoneyClicked = {},
             onGetDemoMoneyClicked = {},
             onBalanceClicked = {},
-            onPendingClicked = {},
             onStatementClicked = {},
-            onShowDiscounts = {},
-            onShowPasses = {},
         )
     }
 }
 
 @Preview
 @Composable
-fun BalancesComposableErrorPreview() {
+fun BalancesListComposableErrorPreview() {
     TalerSurface {
-        BalancesComposable (
+        BalancesListComposable (
             innerPadding = PaddingValues(0.dp),
+            bottomFabSkip = 0.dp,
             state = BalanceState.Error(TalerErrorInfo
                 .makeCustomError("Balances could not be loaded")),
             devMode = false,
@@ -440,30 +289,25 @@ fun BalancesComposableErrorPreview() {
             onWithdrawMoneyClicked = {},
             onGetDemoMoneyClicked = {},
             onBalanceClicked = {},
-            onPendingClicked = {},
             onStatementClicked = {},
-            onShowDiscounts = {},
-            onShowPasses = {},
         )
     }
 }
 
 @Preview
 @Composable
-fun BalancesComposableEmptyPreview() {
+fun BalancesListComposableEmptyPreview() {
     TalerSurface {
-        BalancesComposable (
+        BalancesListComposable (
             innerPadding = PaddingValues(0.dp),
+            bottomFabSkip = 0.dp,
             state = BalanceState.Success(listOf(), listOf()),
             devMode = false,
             networkStatus = false,
             onWithdrawMoneyClicked = {},
             onGetDemoMoneyClicked = {},
             onBalanceClicked = {},
-            onPendingClicked = {},
             onStatementClicked = {},
-            onShowDiscounts = {},
-            onShowPasses = {},
         )
     }
 }

@@ -17,49 +17,23 @@
 package net.taler.wallet.main
 
 import net.taler.common.CurrencySpecification
-import net.taler.wallet.PrefsViewMode
-import net.taler.wallet.ViewModeType
+import net.taler.wallet.PrefsViewMode2
 import net.taler.wallet.balances.ScopeInfo
-import net.taler.wallet.transactions.TransactionStateFilter
 
-sealed class ViewMode {
-    abstract fun toPrefs(): PrefsViewMode
-
-    data object Assets: ViewMode() {
-        override fun toPrefs(): PrefsViewMode = PrefsViewMode
-            .newBuilder()
-            .setType(ViewModeType.ASSETS)
-            .build()
-    }
-
-    data class Transactions(
-        val selectedScope: ScopeInfo,
-        val selectedSpec: CurrencySpecification? = null,
-        val searchQuery: String? = null,
-        val stateFilter: TransactionStateFilter? = null,
-    ): ViewMode() {
-        override fun toPrefs(): PrefsViewMode = PrefsViewMode
-            .newBuilder()
-            .setType(ViewModeType.TRANSACTIONS)
-            .setSelectedScope(selectedScope.toPrefs())
-            .apply {
-                if (this@Transactions.searchQuery != null)
-                    setSearchQuery(this@Transactions.searchQuery)
-                if (this@Transactions.stateFilter != null)
-                    setStateFilter(this@Transactions.stateFilter.toPrefs())
-            }.build()
-    }
+data class ViewMode(
+    val selectedScope: ScopeInfo? = null,
+    val selectedSpec: CurrencySpecification? = null,
+) {
+    fun toPrefs(): PrefsViewMode2 = PrefsViewMode2
+        .newBuilder()
+        .apply {
+            if (this@ViewMode.selectedScope != null)
+                setSelectedScope(this@ViewMode.selectedScope.toPrefs())
+        }.build()
 
     companion object {
-        fun fromPrefs(prefs: PrefsViewMode): ViewMode = when (prefs.type) {
-            ViewModeType.ASSETS, ViewModeType.UNRECOGNIZED -> Assets
-
-            ViewModeType.TRANSACTIONS -> Transactions(
-                // TODO: better null handling
-                selectedScope = ScopeInfo.fromPrefs(prefs.selectedScope)!!,
-                searchQuery = prefs.searchQuery,
-                stateFilter = TransactionStateFilter.fromPrefs(prefs.stateFilter),
-            )
-        }
+        fun fromPrefs(prefs: PrefsViewMode2) = ViewMode(
+            selectedScope = prefs.selectedScope?.let { ScopeInfo.fromPrefs(it) },
+        )
     }
 }

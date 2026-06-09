@@ -24,11 +24,13 @@ enum PrefsStateFilter {
   DONE = 3;
 }
 
+// DEPRECATED
 enum ViewModeType {
   ASSETS = 0;
   TRANSACTIONS = 1;
 }
 
+// DEPRECATED
 message PrefsViewMode {
   ViewModeType type = 1;
 
@@ -38,10 +40,15 @@ message PrefsViewMode {
   optional PrefsStateFilter stateFilter = 4;
 }
 
+message PrefsViewMode2 {
+  optional PrefsScopeInfo selectedScope = 1;
+}
+
 message UserPreferences {
   optional PrefsScopeInfo selectedScope = 1;
   optional bool actionButtonUsed = 2;
   optional bool devModeEnabled = 3;
   optional bool biometricLockEnabled = 4;
   optional PrefsViewMode viewMode = 5;
+  optional PrefsViewMode2 viewMode2 = 6;
 }

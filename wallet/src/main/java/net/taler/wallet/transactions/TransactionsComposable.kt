@@ -18,7 +18,6 @@ package net.taler.wallet.transactions
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,16 +34,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material3.Badge
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -59,7 +57,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -67,19 +64,17 @@ import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.common.Timestamp
 import net.taler.lib.android.toRelativeTime
+import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.BalanceItem
-import net.taler.wallet.balances.LegacyBalanceWarningTooltip
 import net.taler.wallet.balances.ScopeInfo.Exchange
-import net.taler.wallet.balances.ScopeInfo.ExchangeLegacyKeys
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.Banner
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.cardPaddings
-import net.taler.wallet.main.ViewMode
 import net.taler.wallet.transactions.AmountType.Negative
 import net.taler.wallet.transactions.AmountType.Neutral
 import net.taler.wallet.transactions.AmountType.Positive
@@ -98,7 +93,6 @@ import net.taler.wallet.transactions.TransactionMinorState.KycAuthRequired
 import net.taler.wallet.transactions.TransactionMinorState.KycInit
 import net.taler.wallet.transactions.TransactionMinorState.KycRequired
 import net.taler.wallet.transactions.TransactionMinorState.Repurchase
-import net.taler.wallet.transactions.TransactionStateFilter.Nonfinal
 import net.taler.wallet.transactions.TransactionsResult.Error
 import net.taler.wallet.transactions.TransactionsResult.None
 import net.taler.wallet.transactions.TransactionsResult.Success
@@ -107,11 +101,10 @@ import net.taler.wallet.ui.theme.TalerTheme
 @Composable
 fun TransactionsComposable(
     innerPadding: PaddingValues,
-    viewMode: ViewMode.Transactions,
     balance: BalanceItem,
     txResult: TransactionsResult,
+    stateFilter: TransactionStateFilter?,
     onTransactionClick: (tx: Transaction) -> Unit,
-    onShowBalancesClicked: () -> Unit,
     selectionMode: Boolean,
     selectedItems: MutableList<String>,
     onToggleSelection: (String) -> Unit,
@@ -124,14 +117,11 @@ fun TransactionsComposable(
             contentPadding = innerPadding,
         ) {
             item {
-                TransactionsHeader(
-                    balance = balance,
-                    onShowBalancesClicked = onShowBalancesClicked,
-                )
+                TransactionsHeader(balance)
             }
 
-            when (viewMode.stateFilter) {
-                Nonfinal -> item {
+            when (stateFilter) {
+                TransactionStateFilter.Nonfinal -> item {
                     Banner(Modifier.padding(bottom = 6.dp)) {
                         Text(
                             modifier = Modifier
@@ -184,6 +174,10 @@ fun TransactionsComposable(
                     }
                 }
             }
+
+            item {
+                BottomInsetsSpacer()
+            }
         }
     }
 }
@@ -214,20 +208,19 @@ fun ErrorTransactionsComposable(error: TalerErrorInfo) {
 @Composable
 fun TransactionsHeader(
     balance: BalanceItem,
-    onShowBalancesClicked: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        OutlinedCard(
+        ElevatedCard(
             Modifier
                 .weight(1f)
                 .cardPaddings()
-                .clickable { onShowBalancesClicked() },
         ) {
             ListItem(
                 modifier = Modifier.animateContentSize(),
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                 headlineContent = {
                     Text(
                         getHeaderCurrency(balance, balance.available.spec),
@@ -246,24 +239,8 @@ fun TransactionsHeader(
                                 .basicMarquee(),
                             style = MaterialTheme.typography.bodySmall,
                         )
-                    } else if (balance.scopeInfo is ExchangeLegacyKeys) {
-                        Text(
-                            cleanExchange(balance.scopeInfo.url),
-                            modifier = Modifier
-                                .padding(top = 3.dp)
-                                .basicMarquee(),
-                            style = MaterialTheme.typography.bodySmall,
-                        )
                     }
                 },
-                trailingContent = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (balance.scopeInfo is ExchangeLegacyKeys) {
-                            LegacyBalanceWarningTooltip()
-                        }
-                        Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                    }
-                }
             )
         }
 
@@ -281,11 +258,6 @@ fun TransactionsHeader(
                 balance.available.toString(showSymbol = false),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                textDecoration = if (balance.scopeInfo is ExchangeLegacyKeys) {
-                    TextDecoration.LineThrough
-                } else {
-                    TextDecoration.None
-                },
             )
         }
     }
@@ -506,10 +478,9 @@ fun TransactionsComposableDonePreview() {
         TransactionsComposable(
             innerPadding = PaddingValues(0.dp),
             balance = previewBalance,
-            viewMode = ViewMode.Transactions(previewBalance.scopeInfo),
+            stateFilter = null,
             txResult = Success(transactions),
             onTransactionClick = {},
-            onShowBalancesClicked = {},
             selectionMode = false,
             selectedItems = mutableListOf(),
             onToggleSelection = {},
@@ -542,10 +513,9 @@ fun TransactionsComposablePendingPreview() {
         TransactionsComposable(
             innerPadding = PaddingValues(0.dp),
             balance = previewBalance,
-            viewMode = ViewMode.Transactions(previewBalance.scopeInfo),
             txResult = Success(transactions),
+            stateFilter = TransactionStateFilter.Nonfinal,
             onTransactionClick = {},
-            onShowBalancesClicked = {},
             selectionMode = false,
             selectedItems = mutableListOf(),
             onToggleSelection = {},
@@ -560,10 +530,9 @@ fun TransactionsComposableEmptyPreview() {
         TransactionsComposable(
             innerPadding = PaddingValues(0.dp),
             balance = previewBalance,
-            viewMode = ViewMode.Transactions(previewBalance.scopeInfo),
             txResult = Success(listOf()),
+            stateFilter = null,
             onTransactionClick = {},
-            onShowBalancesClicked = {},
             selectionMode = false,
             selectedItems = mutableListOf(),
             onToggleSelection = {},
@@ -578,10 +547,9 @@ fun TransactionsComposableLoadingPreview() {
         TransactionsComposable(
             innerPadding = PaddingValues(0.dp),
             balance = previewBalance,
-            viewMode = ViewMode.Transactions(previewBalance.scopeInfo),
             txResult = None,
+            stateFilter = null,
             onTransactionClick = {},
-            onShowBalancesClicked = {},
             selectionMode = false,
             selectedItems = mutableListOf(),
             onToggleSelection = {},

@@ -34,7 +34,6 @@ import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.exchanges.SelectExchangeComposable
 import net.taler.wallet.main.MainViewModel
-import net.taler.wallet.main.ViewMode
 import androidx.compose.material3.Text
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
@@ -62,9 +61,7 @@ fun PromptWithdrawScreen(
     
     var showExchangeSelect by remember { mutableStateOf(false) }
 
-    val selectedScope = remember(viewMode) {
-        (viewMode as? ViewMode.Transactions)?.selectedScope
-    }
+    val selectedScope = viewMode.selectedScope
 
     val scopes by balanceManager.balances
         .map { bl -> bl.filter { it.scopeInfo !is ExchangeLegacyKeys }.map { it.scopeInfo } }
@@ -107,7 +104,7 @@ fun PromptWithdrawScreen(
             WithdrawStatus.Status.AlreadyConfirmed -> {
                 status.transactionId?.let { txId ->
                     if (transactionManager.selectTransaction(txId)) {
-                        status.amountInfo?.scopeInfo?.let { s -> model.selectScope(s) }
+                        status.amountInfo?.scopeInfo?.let { s -> model.displayScope(s) }
                         onNavigate(WalletDestination.TransactionWithdrawal, true)
                     } else {
                         onNavigateBack()
@@ -168,7 +165,7 @@ fun PromptWithdrawScreen(
                     }
                 },
                 onConfirm = { age ->
-                    status.selectedScope?.let { model.selectScope(it) }
+                    status.selectedScope?.let { model.displayScope(it) }
                     withdrawManager.acceptWithdrawal(age)
                 },
                 onReset = {

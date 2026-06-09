@@ -47,12 +47,12 @@ sealed class WalletResponse<T> {
         val error: TalerErrorInfo,
     ) : WalletResponse<T>()
 
-    fun onSuccess(block: (result: T) -> Unit): WalletResponse<T> {
+    suspend fun onSuccess(block: suspend (result: T) -> Unit): WalletResponse<T> {
         if (this is Success) block(this.result)
         return this
     }
 
-    fun onError(block: (result: TalerErrorInfo) -> Unit): WalletResponse<T> {
+    suspend fun onError(block: suspend (result: TalerErrorInfo) -> Unit): WalletResponse<T> {
         if (this is Error) block(this.error)
         return this
     }

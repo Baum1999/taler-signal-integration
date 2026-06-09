@@ -58,9 +58,11 @@ import net.taler.wallet.peer.OutgoingPullScreen
 import net.taler.wallet.peer.OutgoingPushScreen
 import net.taler.wallet.scan.ScanQrScreen
 import net.taler.wallet.settings.PerformanceStatsScreen
+import net.taler.wallet.settings.SettingsScreen
 import net.taler.wallet.tokens.TokenListScreen
 import net.taler.wallet.tokens.TokenViewMode
 import net.taler.wallet.transactions.TransactionDetailScreen
+import net.taler.wallet.transactions.TransactionsScreen
 import net.taler.wallet.transfer.WireTransferDetailsScreen
 import net.taler.wallet.withdraw.PromptWithdrawScreen
 
@@ -128,6 +130,23 @@ fun WalletNavHost(
                 model = model,
                 onNavigate = onNavigate,
                 onFulfillPayment = onFulfillPayment,
+            )
+        }
+        composable<WalletDestination.Transactions> { backStackEntry ->
+            val dest = backStackEntry.toRoute<WalletDestination.Transactions>()
+            TransactionsScreen(
+                model = model,
+                filter = dest.filter,
+                onNavigate = onNavigate,
+                onNavigateBack = onNavigateBack,
+                onShowError =  onShowError,
+            )
+        }
+        composable<WalletDestination.Settings> {
+            SettingsScreen(
+                model = model,
+                onNavigate = onNavigate,
+                onNavigateBack = onNavigateBack,
                 onShowError = onShowError,
             )
         }

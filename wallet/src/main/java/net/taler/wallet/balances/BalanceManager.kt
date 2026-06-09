@@ -29,8 +29,6 @@ import net.taler.common.CurrencySpecification
 import net.taler.wallet.main.TAG
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
-import net.taler.wallet.backend.WalletResponse
-import net.taler.wallet.balances.ScopeInfo.ExchangeLegacyKeys
 import net.taler.wallet.donau.DonauSummaryItem
 import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.exchanges.ExchangeManager
@@ -79,16 +77,13 @@ class BalanceManager(
 
     fun loadAssets(loading: Boolean = false) = scope.launch {
         if (loading) mState.postValue(BalanceState.Loading)
-        when (val response = api.request("getBalances", BalanceResponse.serializer())) {
-            is WalletResponse.Error -> {
-                Log.e(TAG, "Error retrieving balances: ${response.error}")
-                mState.postValue(BalanceState.Error(response.error))
-            }
-
-            is WalletResponse.Success -> {
-                val balances = response.result.balances.map { balance ->
-                    val spec = exchangeManager
-                        .getCurrencySpecification(balance.scopeInfo)
+        api.request("getBalances", BalanceResponse.serializer())
+            .onError {
+                Log.e(TAG, "Error retrieving balances: $it")
+                mState.postValue(BalanceState.Error(it))
+            }.onSuccess { res ->
+                val balances = res.balances.map { balance ->
+                    val spec = exchangeManager.getCurrencySpecification(balance.scopeInfo)
                     balance.copy(
                         available = balance.available.withSpec(spec),
                         pendingIncoming = balance.pendingIncoming.withSpec(spec),
@@ -96,9 +91,8 @@ class BalanceManager(
                     )
                 }
 
-                val donauSummary = response.result.donauSummary?.map { item ->
-                    val spec = exchangeManager
-                        .getSpecForCurrency(item.amountReceiptsAvailable.currency)
+                val donauSummary = res.donauSummary?.map { item ->
+                    val spec = exchangeManager.getSpecForCurrency(item.amountReceiptsAvailable.currency)
                     item.copy(
                         amountReceiptsAvailable = item.amountReceiptsAvailable.withSpec(spec),
                         amountReceiptsSubmitted = item.amountReceiptsSubmitted.withSpec(spec),
@@ -112,32 +106,27 @@ class BalanceManager(
                     donauSummary = donauSummary,
                 ))
             }
-        }
     }
 
     @UiThread
-    fun getCurrencies() = spendableBalances().map { balanceItem ->
+    fun getCurrencies() = balances.value?.map { balanceItem ->
         balanceItem.currency
-    }
+    } ?: emptyList()
 
     @UiThread
-    fun getScopes(forPeer: Boolean = false) = spendableBalances().filter {
+    fun getScopes(forPeer: Boolean = false) = balances.value?.filter {
         !forPeer || !it.disablePeerPayments
-    }.map { it.scopeInfo }
+    }?.map { it.scopeInfo } ?: emptyList()
 
     @UiThread
     fun hasSufficientBalance(amount: Amount): Boolean {
-        spendableBalances().forEach { balanceItem ->
+        balances.value?.forEach { balanceItem ->
             if (balanceItem.currency == amount.currency) {
                 return balanceItem.available >= amount
             }
         }
         return false
     }
-
-    private fun spendableBalances() = balances.value
-        ?.filter { it.scopeInfo !is ExchangeLegacyKeys }
-        ?: emptyList()
 
     fun addGlobalCurrencyExchange(
         currency: String,
@@ -177,6 +166,5 @@ class BalanceManager(
 
     fun resetBalances() {
         mState.value = BalanceState.None
-        loadAssets()
     }
 }
