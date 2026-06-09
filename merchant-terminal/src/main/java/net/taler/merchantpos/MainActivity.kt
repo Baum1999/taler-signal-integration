@@ -31,6 +31,7 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -329,10 +330,11 @@ private fun MerchantTerminalApp(
             (currentRoute == PosDestination.Settings.route || currentRoute == PosDestination.Config.route)
     val screenTitle = when (currentRoute) {
         PosDestination.Order.route -> currentOrder?.let {
-            context.getString(R.string.order_label_title, it.title)
+            stringResource(R.string.order_label_title, it.title)
         } ?: stringResource(R.string.menu_order)
         else -> stringResource(currentRoute.titleResId())
     }
+    val reloadingMessage = stringResource(R.string.toast_reloading)
 
     val drawerItems = listOf(
         PosDestination.AmountEntry,
@@ -478,7 +480,7 @@ private fun MerchantTerminalApp(
                                         viewModel.configManager.reloadConfig()
                                         Toast.makeText(
                                             context,
-                                            context.getString(R.string.toast_reloading),
+                                            reloadingMessage,
                                             Toast.LENGTH_LONG,
                                         ).show()
                                     },
@@ -601,7 +603,7 @@ private fun FragmentScreenHost(
     routeTag: String,
     createFragment: () -> Fragment,
 ) {
-    val activity = LocalContext.current as MainActivity
+    val activity = LocalActivity.current as? MainActivity ?: return
     val fragmentManager = activity.supportFragmentManager
     val containerId = remember(routeTag) { View.generateViewId() }
     val fragmentTag = remember(routeTag, containerId) { "$routeTag-$containerId" }

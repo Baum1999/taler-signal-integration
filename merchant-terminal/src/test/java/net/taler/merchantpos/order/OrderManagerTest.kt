@@ -77,14 +77,17 @@ class OrderManagerTest {
     }
 
     @Test
-    fun `config test currency mismatch`() = runBlocking {
+    fun `currency mismatch product is accepted but unavailable`() = runBlocking {
         val products = listOf(posConfig.products[0].copy(price = Amount("WRONGCUR", 1, 0)))
         val config = posConfig.copy(products = products)
         val result = orderManager.onConfigurationReceived(config, "KUDOS", null)
-        val expectedStr = app.getString(
-            R.string.config_error_currency, "foo", "WRONGCUR", "KUDOS"
-        )
-        assertEquals(expectedStr, result)
+        shadowMainLooper().idle()
+
+        assertNull(result)
+        val product = orderManager.products.awaitValue().single()
+        assertEquals("WRONGCUR", product.price.currency)
+        assertTrue(product.currencyMismatch)
+        assertFalse(product.availableToSell)
     }
 
 //    TODO: re-enable test based on orderManager.categories contents!
