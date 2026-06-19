@@ -217,12 +217,14 @@ fun TransactionDetailScreen(
                             devMode = devMode,
                             spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
                             onWireTransfer = {
+                                keepSelectedTx = true
                                 onNavigate(
                                     WalletDestination.WireTransferDetails(false),
                                     false
                                 )
                             },
                             onShowQrCodes = {
+                                keepSelectedTx = true
                                 onNavigate(
                                     WalletDestination.WireTransferDetails(true),
                                     false
