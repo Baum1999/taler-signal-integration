@@ -295,7 +295,7 @@ class ConfigManager(
     @UiThread
     fun refreshConfigInBackground() {
         if (!config.isValid() || !config.hasPassword()) return
-        fetchConfig(config, save = false, inventoryOnly = false, silent = true)
+        fetchConfig(config, save = false, inventoryOnly = true, silent = true)
     }
 
     @UiThread

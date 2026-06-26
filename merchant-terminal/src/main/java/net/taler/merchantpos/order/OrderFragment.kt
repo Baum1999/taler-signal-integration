@@ -48,6 +48,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -68,6 +69,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -730,9 +732,10 @@ private fun OrderActionBar(
                 Text("-1", style = if (compact) MaterialTheme.typography.labelLarge else MaterialTheme.typography.bodyMedium)
             }
             Button(onClick = onAddCustom, colors = orderControlButtonColors()) {
-                Text(
-                    stringResource(R.string.order_custom_product_default),
-                    style = if (compact) MaterialTheme.typography.labelLarge else MaterialTheme.typography.bodyMedium,
+                Icon(
+                    painter = painterResource(R.drawable.ic_dialpad),
+                    contentDescription = stringResource(R.string.order_custom),
+                    modifier = Modifier.size(if (compact) 20.dp else 24.dp),
                 )
             }
         }
