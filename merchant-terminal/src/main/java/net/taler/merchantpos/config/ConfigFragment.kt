@@ -107,9 +107,9 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.runtime.remember
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 
 private enum class ConfigMode { Manual, Qr }
 
@@ -240,7 +240,12 @@ class ConfigFragment : Fragment() {
             } catch (e: Exception) {
                 isSubmitting = false
                 Log.e("ConfigFragment", "Error fetching limited token: ${e.message}")
-                requireActivity().showPosError(R.string.config_error_network)
+                val errorRes = if (e is ClientRequestException && e.response.status == Unauthorized) {
+                    R.string.config_auth_error
+                } else {
+                    R.string.config_error_network
+                }
+                requireActivity().showPosError(errorRes)
                 return@launch
             }
 
@@ -594,21 +599,19 @@ private fun ManualConfigScreen(
             )
         }
         item {
-            val interactionSource = remember { MutableInteractionSource() }
-            val pressed by interactionSource.collectIsPressedAsState()
+            var passwordVisible by remember { mutableStateOf(false) }
             OutlinedTextField(
                 value = token,
                 onValueChange = onTokenChanged,
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(stringResource(R.string.config_password)) },
-                visualTransformation = if (pressed) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     IconButton(
-                        onClick = {},
-                        interactionSource = interactionSource,
+                        onClick = { passwordVisible = !passwordVisible },
                     ) {
                         Icon(
-                            imageVector = if (pressed) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                            imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                             contentDescription = null,
                         )
                     }

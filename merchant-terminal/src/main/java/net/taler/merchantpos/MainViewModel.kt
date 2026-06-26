@@ -44,7 +44,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
       httpClient.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, body) ->
-        if (context.response.status == HttpStatusCode.Unauthorized) {
+        if (context.response.status == HttpStatusCode.Unauthorized && configManager.merchantConfig != null) {
           configManager.forgetPassword()
           configManager.notifySessionExpired()
         }
