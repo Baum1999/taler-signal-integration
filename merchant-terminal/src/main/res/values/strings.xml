@@ -54,6 +54,7 @@
     <string name="settings_instance_description">Change merchant portal URL, username, password, and other settings.</string>
     <string name="settings_instance_button">Modify login settings</string>
     <string name="settings_logout_button">Log out</string>
+    <string name="settings_about_title">About</string>
     <string name="config_old_label">JSON file (old)</string>
     <string name="config_setup_password">Password</string>
     <string name="config_old_deprecation">This configuration method is deprecated, please use the new merchant API configuration.</string>

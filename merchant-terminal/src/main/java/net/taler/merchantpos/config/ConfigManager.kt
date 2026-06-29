@@ -221,6 +221,10 @@ class ConfigManager(
     var currencySpec: CurrencySpecification? = null
         private set
 
+    @Volatile
+    var backendVersion: String? = null
+        private set
+
     private val mInitialOrderScreen = MutableLiveData(
         InitialOrderScreen.fromPrefValue(
             prefs.getString(SETTINGS_INITIAL_ORDER_SCREEN, InitialOrderScreen.AmountEntry.prefValue),
@@ -433,6 +437,7 @@ class ConfigManager(
             this@ConfigManager.merchantConfig = merchantConfig
             this@ConfigManager.currency = configResponse.currency
             this@ConfigManager.currencySpec = currencySpec
+            this@ConfigManager.backendVersion = configResponse.version
             saveCachedRuntimeConfig(
                 CachedRuntimeConfig(
                     posConfig = posConfigWithCachedStock,
@@ -556,7 +561,7 @@ class ConfigManager(
 
         val resp: LimitedTokenResponse = response.body()
 
-        return resp.token.removePrefix("secret-token:")
+        return resp.token
     }
 
     suspend fun requestChallenge(

@@ -54,12 +54,18 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
+import net.taler.merchantpos.BuildConfig
 import net.taler.merchantpos.compose.PosOutlinedCard
 import net.taler.merchantpos.compose.PosTheme
 import net.taler.merchantpos.R
@@ -93,6 +99,11 @@ class GeneralSettingsFragment : Fragment() {
         val selectedTag = getCurrentLanguageTag()
         return ComposeView(requireContext()).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            val config = configManager.config
+            val username = if (config is Config.New && config.merchantUrl.isNotBlank()) {
+                config.merchantUrl.toUri().pathSegments
+                    ?.lastOrNull { it.isNotBlank() }
+            } else null
             setContent {
                 GeneralSettingsScreen(
                     languageOptions = languageOptions,
@@ -111,6 +122,9 @@ class GeneralSettingsFragment : Fragment() {
                             clearBackStack = true,
                         )
                     },
+                    backendVersion = configManager.backendVersion,
+                    username = username,
+                    merchantUrl = (config as? Config.New)?.merchantUrl?.takeIf { it.isNotBlank() },
                 )
             }
         }
@@ -172,6 +186,9 @@ private fun GeneralSettingsScreen(
     onInitialOrderSelected: (InitialOrderScreen) -> Unit,
     onInstanceSettingsClick: () -> Unit,
     onLogoutClick: () -> Unit,
+    backendVersion: String? = null,
+    username: String? = null,
+    merchantUrl: String? = null,
 ) {
     var languageExpanded by remember { mutableStateOf(false) }
     var selectedTag by rememberSaveable { mutableStateOf(initialSelectedTag) }
@@ -263,6 +280,21 @@ private fun GeneralSettingsScreen(
                     }
                 }
             }
+
+            item {
+                SettingsCard(
+                    title = stringResource(R.string.settings_about_title),
+                ) {
+                    AboutRow(stringResource(R.string.app_name), BuildConfig.VERSION_NAME)
+                    if (username != null) {
+                        AboutRow(stringResource(R.string.config_username), username)
+                    }
+                    if (merchantUrl != null) {
+                        val suffix = if (backendVersion != null) " ($backendVersion)" else ""
+                        AboutRow(stringResource(R.string.config_merchant_url), "$merchantUrl$suffix")
+                    }
+                }
+            }
         }
     }
 }
@@ -293,6 +325,20 @@ private fun SettingsCard(
             content()
         }
     }
+}
+
+@Composable
+private fun AboutRow(label: String, value: String) {
+    Text(
+        text = buildAnnotatedString {
+            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                append("$label: ")
+            }
+            append(value)
+        },
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
