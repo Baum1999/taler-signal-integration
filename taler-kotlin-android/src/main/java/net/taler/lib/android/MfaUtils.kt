@@ -160,7 +160,9 @@ suspend fun Fragment.selectChallenge(challenges: List<Challenge>): Challenge? =
         }
     }
 
-suspend fun Fragment.promptForTan(challenge: Challenge): String? =
+suspend fun Fragment.promptForTan(
+    challenge: Challenge,
+): String? =
     showMfaDialog(cancelResult = null) { finish ->
         var code by remember { mutableStateOf("") }
         var showIncompleteError by remember { mutableStateOf(false) }

@@ -87,6 +87,11 @@ class RefundManager(
     }
 
     @UiThread
+    internal fun debugSetRefundResult(result: RefundResult) {
+        mRefundResult.value = result
+    }
+
+    @UiThread
     internal fun resumeRefund(item: OrderHistoryEntry): Boolean {
         val current = mRefundResult.value as? RefundResult.Success ?: return false
         if (current.item.orderId != item.orderId) return false

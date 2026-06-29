@@ -325,3 +325,12 @@ private fun PhoneRefundUriScreen(
         }
     }
 }
+
+@Composable
+internal fun RefundQrScreenContent(result: RefundResult.Success) {
+    RefundUriScreen(
+        result = result,
+        deviceHasNfc = false,
+        onAbort = {},
+    )
+}

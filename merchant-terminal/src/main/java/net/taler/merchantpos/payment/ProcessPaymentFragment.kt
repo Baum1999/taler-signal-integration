@@ -445,3 +445,17 @@ private fun PhoneProcessPaymentScreen(
         }
     }
 }
+
+@Composable
+internal fun PaymentScreenContent(payment: Payment) {
+    ProcessPaymentScreen(
+        payment = payment,
+        deviceHasNfc = false,
+        showForceDeleteDialog = false,
+        onCancel = {},
+        onForceDelete = {},
+        onDismissForceDelete = {},
+        onShare = {},
+        onCopy = {},
+    )
+}

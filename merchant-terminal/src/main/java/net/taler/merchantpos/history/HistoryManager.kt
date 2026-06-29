@@ -158,6 +158,13 @@ class HistoryManager(
         mItems.value = HistoryResult.Success(loadedItems.toList())
     }
 
+    @UiThread
+    internal fun debugSetHistory(items: List<OrderHistoryEntry>) {
+        loadedItems.clear()
+        loadedItems.addAll(items)
+        publishItems()
+    }
+
     private fun enrichOrders(items: List<OrderHistoryEntry>) = scope.launch {
         val merchantConfig = configManager.merchantConfig ?: return@launch
         items.filter { it.paid }.forEach { item ->

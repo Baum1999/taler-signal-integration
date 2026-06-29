@@ -155,7 +155,9 @@ private fun OrderRoute(
     var selectedCategoryId by rememberSaveable {
         mutableStateOf(categories.firstOrNull { it.selected }?.id)
     }
-    var showCustomDialog by rememberSaveable { mutableStateOf(false) }
+    var showCustomDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
     val reloadingText = stringResource(R.string.toast_reloading)
 
     LaunchedEffect(Unit) {
@@ -827,11 +829,13 @@ private fun CustomProductDialog(
     currencySpec: net.taler.common.CurrencySpecification?,
     onDismiss: () -> Unit,
     onAdd: (String, Amount) -> Unit,
+    initialDescription: String? = null,
+    initialAmount: String? = null,
 ) {
     val defaultDescription = stringResource(R.string.order_custom_product_default)
     val invalidAmountText = stringResource(R.string.refund_error_invalid_amount)
-    var description by rememberSaveable { mutableStateOf(defaultDescription) }
-    var amountText by rememberSaveable { mutableStateOf("") }
+    var description by rememberSaveable { mutableStateOf(initialDescription ?: defaultDescription) }
+    var amountText by rememberSaveable { mutableStateOf(initialAmount ?: "") }
     var errorText by rememberSaveable { mutableStateOf<String?>(null) }
 
     AlertDialog(
@@ -874,4 +878,88 @@ private fun CustomProductDialog(
             }
         },
     )
+}
+
+@Composable
+internal fun OrderScreenContent(
+    viewModel: MainViewModel,
+    showCustomDialog: Boolean = false,
+    customDescription: String? = null,
+    customAmount: String? = null,
+) {
+    val orderManager = remember { viewModel.orderManager }
+    val currentOrderId by orderManager.currentOrderId.observeAsState()
+    val categories by orderManager.categories.observeAsState(emptyList())
+    val products by orderManager.products.observeAsState(emptyList())
+    val currency = viewModel.configManager.currency
+    val currencySpec = viewModel.configManager.currencySpec
+
+    val orderId = currentOrderId ?: return
+    val liveOrder = remember(orderId) { orderManager.getOrder(orderId) }
+    val order by liveOrder.order.observeAsState()
+    val orderTotal by liveOrder.orderTotal.observeAsState(
+        Amount.zero(currency ?: "").withSpec(currencySpec),
+    )
+    val modifyAllowed by liveOrder.modifyOrderAllowed.observeAsState(false)
+    val increaseAllowed by liveOrder.increaseOrderAllowed.observeAsState(false)
+    var selectedProductKey by rememberSaveable(orderId) { mutableStateOf(liveOrder.selectedProductKey) }
+    var selectedCategoryId by rememberSaveable {
+        mutableStateOf(categories.firstOrNull { it.selected }?.id)
+    }
+
+    if (showCustomDialog && currency != null) {
+        CustomProductDialog(
+            currency = currency,
+            currencySpec = currencySpec,
+            onDismiss = {},
+            onAdd = { _, _ -> },
+            initialDescription = customDescription,
+            initialAmount = customAmount,
+        )
+    }
+
+    PosTheme {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            val isTabletLayout = LocalConfiguration.current.smallestScreenWidthDp >= 720
+            if (isTabletLayout) {
+                TabletOrderScreen(
+                    categories = categories,
+                    selectedCategoryId = selectedCategoryId,
+                    products = products,
+                    order = order,
+                    increaseAllowed = increaseAllowed,
+                    modifyAllowed = modifyAllowed,
+                    orderTotal = orderTotal.toString(),
+                    selectedProductKey = selectedProductKey,
+                    onCategorySelected = { selectedCategoryId = it.id },
+                    onProductSelected = {},
+                    onSelectProduct = { selectedProductKey = it?.id },
+                    onIncrease = {},
+                    onDecrease = {},
+                    onAddCustom = {},
+                    onComplete = {},
+                )
+            } else {
+                PhoneOrderScreen(
+                    categories = categories,
+                    selectedCategoryId = selectedCategoryId,
+                    products = products,
+                    order = order,
+                    increaseAllowed = increaseAllowed,
+                    modifyAllowed = modifyAllowed,
+                    orderTotal = orderTotal.toString(),
+                    selectedProductKey = selectedProductKey,
+                    onCategorySelected = { selectedCategoryId = it.id },
+                    onProductSelected = {},
+                    onSelectProduct = { selectedProductKey = it?.id },
+                    onIncrease = {},
+                    onDecrease = {},
+                    onAddCustom = {},
+                    onComplete = {},
+                )
+            }
+        }
+    }
 }

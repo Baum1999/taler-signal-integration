@@ -119,13 +119,14 @@ class RefundFragment : Fragment() {
 private fun RefundScreen(
     item: OrderHistoryEntry,
     currencySpec: net.taler.common.CurrencySpecification?,
+    initialReason: String? = null,
     onAbort: () -> Unit,
     onRefund: (OrderHistoryEntry, Amount, String) -> Unit,
 ) {
     var amountText by remember {
         mutableStateOf(item.amount.withSpec(currencySpec).amountStr)
     }
-    var reason by remember { mutableStateOf("") }
+    var reason by remember { mutableStateOf(initialReason ?: "") }
     var errorText by remember { mutableStateOf<String?>(null) }
     val amountFocusRequester = remember { FocusRequester() }
     val reasonFocusRequester = remember { FocusRequester() }
@@ -235,4 +236,19 @@ private fun RefundScreen(
             )
         }
     }
+}
+
+@Composable
+internal fun RefundScreenContent(
+    item: OrderHistoryEntry,
+    currencySpec: net.taler.common.CurrencySpecification?,
+    initialReason: String? = null,
+) {
+    RefundScreen(
+        item = item,
+        currencySpec = currencySpec,
+        initialReason = initialReason,
+        onAbort = {},
+        onRefund = { _, _, _ -> },
+    )
 }

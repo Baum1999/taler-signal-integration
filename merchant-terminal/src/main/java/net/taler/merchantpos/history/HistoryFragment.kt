@@ -402,3 +402,22 @@ private fun ForceDeleteOrderDialog(
         },
     )
 }
+
+@Composable
+internal fun HistoryScreenContent(
+    items: List<OrderHistoryEntry>,
+) {
+    HistoryScreen(
+        isLoading = false,
+        isLoadingMore = false,
+        result = HistoryResult.Success(items),
+        pendingRefundOrderId = null,
+        activePayment = null,
+        onRefresh = {},
+        onLoadMore = {},
+        onRefundClicked = {},
+        onDeleteClicked = {},
+        onShowPaymentClicked = {},
+        onShowRefundClicked = {},
+    )
+}

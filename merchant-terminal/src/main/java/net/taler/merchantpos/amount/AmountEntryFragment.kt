@@ -543,3 +543,24 @@ private fun KeyButton(
         )
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun AmountEntryScreenContent(
+    amountText: String,
+    selectedCurrency: String,
+    currencyOptions: List<String>,
+    chargeEnabled: Boolean,
+) {
+    AmountEntryScreen(
+        amountText = amountText,
+        selectedCurrency = selectedCurrency,
+        currencyOptions = currencyOptions,
+        chargeEnabled = chargeEnabled,
+        onCurrencySelected = {},
+        onDigitPressed = {},
+        onClearPressed = {},
+        onBackspacePressed = {},
+        onChargePressed = {},
+    )
+}

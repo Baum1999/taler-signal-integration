@@ -134,3 +134,8 @@ private fun PaymentSuccessScreen(
         }
     }
 }
+
+@Composable
+internal fun PaymentSuccessScreenContent() {
+    PaymentSuccessScreen(onContinue = {})
+}

@@ -465,6 +465,7 @@ private fun ConfigScreen(
     onSaveTokenChanged: (Boolean) -> Unit,
     previewContent: @Composable () -> Unit,
     onConnect: () -> Unit,
+    initialPasswordVisible: Boolean = false,
 ) {
     PosTheme {
         val isTabletLayout = LocalConfiguration.current.smallestScreenWidthDp >= 720
@@ -505,6 +506,7 @@ private fun ConfigScreen(
                         onConnect = onConnect,
                         focusManager = focusManager,
                         keyboardController = keyboardController,
+                        initialPasswordVisible = initialPasswordVisible,
                     )
                 } else {
                     if (isTabletLayout) {
@@ -562,6 +564,7 @@ private fun ManualConfigScreen(
     onConnect: () -> Unit,
     focusManager: androidx.compose.ui.focus.FocusManager,
     keyboardController: androidx.compose.ui.platform.SoftwareKeyboardController?,
+    initialPasswordVisible: Boolean = false,
 ) {
     LazyColumn(
         modifier = modifier,
@@ -599,7 +602,7 @@ private fun ManualConfigScreen(
             )
         }
         item {
-            var passwordVisible by remember { mutableStateOf(false) }
+            var passwordVisible by remember { mutableStateOf(initialPasswordVisible) }
             OutlinedTextField(
                 value = token,
                 onValueChange = onTokenChanged,
@@ -751,4 +754,30 @@ private fun RowButtons(
             Text(stringResource(R.string.config_qr_label))
         }
     }
+}
+
+@Composable
+internal fun ConfigScreenContent(
+    merchantUrl: String,
+    username: String,
+    token: String,
+    passwordVisible: Boolean = false,
+) {
+    ConfigScreen(
+        mode = ConfigMode.Manual,
+        merchantUrl = merchantUrl,
+        username = username,
+        token = token,
+        saveToken = false,
+        isSubmitting = false,
+        isQrLoading = false,
+        onModeChanged = {},
+        onMerchantUrlChanged = {},
+        onUsernameChanged = {},
+        onTokenChanged = {},
+        onSaveTokenChanged = {},
+        previewContent = {},
+        onConnect = {},
+        initialPasswordVisible = passwordVisible,
+    )
 }

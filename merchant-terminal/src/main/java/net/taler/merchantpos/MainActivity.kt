@@ -89,11 +89,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import net.taler.lib.android.TalerNfcService
-import net.taler.merchantpos.debug.ScreenshotController
 import net.taler.merchantpos.compose.PosTheme
 import net.taler.merchantpos.config.Config
 import net.taler.merchantpos.config.ConfigFetcherFragment
-import net.taler.merchantpos.config.ConfigUpdateResult
 import net.taler.merchantpos.config.ConfigFragment
 import net.taler.merchantpos.config.GeneralSettingsFragment
 import net.taler.merchantpos.history.HistoryFragment
@@ -121,8 +119,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val screenshotStartDestination = ScreenshotController.prepareScenario(intent, model)
-
         TalerNfcService.startService(this)
 
         model.paymentManager.payment.observe(this) { payment ->
@@ -142,7 +138,7 @@ class MainActivity : AppCompatActivity() {
             PosTheme {
                 MerchantTerminalApp(
                     viewModel = model,
-                    startDestination = determineStartDestination(screenshotStartDestination),
+                    startDestination = determineStartDestination(),
                     onNavControllerReady = { navController = it },
                     onExitRequested = ::handleExitRequest,
                 )
@@ -226,7 +222,7 @@ class MainActivity : AppCompatActivity() {
             }
 
         val instance = pathStyleInstance ?: params?.get("username") ?: return
-        val token = if (pathStyleInstance != null) {
+        val token = if (pathStyleInstance != null && params == null) {
             Uri.decode(rawFragment).takeIf(String::isNotBlank)
         } else {
             params?.get("password")
@@ -248,23 +244,10 @@ class MainActivity : AppCompatActivity() {
 
         Log.d("MainActivity", "Config URL: $merchantUrl")
         model.configManager.config = newConfig
-        model.configManager.fetchConfig(newConfig, true)
         navigateTo(PosDestination.ConfigFetcher)
-
-        model.configManager.configUpdateResult.observe(this) { result ->
-            if (result is ConfigUpdateResult.Success) {
-                Log.d("MainActivity", "Config loaded successfully")
-                model.configManager.configUpdateResult.removeObservers(this)
-            } else if (result is ConfigUpdateResult.Error) {
-                Log.e("MainActivity", "Config failed: ${result.msg}")
-                model.configManager.configUpdateResult.removeObservers(this)
-                showPosError(result.msg)
-            }
-        }
     }
 
-    private fun determineStartDestination(overrideDestination: PosDestination? = null): PosDestination {
-        overrideDestination?.let { return it }
+    private fun determineStartDestination(): PosDestination {
         return when {
             !model.configManager.config.isValid() -> PosDestination.Config
             model.configManager.merchantConfig == null || model.configManager.currency == null ->

@@ -60,7 +60,7 @@ class ConfigFetcherFragment : Fragment() {
 
     override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
         if (configManager.config.savePassword()) {
-            configManager.fetchConfig(configManager.config, false)
+            configManager.fetchConfig(configManager.config, true)
         } else if (!navigating) {
             navigating = true
             (requireActivity() as MainActivity).navigateTo(PosDestination.Config, clearBackStack = true)

@@ -338,20 +338,15 @@ class ConfigManager(
                         .toString()
                 }
 
-                // get PoS configuration
-                val posConfig: PosConfig = httpClient.get(url) {
-                    when (val c = config) {
-                        is Config.New -> {
-                            val token = "secret-token:${c.accessToken}"
-                            val auth = ("Bearer $token")
-                            header(Authorization, auth)
-                        }
-                    }
-                }.body()
+                val rawToken = when (val c = config) {
+                    is Config.New -> c.accessToken
+                }
 
-                val merchantConfig = when (val c = config) {
+                val (posConfig, apiKey) = fetchPosConfig(url, rawToken)
+
+                val merchantConfig = when (config) {
                     //is Config.Old -> posConfig.merchantConfig!!
-                    is Config.New -> MerchantConfig(c.merchantUrl, "secret-token:${c.accessToken}")
+                    is Config.New -> MerchantConfig(config.merchantUrl, apiKey)
                 }
 
                 val backendConfig: MerchantBackendConfigResponse =
@@ -377,6 +372,23 @@ class ConfigManager(
                 if (!silent) onNetworkError(msg)
             }
         }
+    }
+
+    @WorkerThread
+    private suspend fun fetchPosConfig(url: String, rawToken: String): Pair<PosConfig, String> {
+        try {
+            val posConfig: PosConfig = httpClient.get(url) {
+                header(Authorization, "Bearer $rawToken")
+            }.body()
+            return posConfig to rawToken
+        } catch (e: ClientRequestException) {
+            if (e.response.status != Unauthorized || rawToken.startsWith("secret-token:")) throw e
+        }
+        val prefixedToken = "secret-token:$rawToken"
+        val posConfig: PosConfig = httpClient.get(url) {
+            header(Authorization, "Bearer $prefixedToken")
+        }.body()
+        return posConfig to prefixedToken
     }
 
     @WorkerThread
