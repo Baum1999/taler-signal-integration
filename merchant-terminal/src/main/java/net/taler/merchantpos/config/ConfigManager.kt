@@ -293,7 +293,7 @@ class ConfigManager(
 
     @UiThread
     fun reloadConfig() {
-        fetchConfig(config, save = true, inventoryOnly = false, silent = false)
+        fetchConfig(config, save = true, inventoryOnly = true, silent = false)
     }
 
     @UiThread
