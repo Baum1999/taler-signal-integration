@@ -46,7 +46,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -407,7 +407,7 @@ private fun MerchantTerminalApp(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .statusBarsPadding()
+                                .systemBarsPadding()
                                 .padding(horizontal = 8.dp, vertical = 8.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
@@ -480,7 +480,7 @@ private fun MerchantTerminalApp(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .statusBarsPadding()
+                                .systemBarsPadding()
                                 .padding(horizontal = 8.dp, vertical = 8.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
@@ -511,7 +511,7 @@ private fun MerchantTerminalApp(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .statusBarsPadding()
+                                .systemBarsPadding()
                                 .padding(horizontal = 8.dp, vertical = 8.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
