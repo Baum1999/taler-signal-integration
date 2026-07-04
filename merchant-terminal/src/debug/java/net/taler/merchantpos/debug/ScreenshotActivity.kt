@@ -42,7 +42,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -78,6 +80,7 @@ class ScreenshotActivity : AppCompatActivity() {
     }
 
     private val model: MainViewModel by viewModels()
+    private var refundItem by mutableStateOf<OrderHistoryEntry?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -285,7 +288,7 @@ class ScreenshotActivity : AppCompatActivity() {
     }
 
     private fun seedRefund(scenario: String) {
-        val refundItem = OrderHistoryEntry(
+        val item = OrderHistoryEntry(
             orderId = "2026-ORD-1047",
             rowId = 47,
             timestamp = Timestamp.now(),
@@ -295,12 +298,13 @@ class ScreenshotActivity : AppCompatActivity() {
             refundable = true,
         )
         if (scenario == "refund") {
-            model.refundManager.startRefund(refundItem)
+            model.refundManager.startRefund(item)
+            refundItem = item
         } else {
             model.refundManager.debugSetRefundResult(
                 RefundResult.Success(
                     refundUri = "taler://refund/example.invalid/2026-ORD-1047/REFUND-ABC123",
-                    item = refundItem,
+                    item = item,
                     amount = Amount.fromString(CURRENCY, "18.30"),
                     reason = getString(R.string.refund_reason_wrong_order),
                 ),
@@ -585,7 +589,7 @@ class ScreenshotActivity : AppCompatActivity() {
 
     @Composable
     private fun RefundScreenshot() {
-        val item = model.refundManager.toBeRefunded ?: return
+        val item = refundItem ?: return
         net.taler.merchantpos.refund.RefundScreenContent(
             item = item,
             currencySpec = model.configManager.currencySpec,
