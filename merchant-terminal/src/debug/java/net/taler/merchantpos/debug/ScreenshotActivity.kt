@@ -7,6 +7,8 @@ import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -38,6 +40,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,6 +73,7 @@ class ScreenshotActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "SCREENSHOT_READY"
         private const val EXTRA_SCENARIO = "screenshot_scenario"
+        private const val EXTRA_LOCALE = "screenshot_locale"
         private const val CURRENCY = "CHF"
     }
 
@@ -87,6 +92,13 @@ class ScreenshotActivity : AppCompatActivity() {
         androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(
             androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO,
         )
+
+        val localeTag = intent.getStringExtra(EXTRA_LOCALE)
+        if (!localeTag.isNullOrEmpty()) {
+            AppCompatDelegate.setApplicationLocales(
+                LocaleListCompat.forLanguageTags(localeTag),
+            )
+        }
 
         val scenario = intent.getStringExtra(EXTRA_SCENARIO) ?: return
 
@@ -142,14 +154,15 @@ class ScreenshotActivity : AppCompatActivity() {
             }
         }
 
-        when (scenario) {
-            "order", "order-custom", "order-custom-added", "navigation" -> seedOrder(scenario)
-            "payment" -> seedPayment()
-            "history" -> seedHistory()
-            "refund", "refund-qr" -> seedRefund(scenario)
+        Handler(Looper.getMainLooper()).post {
+            when (scenario) {
+                "order", "order-custom", "order-custom-added", "navigation" -> seedOrder(scenario)
+                "payment" -> seedPayment()
+                "history" -> seedHistory()
+                "refund", "refund-qr" -> seedRefund(scenario)
+            }
+            signalReady(scenario)
         }
-
-        signalReady(scenario)
     }
 
     private fun signalReady(scenario: String) {
@@ -170,7 +183,7 @@ class ScreenshotActivity : AppCompatActivity() {
         if (scenario == "order-custom-added") {
             val orderId = model.orderManager.currentOrderId.value ?: 0
             val customProduct = net.taler.merchantpos.config.ConfigProduct(
-                description = "Tip",
+                description = getString(R.string.order_custom_product_default),
                 price = Amount.fromString(CURRENCY, "2.73"),
                 categories = listOf(Int.MIN_VALUE),
             )
@@ -289,7 +302,7 @@ class ScreenshotActivity : AppCompatActivity() {
                     refundUri = "taler://refund/example.invalid/2026-ORD-1047/REFUND-ABC123",
                     item = refundItem,
                     amount = Amount.fromString(CURRENCY, "18.30"),
-                    reason = "Wrong order",
+                    reason = getString(R.string.refund_reason_wrong_order),
                 ),
             )
         }
@@ -545,15 +558,17 @@ class ScreenshotActivity : AppCompatActivity() {
         net.taler.merchantpos.order.OrderScreenContent(
             viewModel = model,
             showCustomDialog = showCustomDialog,
-            customDescription = if (showCustomDialog) "Tip" else null,
+            customDescription = if (showCustomDialog) stringResource(R.string.order_custom_product_default) else null,
             customAmount = if (showCustomDialog) "2.73" else null,
         )
     }
 
     @Composable
     private fun PaymentScreenshot() {
-        val payment = model.paymentManager.payment.value ?: return
-        net.taler.merchantpos.payment.PaymentScreenContent(payment = payment)
+        val payment by model.paymentManager.payment.observeAsState()
+        payment?.let {
+            net.taler.merchantpos.payment.PaymentScreenContent(payment = it)
+        }
     }
 
     @Composable
@@ -563,10 +578,9 @@ class ScreenshotActivity : AppCompatActivity() {
 
     @Composable
     private fun HistoryScreenshot() {
-        net.taler.merchantpos.history.HistoryScreenContent(
-            items = (model.historyManager.items.value
-                as? net.taler.merchantpos.history.HistoryResult.Success)?.items.orEmpty(),
-        )
+        val result by model.historyManager.items.observeAsState()
+        val items = (result as? net.taler.merchantpos.history.HistoryResult.Success)?.items.orEmpty()
+        net.taler.merchantpos.history.HistoryScreenContent(items = items)
     }
 
     @Composable
@@ -575,13 +589,14 @@ class ScreenshotActivity : AppCompatActivity() {
         net.taler.merchantpos.refund.RefundScreenContent(
             item = item,
             currencySpec = model.configManager.currencySpec,
-            initialReason = "Wrong order",
+            initialReason = stringResource(R.string.refund_reason_wrong_order),
         )
     }
 
     @Composable
     private fun RefundQrScreenshot() {
-        val result = model.refundManager.refundResult.value as? RefundResult.Success ?: return
+        val refundResult by model.refundManager.refundResult.observeAsState()
+        val result = refundResult as? RefundResult.Success ?: return
         net.taler.merchantpos.refund.RefundQrScreenContent(result = result)
     }
 

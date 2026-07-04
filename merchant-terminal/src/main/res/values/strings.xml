@@ -123,6 +123,9 @@
     <string name="refund_intro_nfc">Please let customer scan QR Code or use NFC to offer refund</string>
     <string name="refund_intro">Please let customer scan QR Code to offer refund</string>
     <string name="refund_order_ref">Purchase reference: %1$s\n\n%2$s</string>
+    <string name="refund_reason_wrong_order">Wrong order</string>
+    <string name="refund_reason_duplicated">Duplicated</string>
+    <string name="refund_reason_customer_request">Requested by the customer</string>
 
     <string name="error_payment">Error: No payment received</string>
     <string name="error_order_creation">Error: Could not create order</string>

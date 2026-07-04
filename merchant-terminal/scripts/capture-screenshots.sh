@@ -13,9 +13,12 @@ else
   SCENARIOS=("login" "mfa-select" "mfa-code" "amount-entry" "order" "order-custom" "order-custom-added" "payment" "payment-success" "history" "refund" "refund-qr" "navigation")
 fi
 
+LOCALES=("en" "de" "fr")
+
 APP_ID="net.taler.merchantpos"
 ACTIVITY="$APP_ID/.debug.ScreenshotActivity"
 EXTRA_KEY="screenshot_scenario"
+EXTRA_LOCALE_KEY="screenshot_locale"
 LOGCAT_TAG="SCREENSHOT_READY"
 WAIT_TIMEOUT=30
 BOOTED_EMULATOR=""
@@ -129,14 +132,22 @@ wait_for_ready() {
 
 "$REPO_ROOT/gradlew" :merchant-terminal:installDebug
 
-for scenario in "${SCENARIOS[@]}"; do
-  echo "Capturing $scenario"
-  "${ADB[@]}" shell am force-stop "$APP_ID" >/dev/null 2>&1 || true
-  "${ADB[@]}" logcat -c 2>/dev/null || true
-  "${ADB[@]}" shell am start -W -n "$ACTIVITY" --es "$EXTRA_KEY" "$scenario" >/dev/null
-  wait_for_ready "$scenario" "$WAIT_TIMEOUT"
-  sleep 3
-  "${ADB[@]}" exec-out screencap -p > "$OUT_DIR/$scenario.png"
+for locale in "${LOCALES[@]}"; do
+  LOCALE_DIR="$OUT_DIR/$locale"
+  mkdir -p "$LOCALE_DIR"
+  echo "=== Locale: $locale ==="
+
+  for scenario in "${SCENARIOS[@]}"; do
+    echo "  Capturing $scenario ($locale)"
+    "${ADB[@]}" shell am force-stop "$APP_ID" >/dev/null 2>&1 || true
+    "${ADB[@]}" logcat -c 2>/dev/null || true
+    "${ADB[@]}" shell am start -W -n "$ACTIVITY" \
+      --es "$EXTRA_KEY" "$scenario" \
+      --es "$EXTRA_LOCALE_KEY" "$locale" >/dev/null
+    wait_for_ready "$scenario" "$WAIT_TIMEOUT"
+    sleep 3
+    "${ADB[@]}" exec-out screencap -p > "$LOCALE_DIR/$scenario.png"
+  done
 done
 
 echo "Saved screenshots to $OUT_DIR"

@@ -58,6 +58,9 @@
     <string name="config_docs">Informationen zum Konfigurationsformat finden Sie in <a href="https://docs.taler.net/taler-merchant-pos-terminal.html#apis-and-data-formats">der Dokumentation</a>.</string>
     <string name="refund_error_max_amount">Größer als Bestellbetrag von %s</string>
     <string name="refund_error_backend">Fehler bei der Verarbeitung der Rückerstattung</string>
+    <string name="refund_reason_wrong_order">Falsche Bestellung</string>
+    <string name="refund_reason_duplicated">Doppelt</string>
+    <string name="refund_reason_customer_request">Auf Kundenwunsch</string>
     <string name="refund_intro_nfc">Bitte den Kunden den QR-Code scannen oder NFC nutzen, um die Rückerstattung anzubieten</string>
     <string name="config_changed">Neuer Händler für %s aktiviert</string>
     <string name="history_refund">Rückerstattung</string>

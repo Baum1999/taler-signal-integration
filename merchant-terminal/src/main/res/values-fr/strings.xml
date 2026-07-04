@@ -67,6 +67,9 @@
     <string name="refund_error_already_refunded">Déjà remboursé</string>
     <string name="refund_state_missing">L’état du remboursement n’est plus disponible</string>
     <string name="menu_history">Historique</string>
+    <string name="refund_reason_wrong_order">Mauvaise commande</string>
+    <string name="refund_reason_duplicated">Doublon</string>
+    <string name="refund_reason_customer_request">Demandé par le client</string>
     <string name="refund_intro_nfc">Demandez au client de scanner le QR code ou d\'utiliser la NFC pour effectuer le remboursement</string>
     <string name="refund_intro">Demandez au client de scanner le QR code pour effectuer le remboursement</string>
     <string name="refund_order_ref">Référence d\'achat : %1$s
