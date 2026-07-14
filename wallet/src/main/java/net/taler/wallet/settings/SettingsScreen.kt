@@ -52,6 +52,7 @@ import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.DomainAdd
 import androidx.compose.material.icons.filled.LocalAtm
 import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -236,6 +237,20 @@ fun SettingsScreen(
                 summary = stringResource(R.string.settings_stats_summary),
                 icon = ImageVector.vectorResource(R.drawable.ic_stats),
                 onClick = { onNavigate(WalletDestination.PerformanceStats, false) }
+            )
+
+            SettingsItem(
+                title = "Contacts",
+                summary = "Contacts",
+                icon = Icons.Default.Person,
+                onClick = { onNavigate(WalletDestination.Contacts, false) }
+            )
+
+            SettingsItem(
+                title = "Mailbox",
+                summary = "P2P Messaging",
+                icon = ImageVector.vectorResource(R.drawable.ic_adjust),
+                onClick = { onNavigate(WalletDestination.Mailbox, false) }
             )
 
             SettingsItem(

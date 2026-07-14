@@ -59,7 +59,9 @@ import net.taler.wallet.BuildConfig
 import net.taler.wallet.NetworkManager
 import net.taler.wallet.backend.InitResponse
 import net.taler.wallet.backend.MigrateDatabaseResponse
+import net.taler.wallet.contacts.ContactManager
 import net.taler.wallet.donau.DonauManager
+import net.taler.wallet.mailbox.MailboxManager
 import net.taler.wallet.tokens.TokenManager
 import java.util.UUID
 
@@ -113,6 +115,8 @@ class MainViewModel(
     val depositManager: DepositManager = DepositManager(api, viewModelScope, balanceManager)
     val tokenManager: TokenManager = TokenManager(api)
     val donauManager: DonauManager = DonauManager(api, viewModelScope, exchangeManager)
+    val contactManager: ContactManager = ContactManager(api, viewModelScope)
+    val mailboxManager: MailboxManager = MailboxManager(api, viewModelScope)
 
     private val mAuthenticated = MutableStateFlow(false)
     val authenticated: StateFlow<Boolean> = mAuthenticated

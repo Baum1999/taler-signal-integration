@@ -37,6 +37,8 @@ import androidx.navigation.toRoute
 import net.taler.wallet.accounts.AddBankAccountScreen
 import net.taler.wallet.accounts.BankAccountsScreen
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.contacts.ContactScreen
+import net.taler.wallet.mailbox.MailboxScreen
 import net.taler.wallet.deposit.DepositScreen
 import net.taler.wallet.deposit.PayToUriScreen
 import net.taler.wallet.donau.DonauStatementScreen
@@ -363,6 +365,18 @@ fun WalletNavHost(
         }
         composable<WalletDestination.PerformanceStats> {
             PerformanceStatsScreen(
+                model = model,
+                onNavigateBack = onNavigateBack,
+            )
+        }
+        composable<WalletDestination.Contacts> {
+            ContactScreen(
+                model = model,
+                onNavigateBack = onNavigateBack,
+            )
+        }
+        composable<WalletDestination.Mailbox> {
+            MailboxScreen(
                 model = model,
                 onNavigateBack = onNavigateBack,
             )
