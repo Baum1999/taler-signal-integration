@@ -18,10 +18,13 @@ package net.taler.wallet.mailbox
 
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import net.taler.common.Timestamp
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
@@ -68,13 +71,34 @@ sealed class MailboxResult {
 class MailboxManager(
     private val api: WalletBackendApi,
     private val scope: CoroutineScope,
+    private val isDevMode: () -> Boolean,
+    private val onMessage: ((String) -> Unit)? = null,
 ) {
     private val _mailbox = MutableStateFlow<MailboxResult>(MailboxResult.Loading)
     val mailbox = _mailbox.asStateFlow()
 
+    private var started = false
+
+    fun start() {
+        if (started) return
+        started = true
+        loadMailbox()
+        scope.launch {
+            mailbox.first { it is MailboxResult.Success }
+            while (true) {
+                delay(30000)
+                if (isDevMode()) {
+                    val currentState = _mailbox.value
+                    if (currentState is MailboxResult.Success) {
+                        refreshMailbox(currentState.config)
+                    }
+                }
+            }
+        }
+    }
+
     fun loadMailbox(baseUrl: String = "https://mailbox.gnunet.org") {
         _mailbox.value = MailboxResult.Loading
-        Log.e(TAG, "Loding mailbox")
         scope.launch {
             Log.e(TAG, "Loading mailbox")
             api.request("getMailbox", GetMailboxResponse.serializer()) {
@@ -83,6 +107,7 @@ class MailboxManager(
                 if (null == resp.mailboxConfiguration) {
                     initializeMailbox(baseUrl)
                 } else {
+                    Log.e(TAG, "Got mailbox ${resp.mailboxConfiguration}")
                     getMessages(resp.mailboxConfiguration)
                 }
             }.onError {
@@ -117,12 +142,17 @@ class MailboxManager(
     }
 
     fun refreshMailbox(config: MailboxConfiguration) {
+
+        Log.e(TAG, "Rereshing mailbox ${config}")
         scope.launch {
             api.request("refreshMailbox", MailboxMessagesResponse.serializer()) {
                 JSONObject(BackendManager.json.encodeToString(config))
             }.onSuccess { response ->
-                response.messages.forEach { msg ->
-                    addMessage(msg)
+                if (response.messages.isNotEmpty()) {
+                    response.messages.forEach { msg ->
+                        addMessage(msg)
+                    }
+                    onMessage?.invoke("Received ${response.messages.size} new message(s)")
                 }
                 getMessages(config)
             }.onError {
@@ -149,6 +179,20 @@ class MailboxManager(
                 getMessages(config)
             }.onError {
                 Log.e(TAG, "Error deleting mailbox message: $it")
+            }
+        }
+    }
+
+    fun sendMessage(contact: net.taler.wallet.contacts.ContactEntry, talerUri: String) {
+        scope.launch {
+            api.request<Unit>("sendTalerUriMailboxMessage") {
+                put("contact", JSONObject(BackendManager.json.encodeToString(contact)))
+                put("talerUri", talerUri)
+            }.onSuccess {
+                Log.i(TAG, "Message sent successfully to ${contact.petname}")
+                onMessage?.invoke("Message sent to ${contact.petname}")
+            }.onError {
+                Log.e(TAG, "Error sending message to ${contact.petname}: $it")
             }
         }
     }

@@ -16,7 +16,6 @@
 
 package net.taler.wallet.mailbox
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
@@ -48,6 +48,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -61,24 +62,31 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import net.taler.lib.android.toAbsoluteTime
+import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
+import net.taler.wallet.WalletDestination
 import net.taler.wallet.main.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MailboxScreen(
     model: MainViewModel,
+    onNavigate: NavigateCallback,
     onNavigateBack: () -> Unit,
 ) {
     val mailboxManager = model.mailboxManager
     val mailboxState by mailboxManager.mailbox.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val showMessageEvent by model.showMessageEvent.observeAsState()
     val scope = rememberCoroutineScope()
     val clipboardManager = LocalClipboardManager.current
     var showUrlDialog by remember { mutableStateOf(false) }
+    var showAddressDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        mailboxManager.loadMailbox()
+    LaunchedEffect(showMessageEvent) {
+        showMessageEvent?.getIfNotConsumed()?.let { msg ->
+            snackbarHostState.showSnackbar(msg)
+        }
     }
 
     Scaffold(
@@ -94,10 +102,15 @@ fun MailboxScreen(
                     }
                 },
                 actions = {
+                    val state = mailboxState
+                    if (state is MailboxResult.Success) {
+                        IconButton(onClick = { showAddressDialog = true }) {
+                            Icon(Icons.Default.Info, contentDescription = "Show Mailbox Address")
+                        }
+                    }
                     IconButton(onClick = { showUrlDialog = true }) {
                         Icon(Icons.Default.Settings, contentDescription = "Configure Mailbox")
                     }
-                    val state = mailboxState
                     if (state is MailboxResult.Success) {
                         IconButton(onClick = { mailboxManager.refreshMailbox(state.config) }) {
                             Icon(Icons.Default.Refresh, contentDescription = "Refresh")
@@ -117,23 +130,41 @@ fun MailboxScreen(
                 is MailboxResult.Loading -> Text("Loading...", modifier = Modifier.padding(16.dp))
                 is MailboxResult.Error -> Text("Error: ${res.error}", modifier = Modifier.padding(16.dp))
                 is MailboxResult.Success -> {
-                    val host = res.config.mailboxBaseUrl.removePrefix("https://").removePrefix("http://").trimEnd('/')
-                    val contactUri = "taler://add-contact/$host/${res.config.hAddress}"
-                    MailboxHeader(
-                        address = contactUri,
-                        onCopy = {
-                            clipboardManager.setText(AnnotatedString(contactUri))
-                            scope.launch {
-                                snackbarHostState.showSnackbar("Contact URI copied to clipboard")
-                            }
-                        }
-                    )
-                    HorizontalDivider()
-                    MessageList(res.messages) { message ->
+                    MessageList(res.messages, onNavigate) { message ->
                         mailboxManager.deleteMessage(res.config, message)
                     }
                 }
             }
+        }
+    }
+
+    if (showAddressDialog) {
+        val state = mailboxState
+        if (state is MailboxResult.Success) {
+            val mailboxAddressURI = "${state.config.mailboxBaseUrl}/${state.config.hAddress}"
+            AlertDialog(
+                onDismissRequest = { showAddressDialog = false },
+                title = { Text("Your Mailbox Address") },
+                text = {
+                    Text(mailboxAddressURI)
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        clipboardManager.setText(AnnotatedString(mailboxAddressURI))
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Mailbox address URI copied to clipboard")
+                        }
+                        showAddressDialog = false
+                    }) {
+                        Text(stringResource(R.string.copy))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showAddressDialog = false }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                }
+            )
         }
     }
 
@@ -168,30 +199,9 @@ fun MailboxScreen(
 }
 
 @Composable
-fun MailboxHeader(
-    address: String,
-    onCopy: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCopy() }
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text("Your Mailbox Address", style = MaterialTheme.typography.labelMedium)
-            Text(address, style = MaterialTheme.typography.bodyMedium)
-        }
-        IconButton(onClick = onCopy) {
-            Icon(Icons.Default.ContentCopy, contentDescription = "Copy")
-        }
-    }
-}
-
-@Composable
 fun MessageList(
     messages: List<MailboxMessageRecord>,
+    onNavigate: NavigateCallback,
     onDelete: (MailboxMessageRecord) -> Unit,
 ) {
     if (messages.isEmpty()) {
@@ -199,7 +209,7 @@ fun MessageList(
     } else {
         LazyColumn {
             items(messages) { message ->
-                MessageItem(message, onDelete)
+                MessageItem(message, onNavigate, onDelete)
                 HorizontalDivider()
             }
         }
@@ -209,9 +219,12 @@ fun MessageList(
 @Composable
 fun MessageItem(
     message: MailboxMessageRecord,
+    onNavigate: NavigateCallback,
     onDelete: (MailboxMessageRecord) -> Unit,
 ) {
     val context = LocalContext.current
+    val isPayPush = message.talerUri.startsWith("taler://pay-push")
+    val isPayPull = message.talerUri.startsWith("taler://pay-pull")
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -219,7 +232,15 @@ fun MessageItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(message.talerUri, style = MaterialTheme.typography.bodyMedium)
+            if (isPayPush || isPayPull) {
+                Button(
+                    onClick = { onNavigate(WalletDestination.HandleUri(message.talerUri), false) }
+                ) {
+                    Text(if (isPayPush) "Accept payment" else "Pay invoice")
+                }
+            } else {
+                Text(message.talerUri, style = MaterialTheme.typography.bodyMedium)
+            }
             Text(
                 "From: ${message.originMailboxBaseUrl}",
                 style = MaterialTheme.typography.bodySmall

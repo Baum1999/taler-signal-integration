@@ -126,24 +126,7 @@ fun HandleUriScreen(
                         onNavigate(WalletDestination.PromptPayTemplate(u2), true)
                     }
                     action.startsWith("add-contact/", ignoreCase = true) -> {
-                        val uri = u2.toUri()
-                        val segments = uri.pathSegments
-                        val mailboxBaseUri = segments.getOrNull(0) ?: ""
-                        val mailboxAddress = segments.getOrNull(1) ?: ""
-                        val petname = uri.getQueryParameter("petname") ?: ""
-                        val alias = uri.getQueryParameter("alias") ?: ""
-                        val aliasType = uri.getQueryParameter("aliasType") ?: ""
-                        val source = uri.getQueryParameter("source") ?: u2
-
-                        model.contactManager.addContact(
-                            alias = alias,
-                            aliasType = aliasType,
-                            mailboxBaseUri = mailboxBaseUri,
-                            mailboxAddress = mailboxAddress,
-                            source = source,
-                            petname = petname
-                        )
-                        onNavigate(WalletDestination.Contacts, true)
+                        onNavigate(WalletDestination.PromptAddContact(u2), true)
                     }
                     action.startsWith("dev-experiment/", ignoreCase = true) -> {
                         model.applyDevExperiment(u2) { error ->

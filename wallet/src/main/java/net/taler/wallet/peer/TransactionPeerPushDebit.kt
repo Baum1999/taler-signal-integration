@@ -57,12 +57,19 @@ import net.taler.wallet.transactions.TransactionPeerPushDebit
 import net.taler.wallet.transactions.TransactionState
 
 @Composable
-fun ColumnScope.TransactionPeerPushDebitComposable(t: TransactionPeerPushDebit, spec: CurrencySpecification?) {
+fun ColumnScope.TransactionPeerPushDebitComposable(
+    t: TransactionPeerPushDebit,
+    spec: CurrencySpecification?,
+    devMode: Boolean,
+    onForward: ((String) -> Unit)? = null,
+) {
     if (t.error == null) PeerQrCode(
         state = t.txState,
         amount = t.amountRaw.withSpec(spec),
         talerUri = t.talerUri,
         instructionResId = R.string.send_peer_payment_instruction,
+        devMode = devMode,
+        onForward = onForward,
     )
 
     TransactionAmountComposable(
@@ -102,6 +109,8 @@ fun ColumnScope.PeerQrCode(
     amount: Amount,
     talerUri: String?,
     instructionResId: Int,
+    devMode: Boolean,
+    onForward: ((String) -> Unit)? = null,
 ) {
     if (state == TransactionState(Pending) && state.minor != KycRequired) {
         Text(
@@ -119,6 +128,8 @@ fun ColumnScope.PeerQrCode(
                 clipboardLabel = "Push payment",
                 params = QrCodeParams.Taler,
                 buttonText = stringResource(id = R.string.copy),
+                onForward = onForward,
+                devMode = devMode,
             ) {
                 Text(
                     modifier = Modifier
@@ -161,7 +172,14 @@ fun TransactionPeerPushDebitPreview(loading: Boolean = false) {
     )
 
     TalerSurface {
-        TransactionPeerComposable(t, true, null, Modifier, {}) {}
+        TransactionPeerComposable(
+            t = t,
+            devMode = true,
+            spec = null,
+            onConfirmKyc = {},
+            onForward = {},
+            onTransition = {},
+        )
     }
 }
 

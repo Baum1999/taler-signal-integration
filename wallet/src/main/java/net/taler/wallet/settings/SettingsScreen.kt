@@ -243,7 +243,7 @@ fun SettingsScreen(
                 title = "Contacts",
                 summary = "Contacts",
                 icon = Icons.Default.Person,
-                onClick = { onNavigate(WalletDestination.Contacts, false) }
+                onClick = { onNavigate(WalletDestination.Contacts(), false) }
             )
 
             SettingsItem(

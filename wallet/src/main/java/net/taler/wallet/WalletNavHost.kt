@@ -36,7 +36,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import net.taler.wallet.accounts.AddBankAccountScreen
 import net.taler.wallet.accounts.BankAccountsScreen
+import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.contacts.ContactScreen
 import net.taler.wallet.mailbox.MailboxScreen
 import net.taler.wallet.deposit.DepositScreen
@@ -47,6 +49,7 @@ import net.taler.wallet.exchanges.ExchangeListScreen
 import net.taler.wallet.exchanges.ExchangeShoppingScreen
 import net.taler.wallet.exchanges.ReviewExchangeTosScreen
 import net.taler.wallet.main.MainScreen
+import net.taler.wallet.contacts.PromptAddContactScreen
 import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.payment.PayTemplateScreen
 import net.taler.wallet.peer.IncomingPullPaymentScreen
@@ -369,15 +372,32 @@ fun WalletNavHost(
                 onNavigateBack = onNavigateBack,
             )
         }
-        composable<WalletDestination.Contacts> {
+        composable<WalletDestination.Contacts> { backStackEntry ->
+            val contacts: WalletDestination.Contacts = backStackEntry.toRoute()
+            val scopeInfo = contacts.scopeInfo?.let {
+                BackendManager.json.decodeFromString<ScopeInfo>(it)
+            }
             ContactScreen(
                 model = model,
+                sendUri = contacts.sendUri,
+                scopeInfo = scopeInfo,
+                onNavigate = onNavigate,
+                onNavigateBack = onNavigateBack,
+            )
+        }
+        composable<WalletDestination.PromptAddContact> { backStackEntry ->
+            val dest: WalletDestination.PromptAddContact = backStackEntry.toRoute()
+            PromptAddContactScreen(
+                model = model,
+                uriString = dest.uriString,
+                onNavigate = onNavigate,
                 onNavigateBack = onNavigateBack,
             )
         }
         composable<WalletDestination.Mailbox> {
             MailboxScreen(
                 model = model,
+                onNavigate = onNavigate,
                 onNavigateBack = onNavigateBack,
             )
         }

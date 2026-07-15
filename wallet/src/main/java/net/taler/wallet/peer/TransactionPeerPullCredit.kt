@@ -49,7 +49,9 @@ import net.taler.wallet.transactions.TransactionState
 fun ColumnScope.TransactionPeerPullCreditComposable(
     t: TransactionPeerPullCredit,
     spec: CurrencySpecification?,
+    devMode: Boolean,
     onConfirmKyc: (url: String) -> Unit,
+    onForward: (uri: String) -> Unit,
 ) {
     PeerActions(t, onConfirmKyc)
 
@@ -58,6 +60,8 @@ fun ColumnScope.TransactionPeerPullCreditComposable(
         amount = t.amountRaw.withSpec(spec),
         talerUri = t.talerUri,
         instructionResId = R.string.receive_peer_payment_instruction,
+        devMode = devMode,
+        onForward = onForward,
     )
     
     TransactionAmountComposable(
@@ -114,7 +118,14 @@ fun TransactionPeerPullCreditPreview(loading: Boolean = false) {
         ))
     )
     Surface {
-        TransactionPeerComposable(t, true, null, Modifier, {}) {}
+        TransactionPeerComposable(
+            t = t,
+            devMode = true,
+            spec = null,
+            onConfirmKyc = {},
+            onForward = {},
+            onTransition = {},
+        )
     }
 }
 

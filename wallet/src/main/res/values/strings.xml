@@ -92,6 +92,14 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="selection_count">%1$d selected</string>
     <string name="share_payment">Share payment link</string>
     <string name="uri_invalid">Not a valid Taler link</string>
+    <string name="contact_add_title">Add Contact</string>
+    <string name="contact_add_intro">Do you want to add this contact to your wallet?</string>
+    <string name="contact_petname">Petname</string>
+    <string name="contact_alias">Alias</string>
+    <string name="contact_mailbox_address">Mailbox Address</string>
+    <string name="contact_mailbox_base_uri">Mailbox Base URI</string>
+    <string name="contact_add_button">Add Contact</string>
+    <string name="contacts_title">Contacts</string>
     <string name="wallet">Wallet</string>
     <string name="warning">Warning</string>
     <string name="wire_transfer">Wire transfer</string>

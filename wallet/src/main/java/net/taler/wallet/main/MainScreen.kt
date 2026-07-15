@@ -51,6 +51,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import net.taler.common.Event
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
@@ -106,6 +107,20 @@ fun MainScreen(
     val actionButtonUsed by remember {
         model.settingsManager.getActionButtonUsed(context)
     }.collectAsStateLifecycleAware(true)
+
+    val showMessageEvent by model.showMessageEvent.observeAsState()
+    LaunchedEffect(showMessageEvent) {
+        showMessageEvent?.getIfNotConsumed()?.let { msg ->
+            snackbarHostState.showSnackbar(msg)
+        }
+    }
+
+    if (showUriInput) UriInputDialog(
+        onDismiss = { showUriInput = false },
+        handleUri = { uri ->
+            onNavigate(WalletDestination.HandleUri(uri), true)
+        },
+    )
 
     val tabTitle = when (tab) {
         MainTab.ASSETS -> when (viewMode) {

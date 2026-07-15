@@ -116,7 +116,11 @@ class MainViewModel(
     val tokenManager: TokenManager = TokenManager(api)
     val donauManager: DonauManager = DonauManager(api, viewModelScope, exchangeManager)
     val contactManager: ContactManager = ContactManager(api, viewModelScope)
-    val mailboxManager: MailboxManager = MailboxManager(api, viewModelScope)
+    val mailboxManager: MailboxManager = MailboxManager(
+        api = api,
+        scope = viewModelScope,
+        isDevMode = { devMode.value == true },
+    ) { showInfoMessage(it) }
 
     private val mAuthenticated = MutableStateFlow(false)
     val authenticated: StateFlow<Boolean> = mAuthenticated

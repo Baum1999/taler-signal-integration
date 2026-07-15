@@ -67,6 +67,7 @@ import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
+import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo
@@ -332,7 +333,16 @@ fun TransactionDetailScreen(
                             t = tx,
                             devMode = devMode,
                             spec = rememberCurrencySpec(tx.amountRaw.currency, tx.scopes, exchangeManager::getSpecForCurrency),
-                            onConfirmKyc = { url -> launchInAppBrowser(context, url) }
+                            onConfirmKyc = { url -> launchInAppBrowser(context, url) },
+                            onForward = { uri ->
+                                val scopeJson = tx.scopes.firstOrNull()?.let {
+                                    BackendManager.json.encodeToString(it)
+                                }
+                                onNavigate(WalletDestination.Contacts(uri, scopeJson), false)
+                            },
+                            onTransition = {
+                                handleTransactionAction(tx, it, model, onNavigateBack)
+                            }
                         ) {
                             handleTransactionAction(tx, it, model, onNavigateBack)
                         }
@@ -414,6 +424,7 @@ fun TransactionPeerComposable(
     spec: CurrencySpecification?,
     modifier: Modifier = Modifier,
     onConfirmKyc: (url: String) -> Unit,
+    onForward: (uri: String) -> Unit,
     onTransition: (t: TransactionAction) -> Unit,
 ) {
     val scrollState = rememberScrollState()
@@ -432,10 +443,10 @@ fun TransactionPeerComposable(
         )
 
         when (t) {
-            is TransactionPeerPullCredit -> TransactionPeerPullCreditComposable(t, spec, onConfirmKyc)
+            is TransactionPeerPullCredit -> TransactionPeerPullCreditComposable(t, spec, devMode, onConfirmKyc, onForward)
             is TransactionPeerPushCredit -> TransactionPeerPushCreditComposable(t, spec, onConfirmKyc)
             is TransactionPeerPullDebit -> TransactionPeerPullDebitComposable(t, spec)
-            is TransactionPeerPushDebit -> TransactionPeerPushDebitComposable(t, spec)
+            is TransactionPeerPushDebit -> TransactionPeerPushDebitComposable(t, spec, devMode, onForward)
             else -> {}
         }
 

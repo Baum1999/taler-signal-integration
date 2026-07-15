@@ -16,6 +16,7 @@
 
 package net.taler.wallet.contacts
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,18 +53,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
+import net.taler.wallet.WalletDestination
+import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.main.MainViewModel
+import net.taler.wallet.transactions.TransactionStateFilter.Nonfinal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContactScreen(
     model: MainViewModel,
+    sendUri: String? = null,
+    scopeInfo: ScopeInfo? = null,
+    onNavigate: NavigateCallback,
     onNavigateBack: () -> Unit,
 ) {
     val contactManager = model.contactManager
     val contactResult by contactManager.contacts.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+    var contactToConfirm by remember { mutableStateOf<ContactEntry?>(null) }
 
     LaunchedEffect(Unit) {
         contactManager.loadContacts()
@@ -71,7 +82,7 @@ fun ContactScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Contacts") },
+                title = { Text(if (sendUri != null) "Send to Contact" else "Contacts") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -93,16 +104,61 @@ fun ContactScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                placeholder = { Text("Search contacts...") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                singleLine = true,
+            )
+
             when (val res = contactResult) {
                 is ContactResult.Loading -> Text("Loading...", modifier = Modifier.padding(16.dp))
                 is ContactResult.Error -> Text("Error: ${res.error}", modifier = Modifier.padding(16.dp))
                 is ContactResult.Success -> {
-                    ContactList(res.contacts) { contact ->
-                        contactManager.deleteContact(contact)
+                    val filteredContacts = res.contacts.filter { contact ->
+                        contact.petname.fuzzyMatches(searchQuery) ||
+                                contact.alias.fuzzyMatches(searchQuery) ||
+                                contact.aliasType.fuzzyMatches(searchQuery)
                     }
+                    ContactList(
+                        contacts = filteredContacts,
+                        onDelete = { contact -> contactManager.deleteContact(contact) },
+                        onSelect = if (sendUri != null) { contact ->
+                            contactToConfirm = contact
+                        } else null
+                    )
                 }
             }
         }
+    }
+
+    contactToConfirm?.let { contact ->
+        AlertDialog(
+            onDismissRequest = { contactToConfirm = null },
+            title = { Text("Send to ${contact.petname}") },
+            text = { Text("Are you sure you want to send this to ${contact.petname}?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    model.mailboxManager.sendMessage(contact, sendUri!!)
+                    scopeInfo?.let {
+                        model.showTransactions(it, Nonfinal)
+                    }
+                    onNavigate(WalletDestination.Main, true)
+                    contactToConfirm = null
+                }) {
+                    Text(stringResource(R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { contactToConfirm = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 
     if (showAddDialog) {
@@ -161,27 +217,45 @@ fun AddContactDialog(
 fun ContactList(
     contacts: List<ContactEntry>,
     onDelete: (ContactEntry) -> Unit,
+    onSelect: ((ContactEntry) -> Unit)? = null,
 ) {
     if (contacts.isEmpty()) {
         Text("No contacts yet.", modifier = Modifier.padding(16.dp))
     } else {
         LazyColumn {
             items(contacts) { contact ->
-                ContactItem(contact, onDelete)
+                ContactItem(contact, onDelete, onSelect)
                 HorizontalDivider()
             }
         }
     }
 }
 
+private fun String.fuzzyMatches(query: String): Boolean {
+    if (query.isEmpty()) return true
+    val lowerQuery = query.lowercase()
+    val lowerTarget = this.lowercase()
+    var targetIdx = 0
+    var queryIdx = 0
+    while (targetIdx < lowerTarget.length && queryIdx < lowerQuery.length) {
+        if (lowerTarget[targetIdx] == lowerQuery[queryIdx]) {
+            queryIdx++
+        }
+        targetIdx++
+    }
+    return queryIdx == lowerQuery.length
+}
+
 @Composable
 fun ContactItem(
     contact: ContactEntry,
     onDelete: (ContactEntry) -> Unit,
+    onSelect: ((ContactEntry) -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(enabled = onSelect != null) { onSelect?.invoke(contact) }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

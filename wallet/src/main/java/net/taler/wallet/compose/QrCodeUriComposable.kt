@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
@@ -55,10 +56,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.core.content.ContextCompat
+import net.taler.lib.android.AnimatedQrCodeComposable
 import net.taler.lib.android.QrCodeManager
 import net.taler.lib.android.QrLogoSize
 import net.taler.lib.android.copyToClipBoard
-import net.taler.lib.android.AnimatedQrCodeComposable
 import net.taler.wallet.R
 
 sealed class QrCodeParams {
@@ -80,6 +81,8 @@ fun ColumnScope.QrCodeUriComposable(
     buttonText: String = stringResource(R.string.copy),
     showContents: Boolean = true,
     shareAsQrCode: Boolean = false,
+    onForward: ((String) -> Unit)? = null,
+    devMode: Boolean = false,
     inBetween: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     val context = LocalContext.current
@@ -175,7 +178,39 @@ fun ColumnScope.QrCodeUriComposable(
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ),
             )
+
+            if (devMode && onForward != null && (qrData.startsWith("taler://pay-push") || qrData.startsWith("taler://pay-pull"))) {
+                ForwardButton(
+                    onClick = { onForward(qrData) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
+            }
         }
+    }
+}
+
+@Composable
+fun ForwardButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    buttonText: String = stringResource(R.string.contacts_title),
+    colors: ButtonColors = ButtonDefaults.buttonColors(),
+) {
+    Button(
+        modifier = modifier,
+        colors = colors,
+        onClick = onClick,
+    ) {
+        Icon(
+            Icons.AutoMirrored.Filled.Send,
+            buttonText,
+            modifier = Modifier.size(ButtonDefaults.IconSize),
+        )
+        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+        Text(buttonText)
     }
 }
 
