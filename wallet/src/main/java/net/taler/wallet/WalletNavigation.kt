@@ -88,9 +88,6 @@ sealed interface WalletDestination {
     data class PromptPayTemplate(val uri: String) : WalletDestination
 
     @Serializable
-    data class PromptAddContact(val uriString: String) : WalletDestination
-
-    @Serializable
     data class WireTransferDetails(
         val showQrCodes: Boolean,
     ) : WalletDestination
@@ -111,6 +108,7 @@ sealed interface WalletDestination {
     data class Contacts(
         val sendUri: String? = null,
         val scopeInfo: String? = null,
+        val addContactUri: String? = null,
     ) : WalletDestination
 
     @Serializable

@@ -134,6 +134,9 @@ fun HandleUriScreen(
                         }
                         onNavigateBack()
                     }
+                    action.startsWith("add-contact/", ignoreCase = true) -> {
+                        onNavigate(WalletDestination.Contacts(addContactUri = u2), true)
+                    }
                     else -> {
                         errorInfo = TalerErrorInfo.makeCustomError("Unsupported URI: $u2")
                 }

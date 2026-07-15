@@ -49,7 +49,6 @@ import net.taler.wallet.exchanges.ExchangeListScreen
 import net.taler.wallet.exchanges.ExchangeShoppingScreen
 import net.taler.wallet.exchanges.ReviewExchangeTosScreen
 import net.taler.wallet.main.MainScreen
-import net.taler.wallet.contacts.PromptAddContactScreen
 import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.payment.PayTemplateScreen
 import net.taler.wallet.peer.IncomingPullPaymentScreen
@@ -380,16 +379,8 @@ fun WalletNavHost(
             ContactScreen(
                 model = model,
                 sendUri = contacts.sendUri,
+                addContactUri = contacts.addContactUri,
                 scopeInfo = scopeInfo,
-                onNavigate = onNavigate,
-                onNavigateBack = onNavigateBack,
-            )
-        }
-        composable<WalletDestination.PromptAddContact> { backStackEntry ->
-            val dest: WalletDestination.PromptAddContact = backStackEntry.toRoute()
-            PromptAddContactScreen(
-                model = model,
-                uriString = dest.uriString,
                 onNavigate = onNavigate,
                 onNavigateBack = onNavigateBack,
             )

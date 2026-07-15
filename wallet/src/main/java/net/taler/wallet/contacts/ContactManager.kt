@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import net.taler.wallet.backend.BackendManager
+import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.main.TAG
@@ -44,10 +45,22 @@ data class ContactListResponse(
     val contacts: List<ContactEntry>,
 )
 
+@Serializable
+data class LookupAliasResponse(
+    val targetUri: String?,
+)
+
 sealed class ContactResult {
     data object Loading : ContactResult()
     data class Error(val error: TalerErrorInfo) : ContactResult()
     data class Success(val contacts: List<ContactEntry>) : ContactResult()
+}
+
+sealed class LookupResult {
+    data object Idle : LookupResult()
+    data object Loading : LookupResult()
+    data class Error(val error: TalerErrorInfo) : LookupResult()
+    data class Success(val targetUri: String) : LookupResult()
 }
 
 class ContactManager(
@@ -56,6 +69,13 @@ class ContactManager(
 ) {
     private val _contacts = MutableStateFlow<ContactResult>(ContactResult.Loading)
     val contacts = _contacts.asStateFlow()
+
+    private val _lookupResult = MutableStateFlow<LookupResult>(LookupResult.Idle)
+    val lookupResult = _lookupResult.asStateFlow()
+
+    fun resetLookup() {
+        _lookupResult.value = LookupResult.Idle
+    }
 
     fun loadContacts() {
         _contacts.value = ContactResult.Loading
@@ -94,6 +114,35 @@ class ContactManager(
                 loadContacts()
             }.onError {
                 Log.e(TAG, "Error adding contact: $it")
+            }
+        }
+    }
+
+    fun taldirLookupAlias(
+        alias: String,
+        aliasType: String,
+        taldirBaseUri: String = "https://taldir.gnunet.org",
+    ) {
+        _lookupResult.value = LookupResult.Loading
+        scope.launch {
+            api.request<LookupAliasResponse>("lookupAlias", LookupAliasResponse.serializer()) {
+                put("alias", alias)
+                put("aliasType", aliasType)
+                put("taldirBaseUrl", taldirBaseUri)
+            }.onSuccess { resp ->
+                Log.d(TAG, "Got Taldir target URI for $alias: ${resp.targetUri}")
+                val targetUri = resp.targetUri
+                if (targetUri.isNullOrBlank()) {
+                    _lookupResult.value = LookupResult.Error(TalerErrorInfo(
+                        code = TalerErrorCode.UNKNOWN,
+                        message = "Alias not found",
+                    ))
+                } else {
+                    _lookupResult.value = LookupResult.Success(targetUri)
+                }
+            }.onError {
+                Log.e(TAG, "Error looking up contact: $it")
+                _lookupResult.value = LookupResult.Error(it)
             }
         }
     }

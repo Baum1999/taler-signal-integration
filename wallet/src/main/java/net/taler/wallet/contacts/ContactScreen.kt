@@ -24,6 +24,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -31,6 +33,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -53,6 +56,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
@@ -65,18 +69,62 @@ import net.taler.wallet.transactions.TransactionStateFilter.Nonfinal
 fun ContactScreen(
     model: MainViewModel,
     sendUri: String? = null,
+    addContactUri: String? = null,
     scopeInfo: ScopeInfo? = null,
     onNavigate: NavigateCallback,
     onNavigateBack: () -> Unit,
 ) {
     val contactManager = model.contactManager
     val contactResult by contactManager.contacts.collectAsState()
+    val lookupResult by contactManager.lookupResult.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     var contactToConfirm by remember { mutableStateOf<ContactEntry?>(null) }
 
+    var initialAlias by remember { mutableStateOf("") }
+    var initialAliasType by remember { mutableStateOf("email") }
+    var initialMailboxBaseUri by remember { mutableStateOf("") }
+    var initialMailboxAddress by remember { mutableStateOf("") }
+    var initialSource by remember { mutableStateOf("") }
+    var initialPetname by remember { mutableStateOf("") }
+
+    fun fillFromUri(uriString: String) {
+        val uri = uriString.toUri()
+        val segments = uri.pathSegments
+        var mailboxAddressTmp = uriString
+        val aliasType = segments.getOrNull(0) ?: ""
+        mailboxAddressTmp = mailboxAddressTmp.removePrefix("taler://add-contact/")
+        mailboxAddressTmp = mailboxAddressTmp.removePrefix("""$aliasType/""")
+        val alias = segments.getOrNull(1) ?: ""
+        mailboxAddressTmp = mailboxAddressTmp.removePrefix("""$alias/""")
+        val mailboxAddressFull = mailboxAddressTmp.split("?")[0]
+        val mailboxAddress = mailboxAddressFull.split("/").last()
+        val mailboxBaseUri = buildString {
+            append("https://")
+            append(mailboxAddressFull.removeSuffix(mailboxAddress))
+        }
+        val petname = uri.getQueryParameter("petname") ?: ""
+
+        initialAlias = alias
+        initialAliasType = aliasType
+        initialMailboxBaseUri = mailboxBaseUri
+        initialMailboxAddress = mailboxAddress
+        initialSource = uriString
+        initialPetname = petname
+        showAddDialog = true
+    }
+
     LaunchedEffect(Unit) {
         contactManager.loadContacts()
+        addContactUri?.let { fillFromUri(it) }
+    }
+
+    LaunchedEffect(lookupResult) {
+        if (lookupResult is LookupResult.Success) {
+            val uri = (lookupResult as LookupResult.Success).targetUri
+            contactManager.resetLookup()
+            fillFromUri(uri)
+        }
     }
 
     Scaffold(
@@ -163,38 +211,113 @@ fun ContactScreen(
 
     if (showAddDialog) {
         AddContactDialog(
-            onDismiss = { showAddDialog = false },
+            initialAlias = initialAlias,
+            initialAliasType = initialAliasType,
+            initialMailboxBaseUri = initialMailboxBaseUri,
+            initialMailboxAddress = initialMailboxAddress,
+            initialSource = initialSource,
+            initialPetname = initialPetname,
+            onDismiss = {
+                showAddDialog = false
+                contactManager.resetLookup()
+                initialAlias = ""
+                initialAliasType = "email"
+                initialMailboxBaseUri = ""
+                initialMailboxAddress = ""
+                initialSource = ""
+                initialPetname = ""
+            },
             onAdd = { alias, aliasType, mailboxBaseUri, mailboxAddress, source, petname ->
                 contactManager.addContact(alias, aliasType, mailboxBaseUri, mailboxAddress, source, petname)
                 showAddDialog = false
-            }
+            },
+            onLookup = { alias, aliasType ->
+                contactManager.taldirLookupAlias(alias, aliasType)
+            },
+            lookupResult = lookupResult,
         )
     }
 }
 
 @Composable
 fun AddContactDialog(
+    initialAlias: String = "",
+    initialAliasType: String = "email",
+    initialMailboxBaseUri: String = "",
+    initialMailboxAddress: String = "",
+    initialSource: String = "",
+    initialPetname: String = "",
     onDismiss: () -> Unit,
     onAdd: (String, String, String, String, String, String) -> Unit,
+    onLookup: (String, String) -> Unit,
+    lookupResult: LookupResult,
 ) {
-    var alias by remember { mutableStateOf("") }
-    var aliasType by remember { mutableStateOf("") }
-    var mailboxBaseUri by remember { mutableStateOf("") }
-    var mailboxAddress by remember { mutableStateOf("") }
-    var source by remember { mutableStateOf("") }
-    var petname by remember { mutableStateOf("") }
+    var alias by remember { mutableStateOf(initialAlias) }
+    var aliasType by remember { mutableStateOf(initialAliasType) }
+    var mailboxBaseUri by remember { mutableStateOf(initialMailboxBaseUri) }
+    var mailboxAddress by remember { mutableStateOf(initialMailboxAddress) }
+    var source by remember { mutableStateOf(initialSource) }
+    var petname by remember { mutableStateOf(initialPetname) }
+
+    LaunchedEffect(initialAlias) { alias = initialAlias }
+    LaunchedEffect(initialAliasType) { aliasType = initialAliasType }
+    LaunchedEffect(initialMailboxBaseUri) { mailboxBaseUri = initialMailboxBaseUri }
+    LaunchedEffect(initialMailboxAddress) { mailboxAddress = initialMailboxAddress }
+    LaunchedEffect(initialSource) { source = initialSource }
+    LaunchedEffect(initialPetname) { petname = initialPetname }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Add Contact") },
         text = {
-            Column {
-                OutlinedTextField(value = alias, onValueChange = { alias = it }, label = { Text("Alias") })
-                OutlinedTextField(value = aliasType, onValueChange = { aliasType = it }, label = { Text("Alias Type") })
-                OutlinedTextField(value = mailboxBaseUri, onValueChange = { mailboxBaseUri = it }, label = { Text("Mailbox Base URI") })
-                OutlinedTextField(value = mailboxAddress, onValueChange = { mailboxAddress = it }, label = { Text("Mailbox Address") })
-                OutlinedTextField(value = source, onValueChange = { source = it }, label = { Text("Source") })
-                OutlinedTextField(value = petname, onValueChange = { petname = it }, label = { Text("Petname") })
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                OutlinedTextField(
+                    value = petname,
+                    onValueChange = { petname = it },
+                    label = { Text("Petname") },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                )
+                OutlinedTextField(
+                    value = alias,
+                    onValueChange = { alias = it },
+                    label = { Text("Alias") },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                )
+                OutlinedTextField(
+                    value = aliasType,
+                    onValueChange = { aliasType = it },
+                    label = { Text("Alias Type") },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                )
+
+                if (lookupResult is LookupResult.Loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .padding(vertical = 8.dp)
+                            .align(Alignment.CenterHorizontally)
+                    )
+                } else {
+                    Button(
+                        onClick = { onLookup(alias, aliasType) },
+                        enabled = alias.isNotBlank() && aliasType.isNotBlank(),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                    ) {
+                        Text("Lookup with Taldir")
+                    }
+                }
+
+                if (lookupResult is LookupResult.Error) {
+                    Text(
+                        text = "Lookup failed: ${lookupResult.error.userFacingMsg}",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
+
+                OutlinedTextField(value = mailboxBaseUri, onValueChange = { mailboxBaseUri = it }, label = { Text("Mailbox Base URI") }, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp))
+                OutlinedTextField(value = mailboxAddress, onValueChange = { mailboxAddress = it }, label = { Text("Mailbox Address") }, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp))
+                OutlinedTextField(value = source, onValueChange = { source = it }, label = { Text("Source") }, modifier = Modifier.fillMaxWidth())
             }
         },
         confirmButton = {
