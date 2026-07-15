@@ -72,7 +72,7 @@ class MailboxManager(
     private val api: WalletBackendApi,
     private val scope: CoroutineScope,
     private val isDevMode: () -> Boolean,
-    private val onMessage: ((String) -> Unit)? = null,
+    private val onMessage: ((msg: String, actionLabel: String?, onAction: (() -> Unit)?) -> Unit)? = null,
 ) {
     private val _mailbox = MutableStateFlow<MailboxResult>(MailboxResult.Loading)
     val mailbox = _mailbox.asStateFlow()
@@ -152,7 +152,9 @@ class MailboxManager(
                     response.messages.forEach { msg ->
                         addMessage(msg)
                     }
-                    onMessage?.invoke("Received ${response.messages.size} new message(s)")
+                    onMessage?.invoke("Received ${response.messages.size} new message(s)", "View") {
+                        // The UI should handle navigation when this is called
+                    }
                 }
                 getMessages(config)
             }.onError {
@@ -190,7 +192,7 @@ class MailboxManager(
                 put("talerUri", talerUri)
             }.onSuccess {
                 Log.i(TAG, "Message sent successfully to ${contact.petname}")
-                onMessage?.invoke("Message sent to ${contact.petname}")
+                onMessage?.invoke("Message sent to ${contact.petname}", null, null)
             }.onError {
                 Log.e(TAG, "Error sending message to ${contact.petname}: $it")
             }

@@ -68,6 +68,24 @@ import java.util.UUID
 const val TAG = "taler-wallet"
 const val OBSERVABILITY_LIMIT = 100
 
+<<<<<<< HEAD
+=======
+private val transactionNotifications = listOf(
+    "transaction-state-transition",
+)
+
+private val observabilityNotifications = listOf(
+    "task-observability-event",
+    "request-observability-event",
+)
+
+data class NotifyMessage(
+    val content: String,
+    val actionLabel: String? = null,
+    val onAction: (() -> Unit)? = null,
+)
+
+>>>>>>> 194dea06 (allow to access mailbox from notifications)
 class MainViewModel(
     app: Application,
 ) : AndroidViewModel(app), InitReceiver, NotificationReceiver {
@@ -120,7 +138,9 @@ class MainViewModel(
         api = api,
         scope = viewModelScope,
         isDevMode = { devMode.value == true },
-    ) { showInfoMessage(it) }
+    ) { msg, actionLabel, onAction ->
+        showInfoMessage(msg, actionLabel, onAction)
+    }
 
     private val mAuthenticated = MutableStateFlow(false)
     val authenticated: StateFlow<Boolean> = mAuthenticated
@@ -134,6 +154,15 @@ class MainViewModel(
     private val mShowObservabilityLog = MutableStateFlow(false)
     val showObservabilityLog: StateFlow<Boolean> = mShowObservabilityLog
 
+<<<<<<< HEAD
+=======
+    private val mScanCodeEvent = MutableLiveData<Event<Boolean>>()
+    val scanCodeEvent: LiveData<Event<Boolean>> = mScanCodeEvent
+
+    private val mShowMessageEvent = MutableLiveData<Event<NotifyMessage>>()
+    val showMessageEvent: LiveData<Event<NotifyMessage>> = mShowMessageEvent
+
+>>>>>>> 194dea06 (allow to access mailbox from notifications)
     private val mViewMode = MutableStateFlow<ViewMode>(ViewMode.Assets)
     val viewMode: StateFlow<ViewMode> = mViewMode
 
