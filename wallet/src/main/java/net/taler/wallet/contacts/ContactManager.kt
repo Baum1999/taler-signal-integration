@@ -60,7 +60,7 @@ sealed class LookupResult {
     data object Idle : LookupResult()
     data object Loading : LookupResult()
     data class Error(val error: TalerErrorInfo) : LookupResult()
-    data class Success(val targetUri: String) : LookupResult()
+    data class Success(val targetUri: String, val source: String) : LookupResult()
 }
 
 class ContactManager(
@@ -138,7 +138,7 @@ class ContactManager(
                         message = "Alias not found",
                     ))
                 } else {
-                    _lookupResult.value = LookupResult.Success(targetUri)
+                    _lookupResult.value = LookupResult.Success(targetUri, taldirBaseUri)
                 }
             }.onError {
                 Log.e(TAG, "Error looking up contact: $it")

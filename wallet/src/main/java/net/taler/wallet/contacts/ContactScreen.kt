@@ -88,7 +88,7 @@ fun ContactScreen(
     var initialSource by remember { mutableStateOf("") }
     var initialPetname by remember { mutableStateOf("") }
 
-    fun fillFromUri(uriString: String) {
+    fun fillFromUri(uriString: String, overriddenSource: String? = null) {
         val uri = uriString.toUri()
         val segments = uri.pathSegments
         var mailboxAddressTmp = uriString
@@ -99,17 +99,22 @@ fun ContactScreen(
         mailboxAddressTmp = mailboxAddressTmp.removePrefix("""$alias/""")
         val mailboxAddressFull = mailboxAddressTmp.split("?")[0]
         val mailboxAddress = mailboxAddressFull.split("/").last()
-        val mailboxBaseUri = buildString {
-            append("https://")
-            append(mailboxAddressFull.removeSuffix(mailboxAddress))
+        val mailboxBaseUri = if (mailboxAddressFull.startsWith("http://") || mailboxAddressFull.startsWith("https://")) {
+            mailboxAddressFull.removeSuffix(mailboxAddress)
+        } else {
+            buildString {
+                append("https://")
+                append(mailboxAddressFull.removeSuffix(mailboxAddress))
+            }
         }
         val petname = uri.getQueryParameter("petname") ?: ""
+        val source = overriddenSource ?: uri.getQueryParameter("source") ?: "QR"
 
         initialAlias = alias
         initialAliasType = aliasType
         initialMailboxBaseUri = mailboxBaseUri
         initialMailboxAddress = mailboxAddress
-        initialSource = uriString
+        initialSource = source
         initialPetname = petname
         showAddDialog = true
     }
@@ -121,9 +126,9 @@ fun ContactScreen(
 
     LaunchedEffect(lookupResult) {
         if (lookupResult is LookupResult.Success) {
-            val uri = (lookupResult as LookupResult.Success).targetUri
+            val res = lookupResult as LookupResult.Success
             contactManager.resetLookup()
-            fillFromUri(uri)
+            fillFromUri(res.targetUri, res.source)
         }
     }
 
@@ -235,6 +240,7 @@ fun ContactScreen(
                 contactManager.taldirLookupAlias(alias, aliasType)
             },
             lookupResult = lookupResult,
+            existingContacts = (contactResult as? ContactResult.Success)?.contacts ?: emptyList()
         )
     }
 }
@@ -251,18 +257,23 @@ fun AddContactDialog(
     onAdd: (String, String, String, String, String, String) -> Unit,
     onLookup: (String, String) -> Unit,
     lookupResult: LookupResult,
+    existingContacts: List<ContactEntry> = emptyList(),
 ) {
     var alias by remember { mutableStateOf(initialAlias) }
     var aliasType by remember { mutableStateOf(initialAliasType) }
-    var mailboxBaseUri by remember { mutableStateOf(initialMailboxBaseUri) }
-    var mailboxAddress by remember { mutableStateOf(initialMailboxAddress) }
+    var mailbox by remember {
+        mutableStateOf(if (initialMailboxBaseUri.isEmpty()) "" else "$initialMailboxBaseUri$initialMailboxAddress")
+    }
     var source by remember { mutableStateOf(initialSource) }
     var petname by remember { mutableStateOf(initialPetname) }
 
+    val isDuplicate = existingContacts.any { it.alias == alias && it.aliasType == aliasType }
+
     LaunchedEffect(initialAlias) { alias = initialAlias }
     LaunchedEffect(initialAliasType) { aliasType = initialAliasType }
-    LaunchedEffect(initialMailboxBaseUri) { mailboxBaseUri = initialMailboxBaseUri }
-    LaunchedEffect(initialMailboxAddress) { mailboxAddress = initialMailboxAddress }
+    LaunchedEffect(initialMailboxBaseUri, initialMailboxAddress) {
+        mailbox = if (initialMailboxBaseUri.isEmpty()) "" else "$initialMailboxBaseUri$initialMailboxAddress"
+    }
     LaunchedEffect(initialSource) { source = initialSource }
     LaunchedEffect(initialPetname) { petname = initialPetname }
 
@@ -281,14 +292,25 @@ fun AddContactDialog(
                     value = alias,
                     onValueChange = { alias = it },
                     label = { Text("Alias") },
+                    isError = isDuplicate,
                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
                 )
                 OutlinedTextField(
                     value = aliasType,
                     onValueChange = { aliasType = it },
                     label = { Text("Alias Type") },
+                    isError = isDuplicate,
                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
                 )
+
+                if (isDuplicate) {
+                    Text(
+                        text = "A contact with this alias and type already exists.",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
 
                 if (lookupResult is LookupResult.Loading) {
                     CircularProgressIndicator(
@@ -315,15 +337,26 @@ fun AddContactDialog(
                     )
                 }
 
-                OutlinedTextField(value = mailboxBaseUri, onValueChange = { mailboxBaseUri = it }, label = { Text("Mailbox Base URI") }, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp))
-                OutlinedTextField(value = mailboxAddress, onValueChange = { mailboxAddress = it }, label = { Text("Mailbox Address") }, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp))
-                OutlinedTextField(value = source, onValueChange = { source = it }, label = { Text("Source") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(
+                    value = mailbox,
+                    onValueChange = { mailbox = it },
+                    label = { Text("Mailbox") },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                )
             }
         },
         confirmButton = {
             Button(
-                onClick = { onAdd(alias, aliasType, mailboxBaseUri, mailboxAddress, source, petname) },
-                enabled = alias.isNotBlank() && petname.isNotBlank()
+                onClick = {
+                    val mailboxParts = mailbox.split("/")
+                    val base = if (mailboxParts.size > 1) {
+                        mailboxParts.dropLast(1).joinToString("/", postfix = "/")
+                    } else ""
+                    val addr = mailboxParts.last()
+                    val finalSource = source.ifBlank { "local" }
+                    onAdd(alias, aliasType, base, addr, finalSource, petname)
+                },
+                enabled = alias.isNotBlank() && petname.isNotBlank() && mailbox.isNotBlank() && !isDuplicate
             ) {
                 Text(stringResource(R.string.ok))
             }
