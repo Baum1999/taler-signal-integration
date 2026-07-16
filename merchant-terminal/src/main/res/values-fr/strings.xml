@@ -118,6 +118,7 @@
     <string name="settings_instance_description">Modifier l’URL du portail commerçant, le nom d’utilisateur, le mot de passe et les autres paramètres.</string>
     <string name="settings_instance_button">Modifier les paramètres de connexion</string>
     <string name="settings_logout_button">Se déconnecter</string>
+    <string name="settings_about_title">À propos</string>
     <string name="amount_entry_label">Montant</string>
     <string name="amount_entry_charge">Encaisser</string>
     <string name="amount_entry_create_order_charge">Créer une commande (encaisser le montant)</string>
