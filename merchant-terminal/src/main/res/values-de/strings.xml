@@ -2,17 +2,17 @@
 <resources>
     <string name="app_name_short">Taler POS</string>
     <string name="project_name">GNU Taler</string>
-    <string name="menu_order">Normale Bestellung</string>
+    <string name="menu_order">Bestellung nach Inventar</string>
     <string name="menu_history">Verlauf</string>
     <string name="menu_settings">Einstellungen</string>
     <string name="order_label_title">Bestellung #%s</string>
     <string name="order_total">Summe: %s</string>
     <string name="order_restart">Leeren</string>
     <string name="order_undo">Rückgängig machen</string>
-    <string name="order_previous">Vorherige Bestellung</string>
-    <string name="order_next">Nächste Bestellung</string>
-    <string name="order_complete">Abrechnung</string>
-    <string name="order_complete_with_amount">Abrechnung %s</string>
+    <string name="order_previous">Zurück</string>
+    <string name="order_next">Weiter</string>
+    <string name="order_complete">Kassieren</string>
+    <string name="order_complete_with_amount">Kassieren %s</string>
     <string name="settings_app_title">App-Einstellungen</string>
     <string name="config_url">Konfigurations-URL</string>
     <string name="config_ok">Verbinden</string>
@@ -31,11 +31,11 @@
     <string name="payment_cancel">Bezahlvorgang abbrechen</string>
     <string name="payment_received">Zahlung erhalten</string>
     <string name="payment_back_button">Weiter</string>
-    <string name="payment_process_label">Kundenzahlung erforderlich</string>
+    <string name="payment_process_label">Zahlung erforderlich</string>
     <string name="payment_canceled">Die Zahlung wurde abgebrochen</string>
     <string name="payment_share_uri">Zahlungs-URI teilen</string>
     <string name="payment_copy_uri">Zahlungs-URI kopieren</string>
-    <string name="history_label">Bisher getätigte Zahlungen</string>
+    <string name="history_label">Zahlungsverlauf</string>
     <string name="history_refresh">Verlauf aktualisieren</string>
     <string name="history_ref_no" translatable="false">@string/payment_order_id</string>
     <string name="refund_amount">Betrag</string>
@@ -56,9 +56,9 @@
     <string name="config_error_malformed">Fehler: Die JSON-Konfiguration ist fehlerhaft</string>
     <string name="config_error_unknown">Fehler: Ungültige Konfiguration</string>
     <string name="config_docs">Informationen zum Konfigurationsformat finden Sie in <a href="https://docs.taler.net/taler-merchant-pos-terminal.html#apis-and-data-formats">der Dokumentation</a>.</string>
-    <string name="refund_error_max_amount">Größer als Bestellmenge von %s</string>
+    <string name="refund_error_max_amount">Größer als Bestellbetrag von %s</string>
     <string name="refund_error_backend">Fehler bei der Verarbeitung der Rückerstattung</string>
-    <string name="refund_intro_nfc">Bitte scannen Sie den QR-Code oder verwenden Sie NFC, um eine Rückerstattung zu erhalten</string>
+    <string name="refund_intro_nfc">Bitte den Kunden den QR-Code scannen oder NFC nutzen, um die Rückerstattung anzubieten</string>
     <string name="config_changed">Neuer Händler für %s aktiviert</string>
     <string name="history_refund">Rückerstattung</string>
     <string name="refund_complete">Erhalten</string>
@@ -80,11 +80,11 @@
     <string name="error_timeout">Keine Zahlung innerhalb des vorgegebenen Zeitraums erhalten, bitte versuchen Sie es erneut!</string>
     <string name="error_history">Fehler beim Abrufen des Bestellverlaufs</string>
     <string name="payment_claimed">Warten auf Zahlungsbestätigung durch Kunden…</string>
-    <string name="order_custom_product_default">Tipp</string>
+    <string name="order_custom_product_default">Trinkgeld</string>
     <string name="order_custom_add_button">Hinzufügen</string>
     <string name="config_old_label">JSON-Datei (alt)</string>
     <string name="config_manual_label">Manuelle Konfiguration</string>
-    <string name="config_setup_password">Händler (neu)</string>
+    <string name="config_setup_password">Passwort</string>
     <string name="config_merchant_url">Händlerportal-URL</string>
     <string name="config_token">Passwort</string>
     <string name="order_custom">Benutzerdefinierten Artikel hinzufügen</string>
@@ -92,7 +92,7 @@
     <string name="order_custom_product">Bezeichnung des Einzelartikels</string>
     <string name="host_apdu_service_desc">NFC-Zahlungen mit Taler Merchant</string>
     <string name="toast_reloading">Inventar wird neu geladen</string>
-    <string name="config_old_deprecation">Diese Konfigurationsmethode ist unterdrückt, bitte benutzen Sie die neue Schnittstellenkonfiguration.</string>
+    <string name="config_old_deprecation">Diese Konfigurationsmethode ist veraltet; bitte die neue Merchant-API-Konfiguration verwenden.</string>
     <string name="product_image">Abbildung des Artikels</string>
     <string name="product_category_uncategorized">Ohne Kategorie</string>
     <string name="forever">Unbefristet</string>
@@ -113,7 +113,7 @@
     <string name="amount_entry_product_description">Normale Bestellung</string>
     <string name="amount_entry_error_zero">Bitte geben Sie einen Betrag ein</string>
     <string name="amount_entry_error_wrong_currency">Dies ist keine unterstützte Währung</string>
-    <string name="menu_amount_entry">Nach Betrag bestellen</string>
+    <string name="menu_amount_entry">Bestellung nach Betrag</string>
     <string name="product_category_all_objects">Alles</string>
     <string name="settings_language_label">Sprache</string>
     <string name="settings_language_hint">App-Sprache</string>
@@ -128,12 +128,12 @@
     <string name="settings_instance_button">Anmeldeeinstellungen ändern</string>
     <string name="settings_logout_button">Abmelden</string>
     <string name="settings_about_title">Über</string>
-    <string name="amount_entry_charge">Berechnen</string>
-    <string name="amount_entry_create_order_charge">Bestellung erstellen (Betrag berechnen)</string>
+    <string name="amount_entry_charge">Kassieren</string>
+    <string name="amount_entry_create_order_charge">Bestellung erstellen (Betrag kassieren)</string>
     <string name="amount_entry_backspace">Löschen</string>
     <string name="product_wrong_currency">Falsche Währung</string>
     <string name="force_delete_dialog_title">Löschen der Bestellung erzwingen?</string>
-    <string name="force_delete_dialog_message">Diese Bestellung wurde von einer Wallet beansprucht. Durch das erzwungene Löschen werden alle Bestandssperren aufgehoben und die Wallet kann die Zahlung nicht mehr abschließen.</string>
+    <string name="force_delete_dialog_message">Diese Bestellung wurde von einer Wallet beansprucht. Erzwungenes Löschen hebt Bestandssperren auf und verhindert den Abschluss der Zahlung in der Wallet.</string>
     <string name="force_delete_dialog_confirm">Löschen erzwingen</string>
     <string-array name="settings_language_values">
         <item></item>
