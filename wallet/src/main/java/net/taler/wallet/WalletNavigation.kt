@@ -114,6 +114,9 @@ sealed interface WalletDestination {
     @Serializable
     data object Mailbox : WalletDestination
 
+    @Serializable
+    data object AliasRegistration : WalletDestination
+
     // Transaction Details
     @Serializable
     data object TransactionWithdrawal : WalletDestination

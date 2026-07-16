@@ -39,6 +39,7 @@ import net.taler.wallet.accounts.BankAccountsScreen
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo
+import net.taler.wallet.contacts.AliasRegistrationScreen
 import net.taler.wallet.contacts.ContactScreen
 import net.taler.wallet.mailbox.MailboxScreen
 import net.taler.wallet.deposit.DepositScreen
@@ -389,6 +390,12 @@ fun WalletNavHost(
             MailboxScreen(
                 model = model,
                 onNavigate = onNavigate,
+                onNavigateBack = onNavigateBack,
+            )
+        }
+        composable<WalletDestination.AliasRegistration> {
+            AliasRegistrationScreen(
+                model = model,
                 onNavigateBack = onNavigateBack,
             )
         }

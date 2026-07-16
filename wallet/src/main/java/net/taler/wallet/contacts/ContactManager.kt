@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
+import net.taler.common.RelativeTime
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
@@ -50,6 +51,20 @@ data class LookupAliasResponse(
     val targetUri: String?,
 )
 
+@Serializable
+data class TaldirRegisterRequest(
+    val alias: String,
+    val aliasType: String,
+    val taldirBaseUrl: String,
+    val targetUri: String,
+    val duration: RelativeTime,
+)
+
+@Serializable
+data class TaldirRegisterResponse(
+    val validFor: RelativeTime? = null,
+)
+
 sealed class ContactResult {
     data object Loading : ContactResult()
     data class Error(val error: TalerErrorInfo) : ContactResult()
@@ -63,6 +78,15 @@ sealed class LookupResult {
     data class Success(val targetUri: String, val source: String) : LookupResult()
 }
 
+sealed class RegisterResult {
+    data object Idle : RegisterResult()
+    data object Loading : RegisterResult()
+    data class Error(val error: TalerErrorInfo) : RegisterResult()
+    data class Success(val validFor: RelativeTime?) : RegisterResult()
+    data object CompletionLoading : RegisterResult()
+    data object CompletionSuccess : RegisterResult()
+}
+
 class ContactManager(
     private val api: WalletBackendApi,
     private val scope: CoroutineScope,
@@ -73,8 +97,15 @@ class ContactManager(
     private val _lookupResult = MutableStateFlow<LookupResult>(LookupResult.Idle)
     val lookupResult = _lookupResult.asStateFlow()
 
+    private val _registerResult = MutableStateFlow<RegisterResult>(RegisterResult.Idle)
+    val registerResult = _registerResult.asStateFlow()
+
     fun resetLookup() {
         _lookupResult.value = LookupResult.Idle
+    }
+
+    fun resetRegistration() {
+        _registerResult.value = RegisterResult.Idle
     }
 
     fun loadContacts() {
@@ -155,6 +186,57 @@ class ContactManager(
                 loadContacts()
             }.onError {
                 Log.e(TAG, "Error deleting contact: $it")
+            }
+        }
+    }
+
+    fun taldirRegister(
+        alias: String,
+        aliasType: String,
+        taldirBaseUri: String = "https://taldir.gnunet.org",
+        targetUri: String,
+        durationMonths: Int,
+    ) {
+        val durationUs = durationMonths.toLong() * 30 * 24 * 3600 * 1000000L
+        _registerResult.value = RegisterResult.Loading
+        scope.launch {
+            api.request("registerAlias", TaldirRegisterResponse.serializer()) {
+                put("alias", alias)
+                put("aliasType", aliasType)
+                put("taldirBaseUrl", taldirBaseUri)
+                put("targetUri", targetUri)
+                put("duration", JSONObject(BackendManager.json.encodeToString(RelativeTime.serializer(), RelativeTime(durationUs))))
+            }.onSuccess {
+                Log.d(TAG, "Taldir registration initiated for $alias: $it")
+                _registerResult.value = RegisterResult.Success(it.validFor)
+            }.onError {
+                Log.e(TAG, "Error initiating Taldir registration: $it")
+                _registerResult.value = RegisterResult.Error(it)
+            }
+        }
+    }
+
+    fun completeTaldirRegister(
+        alias: String,
+        aliasType: String,
+        taldirBaseUri: String = "https://taldir.gnunet.org",
+        targetUri: String,
+        solution: String,
+    ) {
+        _registerResult.value = RegisterResult.CompletionLoading
+        scope.launch {
+            api.request<Unit>("completeRegisterAlias") {
+                put("alias", alias)
+                put("aliasType", aliasType)
+                put("taldirBaseUrl", taldirBaseUri)
+                put("targetUri", targetUri)
+                put("challenge", solution)
+            }.onSuccess {
+                Log.d(TAG, "Taldir registration completed for $alias")
+                _registerResult.value = RegisterResult.CompletionSuccess
+            }.onError {
+                Log.e(TAG, "Error completing Taldir registration: $it")
+                _registerResult.value = RegisterResult.Error(it)
             }
         }
     }

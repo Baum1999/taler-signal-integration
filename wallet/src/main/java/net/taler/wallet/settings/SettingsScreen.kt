@@ -254,6 +254,13 @@ fun SettingsScreen(
             )
 
             SettingsItem(
+                title = stringResource(R.string.alias_registration_title),
+                summary = "Taldir Registration",
+                icon = Icons.Default.Person,
+                onClick = { onNavigate(WalletDestination.AliasRegistration, false) }
+            )
+
+            SettingsItem(
                 title = stringResource(R.string.settings_db_export),
                 summary = stringResource(R.string.settings_db_export_summary),
                 icon = ImageVector.vectorResource(R.drawable.ic_unarchive),
