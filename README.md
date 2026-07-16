@@ -68,9 +68,24 @@ From the git repository's root path:
 ./check-translations.py de     # German
 ./check-translations.py it     # Italian
 ./check-translations.py fr     # French
+
+# Lint-like checks (format args, extra keys, string-array lengths):
+
+./check-translations.py de --lint
+./check-translations.py fr --lint
+./check-translations.py --lint   # all languages
 ```
 
+``--lint`` reports:
+
+* **MissingTranslation** / **ExtraTranslation** (vs English ``values/``)
+* **StringFormatCount** (``%s`` / ``%1$d`` placeholders must match)
+* **StringArrayLength** / **StringArrayPair** (e.g. language values vs labels)
+
+Exit status is non-zero if missing strings (with ``LANG``) or lint issues
+(with ``--lint``) are found.
+
 For the PoS app (``merchant-terminal``), DE and FR should report
-``(complete)`` / 0 missing when checked with the script above
-(see #11424). Other modules (e.g. wallet) may still list missing keys;
-that is unrelated to PoS completeness.
+``(complete)`` / 0 missing and clean ``--lint`` output (see #11424).
+Other modules (e.g. wallet) may still list missing keys; that is
+unrelated to PoS completeness.
