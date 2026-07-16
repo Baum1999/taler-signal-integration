@@ -85,7 +85,5 @@ From the git repository's root path:
 Exit status is non-zero if missing strings (with ``LANG``) or lint issues
 (with ``--lint``) are found.
 
-For the PoS app (``merchant-terminal``), DE and FR should report
-``(complete)`` / 0 missing and clean ``--lint`` output (see #11424).
-Other modules (e.g. wallet) may still list missing keys; that is
-unrelated to PoS completeness.
+The overview and per-language output cover **all** app modules in the
+repository (not only PoS).
