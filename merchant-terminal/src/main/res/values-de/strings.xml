@@ -88,10 +88,10 @@
     <string name="config_merchant_url">Händlerportal-URL</string>
     <string name="config_token">Passwort</string>
     <string name="order_custom">Benutzerdefinierten Artikel hinzufügen</string>
-    <string name="menu_reload">Inventar neu laden</string>
+    <string name="menu_reload">Bestand neu laden</string>
     <string name="order_custom_product">Bezeichnung des Einzelartikels</string>
     <string name="host_apdu_service_desc">NFC-Zahlungen mit Taler Merchant</string>
-    <string name="toast_reloading">Inventar wird neu geladen</string>
+    <string name="toast_reloading">Bestand wird neu geladen</string>
     <string name="config_old_deprecation">Diese Konfigurationsmethode ist veraltet; bitte die neue Merchant-API-Konfiguration verwenden.</string>
     <string name="product_image">Abbildung des Artikels</string>
     <string name="product_category_uncategorized">Ohne Kategorie</string>
@@ -167,6 +167,6 @@
     <string name="product_out_of_stock">Nicht auf Lager</string>
     <string name="order_delete">Bestellung löschen</string>
     <string name="error_order_creation">Fehler: Bestellung konnte nicht erstellt werden</string>
-    <string name="error_inventory_unavailable">Fehler: Nicht genug Inventar verfügbar</string>
+    <string name="error_inventory_unavailable">Fehler: Nicht genügend Bestand verfügbar</string>
     <string name="error_delete_order">Fehler: Bestellung konnte nicht gelöscht werden</string>
 </resources>
