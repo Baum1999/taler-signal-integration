@@ -18,6 +18,7 @@ package net.taler.wallet.backend
 
 import android.util.Log
 import io.ktor.client.call.body
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.request.header
 import io.ktor.client.request.headers
@@ -41,6 +42,14 @@ import java.util.concurrent.ConcurrentHashMap
 class NetworkInterface: Networking.RequestHandler {
     private val requests: ConcurrentHashMap<Int, Job> = ConcurrentHashMap()
 
+    private val sharedClient by lazy {
+        getDefaultHttpClient(followRedirect = false, logging = false)
+    }
+
+    private val redirectClient by lazy {
+        getDefaultHttpClient(followRedirect = true, logging = false)
+    }
+
     override fun handleRequest(
         req: Networking.RequestInfo,
         id: Int,
@@ -49,16 +58,15 @@ class NetworkInterface: Networking.RequestHandler {
         Log.d(TAG, "HTTP: handleRequest($req, $id")
 
         requests[id] = GlobalScope.launch {
-            val client = getDefaultHttpClient(
-                timeoutMs = req.timeoutMs,
-                followRedirect = req.redirectMode == Networking.RedirectMode.Transparent,
-                logging = req.debug,
-            )
+            val client = if (req.redirectMode == Networking.RedirectMode.Transparent) {
+                redirectClient
+            } else {
+                sharedClient
+            }
 
             var errorMsg: String? = null
 
             val resp = try {
-                // TODO: reuse the same client for every request
                 client.request {
                     url(req.url)
 
@@ -74,6 +82,14 @@ class NetworkInterface: Networking.RequestHandler {
                     if (req.body != null) {
                         setBody(req.body)
                     }
+
+                    timeout {
+                        val t = req.timeoutMs
+                        if (t > 0) {
+                            requestTimeoutMillis = t
+                            socketTimeoutMillis = t
+                        }
+                    }
                 }
             } catch (e: ResponseException) {
                 e.response // send non-200 responses to wallet-core anyway
@@ -87,7 +103,6 @@ class NetworkInterface: Networking.RequestHandler {
                 null
             } finally {
                 cleanupRequest(id)
-                client.close()
             }
 
             // HTTP response status code or 0 on error.

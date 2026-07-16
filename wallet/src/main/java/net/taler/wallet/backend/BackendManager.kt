@@ -17,6 +17,11 @@
 package net.taler.wallet.backend
 
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import net.taler.qtart.TalerWalletCore
 import net.taler.wallet.BuildConfig
@@ -48,6 +53,7 @@ class BackendManager(
     private val walletCore = TalerWalletCore()
     private val requestManager = RequestManager()
     private val networkInterface = NetworkInterface()
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     fun run() {
         if (!initialized.getAndSet(true)) {
@@ -62,6 +68,7 @@ class BackendManager(
 
     fun destroy() {
         if (initialized.getAndSet(false)) {
+            scope.cancel()
             walletCore.destroy()
         }
     }
@@ -79,7 +86,7 @@ class BackendManager(
             }
         }
 
-    private fun onMessageReceived(msg: String) {
+    private fun onMessageReceived(msg: String) = scope.launch {
         Log.d(TAG, "message received: $msg")
         when (val message = json.decodeFromString<ApiMessage>(msg)) {
             is ApiMessage.Notification -> {

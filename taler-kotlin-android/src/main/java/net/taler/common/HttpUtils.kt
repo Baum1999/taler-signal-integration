@@ -29,18 +29,33 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.http.HttpMethod
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import okhttp3.ConnectionPool
+import okhttp3.Protocol
+import java.util.concurrent.TimeUnit
+
+private val clientCache = mutableMapOf<String, HttpClient>()
 
 fun getDefaultHttpClient(
     withJson: Boolean = true,
-    timeoutMs: Long? = null,
     followRedirect: Boolean = false,
     logging: Boolean = true,
+): HttpClient {
+    val key = "$withJson-$followRedirect-$logging"
+    return clientCache.getOrPut(key) { createClient(withJson, followRedirect, logging) }
+}
+
+private fun createClient(
+    withJson: Boolean,
+    followRedirect: Boolean,
+    logging: Boolean,
 ): HttpClient = HttpClient(OkHttp) {
     expectSuccess = true
     followRedirects = followRedirect
     engine {
         config {
             retryOnConnectionFailure(true)
+            connectionPool(ConnectionPool(5, 30, TimeUnit.SECONDS))
+            protocols(listOf(Protocol.HTTP_2, Protocol.HTTP_1_1))
         }
     }
     install(ContentNegotiation) {
@@ -52,12 +67,7 @@ fun getDefaultHttpClient(
         }
     }
     install(HttpTimeout) {
-        requestTimeoutMillis = if (timeoutMs != null && timeoutMs > 0) {
-            timeoutMs
-        } else {
-            INFINITE_TIMEOUT_MS
-        }
-
+        requestTimeoutMillis = INFINITE_TIMEOUT_MS
         socketTimeoutMillis = INFINITE_TIMEOUT_MS
         connectTimeoutMillis = INFINITE_TIMEOUT_MS
     }
@@ -76,6 +86,7 @@ fun String.toHttpMethod(): HttpMethod? = when(this) {
     "PUT" -> HttpMethod.Put
     "PATCH" -> HttpMethod.Patch
     "DELETE" -> HttpMethod.Delete
+    "HEAD" -> HttpMethod.Head
     "OPTIONS" -> HttpMethod.Options
     else -> null
 }
