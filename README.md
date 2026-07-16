@@ -52,20 +52,25 @@ Use the helper script ``check-translations.py`` to analyze the current
 translation coverage across all modules in the repository.
 
 *Note:
-The script automatically detects the git repos root via the .git folder
-and scans for all modules (merchant-terminal, cashier, wallet etc.), aslo
-when used from any sub folder of the git repository.*
+The script automatically detects the git repo root via the .git folder
+and scans all modules (merchant-terminal, cashier, wallet, etc.), also
+when run from any subfolder of the repository.*
 
-From the git repository's root path, you can run the script as follows:
+From the git repository's root path:
 
 ```bash
 # Overview of all languages
 
 ./check-translations.py
 
-# Show missing strings for a specific language; various examples:
+# Missing strings for a specific language (per module):
 
 ./check-translations.py de     # German
 ./check-translations.py it     # Italian
 ./check-translations.py fr     # French
 ```
+
+For the PoS app (``merchant-terminal``), DE and FR should report
+``(complete)`` / 0 missing when checked with the script above
+(see #11424). Other modules (e.g. wallet) may still list missing keys;
+that is unrelated to PoS completeness.
