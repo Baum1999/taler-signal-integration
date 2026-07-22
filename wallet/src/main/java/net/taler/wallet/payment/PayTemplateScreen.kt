@@ -115,12 +115,8 @@ fun PayTemplateScreen(
                     is BalanceState.Success -> PayTemplateComposable(
                         currencies = state.balances.map { it.currency },
                         payStatus = payStatus,
-                        onCreateAmount = model::createAmount,
                         onSubmit = { params ->
                             scope.launch { prepareTemplate(uri, params) }
-                        },
-                        onError = { errorMsg ->
-                            onShowError(TalerErrorInfo.makeCustomError(errorMsg))
                         },
                         onRetry = { retryTrigger++ },
                         getCurrencySpec = exchangeManager::getSpecForCurrency,

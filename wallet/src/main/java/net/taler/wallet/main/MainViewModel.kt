@@ -230,6 +230,7 @@ class MainViewModel(
         mViewMode.value = ViewMode.Transactions(scopeInfo, stateFilter = stateFilter)
     }
 
+    // FIXME: get rid of this ugliness! use wallet-core!
     @UiThread
     fun createAmount(amountText: String, currency: String, incoming: Boolean = false): AmountResult {
         val amount = try {

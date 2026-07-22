@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.common.RelativeTime
-import net.taler.wallet.main.AmountResult
 import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.compose.AmountCurrencyField
@@ -50,9 +49,7 @@ import net.taler.wallet.compose.TalerSurface
 fun PayTemplateOrderComposable(
     usableCurrencies: List<String>, // non-empty intersection between the stored currencies and the ones supported by the merchant
     templateDetails: WalletTemplateDetails,
-    onCreateAmount: (String, String) -> AmountResult,
     getCurrencySpec: (String) -> CurrencySpecification?,
-    onError: (msg: String) -> Unit,
     onSubmit: (params: TemplateParams) -> Unit,
 ) {
     val defaultSummary = templateDetails.defaultSummary
@@ -70,9 +67,6 @@ fun PayTemplateOrderComposable(
     val currencySpec = remember(amount.currency) {
         getCurrencySpec(amount.currency)
     }
-
-    val balanceInsufficientError = stringResource(R.string.payment_balance_insufficient)
-    val amountInvalidError = stringResource(R.string.amount_invalid)
 
     Column(horizontalAlignment = End) {
         OutlinedTextField(
@@ -106,15 +100,10 @@ fun PayTemplateOrderComposable(
             modifier = Modifier.padding(16.dp),
             enabled = !templateDetails.isSummaryEditable() || summary.isNotBlank(),
             onClick = {
-                when (val res = onCreateAmount(amount.amountStr, amount.currency)) {
-                    is AmountResult.InsufficientBalance -> onError(balanceInsufficientError)
-                    is AmountResult.InvalidAmount -> onError(amountInvalidError)
-                    // NOTE: it is important to nullify non-editable values!
-                    is AmountResult.Success -> onSubmit(TemplateParams(
-                        summary = if (templateDetails.isSummaryEditable()) summary else null,
-                        amount = if(templateDetails.isAmountEditable()) res.amount else null,
-                    ))
-                }
+                onSubmit(TemplateParams(
+                    summary = if (templateDetails.isSummaryEditable()) summary else null,
+                    amount = if(templateDetails.isAmountEditable()) amount else null,
+                ))
             },
         ) {
             Text(stringResource(R.string.payment_create_order))
@@ -171,11 +160,7 @@ fun PayTemplateDefaultPreview() {
         PayTemplateOrderComposable(
             templateDetails = defaultTemplateDetails,
             usableCurrencies = listOf("KUDOS", "ARS"),
-            onCreateAmount = { text, currency ->
-                AmountResult.Success(amount = Amount.fromString(currency, text))
-            },
             onSubmit = { _ -> },
-            onError = { },
             getCurrencySpec = { null },
         )
     }
@@ -188,11 +173,7 @@ fun PayTemplateFixedAmountPreview() {
         PayTemplateOrderComposable(
             templateDetails = fixedAmountDetails,
             usableCurrencies = listOf("KUDOS", "ARS"),
-            onCreateAmount = { text, currency ->
-                AmountResult.Success(amount = Amount.fromString(currency, text))
-            },
             onSubmit = { _ -> },
-            onError = { },
             getCurrencySpec = { null },
         )
     }
@@ -205,11 +186,7 @@ fun PayTemplateBlankSubjectPreview() {
         PayTemplateOrderComposable(
             templateDetails = blankSubjectDetails,
             usableCurrencies = listOf("KUDOS", "ARS"),
-            onCreateAmount = { text, currency ->
-                AmountResult.Success(amount = Amount.fromString(currency, text))
-            },
             onSubmit = { _ -> },
-            onError = { },
             getCurrencySpec = { null },
         )
     }

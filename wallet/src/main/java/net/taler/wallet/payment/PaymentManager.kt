@@ -144,7 +144,11 @@ class PaymentManager(
                         res.contractTerms.exchanges.map {
                             ScopeInfo.Exchange(choice.amountRaw.currency, it.url)
                         },
-                    ) ?: exchangeManager.getSpecForCurrency(choice.amountRaw.currency)
+                    ) ?: res.contractTerms.exchanges.firstOrNull()?.let {
+                        exchangeManager.getSpecForScopeInfo(
+                            ScopeInfo.Exchange(choice.amountRaw.currency, it.url)
+                        )
+                    }
 
                     when (choice) {
                         is PaymentPossible -> {

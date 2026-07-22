@@ -26,12 +26,14 @@ enum class TemplateType {
     @SerialName("fixed-order")
     FixedOrder,
 
+    @Suppress("unused")
     @SerialName("inventory-cart")
     InventoryCart,
 
     @SerialName("paivana")
     Paivana,
 
+    @Suppress("unused")
     Unknown,
 }
 

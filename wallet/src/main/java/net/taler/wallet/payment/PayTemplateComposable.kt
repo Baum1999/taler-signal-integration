@@ -34,6 +34,7 @@ import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.wallet.main.AmountResult
 import net.taler.wallet.R
+import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.systemBarsPaddingBottom
@@ -43,9 +44,7 @@ fun PayTemplateComposable(
     currencies: List<String>,
     payStatus: PayStatus,
     getCurrencySpec: (String) -> CurrencySpecification?,
-    onCreateAmount: (String, String) -> AmountResult,
     onSubmit: (params: TemplateParams) -> Unit,
-    onError: (msg: String) -> Unit,
     onRetry: (() -> Unit)? = null,
 ) {
     if (currencies.isEmpty()) {
@@ -62,8 +61,6 @@ fun PayTemplateComposable(
                 PayTemplateOrderComposable(
                     usableCurrencies = usableCurrencies,
                     templateDetails = p.details,
-                    onCreateAmount = onCreateAmount,
-                    onError = onError,
                     onSubmit = onSubmit,
                     getCurrencySpec = getCurrencySpec,
                 )
@@ -131,11 +128,7 @@ fun PayTemplateLoadingPreview() {
         PayTemplateComposable(
             payStatus = PayStatus.Loading,
             currencies = listOf("KUDOS", "ARS"),
-            onCreateAmount = { text, currency ->
-                AmountResult.Success(amount = Amount.fromString(currency, text))
-            },
             onSubmit = { _ -> },
-            onError = { _ -> },
             getCurrencySpec = { null },
         )
     }
@@ -148,11 +141,7 @@ fun PayTemplateNoCurrenciesPreview() {
         PayTemplateComposable(
             payStatus = PayStatus.None,
             currencies = emptyList(),
-            onCreateAmount = { text, currency ->
-                AmountResult.Success(amount = Amount.fromString(currency, text))
-            },
             onSubmit = { _ -> },
-            onError = { _ -> },
             getCurrencySpec = { null },
         )
     }

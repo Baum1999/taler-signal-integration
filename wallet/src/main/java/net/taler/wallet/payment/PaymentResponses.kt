@@ -40,6 +40,7 @@ import net.taler.wallet.payment.InsufficientBalanceHint.WalletBalanceMaterialIns
 @JsonClassDiscriminator("status")
 sealed class PreparePayResponse {
 
+    @Suppress("unused")
     @Serializable
     @SerialName("payment-possible")
     data class PaymentPossibleResponse(
@@ -47,6 +48,7 @@ sealed class PreparePayResponse {
         val contractTerms: ContractTerms,
     ) : PreparePayResponse()
 
+    @Suppress("unused")
     @Serializable
     @SerialName("insufficient-balance")
     data class InsufficientBalanceResponse(
@@ -56,6 +58,7 @@ sealed class PreparePayResponse {
         val balanceDetails: PaymentInsufficientBalanceDetails,
     ) : PreparePayResponse()
 
+    @Suppress("unused")
     @Serializable
     @SerialName("already-confirmed")
     data class AlreadyConfirmedResponse(
@@ -69,6 +72,7 @@ sealed class PreparePayResponse {
         val contractTerms: ContractTerms,
     ) : PreparePayResponse()
 
+    @Suppress("unused")
     @Serializable
     @SerialName("choice-selection")
     data class ChoiceSelection(
