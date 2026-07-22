@@ -1,19 +1,3 @@
-/*
- * This file is part of GNU Taler
- * (C) 2026 Taler Systems S.A.
- *
- * GNU Taler is free software; you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software
- * Foundation; either version 3, or (at your option) any later version.
- *
- * GNU Taler is distributed in the hope that it will be useful, but WITHOUT ANY
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * GNU Taler; see the file COPYING.  If not, see <http://www.gnu.org/licenses/>
- */
-
 package net.taler.wallet
 
 import android.net.Uri
@@ -30,10 +14,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.net.toUri
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.RetryScreen
@@ -56,104 +40,102 @@ fun HandleUriScreen(
     var processing by remember { mutableStateOf(false) }
     var errorInfo by remember { mutableStateOf<TalerErrorInfo?>(null) }
     val networkStatus by model.networkManager.networkStatus.observeAsState()
-    val devMode by model.devMode.observeAsState(false)
     val scope = rememberCoroutineScope()
 
     fun processTalerUri() {
         if (processing) return
         processing = true
+        scope.launch {
+            try {
+                val u = getTalerAction(model, uriString.trim().toUri(), 3)
+                Log.v(TAG, "found action $u")
 
-        val uri = uriString.trim().toUri()
-        // wifi connection logic omitted for now as it uses requireContext()
-
-        getTalerAction(model, uri, 3, MutableLiveData()).observeForever { u ->
-            Log.v(TAG, "found action $u")
-
-            if (u.startsWith("payto://", ignoreCase = true)) {
-                onNavigate(WalletDestination.PaytoUri(u), true)
-                return@observeForever
-            }
-
-            val normalizedURL = u.lowercase(Locale.ROOT)
-            var ext = false
-            val action = normalizedURL.substring(
-                if (normalizedURL.startsWith("taler://", ignoreCase = true)) {
-                    "taler://".length
-                } else if (normalizedURL.startsWith("ext+taler://", ignoreCase = true)) {
-                    ext = true
-                    "ext+taler://".length
-                } else if (normalizedURL.startsWith("taler+http://", ignoreCase = true) &&
-                    model.devMode.value == true
-                ) {
-                    "taler+http://".length
-                } else {
-                    normalizedURL.length
+                if (u.startsWith("payto://", ignoreCase = true)) {
+                    onNavigate(WalletDestination.PaytoUri(u), true)
+                    return@launch
                 }
-            )
 
-            val u2 = if (ext) {
-                "taler://" + u.substring("ext+taler://".length)
-            } else u
+                val normalizedURL = u.lowercase(Locale.ROOT)
+                var ext = false
+                val action = normalizedURL.substring(
+                    if (normalizedURL.startsWith("taler://", ignoreCase = true)) {
+                        "taler://".length
+                    } else if (normalizedURL.startsWith("ext+taler://", ignoreCase = true)) {
+                        ext = true
+                        "ext+taler://".length
+                    } else if (normalizedURL.startsWith("taler+http://", ignoreCase = true) &&
+                        model.devMode.value == true
+                    ) {
+                        "taler+http://".length
+                    } else {
+                        normalizedURL.length
+                    }
+                )
 
-            when {
-                action.startsWith("pay/", ignoreCase = true) -> {
-                    scope.launch {
+                val u2 = if (ext) {
+                    "taler://" + u.substring("ext+taler://".length)
+                } else u
+
+                when {
+                    action.startsWith("pay/", ignoreCase = true) -> {
                         model.paymentManager.preparePay(u2)?.let { transactionId ->
                             if (model.transactionManager.selectTransaction(transactionId)) {
                                 onNavigate(WalletDestination.TransactionPayment, true)
                             }
                         }
                     }
-                }
-                action.startsWith("withdraw/", ignoreCase = true) -> {
-                    model.withdrawManager.resetWithdrawal()
-                    onNavigate(WalletDestination.PromptWithdraw(
-                        withdrawUri = u2,
-                        editableCurrency = false
-                    ), true)
-                }
-                action.startsWith("withdraw-exchange/", ignoreCase = true) -> {
-                    model.withdrawManager.resetWithdrawal()
-                    onNavigate(WalletDestination.PromptWithdraw(
-                        withdrawExchangeUri = u2,
-                        editableCurrency = false
-                    ), true)
-                }
-                action.startsWith("refund/", ignoreCase = true) -> {
-                    model.showProgressBar.value = true
-                    model.refundManager.refund(u2).observeForever { status ->
-                        model.showProgressBar.value = false
-                        when (status) {
-                            is RefundStatus.Error -> {
-                                errorInfo = status.error
-                            }
-                            is RefundStatus.Success -> {
-                                onNavigateBack()
+                    action.startsWith("withdraw/", ignoreCase = true) -> {
+                        model.withdrawManager.resetWithdrawal()
+                        onNavigate(WalletDestination.PromptWithdraw(
+                            withdrawUri = u2,
+                            editableCurrency = false
+                        ), true)
+                    }
+                    action.startsWith("withdraw-exchange/", ignoreCase = true) -> {
+                        model.withdrawManager.resetWithdrawal()
+                        onNavigate(WalletDestination.PromptWithdraw(
+                            withdrawExchangeUri = u2,
+                            editableCurrency = false
+                        ), true)
+                    }
+                    action.startsWith("refund/", ignoreCase = true) -> {
+                        model.showProgressBar.value = true
+                        model.refundManager.refund(u2).observeForever { status ->
+                            model.showProgressBar.value = false
+                            when (status) {
+                                is RefundStatus.Error -> {
+                                    errorInfo = status.error
+                                }
+                                is RefundStatus.Success -> {
+                                    onNavigateBack()
+                                }
                             }
                         }
                     }
-                }
-                action.startsWith("pay-pull/", ignoreCase = true) -> {
-                    model.peerManager.preparePeerPullDebit(u2)
-                    onNavigate(WalletDestination.PromptPullPayment, true)
-                }
-                action.startsWith("pay-push/", ignoreCase = true) -> {
-                    model.peerManager.preparePeerPushCredit(u2)
-                    onNavigate(WalletDestination.PromptPushPayment, true)
-                }
-                action.startsWith("pay-template/", ignoreCase = true) -> {
-                    onNavigate(WalletDestination.PromptPayTemplate(u2), true)
-                }
-                action.startsWith("dev-experiment/", ignoreCase = true) -> {
-                    model.applyDevExperiment(u2) { error ->
-                        errorInfo = error
+                    action.startsWith("pay-pull/", ignoreCase = true) -> {
+                        model.peerManager.preparePeerPullDebit(u2)
+                        onNavigate(WalletDestination.PromptPullPayment, true)
                     }
-                    onNavigateBack()
+                    action.startsWith("pay-push/", ignoreCase = true) -> {
+                        model.peerManager.preparePeerPushCredit(u2)
+                        onNavigate(WalletDestination.PromptPushPayment, true)
+                    }
+                    action.startsWith("pay-template/", ignoreCase = true) -> {
+                        onNavigate(WalletDestination.PromptPayTemplate(u2), true)
+                    }
+                    action.startsWith("dev-experiment/", ignoreCase = true) -> {
+                        model.applyDevExperiment(u2) { error ->
+                            errorInfo = error
+                        }
+                        onNavigateBack()
+                    }
+                    else -> {
+                        errorInfo = TalerErrorInfo.makeCustomError("Unsupported URI: $u2")
+                    }
                 }
-                else -> {
-                    errorInfo = TalerErrorInfo.makeCustomError("Unsupported URI: $u2")
-                }
+            } catch (_: CancellationException) {
             }
+            processing = false
         }
     }
 
@@ -182,49 +164,45 @@ fun HandleUriScreen(
     }
 }
 
-private fun getTalerAction(
+private suspend fun getTalerAction(
     model: MainViewModel,
     uri: Uri,
     maxRedirects: Int,
-    actionFound: MutableLiveData<String>,
-): MutableLiveData<String> {
-    val scheme = uri.scheme ?: return actionFound
+): String {
+    val scheme = uri.scheme ?: return uri.toString()
+    if (scheme != "http" && scheme != "https") return uri.toString()
 
-    if (scheme == "http" || scheme == "https") {
-        model.viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val conn = URL(uri.toString()).openConnection() as HttpURLConnection
-                conn.setRequestProperty("Accept", "text/html")
-                conn.connectTimeout = 5000
-                conn.requestMethod = "HEAD"
-                conn.connect()
-                val status = conn.responseCode
-
-                if (status == HttpURLConnection.HTTP_OK || status == HttpURLConnection.HTTP_PAYMENT_REQUIRED) {
+    return withContext(Dispatchers.IO) {
+        try {
+            val conn = URL(uri.toString()).openConnection() as HttpURLConnection
+            conn.setRequestProperty("Accept", "text/html")
+            conn.connectTimeout = 5000
+            conn.requestMethod = "HEAD"
+            conn.connect()
+            when (conn.responseCode) {
+                HttpURLConnection.HTTP_OK,
+                HttpURLConnection.HTTP_PAYMENT_REQUIRED -> {
                     val talerHeader = conn.headerFields["Taler"]
                     if (talerHeader != null && talerHeader[0] != null) {
-                        val talerHeaderUri = talerHeader[0].toUri()
-                        getTalerAction(model, talerHeaderUri, 0, actionFound)
+                        getTalerAction(model, talerHeader[0].toUri(), 0)
                     } else {
-                        // Error handling omitted for brevity
-                    }
-                } else if (status == HttpURLConnection.HTTP_MOVED_TEMP
-                    || status == HttpURLConnection.HTTP_MOVED_PERM
-                    || status == HttpURLConnection.HTTP_SEE_OTHER
-                ) {
-                    val location = conn.headerFields["Location"]
-                    if (location != null && location[0] != null) {
-                        val locUri = location[0].toUri()
-                        getTalerAction(model, locUri, maxRedirects - 1, actionFound)
+                        uri.toString()
                     }
                 }
-            } catch (e: IOException) {
-                // Error handling omitted
+                HttpURLConnection.HTTP_MOVED_TEMP,
+                HttpURLConnection.HTTP_MOVED_PERM,
+                HttpURLConnection.HTTP_SEE_OTHER -> {
+                    val location = conn.headerFields["Location"]
+                    if (location != null && location[0] != null) {
+                        getTalerAction(model, location[0].toUri(), maxRedirects - 1)
+                    } else {
+                        uri.toString()
+                    }
+                }
+                else -> uri.toString()
             }
+        } catch (_: IOException) {
+            uri.toString()
         }
-    } else {
-        actionFound.postValue(uri.toString())
     }
-
-    return actionFound
 }

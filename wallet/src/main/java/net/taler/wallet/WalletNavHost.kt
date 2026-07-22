@@ -25,6 +25,9 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -83,22 +86,12 @@ fun WalletNavHost(
     }
 
     val onNavigate: NavigateCallback = { dest, popupToStart ->
-        navController.navigate(dest) {
-            if (popupToStart) {
-                // If startDestination is HandleUri, it means we are in "intent mode"
-                // where we want to close the app on back.
-                // We pop everything up to the root (the NavHost's startDestination) inclusively.
-                if (startDestination is WalletDestination.HandleUri) {
-                    popUpTo(navController.graph.id) {
-                        inclusive = true
-                    }
-                } else {
-                    popUpTo(startDestination) {
-                        inclusive = false
-                    }
-                }
+        if (popupToStart) {
+            navController.navigate(WalletDestination.Main) {
+                popUpTo(navController.graph.id) { inclusive = true }
             }
         }
+        navController.navigate(dest)
     }
 
     val onNavigateBack: () -> Unit = {
@@ -113,6 +106,16 @@ fun WalletNavHost(
         navController.addOnDestinationChangedListener(listener)
         onDispose {
             navController.removeOnDestinationChangedListener(listener)
+        }
+    }
+
+    val previousLaunchUri = remember { mutableStateOf(launchUri) }
+
+    LaunchedEffect(launchUri) {
+        val prev = previousLaunchUri.value
+        previousLaunchUri.value = launchUri
+        if (launchUri != null && prev != launchUri) {
+            navController.navigate(WalletDestination.HandleUri(launchUri))
         }
     }
 
