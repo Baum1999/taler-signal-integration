@@ -17,14 +17,24 @@
 package net.taler.wallet.withdraw
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryScrollableTabRow
+import androidx.compose.material3.SecondaryScrollableTabRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -55,20 +65,21 @@ import net.taler.wallet.transactions.TransactionMinorState
 import net.taler.wallet.transactions.TransactionState
 import net.taler.wallet.transactions.TransactionStateComposable
 import net.taler.wallet.transactions.TransactionWithdrawal
+import net.taler.wallet.transactions.TransferOption
 import net.taler.wallet.transactions.TransitionsComposable
-import net.taler.wallet.transactions.WithdrawalActions
 import net.taler.wallet.transactions.WithdrawalDetails.ManualTransfer
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
+import net.taler.wallet.transactions.WithdrawalTransfers
 
 @Composable
 fun TransactionWithdrawalComposable(
     t: TransactionWithdrawal,
     devMode: Boolean,
-    qrCode: QrCodeSpec?,
     spec: CurrencySpecification?,
+    onSelectOption: (option: TransferOption?) -> Unit,
     onConfirmKyc: (url: String) -> Unit,
     onConfirmBank: () -> Unit,
-    onConfirmManual: () -> Unit,
+    onConfirmManual: (option: TransferOption?) -> Unit,
     onShowQrCodes: () -> Unit,
     onTransition: (t: TransactionAction) -> Unit,
     modifier: Modifier = Modifier,
@@ -80,6 +91,53 @@ fun TransactionWithdrawalComposable(
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        val accounts = (t.withdrawalDetails as? ManualTransfer)
+            ?.exchangeCreditAccountDetails
+            ?.let { details ->
+            details.filter {
+                it.status == WithdrawalExchangeAccountDetails.Status.Ok
+            }.sortedByDescending {
+                it.priority
+            }
+        }
+
+        val defaultAccountIndex = 0
+        var selectedAccountIndex by rememberSaveable {
+            mutableIntStateOf(defaultAccountIndex) }
+        val selectedAccount = accounts?.getOrNull(selectedAccountIndex)
+        val defaultOptionIndex = 0
+        var selectedOptionIndex by rememberSaveable (selectedAccountIndex) {
+            mutableIntStateOf(defaultOptionIndex) }
+        val selectedOption = selectedAccount
+            ?.transferOptions[selectedOptionIndex]
+
+        LaunchedEffect(selectedOption) {
+            selectedOption?.let { onSelectOption(it) }
+        }
+
+        val showAccountChooser = accounts != null && accounts.size > 1
+        val showOptionChooser = selectedAccount != null && selectedAccount.transferOptions.size > 1
+
+        if (showAccountChooser) {
+            TransferAccountChooser(
+                accounts = accounts.map { it },
+                selectedIndex = selectedAccountIndex,
+                onSelectAccount = { selectedAccountIndex = it },
+            )
+        }
+
+        if (showOptionChooser) {
+            TransferOptionChooser(
+                options = selectedAccount.transferOptions,
+                selectedIndex = selectedOptionIndex,
+                onSelectOption = { selectedOptionIndex = it },
+            )
+        }
+
+        if (showAccountChooser || showOptionChooser) {
+            Spacer(Modifier.height(16.dp))
+        }
+
         TransactionStateComposable(state = t.txState, tx = t)
 
         Text(
@@ -111,11 +169,12 @@ fun TransactionWithdrawalComposable(
             amountType = AmountType.Positive,
         )
 
-        WithdrawalActions(t,
-            mainQrCode = qrCode,
-            onConfirmKyc = onConfirmKyc,
+        WithdrawalTransfers (
+            t,
+            selectedOption,
             onConfirmBank = onConfirmBank,
-            onConfirmManual = onConfirmManual,
+            onConfirmKyc = onConfirmKyc,
+            onConfirmManual = { onConfirmManual(selectedOption) },
             onShowQrCodes = onShowQrCodes,
         )
 
@@ -169,6 +228,77 @@ private val previewWithdrawalTx = TransactionWithdrawal(
     ))
 )
 
+@Composable
+fun TransferAccountChooser(
+    modifier: Modifier = Modifier,
+    accounts: List<WithdrawalExchangeAccountDetails>,
+    selectedIndex: Int,
+    onSelectAccount: (index: Int) -> Unit,
+) {
+    val selectedIndex = accounts.indexOfFirst {
+        it.paytoUri == accounts[selectedIndex].paytoUri
+    }
+
+    PrimaryScrollableTabRow(
+        selectedTabIndex = selectedIndex,
+        modifier = modifier,
+        edgePadding = 8.dp,
+    ) {
+        accounts.forEachIndexed { index, account ->
+            Tab(
+                selected = accounts[selectedIndex].paytoUri == account.paytoUri,
+                onClick = { onSelectAccount(index) },
+                text = {
+                    if (!account.bankLabel.isNullOrEmpty()) {
+                        Text(account.bankLabel)
+                    } else if (account.currencySpecification?.name != null) {
+                        Text(stringResource(
+                            R.string.withdraw_account_currency,
+                            index + 1,
+                            account.currencySpecification.name,
+                        ))
+                    } else if (account.transferAmount?.currency != null) {
+                        Text(stringResource(
+                            R.string.withdraw_account_currency,
+                            index + 1,
+                            account.transferAmount.currency,
+                        ))
+                    } else Text(stringResource(R.string.withdraw_account, index + 1))
+                },
+            )
+        }
+    }
+}
+
+@Composable
+fun TransferOptionChooser(
+    modifier: Modifier = Modifier,
+    options: List<TransferOption>,
+    selectedIndex: Int,
+    onSelectOption: (index: Int) -> Unit,
+) {
+    SecondaryScrollableTabRow (
+        selectedTabIndex = selectedIndex,
+        modifier = modifier,
+        edgePadding = 8.dp,
+    ) {
+        options.forEachIndexed { index, option ->
+            Tab(
+                selected = index == selectedIndex,
+                onClick = { onSelectOption(index) },
+                text = {
+                    when(option) {
+                        // FIXME: better i18n labels
+                        is TransferOption.Payto -> Text("payto://")
+                        is TransferOption.SwissQrBill -> Text("Swiss")
+                        is TransferOption.Uri -> Text("link")
+                    }
+                },
+            )
+        }
+    }
+}
+
 @Preview
 @Composable
 fun TransactionWithdrawalComposableSingleQrPreview() {
@@ -176,8 +306,8 @@ fun TransactionWithdrawalComposableSingleQrPreview() {
         TransactionWithdrawalComposable(
             t = previewWithdrawalTx,
             devMode = true,
-            qrCode = QrCodeSpec(QrCodeSpec.Type.SPC, "something"),
             spec = null,
+            onSelectOption = {},
             onConfirmKyc = {},
             onConfirmBank = {},
             onConfirmManual = {},
@@ -194,8 +324,8 @@ fun TransactionWithdrawalComposableMultiQrPreview() {
         TransactionWithdrawalComposable(
             t = previewWithdrawalTx,
             devMode = true,
-            qrCode = null,
             spec = null,
+            onSelectOption = {},
             onConfirmKyc = {},
             onConfirmBank = {},
             onConfirmManual = {},

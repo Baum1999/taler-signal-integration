@@ -30,14 +30,16 @@ import androidx.compose.ui.res.stringResource
 import net.taler.lib.android.openUri
 import net.taler.lib.android.shareText
 import net.taler.wallet.R
+import net.taler.wallet.compose.EmptyComposable
 import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.transactions.TransactionDeposit
 import net.taler.wallet.transactions.TransactionMajorState.Done
 import net.taler.wallet.transactions.TransactionWithdrawal
-import net.taler.wallet.transactions.WithdrawalDetails
+import net.taler.wallet.transactions.TransferOption
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
+import net.taler.wallet.withdraw.TransferData
 
 @Composable
 fun WireTransferDetailsScreen(
@@ -48,10 +50,10 @@ fun WireTransferDetailsScreen(
     val context = LocalContext.current
     val sharePaymentTitle = stringResource(R.string.share_payment)
     val transactionManager = model.transactionManager
-    val withdrawManager = model.withdrawManager
     val exchangeManager = model.exchangeManager
 
     val selectedTx by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
+    val selectedOption by transactionManager.selectedTransferOption.collectAsStateLifecycleAware()
     val devMode by model.devMode.observeAsState(false)
 
     LaunchedEffect(selectedTx) {
@@ -66,64 +68,103 @@ fun WireTransferDetailsScreen(
         title = { Text(stringResource(R.string.wire_transfer)) },
         onNavigateBack = onNavigateBack,
     ) { paddingValues ->
-        val transfers = remember(selectedTx) {
-            selectedTx?.let { tx ->
-                when (tx) {
-                    is TransactionWithdrawal -> when (tx.withdrawalDetails) {
-                        is WithdrawalDetails.ManualTransfer -> {
-                            tx.withdrawalDetails.exchangeCreditAccountDetails
-                        }
-                        else -> null
-                    }
-                    is TransactionDeposit -> tx.kycAuthTransferInfo?.let {
-                        it.creditPaytoUris.map { paytoUri ->
-                            WithdrawalExchangeAccountDetails(
-                                paytoUri = paytoUri,
-                                status = WithdrawalExchangeAccountDetails.Status.Ok,
-                            )
-                        }
-                    }
+        val tx = selectedTx ?: return@GlobalScaffold
+
+        val spec = tx.amountRaw.currency.let { currency ->
+            exchangeManager.getSpecForCurrency(currency, tx.scopes)
+        }
+
+        val bankAppClick: (TransferData) -> Unit = { transfer ->
+            context.openUri(uri = transfer.withdrawalAccount.paytoUri, title = sharePaymentTitle)
+        }
+
+        val shareClick: (TransferData) -> Unit = { transfer ->
+            context.shareText(text = transfer.withdrawalAccount.paytoUri)
+        }
+
+        when (tx) {
+            is TransactionWithdrawal -> {
+                val option = selectedOption
+                val paytoUri = when (option) {
+                    is TransferOption.Payto -> option.paytoUri
+                    is TransferOption.SwissQrBill -> option.paytoUri
                     else -> null
-                }?.map {
-                    it.getTransferDetails(
+                }
+                if (paytoUri == null || option == null) return@GlobalScaffold
+
+                val transferData = remember(option, tx) {
+                    WithdrawalExchangeAccountDetails(
+                        paytoUri = paytoUri,
+                        status = WithdrawalExchangeAccountDetails.Status.Ok,
+                    ).getTransferDetails(
                         amountRaw = tx.amountRaw,
-                        amountEffective = tx.amountEffective
+                        amountEffective = tx.amountEffective,
+                        transferOption = option,
                     )
                 }
-            }
-        }?.filterNotNull()
 
-        if (transfers != null) ScreenTransfer(
-            modifier = Modifier.padding(paddingValues),
-            transfers = transfers,
-            getQrCodes = { withdrawManager.getQrCodesForPayto(it.withdrawalAccount.paytoUri) },
-            spec = selectedTx?.amountRaw?.currency?.let {
-                selectedTx?.scopes?.let { selectedScopes ->
-                    exchangeManager.getSpecForCurrency(it, selectedScopes)
-                } ?: run {
-                    exchangeManager.getSpecForCurrency(it)
+                if (transferData != null) {
+                    ScreenTransfer(
+                        modifier = Modifier.padding(paddingValues),
+                        transfer = transferData,
+                        spec = spec,
+                        bankAppClick = bankAppClick,
+                        shareClick = shareClick,
+                        showQrCodes = showQrCodes,
+                        devMode = devMode,
+                        transferContext = TransferContext.ManualWithdrawal,
+                    )
+                } else {
+                    EmptyComposable(modifier = Modifier.padding(paddingValues))
                 }
-            },
-            bankAppClick = { transfer ->
-                context.openUri(
-                    uri = transfer.withdrawalAccount.paytoUri,
-                    title = sharePaymentTitle
-                )
-            },
-            shareClick = { transfer ->
-                context.shareText(
-                    text = transfer.withdrawalAccount.paytoUri,
-                )
-            },
-            showQrCodes = showQrCodes,
-            devMode = devMode,
-            transferContext = when (val tx = selectedTx) {
-                is TransactionWithdrawal -> TransferContext.ManualWithdrawal
-                is TransactionDeposit -> TransferContext.DepositKycAuth(
-                    tx.kycAuthTransferInfo?.debitPaytoUri ?: ""
-                )
-                else -> return@GlobalScaffold
             }
-        )
+
+            is TransactionDeposit -> {
+                val opt = tx.kycAuthTransferInfo?.transferOptions?.firstOrNull()
+                if (opt == null) {
+                    EmptyComposable(modifier = Modifier.padding(paddingValues))
+                    return@GlobalScaffold
+                }
+
+                val paytoUri = when (opt) {
+                    is TransferOption.Payto -> opt.paytoUri
+                    is TransferOption.SwissQrBill -> opt.paytoUri
+                    is TransferOption.Uri -> {
+                        EmptyComposable(modifier = Modifier.padding(paddingValues))
+                        return@GlobalScaffold
+                    }
+                }
+
+                val transferData = remember(opt, tx) {
+                    WithdrawalExchangeAccountDetails(
+                        paytoUri = paytoUri,
+                        status = WithdrawalExchangeAccountDetails.Status.Ok,
+                    ).getTransferDetails(
+                        amountRaw = tx.amountRaw,
+                        amountEffective = tx.amountEffective,
+                        transferOption = opt,
+                    )
+                }
+
+                if (transferData != null) {
+                    ScreenTransfer(
+                        modifier = Modifier.padding(paddingValues),
+                        transfer = transferData,
+                        spec = spec,
+                        bankAppClick = bankAppClick,
+                        shareClick = shareClick,
+                        showQrCodes = showQrCodes,
+                        devMode = devMode,
+                        transferContext = TransferContext.DepositKycAuth(
+                            tx.kycAuthTransferInfo?.debitPaytoUri ?: "",
+                        ),
+                    )
+                } else {
+                    EmptyComposable(modifier = Modifier.padding(paddingValues))
+                }
+            }
+
+            else -> return@GlobalScaffold
+        }
     }
 }

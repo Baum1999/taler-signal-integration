@@ -84,7 +84,7 @@ fun ColumnScope.QrCodeUriComposable(
 ) {
     val context = LocalContext.current
     val qrCodeSize = getQrCodeSize()
-    val qrState by produceState<Bitmap?>(null) {
+    val qrState by produceState<Bitmap?>(null, qrData) {
         value = QrCodeManager.makeQrCode(
             qrData,
             qrCodeSize.value.toInt(),

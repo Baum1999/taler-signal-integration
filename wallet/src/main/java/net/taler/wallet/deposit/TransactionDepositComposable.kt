@@ -79,7 +79,10 @@ fun TransactionDepositComposable(
             style = MaterialTheme.typography.bodyLarge,
         )
 
+        val qrCodes = t.kycAuthTransferInfo?.transferOptions
+            ?.firstOrNull()?.qrCodes ?: emptyList()
         DepositActions(t,
+            qrCodes = qrCodes,
             onWireTransfer = onWireTransfer,
             onShowQrCodes = onShowQrCodes)
 

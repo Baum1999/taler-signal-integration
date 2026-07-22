@@ -36,9 +36,9 @@ import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.exchanges.ExchangeFees
 import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.exchanges.ExchangeManager
+import net.taler.wallet.transactions.TransferOption
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
 import net.taler.wallet.withdraw.WithdrawStatus.Status.*
-import kotlinx.coroutines.runBlocking
 import net.taler.common.CurrencySpecification
 import net.taler.wallet.R
 import net.taler.wallet.transactions.TransactionMajorState
@@ -97,8 +97,7 @@ sealed class TransferData {
     abstract val amountEffective: Amount
     abstract val transferAmount: Amount
     abstract val withdrawalAccount: WithdrawalExchangeAccountDetails
-
-    val currency get() = withdrawalAccount.transferAmount?.currency
+    abstract val transferOption: TransferOption
 
     data class Taler(
         override val subject: String,
@@ -106,6 +105,7 @@ sealed class TransferData {
         override val amountEffective: Amount,
         override val transferAmount: Amount,
         override val withdrawalAccount: WithdrawalExchangeAccountDetails,
+        override val transferOption: TransferOption,
         val receiverName: String? = null,
         val account: String,
         val exchangeBaseUrl: String,
@@ -117,6 +117,7 @@ sealed class TransferData {
         override val amountEffective: Amount,
         override val transferAmount: Amount,
         override val withdrawalAccount: WithdrawalExchangeAccountDetails,
+        override val transferOption: TransferOption,
         val receiverName: String? = null,
         val receiverPostalCode: String? = null,
         val receiverTown: String? = null,
@@ -129,6 +130,7 @@ sealed class TransferData {
         override val amountEffective: Amount,
         override val transferAmount: Amount,
         override val withdrawalAccount: WithdrawalExchangeAccountDetails,
+        override val transferOption: TransferOption,
         val host: String, // host + fpath
         val account: String, // FIXME: account ID not used at all?
         val receiverName: String, // FIXME: actual ID used for payments?
@@ -140,6 +142,7 @@ sealed class TransferData {
         override val amountEffective: Amount,
         override val transferAmount: Amount,
         override val withdrawalAccount: WithdrawalExchangeAccountDetails,
+        override val transferOption: TransferOption,
         val account: String,
         val segwitAddresses: List<String>,
     ): TransferData()
@@ -225,11 +228,6 @@ data class AcceptManualWithdrawalResponse(
     val reservePub: String,
     val withdrawalAccountsList: List<WithdrawalExchangeAccountDetails>,
     val transactionId: String,
-)
-
-@Serializable
-data class GetQrCodesForPaytoResponse(
-    val codes: List<QrCodeSpec>,
 )
 
 @Serializable
@@ -549,19 +547,6 @@ class WithdrawManager(
         }
     }
 
-    fun getQrCodesForPayto(uri: String): List<QrCodeSpec> = runBlocking {
-        var codes = emptyList<QrCodeSpec>()
-        api.request("getQrCodesForPayto", GetQrCodesForPaytoResponse.serializer()) {
-            put("paytoUri", uri)
-        }.onError { error ->
-            handleError("getQrCodesForPayto", error)
-        }.onSuccess { response ->
-            codes = response.codes
-        }
-
-        return@runBlocking codes
-    }
-
     private fun handleError(operation: String, error: TalerErrorInfo) {
         Log.e(TAG, "Error $operation $error")
         _withdrawStatus.update { value ->
@@ -578,9 +563,11 @@ class WithdrawManager(
         transactionId = response.transactionId,
         withdrawalTransfers = response.withdrawalAccountsList.mapNotNull {
             val details = status.amountInfo ?: return@mapNotNull null
+            val opt = it.transferOptions.firstOrNull() ?: return@mapNotNull null
             it.getTransferDetails(
                 amountRaw = details.amountRaw,
                 amountEffective = details.amountEffective,
+                transferOption = opt,
             )
         },
     )

@@ -91,7 +91,6 @@ fun TransactionDetailScreen(
 ) {
     val transactionManager = model.transactionManager
     val exchangeManager = model.exchangeManager
-    val withdrawManager = model.withdrawManager
     val devMode by model.devMode.observeAsState(false)
     val context = LocalContext.current
     var keepSelectedTx: Boolean by remember { mutableStateOf(false) }
@@ -167,23 +166,12 @@ fun TransactionDetailScreen(
 
                 is WalletDestination.TransactionWithdrawal -> {
                     (t as? TransactionWithdrawal)?.let { tx ->
-                        val qrCode = remember(tx) {
-                            (tx.withdrawalDetails as? WithdrawalDetails.ManualTransfer)?.let { details ->
-                                if (details.exchangeCreditAccountDetails?.size == 1) {
-                                    val account0 = details.exchangeCreditAccountDetails[0]
-                                    val qrCodes = withdrawManager.getQrCodesForPayto(account0.paytoUri)
-                                    if (qrCodes.size == 1) qrCodes[0]
-                                    else null
-                                } else null
-                            }
-                        }
-
                         TransactionWithdrawalComposable(
                             modifier = modifier,
                             t = tx,
                             devMode = devMode,
                             spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
-                            qrCode = qrCode,
+                            onSelectOption = { it?.let { transactionManager.selectTransferOption(it) } },
                             onConfirmKyc = { url ->
                                 launchInAppBrowser(context, url)
                             },

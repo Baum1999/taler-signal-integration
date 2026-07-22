@@ -77,8 +77,10 @@ class TransactionManager(
     private val allTransactions = HashMap<ScopeInfo, List<Transaction>>()
     private val mTransactions = HashMap<ScopeInfo, MutableStateFlow<TransactionsResult>>()
     private val mSelectedTransaction = MutableStateFlow<Transaction?>(null)
+    private val mSelectedTransferOption = MutableStateFlow<TransferOption?>(null)
 
     val selectedTransaction = mSelectedTransaction.asStateFlow()
+    val selectedTransferOption = mSelectedTransferOption.asStateFlow()
 
     // This function must be called ONLY when scopeInfo / searchQuery change!
     // Use remember() {} in Compose to prevent multiple calls during recomposition
@@ -186,10 +188,8 @@ class TransactionManager(
         }
     }
 
-    fun selectTransactionSync(transactionId: String, onSuccess: () -> Unit) = scope.launch {
-        if (selectTransaction(transactionId)) {
-            onSuccess()
-        }
+    fun selectTransferOption(option: TransferOption) {
+        mSelectedTransferOption.value = option
     }
 
     @UiThread

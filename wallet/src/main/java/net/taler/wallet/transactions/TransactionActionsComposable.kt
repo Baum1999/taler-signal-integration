@@ -43,9 +43,9 @@ import net.taler.wallet.transfer.PaytoQrCode
 import net.taler.wallet.withdraw.QrCodeSpec
 
 @Composable
-fun ColumnScope.WithdrawalActions(
+fun ColumnScope.WithdrawalTransfers(
     tx: TransactionWithdrawal,
-    mainQrCode: QrCodeSpec? = null,
+    transferOption: TransferOption? = null,
     onConfirmBank: () -> Unit,
     onConfirmKyc: (url: String) -> Unit,
     onConfirmManual: () -> Unit,
@@ -62,30 +62,39 @@ fun ColumnScope.WithdrawalActions(
             }
         }
 
-        ExchangeWaitReserve -> {
-            Text(
-                text = stringResource(R.string.withdraw_manual_instruction_manual),
-                modifier = Modifier.padding(16.dp),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyLarge,
-            )
+        ExchangeWaitReserve -> if (transferOption != null) {
+            when (val option = transferOption) {
+                is TransferOption.SwissQrBill,
+                is TransferOption.Payto -> {
+                    Text(
+                        text = stringResource(R.string.withdraw_manual_instruction_manual),
+                        modifier = Modifier.padding(16.dp),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
 
-            WireTransferStepsButton(onConfirmManual)
+                    WireTransferStepsButton(onConfirmManual)
 
-            if (mainQrCode != null) {
-                Text(
-                    text = stringResource(R.string.withdraw_manual_instruction_qr),
-                    modifier = Modifier.padding(16.dp),
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodyLarge,
-                )
+                    if (option.qrCodes.size == 1) {
+                        Text(
+                            text = stringResource(R.string.withdraw_manual_instruction_qr),
+                            modifier = Modifier.padding(16.dp),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
 
-                PaytoQrCode(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    qrCode = mainQrCode,
-                )
-            } else {
-                ShowQrCodesButton(onShowQrCodes)
+                        PaytoQrCode(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            qrCode = option.qrCodes[0],
+                        )
+                    } else if (option.qrCodes.size > 1) {
+                        ShowQrCodesButton(onShowQrCodes)
+                    }
+                }
+
+                is TransferOption.Uri -> { /* FIXME: implement */ }
+
+                else -> error("assertion error")
             }
         }
 
@@ -96,12 +105,26 @@ fun ColumnScope.WithdrawalActions(
 @Composable
 fun ColumnScope.DepositActions(
     tx: TransactionDeposit,
+    qrCodes: List<QrCodeSpec>,
     onWireTransfer: () -> Unit,
     onShowQrCodes: () -> Unit,
 ) {
     if (tx.txState.minor == KycAuthRequired) {
         WireTransferStepsButton(onWireTransfer)
-        ShowQrCodesButton(onShowQrCodes)
+        if (qrCodes.size == 1) {
+            Text(
+                text = stringResource(R.string.withdraw_manual_instruction_qr),
+                modifier = Modifier.padding(16.dp),
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            PaytoQrCode(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                qrCode = qrCodes[0],
+            )
+        } else if (qrCodes.size > 1) {
+            ShowQrCodesButton(onShowQrCodes)
+        }
     }
 }
 

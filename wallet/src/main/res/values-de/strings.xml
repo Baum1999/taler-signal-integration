@@ -106,7 +106,8 @@
     <string name="withdraw_manual_ready_iban">IBAN</string>
     <string name="withdraw_manual_ready_intro">Sie müssen %1$s von Ihrem regulären Bankkonto an den Zahlungsdienst überweisen, um %2$s als digitales Bargeld in diese Wallet zu erhalten.</string>
     <string name="withdraw_manual_ready_details_intro">Überweisungsanleitung</string>
-    <string name="withdraw_manual_ready_subject">Buchungsvermerk</string>
+    <string name="withdraw_manual_ready_subject">Verwendungszweck</string>
+    <string name="withdraw_manual_ready_subject_qr">QR-Referenz</string>
     <string name="withdraw_manual_ready_bank_button">In Banking-App öffnen</string>
     <string name="withdraw_manual_ready_warning">Dies ist obligatorisch, da Ihr Geld sonst nicht in dieser Wallet ankommt.</string>
     <string name="reload">Aktualisieren</string>

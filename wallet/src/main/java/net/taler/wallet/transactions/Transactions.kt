@@ -38,7 +38,6 @@ import kotlinx.serialization.json.JsonElement
 import net.taler.common.Amount
 import net.taler.common.Bech32
 import net.taler.common.ContractProduct
-import net.taler.common.ContractTerms
 import net.taler.common.Timestamp
 import net.taler.wallet.R
 import net.taler.wallet.main.TAG
@@ -58,6 +57,7 @@ import net.taler.wallet.transactions.TransactionMajorState.None
 import net.taler.wallet.transactions.TransactionMajorState.Pending
 import net.taler.wallet.transactions.WithdrawalDetails.ManualTransfer
 import net.taler.wallet.transactions.WithdrawalDetails.TalerBankIntegrationApi
+import net.taler.wallet.withdraw.QrCodeSpec
 import net.taler.wallet.withdraw.TransferData
 import java.util.UUID
 
@@ -267,6 +267,23 @@ data class WithdrawalExchangeAccountDetails (
     val bankLabel: String? = null,
 
     val priority: Int? = null,
+
+    /**
+     * Error that happened when attempting to request the conversion rate.
+     */
+    val conversionError: TalerErrorInfo? = null,
+
+    /**
+     * Timestamp that indicates when the transfer options expire.
+     *
+     * If missing, options do not expire.
+     */
+    val transferExpiry: Timestamp? = null,
+
+    /**
+     * Options for transfering funds to the exchange for the withdrawal.
+     */
+    val transferOptions: List<TransferOption> = emptyList(),
 ) {
     @Serializable
     enum class Status {
@@ -280,6 +297,7 @@ data class WithdrawalExchangeAccountDetails (
     fun getTransferDetails(
         amountRaw: Amount,
         amountEffective: Amount,
+        transferOption: TransferOption,
     ): TransferData? {
         val uri = paytoUri.trim().toUri()
         val transferAmount = (transferAmount
@@ -287,7 +305,6 @@ data class WithdrawalExchangeAccountDetails (
                 ?.let { Amount.fromJSONString(it) }
             ?: amountEffective).withSpec(currencySpecification)
         return if ("bitcoin".equals(uri.authority, true)) {
-            // FIXME: use parsing logic from PaytoUriBitcoin.fromString()
             val msg = uri.getQueryParameter("message").orEmpty()
             val reg = "\\b([A-Z0-9]{52})\\b".toRegex().find(msg)
             val reserve = reg?.value
@@ -303,18 +320,22 @@ data class WithdrawalExchangeAccountDetails (
                 amountEffective = amountEffective,
                 transferAmount = transferAmount,
                 withdrawalAccount = copy(paytoUri = uri.toString()),
+                transferOption = transferOption,
             )
         } else if (uri.authority.equals("x-taler-bank", true)) {
             PaytoUriTalerBank.fromString(uri)?.let { data ->
                 TransferData.Taler(
                     account = data.account,
                     receiverName = data.receiverName,
-                    subject = uri.getQueryParameter("message") ?: return@let null,
+                    subject = uri.getQueryParameter("message")
+                        ?: uri.getQueryParameter("ch-qrr")
+                        ?: return@let null,
                     amountRaw = amountRaw,
                     amountEffective = amountEffective,
                     exchangeBaseUrl = data.host,
                     transferAmount = transferAmount,
-                    withdrawalAccount = copy(paytoUri = uri.toString())
+                    withdrawalAccount = copy(paytoUri = uri.toString()),
+                    transferOption = transferOption,
                 )
             }
         } else if (uri.authority.equals("iban", true)) {
@@ -324,11 +345,14 @@ data class WithdrawalExchangeAccountDetails (
                     receiverName = data.receiverName,
                     receiverTown = data.receiverTown,
                     receiverPostalCode = data.receiverPostalCode,
-                    subject = uri.getQueryParameter("message") ?: return@let null,
+                    subject = uri.getQueryParameter("message")
+                        ?: uri.getQueryParameter("ch-qrr")
+                        ?: return@let null,
                     amountRaw = amountRaw,
                     amountEffective = amountEffective,
                     transferAmount = transferAmount,
                     withdrawalAccount = copy(paytoUri = uri.toString()),
+                    transferOption = transferOption,
                 )
             }
         } else if (uri.authority.equals("cyclos", true)) {
@@ -343,6 +367,7 @@ data class WithdrawalExchangeAccountDetails (
                     transferAmount = transferAmount
                         .withSpec(currencySpecification),
                     withdrawalAccount = copy(paytoUri = uri.toString()),
+                    transferOption = transferOption,
                 )
             }
         } else null
@@ -379,6 +404,35 @@ sealed class AccountRestriction {
         @SerialName("human_hint_i18n")
         val humanHintI18n: Map<String, String>? = null,
     ): AccountRestriction()
+}
+
+@Serializable
+sealed class TransferOption {
+    abstract val qrCodes: List<QrCodeSpec>
+
+    @Serializable
+    @SerialName("payto")
+    data class Payto(
+        val paytoUri: String,
+        override val qrCodes: List<QrCodeSpec>,
+    ): TransferOption()
+
+    @Serializable
+    @SerialName("uri")
+    data class Uri(
+        val uri: String,
+    ): TransferOption() {
+        override val qrCodes: List<QrCodeSpec> = emptyList()
+    }
+
+    @Serializable
+    @SerialName("ch-qr-bill")
+    data class SwissQrBill(
+        val paytoUri: String,
+        val qrReferenceNumber: String,
+        override val qrCodes: List<QrCodeSpec>,
+    ): TransferOption()
+
 }
 
 @Serializable
@@ -512,6 +566,7 @@ data class KycAuthTransferInfo(
     val debitPaytoUri: String,
     val accountPub: String,
     val creditPaytoUris: List<String>,
+    val transferOptions: List<TransferOption>,
 )
 
 @Serializable

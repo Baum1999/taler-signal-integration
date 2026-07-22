@@ -390,6 +390,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="withdraw_manual_ready_postal_code">Postal code</string>
     <string name="withdraw_manual_ready_receiver">Recipient</string>
     <string name="withdraw_manual_ready_subject">Subject</string>
+    <string name="withdraw_manual_ready_subject_ch_qr">QR reference</string>
     <string name="withdraw_manual_ready_town">Town</string>
     <string name="withdraw_manual_ready_warning">This is mandatory, otherwise your money will not arrive in this wallet.</string>
     <string name="withdraw_manual_step">&lt;b&gt;Step %1$s:&lt;/b&gt; %2$s</string>

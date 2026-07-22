@@ -140,7 +140,7 @@ fun TransferIBAN(
         )
 
         DetailRow(
-            stringResource(R.string.withdraw_manual_ready_subject),
+            stringResource(transfer.transferOption.subjectLabelResId()),
             transfer.subject,
             characterBreak = true,
         )

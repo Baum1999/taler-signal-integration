@@ -31,18 +31,12 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -65,6 +59,7 @@ import net.taler.wallet.compose.ShareButton
 import net.taler.wallet.transactions.AccountRestriction
 import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.TransactionAmountComposable
+import net.taler.wallet.transactions.TransferOption
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails.Status.Ok
 import net.taler.wallet.withdraw.QrCodeSpec
@@ -77,141 +72,111 @@ sealed class TransferContext {
     data class DepositKycAuth(val debitPaytoUri: String) : TransferContext()
 }
 
+fun TransferOption.subjectLabelResId(): Int = when (this) {
+    is TransferOption.SwissQrBill -> R.string.withdraw_manual_ready_subject_ch_qr
+    else -> R.string.withdraw_manual_ready_subject
+}
+
 @Composable
 fun ScreenTransfer(
     modifier: Modifier = Modifier,
-    transfers: List<TransferData>,
+    transfer: TransferData,
     spec: CurrencySpecification?,
     showQrCodes: Boolean,
-    getQrCodes: (account: TransferData) -> List<QrCodeSpec>,
     bankAppClick: ((transfer: TransferData) -> Unit)?,
     shareClick: ((transfer: TransferData) -> Unit)?,
     devMode: Boolean = false,
     transferContext: TransferContext,
 ) {
-    // TODO: show some placeholder
-    if (transfers.isEmpty()) return
-
-    val transfers = transfers.filter {
-        // TODO: in dev mode, show debug info when status is `Error'
-        it.withdrawalAccount.status == Ok
-    }.sortedByDescending {
-        it.withdrawalAccount.priority
-    }
-
-    val defaultTransfer = transfers[0]
-    var selectedTransfer by remember { mutableStateOf(defaultTransfer) }
-    val qrCodes = remember(selectedTransfer) { getQrCodes(selectedTransfer) }
+    val qrCodes = transfer.transferOption.qrCodes
     val qrExpandedStates = remember(qrCodes) {
-        val map = mutableStateMapOf<QrCodeSpec, Boolean>()
-        qrCodes.forEach {
-            map[it] = false
-        }
-        map
+        mutableStateMapOf<QrCodeSpec, Boolean>()
     }
 
-    LaunchedEffect(Unit) {
-        getQrCodes(defaultTransfer)
-    }
-
-    Column(modifier) {
-        if (transfers.size > 1) {
-            TransferAccountChooser(
-                accounts = transfers.map { it.withdrawalAccount },
-                selectedAccount = selectedTransfer.withdrawalAccount,
-                onSelectAccount = { account ->
-                    transfers.find {
-                        it.withdrawalAccount.paytoUri == account.paytoUri
-                    }?.let { selectedTransfer = it }
-                }
+    val scrollState = rememberScrollState()
+    Column(
+        modifier = modifier
+            .verticalScroll(scrollState),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        if (showQrCodes) {
+            Text(
+                text = stringResource(R.string.withdraw_manual_qr_intro),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier
+                    .padding(
+                        vertical = 8.dp,
+                        horizontal = 16.dp,
+                    )
             )
-        }
 
-        val scrollState = rememberScrollState()
-        Column(
-            modifier = Modifier
-                .verticalScroll(scrollState),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            if (showQrCodes) {
-                Text(
-                    text = stringResource(R.string.withdraw_manual_qr_intro),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier
-                        .padding(
-                            vertical = 8.dp,
-                            horizontal = 16.dp,
-                        )
-                )
-
-                qrCodes.forEach { spec ->
-                    PaytoQrCard(
-                        expanded = qrExpandedStates[spec]!!,
-                        setExpanded = { expanded ->
-                            if (expanded) { // un-expand all others
-                                qrExpandedStates.forEach { (k, _) ->
-                                    qrExpandedStates[k] = false
-                                }
+            qrCodes.forEach { spec ->
+                PaytoQrCard(
+                    expanded = qrExpandedStates[spec]!!,
+                    setExpanded = { expanded ->
+                        if (expanded) { // un-expand all others
+                            qrExpandedStates.forEach { (k, _) ->
+                                qrExpandedStates[k] = false
                             }
-                            // expand only toggled one
-                            qrExpandedStates[spec] = expanded
-                        },
-                        qrCode = spec,
-                    )
-                }
-
-                BottomInsetsSpacer()
-                return
-            }
-
-            when (val transfer = selectedTransfer) {
-                is TransferData.Taler -> TransferTaler(
-                    transfer = transfer,
-                    transactionAmountEffective = transfer.amountEffective.withSpec(spec),
-                    transferContext = transferContext,
+                        }
+                        // expand only toggled one
+                        qrExpandedStates[spec] = expanded
+                    },
+                    qrCode = spec,
                 )
-
-                is TransferData.IBAN -> TransferIBAN(
-                    transfer = transfer,
-                    transactionAmountEffective = transfer.amountEffective.withSpec(spec),
-                    transferContext = transferContext,
-                )
-
-                is TransferData.Cyclos -> TransferCyclos(
-                    transfer = transfer,
-                    transactionAmountEffective = transfer.amountEffective.withSpec(spec),
-                )
-
-                is TransferData.Bitcoin -> TransferBitcoin(
-                    transfer = transfer,
-                )
-            }
-
-            Spacer(Modifier.height(24.dp))
-
-            if (devMode) {
-                val paytoUri = selectedTransfer.withdrawalAccount.paytoUri
-                if (bankAppClick != null && LocalContext.current.canAppHandleUri(paytoUri)) {
-                    Button(
-                        onClick = { bankAppClick(selectedTransfer) },
-                        modifier = Modifier
-                            .padding(bottom = 16.dp),
-                    ) {
-                        Text(text = stringResource(R.string.withdraw_manual_ready_bank_button))
-                    }
-                }
-
-                if (shareClick != null) {
-                    ShareButton(
-                        content = selectedTransfer.withdrawalAccount.paytoUri,
-                        modifier = Modifier
-                            .padding(bottom = 16.dp),
-                    )
-                }
             }
 
             BottomInsetsSpacer()
+            return
         }
+
+        when (transfer) {
+            is TransferData.Taler -> TransferTaler(
+                transfer = transfer,
+                transactionAmountEffective = transfer.amountEffective.withSpec(spec),
+                transferContext = transferContext,
+            )
+
+            is TransferData.IBAN -> TransferIBAN(
+                transfer = transfer,
+                transactionAmountEffective = transfer.amountEffective.withSpec(spec),
+                transferContext = transferContext,
+            )
+
+            is TransferData.Cyclos -> TransferCyclos(
+                transfer = transfer,
+                transactionAmountEffective = transfer.amountEffective.withSpec(spec),
+            )
+
+            is TransferData.Bitcoin -> TransferBitcoin(
+                transfer = transfer,
+            )
+        }
+
+        Spacer(Modifier.height(24.dp))
+
+        if (devMode) {
+            val paytoUri = transfer.withdrawalAccount.paytoUri
+            if (bankAppClick != null && LocalContext.current.canAppHandleUri(paytoUri)) {
+                Button(
+                    onClick = { bankAppClick(transfer) },
+                    modifier = Modifier
+                        .padding(bottom = 16.dp),
+                ) {
+                    Text(text = stringResource(R.string.withdraw_manual_ready_bank_button))
+                }
+            }
+
+            if (shareClick != null) {
+                ShareButton(
+                    content = transfer.withdrawalAccount.paytoUri,
+                    modifier = Modifier
+                        .padding(bottom = 16.dp),
+                )
+            }
+        }
+
+        BottomInsetsSpacer()
     }
 }
 
@@ -311,125 +276,136 @@ fun WithdrawalAmountTransfer(
     }
 }
 
-@Composable
-fun TransferAccountChooser(
-    modifier: Modifier = Modifier,
-    accounts: List<WithdrawalExchangeAccountDetails>,
-    selectedAccount: WithdrawalExchangeAccountDetails,
-    onSelectAccount: (account: WithdrawalExchangeAccountDetails) -> Unit,
-) {
-    val selectedIndex = accounts.indexOfFirst {
-        it.paytoUri == selectedAccount.paytoUri
-    }
+private val qrCodes = listOf(
+    QrCodeSpec(EpcQr, "BCD\\n002\\n1\\nSCT\\n\\n\\nGENODEM1GLS/DE54430609674049078800\\n\\n\\nTaler MJ15S835A5ENQZGJX161TS7FND6Q5DSABS8FCHB8ECF9NT1J8GH0"),
+    QrCodeSpec(SPC, "BCD\\n002\\n1\\nSCT\\n\\n\\nGENODEM1GLS/DE54430609674049078800\\n\\n\\nTaler MJ15S835A5ENQZGJX161TS7FND6Q5DSABS8FCHB8ECF9NT1J8GH0"),
+)
 
-    ScrollableTabRow(
-        selectedTabIndex = selectedIndex,
-        modifier = modifier,
-        edgePadding = 8.dp,
-    ) {
-        accounts.forEachIndexed { index, account ->
-            Tab(
-                selected = selectedAccount.paytoUri == account.paytoUri,
-                onClick = { onSelectAccount(account) },
-                text = {
-                    if (!account.bankLabel.isNullOrEmpty()) {
-                        Text(account.bankLabel)
-                    } else if (account.currencySpecification?.name != null) {
-                        Text(stringResource(
-                            R.string.withdraw_account_currency,
-                            index + 1,
-                            account.currencySpecification.name,
-                        ))
-                    } else if (account.transferAmount?.currency != null) {
-                        Text(stringResource(
-                            R.string.withdraw_account_currency,
-                            index + 1,
-                            account.transferAmount.currency,
-                        ))
-                    } else Text(stringResource(R.string.withdraw_account, index + 1))
-                },
-            )
-        }
-    }
-}
+private val transferOptions = listOf(
+    TransferOption.Payto(
+        "payto://",
+        qrCodes = listOf(
+            QrCodeSpec(EpcQr, "BCD\\n002\\n1\\nSCT\\n\\n\\nGENODEM1GLS/DE54430609674049078800\\n\\n\\nTaler MJ15S835A5ENQZGJX161TS7FND6Q5DSABS8FCHB8ECF9NT1J8GH0"),
+            QrCodeSpec(SPC, "BCD\\n002\\n1\\nSCT\\n\\n\\nGENODEM1GLS/DE54430609674049078800\\n\\n\\nTaler MJ15S835A5ENQZGJX161TS7FND6Q5DSABS8FCHB8ECF9NT1J8GH0"),
+        ),
+    ),
+)
 
 @Preview
 @Composable
-fun ScreenTransferPreview(
+fun ScreenTransferIBANPreview(
     showQrCodes: Boolean = false,
     transferContext: TransferContext = TransferContext.ManualWithdrawal,
 ) {
     Surface {
         ScreenTransfer(
-            transfers = listOf(
-                TransferData.IBAN(
-                    iban = "ASDQWEASDZXCASDQWE",
-                    subject = "Taler Withdrawal P2T19EXRBY4B145JRNZ8CQTD7TCS03JE9VZRCEVKVWCP930P56WG",
-                    amountRaw = Amount("KUDOS", 10, 0),
-                    amountEffective = Amount("KUDOS", 9, 5),
+            transfer = TransferData.IBAN(
+                iban = "ASDQWEASDZXCASDQWE",
+                subject = "Taler Withdrawal P2T19EXRBY4B145JRNZ8CQTD7TCS03JE9VZRCEVKVWCP930P56WG",
+                amountRaw = Amount("KUDOS", 10, 0),
+                amountEffective = Amount("KUDOS", 9, 5),
+                transferAmount = Amount("KUDOS", 10, 0),
+                receiverTown = "Biel/Bienne",
+                receiverPostalCode = "2500",
+                transferOption = transferOptions.first(),
+                withdrawalAccount = WithdrawalExchangeAccountDetails(
+                    paytoUri = "https://taler.net/kudos",
                     transferAmount = Amount("KUDOS", 10, 0),
-                    receiverTown = "Biel/Bienne",
-                    receiverPostalCode = "2500",
-                    withdrawalAccount = WithdrawalExchangeAccountDetails(
-                        paytoUri = "https://taler.net/kudos",
-                        transferAmount = Amount("KUDOS", 10, 0),
-                        status = Ok,
-                        currencySpecification = CurrencySpecification(
-                            "KUDOS",
-                            numFractionalInputDigits = 2,
-                            numFractionalNormalDigits = 2,
-                            numFractionalTrailingZeroDigits = 2,
-                            altUnitNames = emptyMap(),
+                    transferOptions = transferOptions,
+                    status = Ok,
+                    currencySpecification = CurrencySpecification(
+                        "KUDOS",
+                        numFractionalInputDigits = 2,
+                        numFractionalNormalDigits = 2,
+                        numFractionalTrailingZeroDigits = 2,
+                        altUnitNames = emptyMap(),
+                    ),
+                    creditRestrictions = listOf(
+                        AccountRestriction.RegexAccount(
+                            paytoRegex = "CH",
+                            humanHint = "Only Swiss bank accounts",
+                            humanHintI18n = emptyMap(),
                         ),
-                        creditRestrictions = listOf(
-                            AccountRestriction.RegexAccount(
-                                paytoRegex = "CH",
-                                humanHint = "Only Swiss bank accounts",
-                                humanHintI18n = emptyMap(),
-                            ),
-                            AccountRestriction.RegexAccount(
-                                paytoRegex = "DE",
-                                humanHint = "Only European bank accounts",
-                                humanHintI18n = emptyMap(),
-                            )
+                        AccountRestriction.RegexAccount(
+                            paytoRegex = "DE",
+                            humanHint = "Only European bank accounts",
+                            humanHintI18n = emptyMap(),
                         )
-                    ),
+                    )
                 ),
-                TransferData.Cyclos(
-                    host = "demo.cyclos.org/abc",
-                    account = "1234567890",
-                    receiverName = "Taler Wire",
-                    subject = "Taler Withdrawal P2T19EXRBY4B145JRNZ8CQTD7TCS03JE9VZRCEVKVWCP930P56WG",
-                    amountRaw = Amount("IU", 10, 0),
-                    amountEffective = Amount("IU", 9, 5),
+            ),
+            spec = null,
+            bankAppClick = {},
+            shareClick = {},
+            showQrCodes = showQrCodes,
+            transferContext = transferContext,
+        )
+    }
+}
+
+@Preview
+@Composable
+fun ScreenTransferCyclosPreview(
+    showQrCodes: Boolean = false,
+    transferContext: TransferContext = TransferContext.ManualWithdrawal,
+) {
+    Surface {
+        ScreenTransfer(
+            transfer = TransferData.Cyclos(
+                host = "demo.cyclos.org/abc",
+                account = "1234567890",
+                receiverName = "Taler Wire",
+                subject = "Taler Withdrawal P2T19EXRBY4B145JRNZ8CQTD7TCS03JE9VZRCEVKVWCP930P56WG",
+                amountRaw = Amount("IU", 10, 0),
+                amountEffective = Amount("IU", 9, 5),
+                transferAmount = Amount("IU", 10, 0),
+                transferOption = transferOptions.first(),
+                withdrawalAccount = WithdrawalExchangeAccountDetails(
+                    paytoUri = "https://taler.net/cyclos",
                     transferAmount = Amount("IU", 10, 0),
-                    withdrawalAccount = WithdrawalExchangeAccountDetails(
-                        paytoUri = "https://taler.net/cyclos",
-                        transferAmount = Amount("IU", 10, 0),
-                        status = Ok,
-                    ),
+                    transferOptions = transferOptions,
+                    status = Ok,
                 ),
-                TransferData.Bitcoin(
-                    account = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4",
-                    segwitAddresses = listOf(
-                        "bc1qqleages8702xvg9qcyu02yclst24xurdrynvxq",
-                        "bc1qsleagehks96u7jmqrzcf0fw80ea5g57qm3m84c"
-                    ),
-                    subject = "0ZSX8SH0M30KHX8K3Y1DAMVGDQV82XEF9DG1HC4QMQ3QWYT4AF00",
-                    amountRaw = Amount(CURRENCY_BTC, 0, 14000000),
-                    amountEffective = Amount(CURRENCY_BTC, 0, 14000000),
-                    transferAmount = Amount("KUDOS", 10, 0),
-                    withdrawalAccount = WithdrawalExchangeAccountDetails(
-                        paytoUri = "https://taler.net/btc",
-                        transferAmount = Amount("BTC", 0, 14000000),
-                        status = Ok,
-                        currencySpecification = CurrencySpecification(
-                            "Bitcoin",
-                            numFractionalInputDigits = 2,
-                            numFractionalNormalDigits = 2,
-                            numFractionalTrailingZeroDigits = 2,
-                            altUnitNames = emptyMap(),
-                        ),
+            ),
+            spec = null,
+            bankAppClick = {},
+            shareClick = {},
+            showQrCodes = showQrCodes,
+            transferContext = transferContext,
+        )
+    }
+}
+
+@Preview
+@Composable
+fun ScreenTransferBitcoinPreview(
+    showQrCodes: Boolean = false,
+    transferContext: TransferContext = TransferContext.ManualWithdrawal,
+) {
+    Surface {
+        ScreenTransfer(
+            transfer = TransferData.Bitcoin(
+                account = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4",
+                segwitAddresses = listOf(
+                    "bc1qqleages8702xvg9qcyu02yclst24xurdrynvxq",
+                    "bc1qsleagehks96u7jmqrzcf0fw80ea5g57qm3m84c"
+                ),
+                subject = "0ZSX8SH0M30KHX8K3Y1DAMVGDQV82XEF9DG1HC4QMQ3QWYT4AF00",
+                amountRaw = Amount(CURRENCY_BTC, 0, 14000000),
+                amountEffective = Amount(CURRENCY_BTC, 0, 14000000),
+                transferAmount = Amount("KUDOS", 10, 0),
+                transferOption = transferOptions.first(),
+                withdrawalAccount = WithdrawalExchangeAccountDetails(
+                    paytoUri = "https://taler.net/btc",
+                    transferAmount = Amount("BTC", 0, 14000000),
+                    transferOptions = transferOptions,
+                    status = Ok,
+                    currencySpecification = CurrencySpecification(
+                        "Bitcoin",
+                        numFractionalInputDigits = 2,
+                        numFractionalNormalDigits = 2,
+                        numFractionalTrailingZeroDigits = 2,
+                        altUnitNames = emptyMap(),
                     ),
                 ),
             ),
@@ -437,12 +413,6 @@ fun ScreenTransferPreview(
             bankAppClick = {},
             shareClick = {},
             showQrCodes = showQrCodes,
-            getQrCodes = {
-                listOf(
-                    QrCodeSpec(EpcQr, "BCD\\n002\\n1\\nSCT\\n\\n\\nGENODEM1GLS/DE54430609674049078800\\n\\n\\nTaler MJ15S835A5ENQZGJX161TS7FND6Q5DSABS8FCHB8ECF9NT1J8GH0"),
-                    QrCodeSpec(SPC, "BCD\\n002\\n1\\nSCT\\n\\n\\nGENODEM1GLS/DE54430609674049078800\\n\\n\\nTaler MJ15S835A5ENQZGJX161TS7FND6Q5DSABS8FCHB8ECF9NT1J8GH0")
-                )
-            },
             transferContext = transferContext,
         )
     }
@@ -451,11 +421,11 @@ fun ScreenTransferPreview(
 @Preview
 @Composable
 fun ScreenTransferKycAuthPreview() {
-    ScreenTransferPreview(transferContext = TransferContext.DepositKycAuth("CH120912"))
+    ScreenTransferIBANPreview(transferContext = TransferContext.DepositKycAuth("CH120912"))
 }
 
 @Preview
 @Composable
 fun ScreenTransferQRPreview() {
-    ScreenTransferPreview(true)
+    ScreenTransferIBANPreview(true)
 }
