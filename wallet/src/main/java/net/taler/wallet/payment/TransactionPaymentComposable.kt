@@ -143,10 +143,7 @@ fun TransactionPaymentComposable(
         }
 
         if (t.posConfirmation != null) {
-            TransactionInfoComposable(
-                label = stringResource(id = R.string.payment_confirmation_code),
-                info = t.posConfirmation,
-            )
+            TotpNfcWriter(totpString = t.posConfirmation)
         }
 
         if (t.info != null) PurchaseDetails(info = t.info) {
