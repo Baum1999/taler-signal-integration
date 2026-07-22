@@ -45,12 +45,7 @@ sealed class PreparePayResponse {
     data class PaymentPossibleResponse(
         val transactionId: String,
         val contractTerms: ContractTerms,
-    ) : PreparePayResponse() {
-        fun toPayStatusPrepared() = PayStatus.Prepared(
-            contractTerms = contractTerms,
-            transactionId = transactionId,
-        )
-    }
+    ) : PreparePayResponse()
 
     @Serializable
     @SerialName("insufficient-balance")
@@ -79,12 +74,7 @@ sealed class PreparePayResponse {
     data class ChoiceSelection(
         val transactionId: String,
         val contractTerms: ContractTerms,
-    ) : PreparePayResponse() {
-        fun toPayStatusPrepared() = PayStatus.Prepared(
-            contractTerms = contractTerms,
-            transactionId = transactionId,
-        )
-    }
+    ) : PreparePayResponse()
 }
 
 @Serializable

@@ -24,10 +24,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.asFlow
 import kotlinx.coroutines.launch
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
@@ -38,7 +40,6 @@ import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
-import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.main.MainViewModel
 
 @Composable
@@ -54,7 +55,7 @@ fun PayTemplateScreen(
     val exchangeManager = model.exchangeManager
     val transactionManager = model.transactionManager
 
-    val payStatus by paymentManager.payStatus.asFlow().collectAsStateLifecycleAware(PayStatus.None)
+    val payStatus by paymentManager.payStatus.observeAsState(PayStatus.None)
     val balanceState by balanceManager.state.observeAsState(BalanceState.None)
     val devMode by model.devMode.observeAsState(false)
     val scope = rememberCoroutineScope()
@@ -68,12 +69,14 @@ fun PayTemplateScreen(
             }
     }
 
-    LaunchedEffect(Unit) {
+    var retryTrigger by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(retryTrigger) {
         balanceManager.loadAssets()
         paymentManager.checkPayForTemplate(uri)
     }
 
-    LaunchedEffect(payStatus) {
+    LaunchedEffect(payStatus, retryTrigger) {
         when (val s = payStatus) {
             is PayStatus.Prepared -> {
                 if (transactionManager.selectTransaction(s.transactionId)) {
@@ -119,6 +122,7 @@ fun PayTemplateScreen(
                         onError = { errorMsg ->
                             onShowError(TalerErrorInfo.makeCustomError(errorMsg))
                         },
+                        onRetry = { retryTrigger++ },
                         getCurrencySpec = exchangeManager::getSpecForCurrency,
                     )
                 }

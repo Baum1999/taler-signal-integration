@@ -143,6 +143,27 @@ val defaultTemplateDetails = WalletTemplateDetails(
     ),
 )
 
+val fixedAmountDetails = WalletTemplateDetails(
+    templateContract = TemplateContractDetails(
+        templateType = TemplateType.FixedOrder,
+        summary = "Pizza Margherita",
+        amount = Amount.fromJSONString("KUDOS:10.0"),
+        minimumAge = 18,
+        payDuration = RelativeTime.forever(),
+    ),
+)
+
+val blankSubjectDetails = WalletTemplateDetails(
+    templateContract = TemplateContractDetails(
+        templateType = TemplateType.FixedOrder,
+        minimumAge = 18,
+        payDuration = RelativeTime.forever(),
+    ),
+    editableDefaults = TemplateContractDetailsDefaults(
+        amount = Amount.fromJSONString("KUDOS:10.0"),
+    ),
+)
+
 @Preview
 @Composable
 fun PayTemplateDefaultPreview() {
@@ -165,7 +186,7 @@ fun PayTemplateDefaultPreview() {
 fun PayTemplateFixedAmountPreview() {
     TalerSurface {
         PayTemplateOrderComposable(
-            templateDetails = defaultTemplateDetails,
+            templateDetails = fixedAmountDetails,
             usableCurrencies = listOf("KUDOS", "ARS"),
             onCreateAmount = { text, currency ->
                 AmountResult.Success(amount = Amount.fromString(currency, text))
@@ -182,7 +203,7 @@ fun PayTemplateFixedAmountPreview() {
 fun PayTemplateBlankSubjectPreview() {
     TalerSurface {
         PayTemplateOrderComposable(
-            templateDetails = defaultTemplateDetails,
+            templateDetails = blankSubjectDetails,
             usableCurrencies = listOf("KUDOS", "ARS"),
             onCreateAmount = { text, currency ->
                 AmountResult.Success(amount = Amount.fromString(currency, text))

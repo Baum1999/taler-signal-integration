@@ -117,10 +117,9 @@ class WalletTemplateDetails(
             || isAmountEditable()
             || isCurrencyEditable(usableCurrencies)
 
-    // NOTE: it is important to nullify non-editable values!
     fun toTemplateParams() = TemplateParams(
-        amount = if(isAmountEditable()) templateContract.amount else null,
-        summary = if(isSummaryEditable()) templateContract.summary else null,
+        amount = if (isAmountEditable()) null else templateContract.amount,
+        summary = if (isSummaryEditable()) null else templateContract.summary,
     )
 }
 

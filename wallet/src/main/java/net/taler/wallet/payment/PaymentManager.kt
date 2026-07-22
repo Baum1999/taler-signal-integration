@@ -36,11 +36,6 @@ import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.donau.DonauInfo
 import net.taler.wallet.donau.GetDonauResponse
 import net.taler.wallet.exchanges.ExchangeManager
-import net.taler.wallet.payment.PayStatus.AlreadyPaid
-import net.taler.wallet.payment.PayStatus.InsufficientBalance
-import net.taler.wallet.payment.PreparePayResponse.AlreadyConfirmedResponse
-import net.taler.wallet.payment.PreparePayResponse.InsufficientBalanceResponse
-import net.taler.wallet.payment.PreparePayResponse.PaymentPossibleResponse
 import org.json.JSONObject
 import net.taler.wallet.payment.GetChoicesForPaymentResponse.ChoiceSelectionDetail
 import net.taler.wallet.payment.GetChoicesForPaymentResponse.ChoiceSelectionDetail.PaymentPossible
@@ -50,7 +45,6 @@ sealed class PayStatus {
     data object Loading : PayStatus()
     data class Prepared(
         val transactionId: String,
-        val contractTerms: ContractTerms,
     ) : PayStatus()
 
     data class Choices(
@@ -258,7 +252,11 @@ class PaymentManager(
             handleError("checkPayForTemplate", it)
         }.onSuccess { response ->
             if (response.templateDetails.templateContract.templateType == TemplateType.Paivana) {
-                scope.launch { preparePayForTemplate(url, TemplateParams()) }
+                scope.launch {
+                    preparePayForTemplate(url, TemplateParams())?.let { transactionId ->
+                        mPayStatus.value = PayStatus.Prepared(transactionId = transactionId)
+                    }
+                }
             } else {
                 mPayStatus.value = PayStatus.Checked(
                     details = response.templateDetails,
