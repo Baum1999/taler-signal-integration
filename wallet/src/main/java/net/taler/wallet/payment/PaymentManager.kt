@@ -117,7 +117,6 @@ class PaymentManager(
 
     suspend fun preparePay(url: String): String? {
         var transactionId: String? = null
-        mPayStatus.value = PayStatus.Loading
         api.request("preparePayForUriV2", PreparePayV2Response.serializer()) {
             put("talerPayUri", url)
         }.onError {
@@ -269,30 +268,17 @@ class PaymentManager(
         }
     }
 
-    fun preparePayForTemplate(url: String, params: TemplateParams) = scope.launch {
-        mPayStatus.value = PayStatus.Loading
-        api.request("preparePayForTemplate", PreparePayResponse.serializer()) {
+    suspend fun preparePayForTemplate(url: String, params: TemplateParams): String? {
+        var transactionId: String? = null
+        api.request("preparePayForTemplateV2", PreparePayV2Response.serializer()) {
             put("talerPayTemplateUri", url)
             put("templateParams", JSONObject(BackendManager.json.encodeToString(params)))
         }.onError {
             handleError("preparePayForTemplate", it)
         }.onSuccess { response ->
-            mPayStatus.value = when (response) {
-                is PaymentPossibleResponse -> response.toPayStatusPrepared()
-                is PreparePayResponse.ChoiceSelection -> response.toPayStatusPrepared()
-
-                is InsufficientBalanceResponse -> InsufficientBalance(
-                    transactionId = response.transactionId,
-                    contractTerms = response.contractTerms,
-                    amountRaw = response.amountRaw,
-                    balanceDetails = response.balanceDetails,
-                )
-
-                is AlreadyConfirmedResponse -> AlreadyPaid(
-                    transactionId = response.transactionId,
-                )
-            }
+            transactionId = response.transactionId
         }
+        return transactionId
     }
 
     @UiThread

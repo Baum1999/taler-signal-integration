@@ -24,9 +24,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.asFlow
+import kotlinx.coroutines.launch
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
@@ -55,6 +57,16 @@ fun PayTemplateScreen(
     val payStatus by paymentManager.payStatus.asFlow().collectAsStateLifecycleAware(PayStatus.None)
     val balanceState by balanceManager.state.observeAsState(BalanceState.None)
     val devMode by model.devMode.observeAsState(false)
+    val scope = rememberCoroutineScope()
+
+    suspend fun prepareTemplate(uri: String, params: TemplateParams) {
+        model.paymentManager.preparePayForTemplate(uri, params)
+            ?.let { transactionId ->
+                if (model.transactionManager.selectTransaction(transactionId)) {
+                    onNavigate(WalletDestination.TransactionPayment, true)
+                }
+            }
+    }
 
     LaunchedEffect(Unit) {
         balanceManager.loadAssets()
@@ -78,7 +90,7 @@ fun PayTemplateScreen(
                     .intersect(s.supportedCurrencies.toSet())
                     .toList()
                 if (!s.details.isTemplateEditable(usableCurrencies)) {
-                    paymentManager.preparePayForTemplate(uri, s.details.toTemplateParams())
+                    prepareTemplate(uri, s.details.toTemplateParams())
                 }
             }
 
@@ -102,7 +114,7 @@ fun PayTemplateScreen(
                         payStatus = payStatus,
                         onCreateAmount = model::createAmount,
                         onSubmit = { params ->
-                            paymentManager.preparePayForTemplate(uri, params)
+                            scope.launch { prepareTemplate(uri, params) }
                         },
                         onError = { errorMsg ->
                             onShowError(TalerErrorInfo.makeCustomError(errorMsg))
