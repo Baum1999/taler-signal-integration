@@ -258,14 +258,6 @@ data class PaymentInsufficientBalanceDetails(
         val maxEffectiveSpendAmount: Amount,
 
         /**
-         * Exchange doesn't have global fees configured for the relevant year,
-         * p2p payments aren't possible.
-         *
-         * @deprecated (2025-02-18) use causeHint instead
-         */
-        val missingGlobalFees: Boolean,
-
-        /**
          * Hint that UIs should show to explain the insufficient
          * balance.
          */
@@ -317,8 +309,6 @@ data class PaymentTokenAvailabilityDetails(
 
 @Serializable
 enum class TokenAvailabilityHint {
-    Unknown,
-
     @SerialName("wallet-tokens-available-insufficient")
     WalletTokensAvailableInsufficient,
 

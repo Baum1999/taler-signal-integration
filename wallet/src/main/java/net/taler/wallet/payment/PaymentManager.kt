@@ -279,11 +279,6 @@ class PaymentManager(
         return transactionId
     }
 
-    @UiThread
-    fun resetPayStatus() {
-        mPayStatus.postValue(PayStatus.None)
-    }
-
     private fun handleError(operation: String, error: TalerErrorInfo) {
         Log.e(TAG, "got $operation error result $error")
         mPayStatus.postValue(PayStatus.Pending(error = error))
