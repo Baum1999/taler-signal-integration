@@ -25,9 +25,6 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -71,7 +68,6 @@ fun WalletNavHost(
     navController: NavHostController,
     model: MainViewModel,
     modifier: Modifier = Modifier,
-    launchUri: String?,
     onScanQr: () -> Unit,
     onFulfillPayment: (url: String) -> Unit,
     onShowError: (TalerErrorInfo) -> Unit,
@@ -79,11 +75,7 @@ fun WalletNavHost(
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    val startDestination = if (launchUri != null) {
-        WalletDestination.HandleUri(launchUri)
-    } else {
-        WalletDestination.Main
-    }
+    val startDestination = WalletDestination.Main
 
     val onNavigate: NavigateCallback = { dest, popupToStart ->
         if (popupToStart) {
@@ -106,16 +98,6 @@ fun WalletNavHost(
         navController.addOnDestinationChangedListener(listener)
         onDispose {
             navController.removeOnDestinationChangedListener(listener)
-        }
-    }
-
-    val previousLaunchUri = remember { mutableStateOf(launchUri) }
-
-    LaunchedEffect(launchUri) {
-        val prev = previousLaunchUri.value
-        previousLaunchUri.value = launchUri
-        if (launchUri != null && prev != launchUri) {
-            navController.navigate(WalletDestination.HandleUri(launchUri))
         }
     }
 

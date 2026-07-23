@@ -67,7 +67,7 @@ fun PayTotpComposable(
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
-    val nfcAdapter = remember(enableNfc) { if (enableNfc) NfcAdapter.getDefaultAdapter(context) else null }
+    val nfcAdapter = remember { NfcAdapter.getDefaultAdapter(context) }
     var nfcDone by remember { mutableStateOf(false) }
 
     if (enableNfc) {
@@ -107,12 +107,12 @@ fun PayTotpComposable(
                 }
             }, NFC_READER_FLAGS, null)
         }
+    }
 
-        DisposableEffect(activity) {
-            onDispose {
-                if (activity != null) {
-                    nfcAdapter?.disableReaderMode(activity)
-                }
+    DisposableEffect(enableNfc) {
+        onDispose {
+            if (enableNfc) {
+                nfcAdapter?.disableReaderMode(activity ?: return@onDispose)
             }
         }
     }

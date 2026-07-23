@@ -18,7 +18,6 @@ package net.taler.wallet.main
 
 import android.content.Intent
 import android.content.Intent.ACTION_SEND
-import android.content.Intent.ACTION_VIEW
 import android.content.Intent.EXTRA_TEXT
 import android.nfc.NdefMessage
 import android.nfc.NfcAdapter
@@ -48,7 +47,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -74,7 +73,6 @@ import com.google.zxing.client.android.Intents.Scan.SCAN_TYPE
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import com.journeyapps.barcodescanner.ScanOptions.QR_CODE
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import net.taler.common.EventObserver
 import net.taler.lib.android.TalerNfcService
@@ -92,7 +90,7 @@ import net.taler.wallet.ui.theme.TalerTheme
 class MainActivity : FragmentActivity() {
     private val model: MainViewModel by viewModels()
 
-    private val launchIntentUri = MutableStateFlow<String?>(null)
+    private var pendingLaunchUri: String? = null
     private var nav: NavController? = null
     private lateinit var biometricPrompt: BiometricPrompt
     private lateinit var promptInfo: BiometricPrompt.PromptInfo
@@ -121,11 +119,10 @@ class MainActivity : FragmentActivity() {
                 val errorSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = !devMode)
                 val authenticated by model.authenticated.collectAsState()
                 val biometricEnabled by model.settingsManager.getBiometricLockEnabled(this).collectAsState(false)
-                val launchUri by launchIntentUri.collectAsState(null)
 
-                DisposableEffect(Unit) {
-                    onDispose {
-                        launchIntentUri.value = null
+                LaunchedEffect(Unit) {
+                    pendingLaunchUri?.let { uri ->
+                        nav?.navigate(WalletDestination.HandleUri(uri))
                     }
                 }
 
@@ -134,7 +131,6 @@ class MainActivity : FragmentActivity() {
                         navController = navController,
                         model = model,
                         modifier = Modifier.fillMaxSize(),
-                        launchUri = launchUri,
                         onScanQr = { model.scanCode() },
                         onFulfillPayment = { url: String -> launchInAppBrowser(this@MainActivity, url) },
                         onShowError = { errorInfo = it }
@@ -259,14 +255,23 @@ class MainActivity : FragmentActivity() {
     private fun handleIntents(intent: Intent?) {
         if (intent == null) return
 
-        if (intent.action == ACTION_VIEW) intent.dataString?.let { uri ->
-            launchIntentUri.value = uri
+        fun emitUri(uri: String) {
+            if (nav != null) {
+                nav?.navigate(WalletDestination.HandleUri(uri))
+            } else {
+                pendingLaunchUri = uri
+            }
+        }
+
+        // Check data URI first regardless of action
+        intent.dataString?.let { uri ->
+            emitUri(uri)
         }
 
         if (intent.action == ACTION_SEND) {
             if (intent.type == "text/plain") {
                 intent.getStringExtra(EXTRA_TEXT)?.let { uri ->
-                    launchIntentUri.value = uri
+                    emitUri(uri)
                 }
             }
         }
@@ -284,7 +289,7 @@ class MainActivity : FragmentActivity() {
             messages.forEach { message ->
                 message.records?.forEach { record ->
                     record.toUri()?.let { uri ->
-                        launchIntentUri.value = uri.toString()
+                        emitUri(uri.toString())
                     }
                 }
             }
