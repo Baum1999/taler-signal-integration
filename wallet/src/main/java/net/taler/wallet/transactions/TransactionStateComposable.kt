@@ -47,6 +47,7 @@ import net.taler.wallet.transactions.TransactionMajorState.Pending
 import net.taler.wallet.transactions.TransactionMajorState.Suspended
 import net.taler.wallet.transactions.TransactionMinorState.BalanceKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
+import net.taler.wallet.transactions.TransactionMinorState.ClaimProposal
 import net.taler.wallet.transactions.TransactionMinorState.KycAuthRequired
 import net.taler.wallet.transactions.TransactionMinorState.KycInit
 import net.taler.wallet.transactions.TransactionMinorState.KycRequired
@@ -67,6 +68,7 @@ fun TransactionStateComposable(
         TransactionState(Pending, KycRequired) -> stringResource(R.string.transaction_state_pending_kyc_bank)
         TransactionState(Pending, BalanceKycRequired) -> stringResource(R.string.transaction_state_pending_kyc_bank)
         TransactionState(Pending, KycAuthRequired) -> stringResource(R.string.transaction_state_pending_kyc_auth)
+        TransactionState(Pending, ClaimProposal) -> stringResource(R.string.transaction_state_pending)
         TransactionState(Pending) -> stringResource(R.string.transaction_state_pending)
         TransactionState(Aborted) -> if (tx is TransactionWithdrawal && tx.withdrawalDetails is ManualTransfer) {
             stringResource(

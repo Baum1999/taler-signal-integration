@@ -67,6 +67,7 @@ import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.GlobalScaffold
+import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.deposit.TransactionDepositComposable
 import net.taler.wallet.launchInAppBrowser
@@ -121,6 +122,10 @@ fun TransactionDetailScreen(
         onNavigateBack = onNavigateBack,
     ) { paddingValues ->
         val t by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
+        if (t == null) {
+            LoadingScreen()
+            return@GlobalScaffold
+        }
         val modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues)
@@ -139,6 +144,7 @@ fun TransactionDetailScreen(
                             payStatus = model.paymentManager.payStatus
                                 .observeAsState(PayStatus.None).value,
                             devMode = devMode,
+                            promptMode = destination.promptMode,
                             spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
                             modifier = modifier,
                             onFulfill = { url ->

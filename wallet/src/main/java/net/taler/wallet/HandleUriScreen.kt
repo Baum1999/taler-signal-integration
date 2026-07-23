@@ -23,6 +23,7 @@ import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.RetryScreen
 import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.main.TAG
+import net.taler.wallet.payment.PayStatus
 import net.taler.wallet.refund.RefundStatus
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -40,6 +41,7 @@ fun HandleUriScreen(
     var processing by remember { mutableStateOf(false) }
     var errorInfo by remember { mutableStateOf<TalerErrorInfo?>(null) }
     val networkStatus by model.networkManager.networkStatus.observeAsState()
+    val payStatus by model.paymentManager.payStatus.observeAsState(PayStatus.None)
     val scope = rememberCoroutineScope()
 
     fun processTalerUri() {
@@ -80,7 +82,7 @@ fun HandleUriScreen(
                     action.startsWith("pay/", ignoreCase = true) -> {
                         model.paymentManager.preparePay(u2)?.let { transactionId ->
                             if (model.transactionManager.selectTransaction(transactionId)) {
-                                onNavigate(WalletDestination.TransactionPayment, true)
+                                onNavigate(WalletDestination.TransactionPayment(promptMode = true), true)
                             }
                         }
                     }
@@ -151,6 +153,11 @@ fun HandleUriScreen(
             onShowError(currentError)
             onNavigateBack()
         }
+    }
+
+    LaunchedEffect(payStatus) {
+        val error = (payStatus as? PayStatus.Pending)?.error ?: return@LaunchedEffect
+        errorInfo = error
     }
 
     Box(Modifier.fillMaxSize()) {

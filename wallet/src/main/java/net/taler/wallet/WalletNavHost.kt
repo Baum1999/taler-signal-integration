@@ -264,10 +264,11 @@ fun WalletNavHost(
                 onNavigateBack = onNavigateBack,
             )
         }
-        composable<WalletDestination.TransactionPayment> {
+        composable<WalletDestination.TransactionPayment> { backStackEntry ->
+            val dest = backStackEntry.toRoute<WalletDestination.TransactionPayment>()
             TransactionDetailScreen(
                 model = model,
-                destination = WalletDestination.TransactionPayment,
+                destination = dest,
                 onNavigate = onNavigate,
                 onNavigateBack = onNavigateBack,
             )

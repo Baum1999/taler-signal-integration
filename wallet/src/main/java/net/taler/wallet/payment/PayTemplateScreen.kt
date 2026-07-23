@@ -64,7 +64,7 @@ fun PayTemplateScreen(
         model.paymentManager.preparePayForTemplate(uri, params)
             ?.let { transactionId ->
                 if (model.transactionManager.selectTransaction(transactionId)) {
-                    onNavigate(WalletDestination.TransactionPayment, true)
+                    onNavigate(WalletDestination.TransactionPayment(promptMode = true), true)
                 }
             }
     }
@@ -80,7 +80,7 @@ fun PayTemplateScreen(
         when (val s = payStatus) {
             is PayStatus.Prepared -> {
                 if (transactionManager.selectTransaction(s.transactionId)) {
-                    onNavigate(WalletDestination.TransactionPayment, true)
+                    onNavigate(WalletDestination.TransactionPayment(promptMode = true), true)
                 }
             }
 

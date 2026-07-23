@@ -451,7 +451,7 @@ class TransactionPayment(
     val posConfirmationViaNfc: Boolean? = null,
 ) : Transaction() {
     override val icon = R.drawable.transaction_payment
-    override val detailPageNav = WalletDestination.TransactionPayment
+    override val detailPageNav = WalletDestination.TransactionPayment()
 
     @Transient
     override val amountType = AmountType.Negative

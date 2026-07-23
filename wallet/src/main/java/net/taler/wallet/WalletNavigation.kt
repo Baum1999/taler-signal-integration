@@ -104,7 +104,7 @@ sealed interface WalletDestination {
     @Serializable
     data object TransactionWithdrawal : WalletDestination
     @Serializable
-    data object TransactionPayment : WalletDestination
+    data class TransactionPayment(val promptMode: Boolean = false) : WalletDestination
     @Serializable
     data object TransactionRefund : WalletDestination
     @Serializable

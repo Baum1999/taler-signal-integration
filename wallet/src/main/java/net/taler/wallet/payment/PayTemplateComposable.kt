@@ -54,6 +54,9 @@ fun PayTemplateComposable(
             if (usableCurrencies.isEmpty()) {
                 // If user doesn't have any supported currency, they can't pay either
                 PayTemplateError(stringResource(R.string.payment_balance_insufficient))
+            } else if (!p.details.isTemplateEditable(usableCurrencies)) {
+                // Non-editable: auto-preparing, show loading instead of flashing the form
+                PayTemplateLoading()
             } else {
                 PayTemplateOrderComposable(
                     usableCurrencies = usableCurrencies,
