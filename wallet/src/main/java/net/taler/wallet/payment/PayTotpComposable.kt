@@ -23,16 +23,12 @@ import android.nfc.NfcAdapter
 import android.nfc.tech.Ndef
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import net.taler.wallet.R
+import net.taler.wallet.ui.theme.TalerTheme
 import java.io.ByteArrayOutputStream
 
 private const val NFC_READER_FLAGS = NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_V
@@ -63,31 +60,61 @@ private fun formatTotpPayload(totpString: String): ByteArray {
 }
 
 @Composable
-fun TotpNfcWriter(
+fun PayTotpComposable(
     totpString: String,
+    enableNfc: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
-    var isWriting by remember { mutableStateOf(false) }
+    val nfcAdapter = remember(enableNfc) { if (enableNfc) NfcAdapter.getDefaultAdapter(context) else null }
+    var nfcDone by remember { mutableStateOf(false) }
 
-    DisposableEffect(activity) {
-        onDispose {
-            if (isWriting && activity != null) {
-                NfcAdapter.getDefaultAdapter(context)?.disableReaderMode(activity)
+    if (enableNfc) {
+        val ndefMessage = remember(totpString) {
+            val payload = formatTotpPayload(totpString)
+            val record = NdefRecord(
+                NdefRecord.TNF_WELL_KNOWN,
+                "T".encodeToByteArray(),
+                ByteArray(0),
+                payload,
+            )
+            NdefMessage(arrayOf(record))
+        }
+
+        LaunchedEffect(activity, ndefMessage) {
+            val act = activity ?: return@LaunchedEffect
+            if (nfcAdapter == null) return@LaunchedEffect
+            nfcAdapter.enableReaderMode(act, { tag ->
+                val ndef = Ndef.get(tag)
+                if (ndef != null) {
+                    try {
+                        ndef.connect()
+                        ndef.writeNdefMessage(ndefMessage)
+                        act.runOnUiThread {
+                            nfcDone = true
+                            Toast.makeText(context, R.string.nfc_write_success, Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: Exception) {
+                        act.runOnUiThread {
+                            Toast.makeText(context, "${e.message}", Toast.LENGTH_SHORT).show()
+                        }
+                    } finally {
+                        act.runOnUiThread { nfcAdapter.disableReaderMode(act) }
+                    }
+                } else {
+                    nfcAdapter.disableReaderMode(act)
+                }
+            }, NFC_READER_FLAGS, null)
+        }
+
+        DisposableEffect(activity) {
+            onDispose {
+                if (activity != null) {
+                    nfcAdapter?.disableReaderMode(activity)
+                }
             }
         }
-    }
-
-    val ndefMessage = remember(totpString) {
-        val payload = formatTotpPayload(totpString)
-        val record = NdefRecord(
-            NdefRecord.TNF_WELL_KNOWN,
-            "T".encodeToByteArray(),
-            ByteArray(0),
-            payload,
-        )
-        NdefMessage(arrayOf(record))
     }
 
     Column(modifier = modifier, horizontalAlignment = CenterHorizontally) {
@@ -104,51 +131,26 @@ fun TotpNfcWriter(
             fontSize = MaterialTheme.typography.titleLarge.fontSize,
         )
 
-        Button(
-            onClick = {
-                val nfcAdapter = NfcAdapter.getDefaultAdapter(context)
-                val act = activity
-                if (nfcAdapter == null || act == null) {
-                    Toast.makeText(context, R.string.nfc_not_available, Toast.LENGTH_SHORT).show()
-                    return@Button
-                }
-                isWriting = true
-                nfcAdapter.enableReaderMode(act, { tag ->
-                    val ndef = Ndef.get(tag)
-                    if (ndef != null) {
-                        try {
-                            ndef.connect()
-                            ndef.writeNdefMessage(ndefMessage)
-                            act.runOnUiThread {
-                                Toast.makeText(context, R.string.nfc_write_success, Toast.LENGTH_SHORT).show()
-                            }
-                        } catch (e: Exception) {
-                            act.runOnUiThread {
-                                Toast.makeText(context, "${e.message}", Toast.LENGTH_SHORT).show()
-                            }
-                        } finally {
-                            act.runOnUiThread {
-                                isWriting = false
-                                nfcAdapter.disableReaderMode(act)
-                            }
-                        }
-                    } else {
-                        act.runOnUiThread {
-                            isWriting = false
-                            nfcAdapter.disableReaderMode(act)
-                            Toast.makeText(context, R.string.nfc_tag_not_ndef, Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }, NFC_READER_FLAGS, null)
-            },
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp).padding(top = 4.dp),
-            enabled = !isWriting,
-        ) {
-            Text(if (isWriting) stringResource(R.string.nfc_writing) else stringResource(R.string.nfc_write_button))
-        }
-
-        if (!isWriting) {
-            Spacer(Modifier.height(ButtonDefaults.IconSpacing))
+        if (enableNfc) {
+            if (nfcAdapter == null) {
+                Text(
+                    modifier = Modifier.padding(16.dp),
+                    text = stringResource(R.string.nfc_not_available),
+                    color = MaterialTheme.colorScheme.error,
+                )
+            } else if (nfcDone) {
+                Text(
+                    modifier = Modifier.padding(16.dp),
+                    text = stringResource(R.string.nfc_write_success),
+                    color = TalerTheme.extraColors.success,
+                )
+            } else {
+                Text(
+                    modifier = Modifier.padding(16.dp),
+                    text = stringResource(R.string.nfc_scanning),
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
         }
     }
 }

@@ -448,6 +448,7 @@ class TransactionPayment(
     override val amountEffective: Amount,
     override val scopes: List<ScopeInfo>,
     val posConfirmation: String? = null,
+    val posConfirmationViaNfc: Boolean? = null,
 ) : Transaction() {
     override val icon = R.drawable.transaction_payment
     override val detailPageNav = WalletDestination.TransactionPayment

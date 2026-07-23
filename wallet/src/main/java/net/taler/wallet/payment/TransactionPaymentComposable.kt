@@ -141,9 +141,10 @@ fun TransactionPaymentComposable(
             )
         }
 
-        if (t.posConfirmation != null) {
-            TotpNfcWriter(totpString = t.posConfirmation)
-        }
+        if (t.posConfirmation != null) PayTotpComposable(
+            totpString = t.posConfirmation,
+            enableNfc = t.posConfirmationViaNfc == true,
+        )
 
         if (t.info != null) PurchaseDetails(info = t.info) {
             onFulfill(t.info.fulfillmentUrl ?: "")

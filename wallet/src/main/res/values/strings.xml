@@ -71,11 +71,9 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="millisecond">%1$d ms</string>
     <string name="offline">Operation requires internet access. Please ensure your internet connection works and try again.</string>
     <string name="offline_banner">No internet access</string>
-    <string name="nfc_not_available">NFC is not available on this device</string>
-    <string name="nfc_tag_not_ndef">NFC tag does not support NDEF</string>
-    <string name="nfc_write_button">Write NFC</string>
-    <string name="nfc_write_success">Confirmation code written to terminal</string>
-    <string name="nfc_writing">Tap phone to terminal…</string>
+    <string name="nfc_not_available">NFC not available</string>
+    <string name="nfc_scanning">Tap NFC tag to write confirmation codes</string>
+    <string name="nfc_write_success">Confirmation codes written</string>
     <string name="ok">OK</string>
     <string name="open">Open</string>
     <string name="paste">Paste</string>

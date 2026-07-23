@@ -30,11 +30,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
-import net.taler.wallet.main.AmountResult
 import net.taler.wallet.R
-import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.systemBarsPaddingBottom
