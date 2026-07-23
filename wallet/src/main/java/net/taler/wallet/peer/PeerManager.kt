@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import net.taler.common.Amount
+import net.taler.common.RelativeTime
 import net.taler.common.Timestamp
 import net.taler.wallet.main.TAG
 import net.taler.wallet.backend.BackendManager
@@ -65,6 +66,7 @@ sealed class CheckFeeResult {
         val amountRaw: Amount,
         val amountEffective: Amount,
         val exchangeBaseUrl: String,
+        val defaultExpiration: RelativeTime,
         override val maxDepositAmountEffective: Amount? = null,
         override val maxDepositAmountRaw: Amount? = null,
     ): CheckFeeResult()
@@ -179,16 +181,6 @@ class PeerManager(
             maxDepositAmountRaw = max?.rawAmount,
         )
 
-        if (amount.isZero() && exchangeBaseUrl != null) {
-            return CheckFeeResult.Success(
-                amountRaw = amount,
-                amountEffective = amount,
-                maxDepositAmountEffective = max?.effectiveAmount,
-                maxDepositAmountRaw = max?.rawAmount,
-                exchangeBaseUrl = exchangeBaseUrl,
-            )
-        }
-
         api.request("checkPeerPushDebitV2", CheckPeerPushDebitResponse.serializer()) {
             exchangeBaseUrl?.let { put("exchangeBaseUrl", it) }
             restrictScope?.let { put("restrictScope", JSONObject(BackendManager.json.encodeToString(it))) }
@@ -201,6 +193,7 @@ class PeerManager(
                     maxDepositAmountEffective = max?.effectiveAmount,
                     maxDepositAmountRaw = max?.rawAmount,
                     exchangeBaseUrl = r.exchangeBaseUrl,
+                    defaultExpiration = r.defaultExpiration,
                 )
 
                 is CheckPeerPushDebitInsufficientBalanceResponse -> CheckFeeResult.InsufficientBalance(

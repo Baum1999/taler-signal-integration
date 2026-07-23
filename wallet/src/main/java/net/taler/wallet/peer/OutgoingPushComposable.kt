@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.JsonPrimitive
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
+import net.taler.common.RelativeTime
 import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
@@ -121,6 +122,10 @@ fun OutgoingPushIntroComposable(
 
     amount.useDebounce {
         feeResult = getFees(it) ?: None()
+        (feeResult as? Success)?.let { res ->
+            option = ExpirationOption.CUSTOM
+            hours = res.defaultExpiration.toHours()
+        }
     }
 
     val amountFocusRequester = remember { FocusRequester() }
@@ -247,21 +252,23 @@ fun OutgoingPushIntroComposable(
                         },
                     )
 
-                    Text(
-                        modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
-                        text = stringResource(R.string.send_peer_expiration_period),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
+                    if (devMode) {
+                        Text(
+                            modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp),
+                            text = stringResource(R.string.send_peer_expiration_period),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
 
-                    ExpirationComposable(
-                        modifier = Modifier.padding(
-                            vertical = 8.dp,
-                            horizontal = 16.dp,
-                        ),
-                        option = option,
-                        hours = hours,
-                        onOptionChange = { option = it }
-                    ) { hours = it }
+                        ExpirationComposable(
+                            modifier = Modifier.padding(
+                                vertical = 8.dp,
+                                horizontal = 16.dp,
+                            ),
+                            option = option,
+                            hours = hours,
+                            onOptionChange = { option = it }
+                        ) { hours = it }
+                    }
 
                     (feeResult as? Success)?.let {
                         if (amount.scope is ScopeInfo.Global) {
@@ -318,7 +325,8 @@ fun PeerPushComposableCreatingPreview() {
             getFees = { Success(
                 amountEffective = Amount.fromJSONString("KUDOS:10"),
                 amountRaw = Amount.fromJSONString("KUDOS:12"),
-                exchangeBaseUrl = "https://exchange.demo.taler.net"
+                exchangeBaseUrl = "https://exchange.demo.taler.net",
+                defaultExpiration = RelativeTime.fromMillis(10 * 24 * 60 * 60 * 1000),
             ) },
             onSend = { _, _, _ -> },
         )
@@ -344,7 +352,8 @@ fun PeerPushComposableCheckingPreview() {
                 amountEffective = Amount.fromJSONString("KUDOS:10"),
                 amountRaw = Amount.fromJSONString("KUDOS:12"),
                 maxDepositAmountEffective = Amount.fromJSONString("KUDOS:12"),
-                exchangeBaseUrl = "https://exchange.demo.taler.net"
+                exchangeBaseUrl = "https://exchange.demo.taler.net",
+                defaultExpiration = RelativeTime.fromMillis(10 * 24 * 60 * 60 * 1000),
             ) },
             onSend = { _, _, _ -> },
         )
@@ -372,7 +381,8 @@ fun PeerPushComposableCheckedPreview() {
                 amountEffective = Amount.fromJSONString("KUDOS:10"),
                 amountRaw = Amount.fromJSONString("KUDOS:12"),
                 maxDepositAmountEffective = Amount.fromJSONString("KUDOS:12"),
-                exchangeBaseUrl = "https://exchange.demo.taler.net"
+                exchangeBaseUrl = "https://exchange.demo.taler.net",
+                defaultExpiration = RelativeTime.fromMillis(10 * 24 * 60 * 60 * 1000),
             ) },
             onSend = { _, _, _ -> },
         )
@@ -399,7 +409,8 @@ fun PeerPushComposableErrorPreview() {
                 amountEffective = Amount.fromJSONString("KUDOS:10"),
                 amountRaw = Amount.fromJSONString("KUDOS:12"),
                 maxDepositAmountEffective = Amount.fromJSONString("KUDOS:12"),
-                exchangeBaseUrl = "https://exchange.demo.taler.net"
+                exchangeBaseUrl = "https://exchange.demo.taler.net",
+                defaultExpiration = RelativeTime.fromMillis(10 * 24 * 60 * 60 * 1000),
             ) },
             onSend = { _, _, _ -> },
         )

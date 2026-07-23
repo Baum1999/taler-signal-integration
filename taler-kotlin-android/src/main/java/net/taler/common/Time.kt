@@ -86,6 +86,8 @@ data class RelativeTime(
 ) {
     val ms: Long = us / 1000L
 
+    fun toHours(): Long = ms / (60 * 60 * 1000L)
+
     companion object {
         internal const val FOREVER: Long = -1
         fun forever(): RelativeTime = fromMillis(FOREVER)

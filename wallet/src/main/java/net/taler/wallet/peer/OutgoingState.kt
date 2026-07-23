@@ -19,6 +19,7 @@ package net.taler.wallet.peer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.taler.common.Amount
+import net.taler.common.RelativeTime
 import net.taler.common.Timestamp
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.exchanges.ExchangeTosStatus
@@ -76,6 +77,7 @@ sealed class CheckPeerPushDebitResponse {
         val amountEffective: Amount,
         val exchangeBaseUrl: String,
         val maxExpirationDate: Timestamp,
+        val defaultExpiration: RelativeTime,
     ) : CheckPeerPushDebitResponse()
 
     @Serializable
