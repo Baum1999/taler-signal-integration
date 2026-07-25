@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -79,6 +80,7 @@ fun ExchangeListScreen(
     val devMode by model.devMode.observeAsState(false)
     val scope = rememberCoroutineScope()
     var showAddDialog by remember { mutableStateOf(false) }
+    var exchangeToDelete by remember { mutableStateOf<ExchangeItem?>(null) }
 
     GlobalScaffold(
         model = model,
@@ -106,14 +108,18 @@ fun ExchangeListScreen(
                         exchange = exchange,
                         devMode = devMode,
                         onAction = { action ->
-                            handleExchangeAction(
-                                scope = scope,
-                                exchangeManager = exchangeManager,
-                                balanceManager = balanceManager,
-                                exchange = exchange,
-                                action = action,
-                                onNavigate = onNavigate,
-                            )
+                            if (action == ExchangeAction.Delete) {
+                                exchangeToDelete = exchange
+                            } else {
+                                handleExchangeAction(
+                                    scope = scope,
+                                    exchangeManager = exchangeManager,
+                                    balanceManager = balanceManager,
+                                    exchange = exchange,
+                                    action = action,
+                                    onNavigate = onNavigate,
+                                )
+                            }
                         }
                     )
                     HorizontalDivider()
@@ -128,6 +134,18 @@ fun ExchangeListScreen(
             onConfirm = { url ->
                 exchangeManager.add(url)
                 showAddDialog = false
+            }
+        )
+    }
+
+    if (exchangeToDelete != null) {
+        DeleteExchangeDialog(
+            onDismiss = {
+                exchangeToDelete = null
+            },
+            onConfirm = { purge ->
+                exchangeManager.delete(exchangeToDelete!!.exchangeBaseUrl, purge)
+                exchangeToDelete = null
             }
         )
     }
@@ -264,6 +282,34 @@ fun AddExchangeDialog(
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
+}
+
+@Composable
+fun DeleteExchangeDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (purge: Boolean) -> Unit,
+) {
+    var purge by remember { mutableStateOf(false) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.exchange_delete)) },
+        text = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(checked = purge, onCheckedChange = { purge = it })
+                Text(stringResource(R.string.exchange_delete_force))
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(purge) }) {
+                Text(stringResource(R.string.transactions_delete))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
 }
 
 enum class ExchangeAction {
