@@ -244,6 +244,14 @@
     <string name="observability_show_json">Afficher le JSON</string>
     <string name="settings_alert_reset_canceled">Réinitialisation annulée</string>
     <string name="qr_scan_context_title">Action éventuellement involontaire</string>
+    <string name="scan_qr_title">Scanner ou saisir le lien</string>
+    <string name="scan_qr_tab">Scanner QR</string>
+    <string name="enter_link_tab">Saisir le lien Taler</string>
+    <string name="camera_permission_required">L\'autorisation de la caméra est requise pour scanner les codes QR</string>
+    <string name="grant_permission">Accorder l\'autorisation</string>
+    <string name="flash_on">Activer le flash</string>
+    <string name="flash_off">Désactiver le flash</string>
+    <string name="scan_from_gallery">Scanner depuis la galerie</string>
     <string name="exchange_delete">Effacer le prestataire</string>
     <string name="balance_scope_auditor">Auditeur : %1$s</string>
     <string name="balances_empty_withdraw_kudos_message">Obtenez de l\'argent fictif pour découvrir comment payer avec de l\'argent numérique.</string>

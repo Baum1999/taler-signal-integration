@@ -82,6 +82,12 @@ dependencies {
     // QR codes
     implementation 'com.google.zxing:core:3.5.3'  // needs minSdkVersion 24+ or desugar
 
+    // CameraX for QR scanning (shared logic)
+    implementation "androidx.camera:camera-core:1.5.3"
+    implementation "androidx.camera:camera-camera2:1.5.3"
+    implementation "androidx.camera:camera-lifecycle:1.5.3"
+    implementation "androidx.camera:camera-view:1.5.3"
+
     // JSON parsing and serialization
     api 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0'
     testImplementation "junit:junit:$junit_version"

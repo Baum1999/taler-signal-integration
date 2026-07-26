@@ -31,7 +31,6 @@ import kotlinx.coroutines.launch
 import net.taler.common.Amount
 import net.taler.common.AmountParserException
 import net.taler.common.Event
-import net.taler.common.toEvent
 import net.taler.wallet.accounts.AccountManager
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.NotificationPayload
@@ -128,9 +127,6 @@ class MainViewModel(
 
     private val mShowObservabilityLog = MutableStateFlow(false)
     val showObservabilityLog: StateFlow<Boolean> = mShowObservabilityLog
-
-    private val mScanCodeEvent = MutableLiveData<Event<Boolean>>()
-    val scanCodeEvent: LiveData<Event<Boolean>> = mScanCodeEvent
 
     private val mViewMode = MutableStateFlow<ViewMode>(ViewMode.Assets)
     val viewMode: StateFlow<ViewMode> = mViewMode
@@ -246,11 +242,6 @@ class MainViewModel(
     fun dangerouslyReset() {
         withdrawManager.resetTestWithdrawal()
         balanceManager.resetBalances()
-    }
-
-    @UiThread
-    fun scanCode() {
-        mScanCodeEvent.value = true.toEvent()
     }
 
     fun setDevMode(enabled: Boolean, onError: (error: TalerErrorInfo) -> Unit) {

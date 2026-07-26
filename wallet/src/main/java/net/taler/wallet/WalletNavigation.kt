@@ -17,11 +17,15 @@
 package net.taler.wallet
 
 import kotlinx.serialization.Serializable
+import net.taler.wallet.scan.ScanTab
 
 @Serializable
 sealed interface WalletDestination {
     @Serializable
     data object Main : WalletDestination
+
+    @Serializable
+    data class ScanQr(val initialTab: ScanTab = ScanTab.SCAN_QR) : WalletDestination
 
     @Serializable
     data class HandleUri(val uri: String) : WalletDestination

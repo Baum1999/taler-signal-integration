@@ -51,6 +51,7 @@ import net.taler.wallet.peer.IncomingPullPaymentScreen
 import net.taler.wallet.peer.IncomingPushPaymentScreen
 import net.taler.wallet.peer.OutgoingPullScreen
 import net.taler.wallet.peer.OutgoingPushScreen
+import net.taler.wallet.scan.ScanQrScreen
 import net.taler.wallet.settings.PerformanceStatsScreen
 import net.taler.wallet.tokens.TokenListScreen
 import net.taler.wallet.tokens.TokenViewMode
@@ -68,7 +69,6 @@ fun WalletNavHost(
     navController: NavHostController,
     model: MainViewModel,
     modifier: Modifier = Modifier,
-    onScanQr: () -> Unit,
     onFulfillPayment: (url: String) -> Unit,
     onShowError: (TalerErrorInfo) -> Unit,
 ) {
@@ -122,9 +122,17 @@ fun WalletNavHost(
             MainScreen(
                 model = model,
                 onNavigate = onNavigate,
-                onScanQr = onScanQr,
                 onFulfillPayment = onFulfillPayment,
                 onShowError = onShowError,
+            )
+        }
+        composable<WalletDestination.ScanQr> { backStackEntry ->
+            val dest = backStackEntry.toRoute<WalletDestination.ScanQr>()
+            ScanQrScreen(
+                model = model,
+                initialTab = dest.initialTab,
+                onNavigate = onNavigate,
+                onNavigateBack = onNavigateBack,
             )
         }
         composable<WalletDestination.HandleUri> { backStackEntry ->

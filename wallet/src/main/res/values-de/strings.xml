@@ -215,6 +215,14 @@
     <string name="qr_scan_context_title">Möglicherweise unbeabsichtigte Aktion</string>
     <string name="qr_scan_context_receive_message">Es scheint, dass Sie Geld erhalten wollten, doch entspricht der eingescannte QR-Code einer anderen Aktion. Möchten Sie dennoch fortfahren?</string>
     <string name="qr_scan_context_send_message">Es scheint, dass Sie Geld senden wollten, doch entspricht der eingescannte QR-Code einer anderen Aktion. Möchten Sie dennoch fortfahren?</string>
+    <string name="scan_qr_title">Scannen oder Link eingeben</string>
+    <string name="scan_qr_tab">QR scannen</string>
+    <string name="enter_link_tab">Taler-Link eingeben</string>
+    <string name="camera_permission_required">Kameraberechtigung ist erforderlich, um QR-Codes zu scannen</string>
+    <string name="grant_permission">Berechtigung erteilen</string>
+    <string name="flash_on">Blitz einschalten</string>
+    <string name="flash_off">Blitz ausschalten</string>
+    <string name="scan_from_gallery">Aus Galerie scannen</string>
     <string name="amount_fee">Gebühr</string>
     <string name="amount_invalid">Ungültiger Betrag</string>
     <string name="amount_invoiced">Betrag angefordert</string>

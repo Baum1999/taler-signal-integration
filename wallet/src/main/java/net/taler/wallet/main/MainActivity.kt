@@ -68,13 +68,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.google.zxing.client.android.Intents.Scan.MIXED_SCAN
-import com.google.zxing.client.android.Intents.Scan.SCAN_TYPE
-import com.journeyapps.barcodescanner.ScanContract
-import com.journeyapps.barcodescanner.ScanOptions
-import com.journeyapps.barcodescanner.ScanOptions.QR_CODE
 import kotlinx.coroutines.launch
-import net.taler.common.EventObserver
 import net.taler.lib.android.TalerNfcService
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
@@ -94,12 +88,6 @@ class MainActivity : FragmentActivity() {
     private var nav: NavController? = null
     private lateinit var biometricPrompt: BiometricPrompt
     private lateinit var promptInfo: BiometricPrompt.PromptInfo
-
-    private val barcodeLauncher = registerForActivityResult(ScanContract()) { result ->
-        model.unlockWallet() // hack to prevent from locking after scanning QR
-        if (result == null || result.contents == null) return@registerForActivityResult
-        nav?.navigate(WalletDestination.HandleUri(result.contents))
-    }
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -131,7 +119,6 @@ class MainActivity : FragmentActivity() {
                         navController = navController,
                         model = model,
                         modifier = Modifier.fillMaxSize(),
-                        onScanQr = { model.scanCode() },
                         onFulfillPayment = { url: String -> launchInAppBrowser(this@MainActivity, url) },
                         onShowError = { errorInfo = it }
                     )
@@ -190,17 +177,6 @@ class MainActivity : FragmentActivity() {
                 }
             }
         }
-
-        model.scanCodeEvent.observe(this, EventObserver {
-            val scanOptions = ScanOptions().apply {
-                setPrompt("")
-                setBeepEnabled(false) // FIXME: expose in settings
-                setOrientationLocked(false)
-                setDesiredBarcodeFormats(QR_CODE)
-                addExtra(SCAN_TYPE, MIXED_SCAN)
-            }
-            if (it) barcodeLauncher.launch(scanOptions)
-        })
 
         model.networkManager.networkStatus.observe(this) { online ->
             model.hintNetworkAvailability(online)
