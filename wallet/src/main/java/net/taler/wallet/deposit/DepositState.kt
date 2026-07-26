@@ -29,7 +29,7 @@ sealed class DepositState {
 
     data object MakingDeposit : DepositState()
 
-    data object Success : DepositState()
+    data class Success(val transactionId: String) : DepositState()
 
     data class Error(val error: TalerErrorInfo) : DepositState()
 }

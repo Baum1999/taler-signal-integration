@@ -22,9 +22,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -70,6 +72,7 @@ fun DepositAmountComposable(
             .fillMaxSize()
             .imePadding(),
     ) {
+        var loading by remember { mutableStateOf(false) }
         var checkResult by remember { mutableStateOf<CheckDepositResult>(CheckDepositResult.None) }
         // TODO: handle unavailable scopes in UI (i.e. explain restrictions)
         // if currencies is null, we assume any (known) currency is supported
@@ -109,7 +112,9 @@ fun DepositAmountComposable(
             val maxDepositable = remember(amount) { state.maxDepositable[amount!!.currency]  }
 
             amount.useDebounce {
+                loading = true
                 checkResult = checkDeposit(amount!!)
+                loading = false
             }
 
             AnimatedVisibility(maxDepositable?.rawAmount != null) {
@@ -192,13 +197,19 @@ fun DepositAmountComposable(
             Button(
                 modifier = Modifier
                     .systemBarsPaddingBottom(),
-                enabled = checkResult is CheckDepositResult.Success && amount != null,
+                enabled = !loading
+                        && amount != null
+                        && checkResult is CheckDepositResult.Success,
                 onClick = {
                     focusManager.clearFocus()
                     onMakeDeposit(amount!!)
                 },
             ) {
-                Text(stringResource(R.string.send_deposit_create_button))
+                if (loading) {
+                    CircularProgressIndicator(Modifier.size(15.dp))
+                } else {
+                    Text(stringResource(R.string.send_deposit_create_button))
+                }
             }
         }
     }

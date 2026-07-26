@@ -23,6 +23,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -68,8 +69,16 @@ fun DepositScreen(
     val state by depositManager.depositState.collectAsStateLifecycleAware()
 
     LaunchedEffect(state) {
-        if (state is DepositState.Success) {
-            onNavigateBack()
+        (state as? DepositState.Success)?.let {
+            if (model.transactionManager.selectTransaction(it.transactionId)) {
+                onNavigate(WalletDestination.TransactionDeposit, true)
+            }
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            model.depositManager.resetDepositState()
         }
     }
 

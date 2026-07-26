@@ -138,7 +138,7 @@ class DepositManager(
                 Log.e(TAG, "Error createDepositGroup $it")
                 mDepositState.value = DepositState.Error(it)
             }.onSuccess {
-                mDepositState.value = DepositState.Success
+                mDepositState.value = DepositState.Success(it.transactionId)
             }
         }
     }
@@ -274,7 +274,7 @@ data class GetDepositWireTypesResponse(
 
     val hostNames: List<String>
         get() = wireTypeDetails
-            .flatMap { it.talerBankHostnames }
+            .flatMap { it.talerBankHostnames ?: emptyList() }
             .distinct()
 }
 
@@ -307,5 +307,5 @@ enum class WireType {
 @Serializable
 data class WireTypeDetails(
     val paymentTargetType: WireType,
-    val talerBankHostnames: List<String>,
+    val talerBankHostnames: List<String>? = null,
 )
