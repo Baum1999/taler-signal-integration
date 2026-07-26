@@ -56,13 +56,14 @@ fun ErrorComposable(
     error: TalerErrorInfo,
     modifier: Modifier = Modifier,
     devMode: Boolean,
+    scrollable: Boolean = true,
     onClose: (() -> Unit)? = null,
 ) {
     val scrollState = rememberScrollState()
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .verticalScroll(scrollState)
+            .then(if (scrollable) Modifier.verticalScroll(scrollState) else Modifier)
             .padding(16.dp),
         horizontalAlignment = CenterHorizontally,
         verticalArrangement = Arrangement.Top,

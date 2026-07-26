@@ -115,8 +115,12 @@ fun TransactionWithdrawalComposable(
             selectedOption?.let { onSelectOption(it) }
         }
 
-        val showAccountChooser = accounts != null && accounts.size > 1
-        val showOptionChooser = selectedAccount != null && selectedAccount.transferOptions.size > 1
+        val showAccountChooser = accounts != null
+                && accounts.size > 1
+                && t.txState.minor == TransactionMinorState.ExchangeWaitReserve
+        val showOptionChooser = selectedAccount != null
+                && selectedAccount.transferOptions.size > 1
+                && t.txState.minor == TransactionMinorState.ExchangeWaitReserve
 
         if (showAccountChooser) {
             TransferAccountChooser(

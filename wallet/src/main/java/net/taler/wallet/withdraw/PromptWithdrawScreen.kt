@@ -170,6 +170,9 @@ fun PromptWithdrawScreen(
                     status.selectedScope?.let { model.selectScope(it) }
                     withdrawManager.acceptWithdrawal(age)
                 },
+                onReset = {
+                    withdrawManager.resetWithdrawal()
+                }
             )
         }
     }

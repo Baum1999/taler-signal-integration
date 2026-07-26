@@ -101,8 +101,9 @@ fun DepositAmountComposable(
                 ErrorComposable(
                     error = TalerErrorInfo.makeCustomError(
                         stringResource(R.string.send_deposits_no_currencies_error)),
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxWidth(),
                     devMode = false,
+                    scrollable = false,
                     onClose = onClose,
                 )
                 return

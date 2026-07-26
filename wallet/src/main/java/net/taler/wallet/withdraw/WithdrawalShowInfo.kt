@@ -84,6 +84,7 @@ fun WithdrawalShowInfo(
     onSelectExchange: () -> Unit,
     onTosReview: () -> Unit,
     onConfirm: (age: Int?) -> Unit,
+    onReset: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val maxAmount = status.uriInfo?.maxAmount
@@ -179,9 +180,13 @@ fun WithdrawalShowInfo(
                 LoadingScreen(Modifier.weight(1f))
                 return
             } else if (status.status == Error && status.error != null) {
-                ErrorComposable(status.error,
-                    modifier = Modifier.fillMaxSize(),
-                    devMode = devMode)
+                ErrorComposable(
+                    error = status.error,
+                    modifier = Modifier.fillMaxWidth(),
+                    devMode = devMode,
+                    onClose = onReset,
+                    scrollable = false,
+                )
                 return
             } else if (status.isCashAcceptor) {
                 WarningLabel(
@@ -420,6 +425,7 @@ fun WithdrawalShowInfoUpdatingPreview() {
             onSelectExchange = {},
             onSelectAmount = { _, _ -> },
             onTosReview = {},
+            onReset = {},
             onConfirm = {},
         )
     }
@@ -445,6 +451,7 @@ fun WithdrawalShowInfoTosReviewPreview() {
             onSelectExchange = {},
             onSelectAmount = { _, _ -> },
             onTosReview = {},
+            onReset = {},
             onConfirm = {},
         )
     }
@@ -470,6 +477,7 @@ fun WithdrawalShowInfoErrorPreview() {
             onSelectExchange = {},
             onSelectAmount = { _, _ -> },
             onTosReview = {},
+            onReset = {},
             onConfirm = {},
         )
     }

@@ -156,9 +156,12 @@ fun OutgoingPullComposable(
             }
 
             if (state is OutgoingError) {
-                ErrorComposable(state.info,
-                    modifier = Modifier.fillMaxSize(),
-                    devMode = devMode)
+                ErrorComposable(
+                    error = state.info,
+                    modifier = Modifier.fillMaxWidth(),
+                    devMode = devMode,
+                    scrollable = false,
+                )
                 return@Column
             }
 
