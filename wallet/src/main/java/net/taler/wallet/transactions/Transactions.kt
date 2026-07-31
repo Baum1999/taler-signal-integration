@@ -16,7 +16,6 @@
 
 package net.taler.wallet.transactions
 
-import android.net.Uri
 import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes

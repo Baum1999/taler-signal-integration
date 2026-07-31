@@ -36,6 +36,8 @@ import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.transactions.TransactionDeposit
 import net.taler.wallet.transactions.TransactionMajorState.Done
+import net.taler.wallet.transactions.TransactionMinorState.ExchangeWaitReserve
+import net.taler.wallet.transactions.TransactionMinorState.KycAuthRequired
 import net.taler.wallet.transactions.TransactionWithdrawal
 import net.taler.wallet.transactions.TransferOption
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
@@ -57,7 +59,10 @@ fun WireTransferDetailsScreen(
     val devMode by model.devMode.observeAsState(false)
 
     LaunchedEffect(selectedTx) {
-        if (selectedTx?.txState?.major == Done) {
+        if (selectedTx?.txState?.major == Done ||
+            (selectedTx?.txState?.minor != KycAuthRequired &&
+            selectedTx?.txState?.minor != ExchangeWaitReserve)
+        ) {
             onNavigateBack()
         }
     }
