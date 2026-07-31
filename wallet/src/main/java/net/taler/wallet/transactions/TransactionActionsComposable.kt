@@ -108,23 +108,34 @@ fun ColumnScope.DepositActions(
     qrCodes: List<QrCodeSpec>,
     onWireTransfer: () -> Unit,
     onShowQrCodes: () -> Unit,
+    onConfirmKyc: (url: String) -> Unit,
 ) {
-    if (tx.txState.minor == KycAuthRequired) {
-        WireTransferStepsButton(onWireTransfer)
-        if (qrCodes.size == 1) {
-            Text(
-                text = stringResource(R.string.withdraw_manual_instruction_qr),
-                modifier = Modifier.padding(16.dp),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyLarge,
-            )
-            PaytoQrCode(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                qrCode = qrCodes[0],
-            )
-        } else if (qrCodes.size > 1) {
-            ShowQrCodesButton(onShowQrCodes)
+    when (tx.txState.minor) {
+        KycAuthRequired -> {
+            WireTransferStepsButton(onWireTransfer)
+            if (qrCodes.size == 1) {
+                Text(
+                    text = stringResource(R.string.withdraw_manual_instruction_qr),
+                    modifier = Modifier.padding(16.dp),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                PaytoQrCode(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    qrCode = qrCodes[0],
+                )
+            } else if (qrCodes.size > 1) {
+                ShowQrCodesButton(onShowQrCodes)
+            }
         }
+
+        KycRequired -> if (tx.kycUrl != null) {
+            ConfirmKycButton {
+                onConfirmKyc(tx.kycUrl)
+            }
+        }
+
+        else -> {}
     }
 }
 

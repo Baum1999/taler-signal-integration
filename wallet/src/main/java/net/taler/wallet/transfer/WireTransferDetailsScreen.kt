@@ -82,16 +82,16 @@ fun WireTransferDetailsScreen(
             context.shareText(text = transfer.withdrawalAccount.paytoUri)
         }
 
+        val option = selectedOption
+        val paytoUri = when (option) {
+            is TransferOption.Payto -> option.paytoUri
+            is TransferOption.SwissQrBill -> option.paytoUri
+            else -> null
+        }
+        if (paytoUri == null || option == null) return@GlobalScaffold
+
         when (tx) {
             is TransactionWithdrawal -> {
-                val option = selectedOption
-                val paytoUri = when (option) {
-                    is TransferOption.Payto -> option.paytoUri
-                    is TransferOption.SwissQrBill -> option.paytoUri
-                    else -> null
-                }
-                if (paytoUri == null || option == null) return@GlobalScaffold
-
                 val transferData = remember(option, tx) {
                     WithdrawalExchangeAccountDetails(
                         paytoUri = paytoUri,
@@ -120,29 +120,14 @@ fun WireTransferDetailsScreen(
             }
 
             is TransactionDeposit -> {
-                val opt = tx.kycAuthTransferInfo?.transferOptions?.firstOrNull()
-                if (opt == null) {
-                    EmptyComposable(modifier = Modifier.padding(paddingValues))
-                    return@GlobalScaffold
-                }
-
-                val paytoUri = when (opt) {
-                    is TransferOption.Payto -> opt.paytoUri
-                    is TransferOption.SwissQrBill -> opt.paytoUri
-                    is TransferOption.Uri -> {
-                        EmptyComposable(modifier = Modifier.padding(paddingValues))
-                        return@GlobalScaffold
-                    }
-                }
-
-                val transferData = remember(opt, tx) {
+                val transferData = remember(option, tx) {
                     WithdrawalExchangeAccountDetails(
                         paytoUri = paytoUri,
                         status = WithdrawalExchangeAccountDetails.Status.Ok,
                     ).getTransferDetails(
                         amountRaw = tx.amountRaw,
                         amountEffective = tx.amountEffective,
-                        transferOption = opt,
+                        transferOption = option,
                     )
                 }
 

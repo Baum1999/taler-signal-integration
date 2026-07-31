@@ -553,7 +553,7 @@ class TransactionDeposit(
     override val amountType = AmountType.Negative
     @Composable
     override fun getTitle(): String {
-        val uri = Uri.parse(targetPaytoUri)
+        val uri = targetPaytoUri.toUri()
         return uri.getQueryParameter("receiver-name")?.let { receiverName ->
             stringResource(R.string.transaction_deposit_to, receiverName)
         } ?: stringResource(R.string.transaction_deposit)

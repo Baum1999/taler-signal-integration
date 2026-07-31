@@ -17,7 +17,9 @@
 package net.taler.wallet.deposit
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -25,6 +27,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -50,17 +57,22 @@ import net.taler.wallet.transactions.TransactionAction.Suspend
 import net.taler.wallet.transactions.TransactionAmountComposable
 import net.taler.wallet.transactions.TransactionDeposit
 import net.taler.wallet.transactions.TransactionMajorState.Pending
+import net.taler.wallet.transactions.TransactionMinorState
 import net.taler.wallet.transactions.TransactionState
 import net.taler.wallet.transactions.TransactionStateComposable
+import net.taler.wallet.transactions.TransferOption
 import net.taler.wallet.transactions.TransitionsComposable
+import net.taler.wallet.withdraw.TransferOptionChooser
 
 @Composable
 fun TransactionDepositComposable(
     t: TransactionDeposit,
     devMode: Boolean,
     spec: CurrencySpecification?,
+    onSelectOption: (option: TransferOption?) -> Unit,
     onWireTransfer: () -> Unit,
     onShowQrCodes: () -> Unit,
+    onConfirmKyc: (url: String) -> Unit,
     onTransition: (t: TransactionAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -71,6 +83,27 @@ fun TransactionDepositComposable(
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        val defaultOptionIndex = 0
+        var selectedOptionIndex by remember { mutableIntStateOf(defaultOptionIndex) }
+        val selectedOption = t.kycAuthTransferInfo?.transferOptions[selectedOptionIndex]
+
+        LaunchedEffect(selectedOption) {
+            selectedOption?.let { onSelectOption(it) }
+        }
+
+        val showOptionChooser = t.kycAuthTransferInfo != null
+                && t.kycAuthTransferInfo.transferOptions.size > 1
+                && t.txState.minor == TransactionMinorState.KycAuthRequired
+
+        if (showOptionChooser) {
+            TransferOptionChooser(
+                options = t.kycAuthTransferInfo.transferOptions,
+                selectedIndex = selectedOptionIndex,
+                onSelectOption = { selectedOptionIndex = it },
+            )
+            Spacer(Modifier.height(16.dp))
+        }
+
         TransactionStateComposable(state = t.txState)
 
         Text(
@@ -79,12 +112,12 @@ fun TransactionDepositComposable(
             style = MaterialTheme.typography.bodyLarge,
         )
 
-        val qrCodes = t.kycAuthTransferInfo?.transferOptions
-            ?.firstOrNull()?.qrCodes ?: emptyList()
+        val qrCodes = selectedOption?.qrCodes ?: emptyList()
         DepositActions(t,
             qrCodes = qrCodes,
             onWireTransfer = onWireTransfer,
-            onShowQrCodes = onShowQrCodes)
+            onShowQrCodes = onShowQrCodes,
+            onConfirmKyc = onConfirmKyc)
 
         TransactionAmountComposable(
             label = stringResource(id = R.string.amount_chosen),
@@ -121,7 +154,7 @@ fun TransactionDepositComposable(
 fun TransactionDepositComposablePreview() {
     val t = TransactionDeposit(
         transactionId = "transactionId",
-        timestamp = Timestamp.fromMillis(System.currentTimeMillis() - 360 * 60 * 1000),
+        timestamp = Timestamp.fromMillis(System.currentTimeMillis() - 360 * 60               * 1000),
         txState = TransactionState(Pending),
         txActions = listOf(Retry, Suspend, Abort),
         depositGroupId = "fooBar",
@@ -139,6 +172,8 @@ fun TransactionDepositComposablePreview() {
             t = t,
             devMode = true,
             spec = null,
+            onSelectOption = {},
+            onConfirmKyc = {},
             onWireTransfer = {},
             onShowQrCodes = {},
             onTransition = {},

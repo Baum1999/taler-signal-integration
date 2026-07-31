@@ -210,6 +210,10 @@ fun TransactionDetailScreen(
                             t = tx,
                             devMode = devMode,
                             spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
+                            onSelectOption = { it?.let { transactionManager.selectTransferOption(it) } },
+                            onConfirmKyc = { url ->
+                                launchInAppBrowser(context, url)
+                            },
                             onWireTransfer = {
                                 keepSelectedTx = true
                                 onNavigate(
