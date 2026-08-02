@@ -1,0 +1,5 @@
+- wallet-core updated to 1.6.19
+- NFC functionality for xTOTP devices
+- improved QR code scanner
+- fixed blank screens / infinite loading
+- fixed critical bugs and crashes
