@@ -169,5 +169,6 @@ class BalanceManager(
 
     fun resetBalances() {
         mState.value = BalanceState.None
+        loadAssets()
     }
 }
