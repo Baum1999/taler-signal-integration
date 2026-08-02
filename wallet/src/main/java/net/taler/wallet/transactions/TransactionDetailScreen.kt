@@ -82,6 +82,7 @@ import net.taler.wallet.peer.TransactionPeerPushDebitComposable
 import net.taler.wallet.refund.TransactionRefundComposable
 import net.taler.wallet.ui.theme.TalerTheme
 import net.taler.wallet.withdraw.TransactionWithdrawalComposable
+import net.taler.wallet.transactions.TransactionMajorState.Done
 
 @Composable
 fun TransactionDetailScreen(
@@ -104,6 +105,8 @@ fun TransactionDetailScreen(
         }
     }
 
+    val t by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
+
     GlobalScaffold(
         model = model,
         title = {
@@ -113,7 +116,31 @@ fun TransactionDetailScreen(
                 is WalletDestination.TransactionDeposit -> stringResource(R.string.transaction_deposit)
                 is WalletDestination.TransactionRefund -> stringResource(R.string.transaction_refund)
                 is WalletDestination.TransactionRefresh -> stringResource(R.string.transaction_refresh)
-                is WalletDestination.TransactionPeer -> stringResource(R.string.transaction_peer_push_debit) // Approximation
+                is WalletDestination.TransactionPeer -> when (val tx = t) {
+                    is TransactionPeerPushDebit -> if (tx.txState.major == Done) {
+                        stringResource(R.string.transaction_peer_push_debit)
+                    } else {
+                        stringResource(R.string.transaction_peer_push_debit_pending)
+                    }
+
+                    is TransactionPeerPullDebit -> if (tx.txState.major == Done) {
+                        stringResource(R.string.transaction_peer_pull_debit)
+                    } else {
+                        stringResource(R.string.transaction_peer_pull_debit_pending)
+                    }
+
+                    is TransactionPeerPushCredit -> if (tx.txState.major == Done) {
+                        stringResource(R.string.transaction_peer_push_credit)
+                    } else {
+                        stringResource(R.string.transaction_peer_push_credit_pending)
+                    }
+
+                    is TransactionPeerPullCredit -> {
+                        stringResource(R.string.transaction_peer_pull_credit)
+                    }
+
+                    else -> stringResource(R.string.transactions_detail_title)
+                }
                 is WalletDestination.TransactionLoss -> stringResource(R.string.transaction_denom_loss)
                 else -> stringResource(R.string.transactions_detail_title)
             }
@@ -121,7 +148,6 @@ fun TransactionDetailScreen(
         },
         onNavigateBack = onNavigateBack,
     ) { paddingValues ->
-        val t by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
         if (t == null) {
             LoadingScreen()
             return@GlobalScaffold
