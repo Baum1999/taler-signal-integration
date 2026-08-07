@@ -74,6 +74,20 @@ data class Timestamp(
 
 }
 
+/** The `AbsoluteTime` wire format: milliseconds since the epoch, or -1 for "never". */
+@Serializable
+data class AbsoluteTime(
+    @SerialName("t_ms")
+    @Serializable(NeverSerializer::class)
+    private val t: Long,
+) {
+    val ms: Long? = if (t == NEVER) null else t
+
+    companion object {
+        private const val NEVER: Long = -1
+    }
+}
+
 @Serializable
 data class RelativeTime(
     /**
