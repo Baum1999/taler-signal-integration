@@ -112,6 +112,10 @@ data class TalerColorScheme(
     val onSuccess: Color = Color.Unspecified,
     val successContainer: Color = Color.Unspecified,
     val onSuccessContainer: Color = Color.Unspecified,
+    val warning: Color = Color.Unspecified,
+    val onWarning: Color = Color.Unspecified,
+    val warningContainer: Color = Color.Unspecified,
+    val onWarningContainer: Color = Color.Unspecified,
 )
 
 private val talerLightScheme = TalerColorScheme(
@@ -119,6 +123,10 @@ private val talerLightScheme = TalerColorScheme(
     onSuccess = onSuccessLight,
     successContainer = successContainerLight,
     onSuccessContainer = onSuccessContainerLight,
+    warning = warningLight,
+    onWarning = onWarningLight,
+    warningContainer = warningContainerLight,
+    onWarningContainer = onWarningContainerLight,
 )
 
 private val talerDarkScheme = TalerColorScheme(
@@ -126,6 +134,10 @@ private val talerDarkScheme = TalerColorScheme(
     onSuccess = onSuccessDark,
     successContainer = successContainerDark,
     onSuccessContainer = onSuccessContainerDark,
+    warning = warningDark,
+    onWarning = onWarningDark,
+    warningContainer = warningContainerDark,
+    onWarningContainer = onWarningContainerDark,
 )
 
 val LocalTalerColorScheme = staticCompositionLocalOf { talerLightScheme }
