@@ -197,7 +197,11 @@ fun TransactionDetailScreen(
                 is WalletDestination.TransactionPayment -> {
                     (t as? TransactionPayment)?.let { tx ->
                         LaunchedEffect(tx.txState) {
-                            if (tx.txState.major == TransactionMajorState.Dialog) {
+                            // A wallet-core-prepared payment arrives in `Pending', not `Dialog'.
+                            if (tx.txState.major == TransactionMajorState.Dialog ||
+                                (destination.promptMode &&
+                                    tx.txState.major == TransactionMajorState.Pending)
+                            ) {
                                 model.paymentManager.getPaymentChoices(tx.transactionId) {}
                             }
                         }

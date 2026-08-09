@@ -185,15 +185,29 @@ class PaymentManager(
     ) {
         currentTransactionId = transactionId
         startNewAttempt {
+            // Fresh payments start at a loading prompt.
+            mPayStatus.value = PayStatus.Loading
             when (val response = api.request("getChoicesForPayment", GetChoicesForPaymentResponse.serializer()) {
                 put("transactionId", transactionId)
             }) {
-                is WalletResponse.Error -> handleError("getChoicesForPayment", response.error, transactionId)
+                is WalletResponse.Error -> {
+                    val error = response.error
+                    if (error.code == TalerErrorCode.WALLET_REQUEST_TRANSACTION_STATE_UNSUPPORTED) {
+                        // The proposal is not downloaded yet; keep loading until it is.
+                        Log.d(TAG, "getChoicesForPayment not ready yet: $error")
+                    } else {
+                        handleError("getChoicesForPayment", error, transactionId)
+                    }
+                }
 
                 is WalletResponse.Success -> {
                     val res = response.result
                     if (res.automaticExecution == true && res.automaticExecutableIndex != null) {
-                        confirmPay(transactionId, res.automaticExecutableIndex, automaticExecution = true)
+                        confirmPay(
+                            transactionId,
+                            res.automaticExecutableIndex,
+                            automaticExecution = true
+                        )
                         return@startNewAttempt
                     }
 
