@@ -257,6 +257,10 @@ class TransactionManager(
                 }
                 true
             } else {
+                // The transaction is gone (discarded or deleted).  Drop the selection so the
+                // detail screen does not stay stuck on it.
+                Log.d(TAG, "clearing selected transaction $transactionId (no longer exists)")
+                mSelectedTransaction.value = null
                 false
             }
         }
