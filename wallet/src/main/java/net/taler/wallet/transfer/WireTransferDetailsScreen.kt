@@ -16,17 +16,27 @@
 
 package net.taler.wallet.transfer
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import net.taler.lib.android.copyToClipBoard
 import net.taler.lib.android.openUri
 import net.taler.lib.android.shareText
 import net.taler.wallet.R
@@ -57,6 +67,13 @@ fun WireTransferDetailsScreen(
     val selectedTx by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
     val selectedOption by transactionManager.selectedTransferOption.collectAsStateLifecycleAware()
     val devMode by model.devMode.observeAsState(false)
+    val paytoUri = when (val option = selectedOption) {
+        is TransferOption.Payto -> option.paytoUri
+        is TransferOption.SwissQrBill -> option.paytoUri
+        else -> null
+    }
+    var showMenu by remember(paytoUri) { mutableStateOf(false) }
+    val copyPaytoUri = stringResource(R.string.copy_payto_uri)
 
     LaunchedEffect(selectedTx) {
         if (selectedTx?.txState?.major == Done ||
@@ -72,6 +89,32 @@ fun WireTransferDetailsScreen(
         modifier = Modifier.fillMaxSize(),
         title = { Text(stringResource(R.string.wire_transfer)) },
         onNavigateBack = onNavigateBack,
+        actions = {
+            if (paytoUri != null) {
+                Box {
+                    IconButton(
+                        onClick = { showMenu = true },
+                    ) {
+                        Icon(
+                            Icons.Default.MoreVert,
+                            contentDescription = stringResource(R.string.menu),
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false },
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(copyPaytoUri) },
+                            onClick = {
+                                showMenu = false
+                                copyToClipBoard(context, copyPaytoUri, paytoUri)
+                            },
+                        )
+                    }
+                }
+            }
+        },
     ) { paddingValues ->
         val tx = selectedTx ?: return@GlobalScaffold
 
@@ -88,11 +131,6 @@ fun WireTransferDetailsScreen(
         }
 
         val option = selectedOption
-        val paytoUri = when (option) {
-            is TransferOption.Payto -> option.paytoUri
-            is TransferOption.SwissQrBill -> option.paytoUri
-            else -> null
-        }
         if (paytoUri == null || option == null) return@GlobalScaffold
 
         when (tx) {
