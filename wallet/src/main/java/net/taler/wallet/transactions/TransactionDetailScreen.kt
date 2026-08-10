@@ -31,8 +31,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -106,6 +110,13 @@ fun TransactionDetailScreen(
     }
 
     val t by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
+    val targetPaytoUri = if (destination is WalletDestination.TransactionDeposit) {
+        (t as? TransactionDeposit)?.targetPaytoUri
+    } else {
+        null
+    }
+    var showMenu by remember(targetPaytoUri) { mutableStateOf(false) }
+    val copyPaytoUri = stringResource(R.string.copy_payto_uri)
 
     GlobalScaffold(
         model = model,
@@ -145,6 +156,30 @@ fun TransactionDetailScreen(
                 else -> stringResource(R.string.transactions_detail_title)
             }
             Text(title)
+        },
+        actions = {
+            if (targetPaytoUri != null) {
+                Box {
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(
+                            Icons.Default.MoreVert,
+                            contentDescription = stringResource(R.string.menu),
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false },
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(copyPaytoUri) },
+                            onClick = {
+                                showMenu = false
+                                copyToClipBoard(context, copyPaytoUri, targetPaytoUri)
+                            },
+                        )
+                    }
+                }
+            }
         },
         onNavigateBack = onNavigateBack,
     ) { paddingValues ->
