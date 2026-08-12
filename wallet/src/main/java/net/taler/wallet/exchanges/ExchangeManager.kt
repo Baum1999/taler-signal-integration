@@ -25,7 +25,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import net.taler.common.CurrencySpecification
 import net.taler.common.Event
@@ -308,12 +307,11 @@ class ExchangeManager(
         }?.let { currencySpecs[it] }
     }
 
-    fun getSpecForCurrency(currency: String, scopes: List<ScopeInfo>) =
+    suspend fun getSpecForCurrency(currency: String, scopes: List<ScopeInfo>): CurrencySpecification? =
         scopes.find { it.currency == currency }?.let { scope ->
-            runBlocking { getCurrencySpecification(scope) }
+            getCurrencySpecification(scope)
         }
 
-    fun getSpecForScopeInfo(scopeInfo: ScopeInfo): CurrencySpecification? {
-        return runBlocking { getCurrencySpecification(scopeInfo) }
-    }
+    suspend fun getSpecForScopeInfo(scopeInfo: ScopeInfo): CurrencySpecification? =
+        getCurrencySpecification(scopeInfo)
 }

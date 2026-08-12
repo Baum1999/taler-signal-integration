@@ -43,6 +43,7 @@ import net.taler.wallet.R
 import net.taler.wallet.compose.EmptyComposable
 import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.collectAsStateLifecycleAware
+import net.taler.wallet.compose.rememberCurrencySpec
 import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.transactions.TransactionDeposit
 import net.taler.wallet.transactions.TransactionMajorState.Done
@@ -118,9 +119,11 @@ fun WireTransferDetailsScreen(
     ) { paddingValues ->
         val tx = selectedTx ?: return@GlobalScaffold
 
-        val spec = tx.amountRaw.currency.let { currency ->
-            exchangeManager.getSpecForCurrency(currency, tx.scopes)
-        }
+        val spec = rememberCurrencySpec(
+            tx.amountRaw.currency,
+            tx.scopes,
+            exchangeManager::getSpecForCurrency,
+        )
 
         val bankAppClick: (TransferData) -> Unit = { transfer ->
             context.openUri(uri = transfer.withdrawalAccount.paytoUri, title = sharePaymentTitle)

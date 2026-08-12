@@ -32,6 +32,7 @@ import net.taler.wallet.main.TAG
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
+import net.taler.wallet.backend.WalletResponse
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.donau.DonauInfo
 import net.taler.wallet.donau.GetDonauResponse
@@ -126,71 +127,74 @@ class PaymentManager(
         transactionId: String,
         onSuccess: () -> Unit,
     ) = scope.launch {
-        api.request("getChoicesForPayment", GetChoicesForPaymentResponse.serializer()) {
+        when (val response = api.request("getChoicesForPayment", GetChoicesForPaymentResponse.serializer()) {
             put("transactionId", transactionId)
-        }.onSuccess { res ->
-            if (res.automaticExecution == true && res.automaticExecutableIndex != null) {
-                confirmPay(transactionId, res.automaticExecutableIndex, automaticExecution = true)
-                return@onSuccess
-            }
+        }) {
+            is WalletResponse.Error -> handleError("getChoicesForPayment", response.error)
 
-            mPayStatus.value = PayStatus.Choices(
-                transactionId = transactionId,
-                contractTerms = res.contractTerms,
-                defaultChoiceIndex = res.defaultChoiceIndex,
-                choices = res.choices.map { choice ->
-                    val spec = exchangeManager.getSpecForCurrency(
-                        choice.amountRaw.currency,
-                        res.contractTerms.exchanges.map {
-                            ScopeInfo.Exchange(choice.amountRaw.currency, it.url)
-                        },
-                    ) ?: res.contractTerms.exchanges.firstOrNull()?.let {
-                        exchangeManager.getSpecForScopeInfo(
-                            ScopeInfo.Exchange(choice.amountRaw.currency, it.url)
-                        )
-                    }
+            is WalletResponse.Success -> {
+                val res = response.result
+                if (res.automaticExecution == true && res.automaticExecutableIndex != null) {
+                    confirmPay(transactionId, res.automaticExecutableIndex, automaticExecution = true)
+                    return@launch
+                }
 
-                    when (choice) {
-                        is PaymentPossible -> {
-                            choice.copy(
-                                amountRaw = choice.amountRaw.withSpec(spec),
-                                amountEffective = choice.amountEffective.withSpec(spec),
+                mPayStatus.value = PayStatus.Choices(
+                    transactionId = transactionId,
+                    contractTerms = res.contractTerms,
+                    defaultChoiceIndex = res.defaultChoiceIndex,
+                    choices = res.choices.map { choice ->
+                        val spec = exchangeManager.getSpecForCurrency(
+                            choice.amountRaw.currency,
+                            res.contractTerms.exchanges.map {
+                                ScopeInfo.Exchange(choice.amountRaw.currency, it.url)
+                            },
+                        ) ?: res.contractTerms.exchanges.firstOrNull()?.let {
+                            exchangeManager.getSpecForScopeInfo(
+                                ScopeInfo.Exchange(choice.amountRaw.currency, it.url)
                             )
                         }
 
-                        is ChoiceSelectionDetail.InsufficientBalance -> {
-                            choice.copy(amountRaw = choice.amountRaw.withSpec(spec))
-                        }
-                    }
-                }.mapIndexed { i, choice ->
-                    PayChoiceDetails(
-                        choiceIndex = i,
-                        description = choice.description,
-                        descriptionI18n = choice.descriptionI18n,
-                        amountRaw = choice.amountRaw,
-                        inputs = (res.contractTerms as? ContractTerms.V1)
-                            ?.choices?.get(i)?.inputs ?: listOf(),
-                        outputs = (res.contractTerms as? ContractTerms.V1)
-                            ?.choices?.get(i)?.outputs ?: listOf(),
-                        details = choice,
-                    )
-                }.filter {
-                    // Hide auto executable choice
-                    res.automaticExecutableIndex != it.choiceIndex
-                }.sortedWith(
-                    compareByDescending<PayChoiceDetails> {
-                        it.choiceIndex == res.defaultChoiceIndex
-                    }.thenByDescending {
-                        it.details is PaymentPossible
-                    }.thenByDescending {
-                        it.amountRaw.toString()
-                    },
-                ),
-            )
+                        when (choice) {
+                            is PaymentPossible -> {
+                                choice.copy(
+                                    amountRaw = choice.amountRaw.withSpec(spec),
+                                    amountEffective = choice.amountEffective.withSpec(spec),
+                                )
+                            }
 
-            onSuccess()
-        }.onError { error ->
-            handleError("getChoicesForPayment", error)
+                            is ChoiceSelectionDetail.InsufficientBalance -> {
+                                choice.copy(amountRaw = choice.amountRaw.withSpec(spec))
+                            }
+                        }
+                    }.mapIndexed { i, choice ->
+                        PayChoiceDetails(
+                            choiceIndex = i,
+                            description = choice.description,
+                            descriptionI18n = choice.descriptionI18n,
+                            amountRaw = choice.amountRaw,
+                            inputs = (res.contractTerms as? ContractTerms.V1)
+                                ?.choices?.get(i)?.inputs ?: listOf(),
+                            outputs = (res.contractTerms as? ContractTerms.V1)
+                                ?.choices?.get(i)?.outputs ?: listOf(),
+                            details = choice,
+                        )
+                    }.filter {
+                        // Hide auto executable choice
+                        res.automaticExecutableIndex != it.choiceIndex
+                    }.sortedWith(
+                        compareByDescending<PayChoiceDetails> {
+                            it.choiceIndex == res.defaultChoiceIndex
+                        }.thenByDescending {
+                            it.details is PaymentPossible
+                        }.thenByDescending {
+                            it.amountRaw.toString()
+                        },
+                    ),
+                )
+
+                onSuccess()
+            }
         }
     }
 

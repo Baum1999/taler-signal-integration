@@ -22,7 +22,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.jsonObject
@@ -36,6 +35,7 @@ import net.taler.wallet.accounts.PaytoUriTalerBank
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorCode.WALLET_DEPOSIT_GROUP_INSUFFICIENT_BALANCE
 import net.taler.wallet.backend.WalletBackendApi
+import net.taler.wallet.backend.WalletResponse
 import net.taler.wallet.balances.BalanceManager
 import net.taler.wallet.balances.ScopeInfo
 import org.json.JSONObject
@@ -66,11 +66,31 @@ class DepositManager(
 
     suspend fun checkDepositFees(paytoUri: String, amount: Amount): CheckDepositResult {
         var response: CheckDepositResult = CheckDepositResult.None
-        api.request("checkDeposit", CheckDepositResponse.serializer()) {
+        when (val res = api.request("checkDeposit", CheckDepositResponse.serializer()) {
             put("depositPaytoUri", paytoUri)
             put("amount", amount.toJSONString())
-        }.onSuccess {
-            runBlocking {
+        }) {
+            is WalletResponse.Error -> {
+                Log.e(TAG, "Error checkDeposit ${res.error}")
+                if (res.error.code == WALLET_DEPOSIT_GROUP_INSUFFICIENT_BALANCE) {
+                    res.error.extra["insufficientBalanceDetails"]?.let { details ->
+                        val maxAmountRaw = details.jsonObject["balanceAvailable"]?.let { amount ->
+                            Amount.fromJSONString(amount.jsonPrimitive.content)
+                        }
+
+                        val maxAmountEffective = details.jsonObject["maxEffectiveSpendAmount"]?.let { amount ->
+                            Amount.fromJSONString(amount.jsonPrimitive.content)
+                        } ?: maxAmountRaw
+
+                        response = CheckDepositResult.InsufficientBalance(
+                            maxAmountEffective = maxAmountEffective,
+                            maxAmountRaw = maxAmountRaw,
+                        )
+                    }
+                }
+            }
+
+            is WalletResponse.Success -> {
                 val max = getMaxDepositAmount(amount.currency, paytoUri)
                 response = if (max?.effectiveAmount != null && amount > max.effectiveAmount) {
                     CheckDepositResult.ExceedsLimit(
@@ -79,29 +99,11 @@ class DepositManager(
                     )
                 } else {
                     CheckDepositResult.Success(
-                        totalDepositCost = it.totalDepositCost,
-                        effectiveDepositAmount = it.effectiveDepositAmount,
-                        kycSoftLimit = it.kycSoftLimit,
-                        kycHardLimit = it.kycHardLimit,
-                        kycExchanges = it.kycExchanges,
-                    )
-                }
-            }
-        }.onError { error ->
-            Log.e(TAG, "Error checkDeposit $error")
-            if (error.code == WALLET_DEPOSIT_GROUP_INSUFFICIENT_BALANCE) {
-                error.extra["insufficientBalanceDetails"]?.let { details ->
-                    val maxAmountRaw = details.jsonObject["balanceAvailable"]?.let { amount ->
-                        Amount.fromJSONString(amount.jsonPrimitive.content)
-                    }
-
-                    val maxAmountEffective = details.jsonObject["maxEffectiveSpendAmount"]?.let { amount ->
-                        Amount.fromJSONString(amount.jsonPrimitive.content)
-                    } ?: maxAmountRaw
-
-                    response = CheckDepositResult.InsufficientBalance(
-                        maxAmountEffective = maxAmountEffective,
-                        maxAmountRaw = maxAmountRaw,
+                        totalDepositCost = res.result.totalDepositCost,
+                        effectiveDepositAmount = res.result.effectiveDepositAmount,
+                        kycSoftLimit = res.result.kycSoftLimit,
+                        kycHardLimit = res.result.kycHardLimit,
+                        kycExchanges = res.result.kycExchanges,
                     )
                 }
             }

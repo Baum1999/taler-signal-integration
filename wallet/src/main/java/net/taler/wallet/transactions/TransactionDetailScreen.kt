@@ -73,6 +73,7 @@ import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.collectAsStateLifecycleAware
+import net.taler.wallet.compose.rememberCurrencySpec
 import net.taler.wallet.deposit.TransactionDepositComposable
 import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.main.MainViewModel
@@ -206,7 +207,7 @@ fun TransactionDetailScreen(
                                 .observeAsState(PayStatus.None).value,
                             devMode = devMode,
                             promptMode = destination.promptMode,
-                            spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
+                            spec = rememberCurrencySpec(tx.amountRaw.currency, tx.scopes, exchangeManager::getSpecForCurrency),
                             modifier = modifier,
                             onFulfill = { url ->
                                 launchInAppBrowser(context, url)
@@ -237,7 +238,7 @@ fun TransactionDetailScreen(
                             modifier = modifier,
                             t = tx,
                             devMode = devMode,
-                            spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
+                            spec = rememberCurrencySpec(tx.amountRaw.currency, tx.scopes, exchangeManager::getSpecForCurrency),
                             onSelectOption = { it?.let { transactionManager.selectTransferOption(it) } },
                             onConfirmKyc = { url ->
                                 launchInAppBrowser(context, url)
@@ -270,7 +271,7 @@ fun TransactionDetailScreen(
                             modifier = modifier,
                             t = tx,
                             devMode = devMode,
-                            spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
+                            spec = rememberCurrencySpec(tx.amountRaw.currency, tx.scopes, exchangeManager::getSpecForCurrency),
                             onSelectOption = { it?.let { transactionManager.selectTransferOption(it) } },
                             onConfirmKyc = { url ->
                                 launchInAppBrowser(context, url)
@@ -302,7 +303,7 @@ fun TransactionDetailScreen(
                             modifier = modifier,
                             t = tx,
                             devMode = devMode,
-                            spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
+                            spec = rememberCurrencySpec(tx.amountRaw.currency, tx.scopes, exchangeManager::getSpecForCurrency),
                             onTransition = {
                                 handleTransactionAction(tx, it, model, onNavigateBack)
                             },
@@ -316,7 +317,7 @@ fun TransactionDetailScreen(
                             modifier = modifier,
                             t = tx,
                             devMode = devMode,
-                            spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
+                            spec = rememberCurrencySpec(tx.amountRaw.currency, tx.scopes, exchangeManager::getSpecForCurrency),
                         ) {
                             handleTransactionAction(tx, it, model, onNavigateBack)
                         }
@@ -330,7 +331,7 @@ fun TransactionDetailScreen(
                             modifier = modifier,
                             t = tx,
                             devMode = devMode,
-                            spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes),
+                            spec = rememberCurrencySpec(tx.amountRaw.currency, tx.scopes, exchangeManager::getSpecForCurrency),
                             onConfirmKyc = { url -> launchInAppBrowser(context, url) }
                         ) {
                             handleTransactionAction(tx, it, model, onNavigateBack)
@@ -344,7 +345,7 @@ fun TransactionDetailScreen(
                             modifier = modifier,
                             t = tx,
                             devMode = devMode,
-                            spec = exchangeManager.getSpecForCurrency(tx.amountRaw.currency, tx.scopes)
+                            spec = rememberCurrencySpec(tx.amountRaw.currency, tx.scopes, exchangeManager::getSpecForCurrency)
                         ) {
                             handleTransactionAction(tx, it, model, onNavigateBack)
                         }

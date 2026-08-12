@@ -34,6 +34,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -72,7 +73,7 @@ fun OutgoingPullComposable(
     defaultScope: ScopeInfo?,
     scopes: List<ScopeInfo>,
     devMode: Boolean,
-    getCurrencySpec: (scope: ScopeInfo) -> CurrencySpecification?,
+    getCurrencySpec: suspend (scope: ScopeInfo) -> CurrencySpecification?,
     checkPeerPullCredit: suspend (amount: AmountScope, loading: Boolean) -> CheckPeerPullCreditResult?,
     onCreateInvoice: (amount: AmountScope, subject: String, hours: Long, exchangeBaseUrl: String) -> Unit,
     onTosAccept: (exchangeBaseUrl: String) -> Unit,
@@ -84,7 +85,12 @@ fun OutgoingPullComposable(
         val currency = scope.currency
         mutableStateOf(AmountScope(Amount.zero(currency), scope))
     }
-    val selectedSpec = remember(amount.scope) { getCurrencySpec(amount.scope) }
+    val selectedSpec by produceState<CurrencySpecification?>(
+        initialValue = null,
+        key1 = amount.scope,
+    ) {
+        value = getCurrencySpec(amount.scope)
+    }
     var checkResult by remember { mutableStateOf<CheckPeerPullCreditResult?>(null) }
     val res = checkResult
 
