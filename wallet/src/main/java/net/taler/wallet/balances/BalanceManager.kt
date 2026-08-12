@@ -23,13 +23,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.distinctUntilChanged
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.wallet.main.TAG
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
+import net.taler.wallet.backend.WalletResponse
 import net.taler.wallet.donau.DonauSummaryItem
 import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.exchanges.ExchangeManager
@@ -78,14 +78,16 @@ class BalanceManager(
 
     fun loadAssets(loading: Boolean = false) = scope.launch {
         if (loading) mState.postValue(BalanceState.Loading)
-        api.request("getBalances", BalanceResponse.serializer())
-            .onError {
-                Log.e(TAG, "Error retrieving balances: $it")
-                mState.postValue(BalanceState.Error(it))
-            }.onSuccess { res ->
-                val balances = res.balances.map { balance ->
-                    val spec = runBlocking { exchangeManager
-                        .getCurrencySpecification(balance.scopeInfo) }
+        when (val response = api.request("getBalances", BalanceResponse.serializer())) {
+            is WalletResponse.Error -> {
+                Log.e(TAG, "Error retrieving balances: ${response.error}")
+                mState.postValue(BalanceState.Error(response.error))
+            }
+
+            is WalletResponse.Success -> {
+                val balances = response.result.balances.map { balance ->
+                    val spec = exchangeManager
+                        .getCurrencySpecification(balance.scopeInfo)
                     balance.copy(
                         available = balance.available.withSpec(spec),
                         pendingIncoming = balance.pendingIncoming.withSpec(spec),
@@ -93,9 +95,9 @@ class BalanceManager(
                     )
                 }
 
-                val donauSummary = res.donauSummary?.map { item ->
-                    val spec = runBlocking { exchangeManager
-                        .getSpecForCurrency(item.amountReceiptsAvailable.currency) }
+                val donauSummary = response.result.donauSummary?.map { item ->
+                    val spec = exchangeManager
+                        .getSpecForCurrency(item.amountReceiptsAvailable.currency)
                     item.copy(
                         amountReceiptsAvailable = item.amountReceiptsAvailable.withSpec(spec),
                         amountReceiptsSubmitted = item.amountReceiptsSubmitted.withSpec(spec),
@@ -109,6 +111,7 @@ class BalanceManager(
                     donauSummary = donauSummary,
                 ))
             }
+        }
     }
 
     @UiThread

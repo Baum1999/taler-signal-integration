@@ -21,7 +21,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import net.taler.wallet.main.TAG
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
@@ -79,8 +78,8 @@ class DonauManager(
             mDonauStatementsStatus.value = GetDonauStatementsStatus.Error(error)
         }.onSuccess { res ->
             val statements = res.statements.map { statement ->
-                val spec = runBlocking { exchangeManager
-                    .getSpecForCurrency(statement.total.currency) }
+                val spec = exchangeManager
+                    .getSpecForCurrency(statement.total.currency)
                 statement.copy(
                     total = statement.total.withSpec(spec)
                 )

@@ -22,13 +22,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
 import net.taler.qtart.TalerWalletCore
 import net.taler.wallet.BuildConfig
 import org.json.JSONObject
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 
 fun interface NotificationReceiver {
@@ -42,6 +45,7 @@ class BackendManager(
     companion object {
         private const val TAG = "BackendManager"
         private const val TAG_CORE = "taler-wallet-embedded"
+        private const val REQUEST_TIMEOUT_MS = 60_000L
         val json = Json {
             ignoreUnknownKeys = true
             coerceInputValues = true
@@ -73,18 +77,35 @@ class BackendManager(
         }
     }
 
-    suspend fun send(operation: String, args: JSONObject? = null): ApiResponse =
-        suspendCoroutine { cont ->
-            requestManager.addRequest(cont) { id ->
-                val request = JSONObject().apply {
-                    put("id", id)
-                    put("operation", operation)
-                    if (args != null) put("args", args)
+    suspend fun send(operation: String, args: JSONObject? = null): ApiResponse {
+        var requestId = -1
+        val response = withTimeoutOrNull(REQUEST_TIMEOUT_MS) {
+            suspendCancellableCoroutine { cont ->
+                requestManager.addRequest(cont) { id ->
+                    requestId = id
+                    val request = JSONObject().apply {
+                        put("id", id)
+                        put("operation", operation)
+                        if (args != null) put("args", args)
+                    }
+                    Log.d(TAG, "sending message:\n${request.toString(2)}")
+                    walletCore.sendRequest(request.toString())
                 }
-                Log.d(TAG, "sending message:\n${request.toString(2)}")
-                walletCore.sendRequest(request.toString())
+                cont.invokeOnCancellation {
+                    requestManager.getAndRemoveContinuation(requestId)
+                }
             }
         }
+        if (response != null) return response
+        return ApiResponse.Error(
+            id = requestId,
+            operation = operation,
+            error = buildJsonObject {
+                put("hint", JsonPrimitive("wallet-core did not respond"))
+                put("message", JsonPrimitive("request '$operation' timed out"))
+            },
+        )
+    }
 
     private fun onMessageReceived(msg: String) = scope.launch {
         Log.d(TAG, "message received: $msg")
