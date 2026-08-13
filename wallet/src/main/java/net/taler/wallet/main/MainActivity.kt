@@ -26,8 +26,10 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.activity.viewModels
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
@@ -104,9 +106,14 @@ class MainActivity : FragmentActivity() {
                 var errorInfo by remember { mutableStateOf<TalerErrorInfo?>(null) }
                 val showObservabilityLog by model.showObservabilityLog.collectAsState(false)
                 val devMode by model.devMode.observeAsState(false)
+                val initError by model.initError.collectAsState()
                 val errorSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = !devMode)
                 val authenticated by model.authenticated.collectAsState()
                 val biometricEnabled by model.settingsManager.getBiometricLockEnabled(this).collectAsState(false)
+
+                val logExportLauncher = rememberLauncherForActivityResult(CreateDocument("text/plain")) { uri ->
+                    uri?.let { model.settingsManager.exportLogcat(it) }
+                }
 
                 LaunchedEffect(Unit) {
                     pendingLaunchUri?.let { uri ->
@@ -115,13 +122,22 @@ class MainActivity : FragmentActivity() {
                 }
 
                 Box(Modifier.fillMaxSize()) {
-                    WalletNavHost(
-                        navController = navController,
-                        model = model,
-                        modifier = Modifier.fillMaxSize(),
-                        onFulfillPayment = { url: String -> launchInAppBrowser(this@MainActivity, url) },
-                        onShowError = { errorInfo = it }
-                    )
+                    initError?.let { error ->
+                        WalletInitErrorScreen(
+                            model = model,
+                            error = error,
+                            onExportLogs = { logExportLauncher.launch("taler-wallet-logcat.txt") },
+                            onRetry = { model.startWallet() },
+                        )
+                    } ?: run {
+                        WalletNavHost(
+                            navController = navController,
+                            model = model,
+                            modifier = Modifier.fillMaxSize(),
+                            onFulfillPayment = { url: String -> launchInAppBrowser(this@MainActivity, url) },
+                            onShowError = { errorInfo = it }
+                        )
+                    }
 
                     if (!authenticated && biometricEnabled) {
                         BiometricOverlay(

@@ -65,6 +65,9 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="enter_uri_prefix" translatable="false">taler://</string>
     <string name="error">Error</string>
     <string name="error_export">Export error diagnostics</string>
+    <string name="wallet_init_error_title">Initialization error</string>
+    <string name="wallet_init_error_message">An error occurred while starting the wallet. This can happen after an app update or if the wallet data is incompatible. Please retry, and if the problem persists, export the logs and report this issue to the developers.</string>
+    <string name="wallet_export_logs">Export logs</string>
     <string name="import_db">Import</string>
     <string name="language">Language</string>
     <string name="loading">Loading</string>

@@ -33,6 +33,7 @@ import net.taler.common.AmountParserException
 import net.taler.common.Event
 import net.taler.wallet.accounts.AccountManager
 import net.taler.wallet.backend.BackendManager
+import net.taler.wallet.backend.InitErrorReceiver
 import net.taler.wallet.backend.NotificationPayload
 import net.taler.wallet.backend.NotificationReceiver
 import net.taler.wallet.backend.TalerErrorInfo
@@ -73,7 +74,7 @@ private val observabilityNotifications = listOf(
 
 class MainViewModel(
     app: Application,
-) : AndroidViewModel(app), VersionReceiver, NotificationReceiver {
+) : AndroidViewModel(app), VersionReceiver, NotificationReceiver, InitErrorReceiver {
 
     private val mDevMode = MutableLiveData(BuildConfig.DEBUG)
     val devMode: LiveData<Boolean> = mDevMode
@@ -100,7 +101,7 @@ class MainViewModel(
         logLevel = if (devMode.value == true) "TRACE" else "INFO",
     )
 
-    private val api = WalletBackendApi(app, walletConfig, this, this)
+    private val api = WalletBackendApi(app, walletConfig, this, this, this)
 
     val networkManager = NetworkManager(app.applicationContext)
     val exchangeManager: ExchangeManager = ExchangeManager(api, viewModelScope)
@@ -131,6 +132,9 @@ class MainViewModel(
     private val mViewMode = MutableStateFlow<ViewMode>(ViewMode.Assets)
     val viewMode: StateFlow<ViewMode> = mViewMode
 
+    private val mInitError = MutableStateFlow<TalerErrorInfo?>(null)
+    val initError: StateFlow<TalerErrorInfo?> = mInitError
+
     fun startWallet() {
         api.startWallet()
     }
@@ -139,11 +143,16 @@ class MainViewModel(
         api.stopWallet()
     }
 
+    override fun onInitError(error: TalerErrorInfo) {
+        mInitError.value = error
+    }
+
     override fun onVersionReceived(versionInfo: WalletCoreVersion) {
         walletVersion = versionInfo.implementationSemver
         walletVersionHash = versionInfo.implementationGitHash
         exchangeVersion = versionInfo.exchange
         merchantVersion = versionInfo.merchant
+        mInitError.value = null
     }
 
     override fun onNotificationReceived(payload: NotificationPayload) {

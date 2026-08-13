@@ -56,6 +56,7 @@ fun ErrorComposable(
     error: TalerErrorInfo,
     modifier: Modifier = Modifier,
     devMode: Boolean,
+    message: String? = null,
     scrollable: Boolean = true,
     onClose: (() -> Unit)? = null,
 ) {
@@ -91,6 +92,13 @@ fun ErrorComposable(
                 prettyPrintIndent = "  "
             }
             json.encodeToString(error)
+        }
+
+        message?.let {
+            Text(message,
+                Modifier.padding(bottom = 16.dp),
+                style = MaterialTheme.typography.bodyLarge,
+            )
         }
 
         if (devMode) {
@@ -152,7 +160,9 @@ fun ErrorComposable(
             Text(text = stringResource(R.string.close))
         }
 
-        BottomInsetsSpacer()
+        if (scrollable) {
+            BottomInsetsSpacer()
+        }
     }
 }
 
@@ -164,6 +174,7 @@ fun ErrorComposablePreview(devMode: Boolean = false) {
             error = TalerErrorInfo.makeCustomError(
                 message = "Some random error",
             ),
+            message = "Some custom message",
             devMode = devMode,
             onClose = {},
         )

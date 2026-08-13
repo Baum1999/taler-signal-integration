@@ -72,6 +72,10 @@ fun interface VersionReceiver {
     fun onVersionReceived(versionInfo: WalletCoreVersion)
 }
 
+fun interface InitErrorReceiver {
+    fun onInitError(error: TalerErrorInfo)
+}
+
 @Serializable
 data class WalletCoreVersion(
     val implementationSemver: String,

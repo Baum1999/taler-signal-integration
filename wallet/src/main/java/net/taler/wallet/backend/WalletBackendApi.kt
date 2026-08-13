@@ -23,7 +23,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import net.taler.wallet.backend.TalerErrorCode.NONE
@@ -37,6 +36,7 @@ class WalletBackendApi(
     private val app: Application,
     private val initialConfig: WalletRunConfig,
     private val versionReceiver: VersionReceiver,
+    private val initErrorReceiver: InitErrorReceiver,
     notificationReceiver: NotificationReceiver,
 ) {
 
@@ -71,8 +71,7 @@ class WalletBackendApi(
         }.onSuccess { response ->
             versionReceiver.onVersionReceived(response.versionInfo)
         }.onError { error ->
-            // TODO expose this to the UI as it can happen when using an older DB version
-            error("Error on init message: $error")
+            initErrorReceiver.onInitError(error)
         }
     }
 
