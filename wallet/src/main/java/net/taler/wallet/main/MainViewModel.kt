@@ -272,6 +272,27 @@ class MainViewModel(
         }
     }
 
+    /**
+     * Enables the experimental migration of the wallet database to the new
+     * native SQLite backend. This may result in data loss and cannot be undone.
+     */
+    fun enableMigrateNativeDb(onError: (error: TalerErrorInfo) -> Unit) {
+        viewModelScope.launch {
+            val config = walletConfig.copy(
+                features = walletConfig.features?.copy(
+                    migrateNativeDb = true,
+                ) ?: Features(
+                    migrateNativeDb = true,
+                ),
+            )
+
+            api.setWalletConfig(config)
+                .onSuccess {
+                    walletConfig = config
+                }.onError(onError)
+        }
+    }
+
     fun showObservabilityLog() {
         mShowObservabilityLog.value = true
     }

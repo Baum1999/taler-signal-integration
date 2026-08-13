@@ -283,6 +283,11 @@
     <string name="settings_alert_import_canceled">Importation annulée</string>
     <string name="observability_hide_json">Cacher le JSON</string>
     <string name="settings_db_import_error">Erreur d\'importation de la base de données</string>
+    <string name="settings_db_migrate_canceled">Migration annulée</string>
+    <string name="settings_db_migrate_done">Migration de la base de données démarrée</string>
+    <string name="settings_migrate_db">Migrer la base de données (expérimental !)</string>
+    <string name="settings_migrate_db_summary">Passer au nouveau backend SQLite</string>
+    <string name="settings_dialog_migrate_db_message">Cette opération migrera la base de données du portefeuille vers le nouveau backend SQLite. La migration est expérimentale et peut entraîner une perte de données. Voulez-vous continuer ?</string>
     <string name="settings_logcat_error">Erreur d\'exportation du journal</string>
     <string name="send_deposit_host">Banque en devise locale</string>
     <string name="send_deposit_no_methods_error">Aucune méthode de virement n\'est prise en charge</string>

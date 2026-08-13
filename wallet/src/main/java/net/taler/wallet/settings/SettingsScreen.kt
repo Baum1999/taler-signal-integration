@@ -51,6 +51,7 @@ import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.DomainAdd
 import androidx.compose.material.icons.filled.LocalAtm
+import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -97,6 +98,8 @@ fun SettingsScreen(
     val testRunningMessage = stringResource(R.string.settings_test_running)
     val resetDoneMessage = stringResource(R.string.settings_alert_reset_done)
     val resetCanceledMessage = stringResource(R.string.settings_alert_reset_canceled)
+    val migrateDoneMessage = stringResource(R.string.settings_db_migrate_done)
+    val migrateCanceledMessage = stringResource(R.string.settings_db_migrate_canceled)
     val biometricAuthUnavailableMessage = stringResource(R.string.biometric_auth_unavailable)
     val scope = rememberCoroutineScope()
     val settingsManager = model.settingsManager
@@ -285,6 +288,24 @@ fun SettingsScreen(
                     settingsManager.runIntegrationTest { onShowError(it) }
                     scope.launch { snackbarHostState.showSnackbar(testRunningMessage) }
                     onNavigate(WalletDestination.Main, true)
+                }
+            )
+
+            SettingsItem(
+                title = stringResource(R.string.settings_migrate_db),
+                summary = stringResource(R.string.settings_migrate_db_summary),
+                icon = Icons.Default.Memory,
+                onClick = {
+                    MaterialAlertDialogBuilder(context)
+                        .setMessage(R.string.settings_dialog_migrate_db_message)
+                        .setNegativeButton(R.string.settings_migrate_db) { _, _ ->
+                            model.enableMigrateNativeDb { onShowError(it) }
+                            scope.launch { snackbarHostState.showSnackbar(migrateDoneMessage) }
+                        }
+                        .setPositiveButton(R.string.cancel) { _, _ ->
+                            scope.launch { snackbarHostState.showSnackbar(migrateCanceledMessage) }
+                        }
+                        .show()
                 }
             )
 

@@ -65,6 +65,7 @@ data class WalletRunConfig(
     data class Features(
         val allowHttp: Boolean = false,
         val enableV1Contracts: Boolean = false,
+        val migrateNativeDb: Boolean = false,
     )
 }
 
