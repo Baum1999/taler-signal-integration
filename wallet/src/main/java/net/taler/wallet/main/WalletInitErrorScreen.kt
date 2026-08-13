@@ -86,7 +86,7 @@ fun WalletInitErrorScreen(
         ) {
             ErrorComposable(
                 error = error,
-                devMode = false, // devMode,
+                devMode = devMode,
                 message = stringResource(R.string.wallet_init_error_message),
                 scrollable = false,
             )
