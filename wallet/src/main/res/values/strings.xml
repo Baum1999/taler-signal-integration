@@ -17,7 +17,7 @@
 <!-- NOTE: please organize strings in alphabetic order! -->
 
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name">Taler Wallet</string>
+    <string name="app_name">GNU Taler für Signal</string>
 
     <!-- Google Play Store -->
 

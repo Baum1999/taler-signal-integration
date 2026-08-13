@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#3047a3</color>
+    <!-- GNU-Fork: helleres Blau statt Taler-Dunkelblau, zur Unterscheidung im Launcher. -->
+    <color name="ic_launcher_background">#1C8ADB</color>
 </resources>
