@@ -50,6 +50,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.DomainAdd
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.LocalAtm
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.VideoLibrary
@@ -172,6 +173,13 @@ fun SettingsScreen(
             summary = stringResource(R.string.settings_donau_summary),
             icon = ImageVector.vectorResource(R.drawable.ic_donau),
             onClick = { onNavigate(WalletDestination.SetDonau(), false) }
+        )
+
+        SettingsItem(
+            title = stringResource(R.string.settings_connected_apps),
+            summary = stringResource(R.string.settings_connected_apps_summary),
+            icon = Icons.Default.Link,
+            onClick = { onNavigate(WalletDestination.ConnectedApps, false) }
         )
 
         SettingsSwitchItem(

@@ -104,6 +104,9 @@ sealed interface WalletDestination {
     @Serializable
     data object PerformanceStats : WalletDestination
 
+    @Serializable
+    data object ConnectedApps : WalletDestination
+
     // Transaction Details
     @Serializable
     data object TransactionWithdrawal : WalletDestination

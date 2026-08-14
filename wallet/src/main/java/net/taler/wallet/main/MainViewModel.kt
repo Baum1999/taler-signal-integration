@@ -39,6 +39,8 @@ import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.InitReceiver
 import net.taler.wallet.backend.WalletBackendApi
+import net.taler.wallet.backend.WalletCoreSingleton
+import net.taler.wallet.backend.WalletCoreVersion
 import net.taler.wallet.backend.WalletDatabaseBackend
 import net.taler.wallet.backend.WalletRunConfig
 import net.taler.wallet.backend.WalletRunConfig.Features
@@ -98,7 +100,22 @@ class MainViewModel(
         logLevel = if (devMode.value == true) "TRACE" else "INFO",
     )
 
-    private val api = WalletBackendApi(app, walletConfig, this, this)
+    // Geteilte wallet-core-Instanz, siehe WalletCoreSingleton - eine zweite
+    // WalletBackendApi im selben Prozess (z.B. im TalerLinkService fuer die
+    // lokale Signal-Schnittstelle) wuerde wegen BackendManagers statischem
+    // initialized-Flag nie wirklich starten.
+    private val api = WalletCoreSingleton.acquire(app, walletConfig)
+
+    init {
+        WalletCoreSingleton.addVersionReceiver(this)
+        WalletCoreSingleton.addNotificationReceiver(this)
+    }
+
+    override fun onCleared() {
+        WalletCoreSingleton.removeVersionReceiver(this)
+        WalletCoreSingleton.removeNotificationReceiver(this)
+        super.onCleared()
+    }
 
     val networkManager = NetworkManager(app.applicationContext)
     val exchangeManager: ExchangeManager = ExchangeManager(api, viewModelScope)
@@ -137,11 +154,13 @@ class MainViewModel(
     val databaseMigrationState: StateFlow<DatabaseMigrationState> = mDatabaseMigrationState
 
     fun startWallet() {
-        api.startWallet()
+        // no-op: WalletCoreSingleton.acquire() oben hat wallet-core bereits
+        // gestartet, falls es nicht schon lief. Bleibt als Methode erhalten,
+        // damit MainActivity.onCreate() unveraendert bleibt.
     }
 
     fun stopWallet() {
-        api.stopWallet()
+        WalletCoreSingleton.release()
     }
 
     override fun onInitErrorReceived(error: TalerErrorInfo) {

@@ -44,6 +44,7 @@ import net.taler.wallet.donau.SetDonauScreen
 import net.taler.wallet.exchanges.ExchangeListScreen
 import net.taler.wallet.exchanges.ExchangeShoppingScreen
 import net.taler.wallet.exchanges.ReviewExchangeTosScreen
+import net.taler.wallet.link.ConnectedAppsScreen
 import net.taler.wallet.main.MainScreen
 import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.payment.PayTemplateScreen
@@ -363,6 +364,12 @@ fun WalletNavHost(
         }
         composable<WalletDestination.PerformanceStats> {
             PerformanceStatsScreen(
+                model = model,
+                onNavigateBack = onNavigateBack,
+            )
+        }
+        composable<WalletDestination.ConnectedApps> {
+            ConnectedAppsScreen(
                 model = model,
                 onNavigateBack = onNavigateBack,
             )

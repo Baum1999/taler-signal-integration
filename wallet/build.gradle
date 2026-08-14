@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id "com.android.application"
     id "kotlin-android"
+    id "kotlin-parcelize"
     id "kotlinx-serialization"
     id "com.google.protobuf" version "$protobuf_version"
     id "org.jetbrains.kotlin.plugin.compose" version "$kotlin_version"
@@ -93,6 +94,7 @@ android {
     buildFeatures {
         buildConfig true
         viewBinding true
+        aidl true
     }
     packagingOptions {
         jniLibs {

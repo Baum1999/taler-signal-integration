@@ -550,6 +550,18 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="settings_withdraw_testkudos">Withdraw demo KUDOS</string>
     <string name="settings_withdraw_testkudos_summary">Get money for testing</string>
 
+    <!-- Connected apps (local Signal<->Taler link, see docs/API.md) -->
+
+    <string name="settings_connected_apps">Connected apps</string>
+    <string name="settings_connected_apps_summary">Apps allowed to prepare payments through this wallet</string>
+    <string name="connected_apps_empty">No app is connected yet.</string>
+    <string name="connected_apps_disconnect">Disconnect</string>
+    <string name="connected_apps_disconnected">Disconnected</string>
+    <string name="taler_link_consent_title">Allow connection?</string>
+    <string name="taler_link_consent_message">%1$s wants to prepare payments through this wallet. Every payment still needs to be confirmed here in GNU Taler - %1$s can only prepare, never trigger, a payment. You can disconnect at any time under Settings → Connected apps.</string>
+    <string name="taler_link_consent_allow">Connect</string>
+    <string name="taler_link_consent_deny">Deny</string>
+
     <!-- Refunds -->
 
     <string name="refund_error">Error processing refund</string>
