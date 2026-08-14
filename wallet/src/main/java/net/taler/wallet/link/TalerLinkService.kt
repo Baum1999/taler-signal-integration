@@ -33,7 +33,6 @@ import net.taler.wallet.backend.WalletRunConfig
 import net.taler.wallet.peer.PreparePeerPullDebitResponse
 import net.taler.wallet.peer.PreparePeerPushCreditResponse
 import net.taler.wallet.transactions.Transaction
-import net.taler.wallet.transactions.TransactionMajorState
 import net.taler.wallet.transactions.TransactionPeerPullDebit
 import net.taler.wallet.transactions.TransactionPeerPushCredit
 
@@ -235,7 +234,7 @@ class TalerLinkService : Service() {
             is WalletResponse.Success -> when (val tx = response.result) {
                 is TransactionPeerPushCredit -> PaymentPreviewResult(
                     uriKind = kind,
-                    status = statusFromMajorState(tx.txState.major),
+                    status = TalerTransactionStateMapper.statusFromMajorState(tx.txState.major),
                     amount = tx.amountEffective.amountStr,
                     currency = tx.amountEffective.currency,
                     exchangeBaseUrl = tx.exchangeBaseUrl,
@@ -244,7 +243,7 @@ class TalerLinkService : Service() {
                 )
                 is TransactionPeerPullDebit -> PaymentPreviewResult(
                     uriKind = kind,
-                    status = statusFromMajorState(tx.txState.major),
+                    status = TalerTransactionStateMapper.statusFromMajorState(tx.txState.major),
                     amount = tx.amountEffective.amountStr,
                     currency = tx.amountEffective.currency,
                     exchangeBaseUrl = tx.exchangeBaseUrl,
@@ -258,26 +257,6 @@ class TalerLinkService : Service() {
             }
             is WalletResponse.Error -> errorResult(kind, response.error)
         }
-    }
-
-    /**
-     * TransactionMajorState (TransactionState.kt) ist die verifizierte,
-     * tatsaechliche Zustandsmaschine von wallet-core - nicht geraten. Dialog
-     * ist der Wartezustand vor einer Nutzerentscheidung, Done heisst
-     * angenommen/abgeschlossen, Expired ist ein echter, eigener Zustand (nicht
-     * nur ein Fehlercode). Pending, Finalizing, Suspended, SuspendedFinalizing,
-     * SuspendedAborting, Aborting, Unknown und None sind Uebergangs- bzw.
-     * unklare Zustaende - bewusst konservativ als
-     * UNBEKANNT_OFFLINE behandelt statt hier weiter zu spekulieren.
-     */
-    private fun statusFromMajorState(major: TransactionMajorState): TalerOperationStatus = when (major) {
-        TransactionMajorState.Dialog -> TalerOperationStatus.OFFEN
-        TransactionMajorState.Done -> TalerOperationStatus.ANGENOMMEN
-        TransactionMajorState.Expired -> TalerOperationStatus.ABGELAUFEN
-        TransactionMajorState.Failed,
-        TransactionMajorState.Aborted,
-        TransactionMajorState.Deleted -> TalerOperationStatus.UNGUELTIG
-        else -> TalerOperationStatus.UNBEKANNT_OFFLINE
     }
 
     /** Timestamp.never() ist intern t_s = -1 (siehe Time.kt) - "laeuft nie ab". */

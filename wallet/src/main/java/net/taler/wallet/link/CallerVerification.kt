@@ -39,13 +39,31 @@ object CallerVerification {
     fun assertCallerAllowed(context: Context): String {
         val callingUid = Binder.getCallingUid()
         val pm = context.packageManager
-        val packages = pm.getPackagesForUid(callingUid) ?: emptyArray()
+        val packages = (pm.getPackagesForUid(callingUid) ?: emptyArray()).toList()
+        return resolveAllowedCaller(packages, AllowedCallers::expectedSha256) { pkg -> signingCertSha256(pm, pkg) }
+            ?: throw SecurityException("Aufrufer (uid=$callingUid) ist nicht in der Allowlist")
+    }
+
+    /**
+     * Reine Entscheidungslogik ohne Android-Framework-Abhaengigkeit (REVIEW.md
+     * P3) - [expectedCertFor]/[actualCertFor] sind injiziert (statt fest
+     * [AllowedCallers]/PackageManager zu befragen), damit der Shared-UID-Fall
+     * (mehrere Packages fuer eine UID, siehe docs/API.md 2.2) mit
+     * keinem/einem/mehreren Treffern durchtestbar ist, unabhaengig davon, wie
+     * viele Eintraege die echte Allowlist gerade hat. Testbarkeit war hier der
+     * einzige Grund fuer den Schnitt, kein neues Verhalten.
+     */
+    internal fun resolveAllowedCaller(
+        packages: List<String>,
+        expectedCertFor: (String) -> String?,
+        actualCertFor: (String) -> String?,
+    ): String? {
         for (pkg in packages) {
-            val expected = AllowedCallers.expectedSha256(pkg) ?: continue
-            val actual = signingCertSha256(pm, pkg) ?: continue
+            val expected = expectedCertFor(pkg) ?: continue
+            val actual = actualCertFor(pkg) ?: continue
             if (actual.equals(expected, ignoreCase = true)) return pkg
         }
-        throw SecurityException("Aufrufer (uid=$callingUid) ist nicht in der Allowlist")
+        return null
     }
 
     /** SHA-256-Fingerabdruck (Hex, Grossbuchstaben, ohne Trenner) des Signing-Certs. */
