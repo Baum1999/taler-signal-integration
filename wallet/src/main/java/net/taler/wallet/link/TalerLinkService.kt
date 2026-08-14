@@ -73,17 +73,45 @@ class TalerLinkService : Service() {
             return UriValidationResult(validity)
         }
 
+        // B2 (REVIEW.md), Teil "kein prepare* beim Polling mehr": previewForUri
+        // und statusForUri rufen bei JEDEM Aufruf erneut preparePeerPushCredit/
+        // preparePeerPullDebit auf, auch beim wiederholten Poll derselben URI.
+        // Bewusst so belassen in diesem Meilenstein, nicht vergessen:
+        // - Offene Frage 1 ist inzwischen empirisch beantwortet (REVIEW.md,
+        //   Meilenstein 0): preparePeerPushCredit ist idempotent, wiederholter
+        //   Aufruf legt keine neue Transaktion/keinen neuen Purse an.
+        // - Der im Review empfohlene Weg (Taler-seitiges In-Memory
+        //   uri->transactionId in diesem Service) ist auf dem Testgeraet
+        //   NICHT tragfaehig: TalerLinkClient (Signal-Seite) bindet pro
+        //   Aufruf neu und unbindet sofort danach; im gemessenen Poll-Lauf
+        //   (9 Zyklen a 20s) hat das System TalerLinkService bei jedem
+        //   einzelnen Zyklus tatsaechlich zerstoert und neu erzeugt (adb
+        //   logcat: destroyService/bindService-Paar pro Zyklus) - eine
+        //   In-Memory-Map in dieser Klasse wuerde also bei jedem Poll leer
+        //   sein und nichts sparen.
+        // - Die im Review genannte Alternative (transactionId in Signals
+        //   TalerPaymentTable persistieren + neue AIDL-Methode) wuerde
+        //   funktionieren, ist aber bewusst zurueckgestellt: neue
+        //   Binder-Flaeche + neue Migration fuer einen Punkt, den der Review
+        //   selbst bei bestaetigter Idempotenz als "weniger dringend"
+        //   einstuft. Cap+TTL+Backoff (unten/TalerPollingCoordinator) binden
+        //   die Aufrufzahl bereits nach oben, unabhaengig davon, ob jeder
+        //   einzelne Aufruf intern prepare* macht.
         override fun previewForUri(uri: String): PaymentPreviewResult {
             assertConnected()
+            // B1 (REVIEW.md): die URI ist ein Inhaberpapier und darf nicht in
+            // die Exception-Message - die geht ueber den Binder und landet im
+            // Stacktrace des Aufrufers (Signal-Seite, ggf. Logs/Crash-Reports
+            // dort).
             val kind = TalerUriParser.classify(uri)
-                ?: throw IllegalArgumentException("Kein erkanntes Taler-URI-Schema: $uri")
+                ?: throw IllegalArgumentException("Kein erkanntes Taler-URI-Schema")
             return runBlocking(Dispatchers.IO) { preview(kind, uri) }
         }
 
         override fun statusForUri(uri: String): OperationStatusResult {
             assertConnected()
             val kind = TalerUriParser.classify(uri)
-                ?: throw IllegalArgumentException("Kein erkanntes Taler-URI-Schema: $uri")
+                ?: throw IllegalArgumentException("Kein erkanntes Taler-URI-Schema")
             return OperationStatusResult(runBlocking(Dispatchers.IO) { preview(kind, uri) }.status)
         }
 
