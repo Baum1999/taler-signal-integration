@@ -21,6 +21,7 @@ import android.content.Intent.ACTION_SEND
 import android.content.Intent.EXTRA_TEXT
 import android.nfc.NdefMessage
 import android.nfc.NfcAdapter
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -91,6 +92,15 @@ class MainActivity : FragmentActivity() {
     private lateinit var biometricPrompt: BiometricPrompt
     private lateinit var promptInfo: BiometricPrompt.PromptInfo
 
+    companion object {
+        // Guards against the same URI being delivered and handled twice, e.g.
+        // when the activity is recreated and Android re-delivers the launching
+        // intent to onCreate, or when an NDEF record matches intent.data.
+        private const val INTENT_DEDUP_WINDOW_MS = 2000L
+        private var lastHandledUri: String? = null
+        private var lastHandledAtMillis: Long = 0
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -115,9 +125,13 @@ class MainActivity : FragmentActivity() {
                     uri?.let { model.settingsManager.exportLogcat(it) }
                 }
 
-                LaunchedEffect(Unit) {
-                    pendingLaunchUri?.let { uri ->
-                        nav?.navigate(WalletDestination.HandleUri(uri))
+                LaunchedEffect(initError) {
+                    if (initError == null) {
+                        pendingLaunchUri?.let { uri ->
+                            if (navigateOrQueue(uri)) {
+                                pendingLaunchUri = null
+                            }
+                        }
                     }
                 }
 
@@ -247,45 +261,74 @@ class MainActivity : FragmentActivity() {
     private fun handleIntents(intent: Intent?) {
         if (intent == null) return
 
+        // Ensure each URI from a single intent is handled exactly once.
+        val emittedUris = mutableSetOf<String>()
+
         fun emitUri(uri: String) {
-            if (nav != null) {
-                nav?.navigate(WalletDestination.HandleUri(uri))
-            } else {
-                pendingLaunchUri = uri
+            val trimmed = uri.trim()
+            if (trimmed.isEmpty() || !emittedUris.add(trimmed)) return
+
+            val now = System.currentTimeMillis()
+            if (trimmed == lastHandledUri && now - lastHandledAtMillis < INTENT_DEDUP_WINDOW_MS) {
+                Log.d(TAG, "Ignoring already handled URI: $trimmed")
+                return
             }
+            lastHandledUri = trimmed
+            lastHandledAtMillis = now
+
+            navigateOrQueue(trimmed)
         }
 
-        // Check data URI first regardless of action
-        intent.dataString?.let { uri ->
-            emitUri(uri)
-        }
+        // For VIEW intents (taler://, payto://, ...) the system sets intent.data;
+        // for NDEF_DISCOVERED it is the URI of the first NDEF record on the tag.
+        intent.dataString?.let { emitUri(it) }
 
-        if (intent.action == ACTION_SEND) {
-            if (intent.type == "text/plain") {
-                intent.getStringExtra(EXTRA_TEXT)?.let { uri ->
-                    emitUri(uri)
-                }
-            }
+        if (intent.action == ACTION_SEND && intent.type == "text/plain") {
+            intent.getStringExtra(EXTRA_TEXT)?.let { emitUri(it) }
         }
 
         if (intent.action == NfcAdapter.ACTION_NDEF_DISCOVERED) {
-            val messages: Array<NdefMessage> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES, NdefMessage::class.java)
-            } else {
-                @Suppress("DEPRECATION")
-                intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)?.let { rawMessages ->
-                    rawMessages.map { it as NdefMessage }
-                }?.toTypedArray()
-            } ?: return
-
-            messages.forEach { message ->
-                message.records?.forEach { record ->
-                    record.toUri()?.let { uri ->
-                        emitUri(uri.toString())
-                    }
-                }
+            // Fallback only: if the system did not set a data URI, take the first
+            // URI record of the tag. One scan yields exactly one URI.
+            if (intent.dataString == null) {
+                extractFirstNdefUri(intent)?.let { emitUri(it.toString()) }
             }
         }
+    }
+
+    private fun extractFirstNdefUri(intent: Intent): Uri? {
+        val messages: Array<NdefMessage> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES, NdefMessage::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)
+                ?.filterIsInstance<NdefMessage>()
+                ?.toTypedArray()
+        } ?: return null
+
+        return messages.firstNotNullOfOrNull { message ->
+            message.records.firstNotNullOfOrNull { record ->
+                record.toUri()
+            }
+        }
+    }
+
+    // Navigate to the URI handling screen, or queue the URI until the wallet is
+    // initialized and the NavHost graph is ready (e.g. on cold start with a
+    // wallet init error, where navigation would otherwise fail).
+    private fun navigateOrQueue(uri: String): Boolean {
+        val controller = nav
+        if (controller != null) {
+            // getGraph() throws if setGraph() was never called (e.g. the wallet
+            // failed to initialize and the NavHost was never composed).
+            val graphReady = runCatching { controller.graph }.isSuccess
+            if (graphReady) {
+                controller.navigate(WalletDestination.HandleUri(uri))
+                return true
+            }
+        }
+        pendingLaunchUri = uri
+        return false
     }
 
     override fun onResume() {

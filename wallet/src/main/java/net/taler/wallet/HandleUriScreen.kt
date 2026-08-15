@@ -141,8 +141,11 @@ fun HandleUriScreen(
         }
     }
 
+    var autoProcessed by remember { mutableStateOf(false) }
+
     LaunchedEffect(networkStatus) {
-        if (networkStatus == true) {
+        if (networkStatus == true && !autoProcessed) {
+            autoProcessed = true
             processTalerUri()
         }
     }
