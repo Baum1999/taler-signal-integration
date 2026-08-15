@@ -1,0 +1,3 @@
+- Fixes in reading of NFC tags/devices
+- Better handling of initialization errors
+- Update wallet-core to 1.6.26
