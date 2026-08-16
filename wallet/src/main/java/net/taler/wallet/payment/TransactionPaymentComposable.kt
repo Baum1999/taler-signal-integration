@@ -64,6 +64,7 @@ import net.taler.wallet.transactions.TransactionInfoComposable
 import net.taler.wallet.transactions.TransactionLinkComposable
 import net.taler.wallet.transactions.TransactionMajorState
 import net.taler.wallet.transactions.TransactionMajorState.Pending
+import net.taler.wallet.transactions.TransactionMinorState
 import net.taler.wallet.transactions.TransactionPayment
 import net.taler.wallet.transactions.TransactionState
 import net.taler.wallet.transactions.TransactionStateComposable
@@ -83,7 +84,12 @@ fun TransactionPaymentComposable(
     onSetupDonau: (donauBaseUrl: String) -> Unit,
     checkDonauForChoice: suspend (PayChoiceDetails) -> DonauStatus?,
 ) {
-    if (t.txState.major == TransactionMajorState.Dialog || (promptMode && t.txState.major == Pending)) {
+    if (t.txState.major == TransactionMajorState.Dialog || (
+        promptMode &&
+            t.txState.major == Pending &&
+            t.txState.minor == TransactionMinorState.ClaimProposal
+        )
+    ) {
         return TransactionPaymentPrompt(
             payStatus = payStatus,
             onConfirmPay = onConfirmPay,

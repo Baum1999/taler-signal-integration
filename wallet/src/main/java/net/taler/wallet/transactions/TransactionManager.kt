@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.encodeToJsonElement
@@ -77,6 +79,8 @@ class TransactionManager(
     private val allTransactions = HashMap<ScopeInfo, List<Transaction>>()
     private val mTransactions = HashMap<ScopeInfo, MutableStateFlow<TransactionsResult>>()
     private val mSelectedTransaction = MutableStateFlow<Transaction?>(null)
+    private val mSelectedTransactionId = MutableStateFlow<String?>(null)
+    private val selectionMutex = Mutex()
     private val mSelectedTransferOption = MutableStateFlow<TransferOption?>(null)
 
     val selectedTransaction = mSelectedTransaction.asStateFlow()
@@ -177,14 +181,29 @@ class TransactionManager(
 
     /**
      * Returns true if given [transactionId] was found and selected, false otherwise.
+     *
+     * The [transactionId] is recorded as selected before the transaction is fetched,
+     * so that a notification arriving while the fetch is in flight is not dropped.
+     * The initial fetch and all notification-driven refreshes are serialized via
+     * [selectionMutex] so that an older snapshot cannot overwrite a newer one.
      */
     suspend fun selectTransaction(transactionId: String): Boolean {
-        val transaction = getTransactionById(transactionId)
-        if (transaction != null) {
-            mSelectedTransaction.emit(transaction)
-            return true
-        } else {
-            return false
+        mSelectedTransactionId.value = transactionId
+        return refreshSelectedTransaction()
+    }
+
+    private suspend fun refreshSelectedTransaction(): Boolean {
+        val transactionId = mSelectedTransactionId.value ?: return false
+        return selectionMutex.withLock {
+            val transaction = getTransactionById(transactionId)
+            if (transaction != null) {
+                if (mSelectedTransactionId.value == transactionId) {
+                    mSelectedTransaction.value = transaction
+                }
+                true
+            } else {
+                false
+            }
         }
     }
 
@@ -194,18 +213,18 @@ class TransactionManager(
 
     @UiThread
     fun updateTransactionIfSelected(id: String) = scope.launch {
-        val selectedTransaction = selectedTransaction.value
-        if (selectedTransaction?.transactionId != id) return@launch
-        getTransactionById(id)?.let { tx ->
-            if (tx.transactionId == selectedTransaction.transactionId) {
-                Log.d(TAG, "updating selected transaction: ${tx.transactionId}")
-                mSelectedTransaction.value = tx
-            }
-        } ?: Log.d(TAG, "Error updating selected transaction $id")
+        if (mSelectedTransactionId.value != id) return@launch
+        refreshSelectedTransaction()
     }
 
     fun selectTransaction(tx: Transaction?) = scope.launch {
-        mSelectedTransaction.value = tx
+        if (tx == null) {
+            mSelectedTransactionId.value = null
+            mSelectedTransaction.value = null
+        } else {
+            mSelectedTransactionId.value = tx.transactionId
+            mSelectedTransaction.value = tx
+        }
     }
 
     fun deleteTransaction(transactionId: String, onError: (it: TalerErrorInfo) -> Unit) =
