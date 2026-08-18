@@ -271,7 +271,7 @@ fun OutgoingPullComposable(
                     } else onTosAccept(ex)
                 },
             ) {
-                if (checkResult != null && !checkResult!!.tosStatus!!.isAccepted()) {
+                if (tosReview) {
                     Text(text = stringResource(R.string.exchange_tos_view))
                 } else {
                     Text(text = stringResource(R.string.receive_peer_create_button_amount,

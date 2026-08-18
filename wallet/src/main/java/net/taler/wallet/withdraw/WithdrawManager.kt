@@ -36,6 +36,7 @@ import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.exchanges.ExchangeFees
 import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.exchanges.ExchangeManager
+import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.transactions.TransferOption
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
 import net.taler.wallet.withdraw.WithdrawStatus.Status.*
@@ -484,7 +485,8 @@ class WithdrawManager(
             var newStatus = status
             status.exchangeBaseUrl?.let { exchangeBaseUrl ->
                 exchanges.find { it.exchangeBaseUrl == exchangeBaseUrl }?.let { exchange ->
-                    if (exchange.tosStatus.isAccepted()) {
+                    // see refreshPeerPushCreditTos: missing-tos may be stale
+                    if (exchange.tosStatus == ExchangeTosStatus.Accepted) {
                         newStatus = status.copy(status = InfoReceived)
                     }
                 }

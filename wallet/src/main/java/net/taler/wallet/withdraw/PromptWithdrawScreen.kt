@@ -117,10 +117,9 @@ fun PromptWithdrawScreen(
         }
     }
     
-    // Detect ToS acceptance. Keyed on the status too: a list arriving before the
-    // status reaches TosReviewRequired would otherwise be consumed for nothing.
+    // Detect ToS acceptance
     val exchanges by exchangeManager.exchanges.observeAsState()
-    LaunchedEffect(exchanges, status.status) {
+    LaunchedEffect(exchanges) {
         exchanges?.let { withdrawManager.refreshTosStatus(it) }
     }
 

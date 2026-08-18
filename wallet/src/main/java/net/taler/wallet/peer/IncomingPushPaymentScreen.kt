@@ -48,9 +48,7 @@ fun IncomingPushPaymentScreen(
     val state = peerManager.incomingPushState.collectAsStateLifecycleAware()
     val exchanges by exchangeManager.exchanges.observeAsState()
 
-    // keyed on the state too: a list arriving while we are still IncomingChecking
-    // would otherwise be consumed for nothing and the ToS transition lost for good
-    LaunchedEffect(exchanges, state.value) {
+    LaunchedEffect(exchanges) {
         exchanges?.let {
             peerManager.refreshPeerPushCreditTos(it)
         }

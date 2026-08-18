@@ -37,6 +37,7 @@ import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.exchanges.ExchangeManager
+import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.payment.InsufficientBalanceHint
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit.HOURS
@@ -366,7 +367,10 @@ class PeerManager(
             var newState = state
             if (state is IncomingTosReview) {
                 exchanges.find { it.exchangeBaseUrl == state.exchangeBaseUrl }?.let { exchange ->
-                    if (exchange.tosStatus.isAccepted()) {
+                    // only an actual acceptance may lift a review we asked for: a list
+                    // fetched before the provider was known still says missing-tos,
+                    // which isAccepted() treats as good enough
+                    if (exchange.tosStatus == ExchangeTosStatus.Accepted) {
                         newState = IncomingTerms(
                             amountRaw = state.amountRaw,
                             amountEffective = state.amountEffective,
