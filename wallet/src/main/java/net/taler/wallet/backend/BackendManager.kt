@@ -21,6 +21,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
@@ -50,31 +51,50 @@ class BackendManager(
             ignoreUnknownKeys = true
             coerceInputValues = true
         }
+        /** Only one wallet-core may run per process. */
         @JvmStatic
-        private val initialized = AtomicBoolean(false)
+        private val coreRunning = AtomicBoolean(false)
     }
 
     private val walletCore = TalerWalletCore()
     private val requestManager = RequestManager()
     private val networkInterface = NetworkInterface()
-    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
+    /**
+     * Dispatches messages from wallet-core. Must be replaced after [destroy]: launching
+     * on a cancelled scope drops every message silently, timing out all requests.
+     */
+    @Volatile
+    private var scope = newScope()
+
+    private var running = false
+
+    private fun newScope() = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
+    @Synchronized
     fun run() {
-        if (!initialized.getAndSet(true)) {
-            walletCore.setMessageHandler { onMessageReceived(it) }
-            walletCore.setHttpClient(networkInterface)
-            if (BuildConfig.DEBUG) walletCore.setStdoutHandler {
-                Log.d(TAG_CORE, it)
-            }
-            walletCore.run()
+        if (running) return
+        if (!coreRunning.compareAndSet(false, true)) {
+            Log.e(TAG, "refusing to run a second wallet-core in this process")
+            return
         }
+        running = true
+        if (!scope.isActive) scope = newScope()
+        walletCore.setMessageHandler { onMessageReceived(it) }
+        walletCore.setHttpClient(networkInterface)
+        if (BuildConfig.DEBUG) walletCore.setStdoutHandler {
+            Log.d(TAG_CORE, it)
+        }
+        walletCore.run()
     }
 
+    @Synchronized
     fun destroy() {
-        if (initialized.getAndSet(false)) {
-            scope.cancel()
-            walletCore.destroy()
-        }
+        if (!running) return
+        running = false
+        scope.cancel()
+        walletCore.destroy()
+        coreRunning.set(false)
     }
 
     suspend fun send(operation: String, args: JSONObject? = null): ApiResponse {

@@ -350,7 +350,8 @@ class MainActivity : FragmentActivity() {
         super.onDestroy()
         TalerNfcService.clearNdefPayload(this)
         TalerNfcService.stopService(this)
-        model.stopWallet()
+        // wallet-core belongs to the retained MainViewModel, not to this activity
+        if (!isChangingConfigurations) model.stopWallet()
     }
 }
 

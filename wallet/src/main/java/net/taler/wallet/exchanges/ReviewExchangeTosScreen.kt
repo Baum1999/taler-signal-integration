@@ -31,6 +31,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -63,36 +65,84 @@ fun ReviewExchangeTosScreen(
     onNavigateBack: () -> Unit,
 ) {
     val exchangeManager = model.exchangeManager
+    val devMode by model.devMode.observeAsState(false)
     val scope = rememberCoroutineScope()
     var tos: TosResponse? by remember { mutableStateOf(null) }
+    var error: TalerErrorInfo? by remember { mutableStateOf(null) }
+    var retryTrigger by remember { mutableIntStateOf(0) }
     var selectedLang by remember { mutableStateOf(Locale.getDefault().language) }
 
-    LaunchedEffect(selectedLang) {
+    LaunchedEffect(selectedLang, retryTrigger) {
         tos = null
-        tos = exchangeManager.getExchangeTos(exchangeBaseUrl, selectedLang)
+        error = null
+        exchangeManager.getExchangeTos(exchangeBaseUrl, selectedLang)
+            .onSuccess { tos = it }
+            .onError { error = it }
     }
 
     TalerSurface {
-        tos?.let { currentTos ->
-            ReviewExchangeTosComposable(
+        val currentTos = tos
+        val currentError = error
+        when {
+            currentTos != null -> ReviewExchangeTosComposable(
                 model = model,
                 tos = currentTos,
                 readOnly = readOnly,
                 onSelectLang = { selectedLang = it },
                 onAcceptTos = {
                     scope.launch {
-                        if (exchangeManager.acceptCurrentTos(
-                                exchangeBaseUrl = exchangeBaseUrl,
-                                currentEtag = currentTos.currentEtag,
-                            )
-                        ) {
+                        exchangeManager.acceptCurrentTos(
+                            exchangeBaseUrl = exchangeBaseUrl,
+                            currentEtag = currentTos.currentEtag,
+                        ).onSuccess {
                             onNavigateBack()
-                        }
+                        }.onError { error = it }
                     }
                 },
                 onNavigateBack = onNavigateBack,
             )
-        } ?: LoadingScreen()
+            currentError != null -> ReviewExchangeTosErrorComposable(
+                model = model,
+                error = currentError,
+                devMode = devMode,
+                onRetry = { retryTrigger++ },
+                onNavigateBack = onNavigateBack,
+            )
+
+            else -> LoadingScreen()
+        }
+    }
+}
+
+@Composable
+fun ReviewExchangeTosErrorComposable(
+    error: TalerErrorInfo,
+    devMode: Boolean,
+    onRetry: () -> Unit,
+    onNavigateBack: () -> Unit,
+    model: MainViewModel? = null,
+) {
+    GlobalScaffold(
+        model = model,
+        title = { Text(stringResource(R.string.nav_exchange_tos)) },
+        onNavigateBack = onNavigateBack,
+        bottomBar = {
+            BottomButtonBox {
+                Button(
+                    modifier = Modifier.systemBarsPaddingBottom(),
+                    onClick = onRetry,
+                ) {
+                    Text(stringResource(R.string.transactions_retry))
+                }
+            }
+        },
+    ) { innerPadding ->
+        ErrorComposable(
+            error = error,
+            modifier = Modifier.padding(innerPadding),
+            devMode = devMode,
+            message = stringResource(R.string.exchange_tos_error, ""),
+        )
     }
 }
 

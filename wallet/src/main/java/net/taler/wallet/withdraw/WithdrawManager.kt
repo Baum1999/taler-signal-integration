@@ -327,20 +327,23 @@ class WithdrawManager(
                     return@launch
                 }
 
+                val alreadyConfirmed = tx.txState.major != TransactionMajorState.Dialog
+
                 val status = _withdrawStatus.updateAndGet { value ->
                     updateSelections(
                         value.copy(
-                            status = if (tx.txState.major == TransactionMajorState.Dialog) {
-                                InfoReceived
-                            } else {
-                                AlreadyConfirmed
-                            },
+                            status = if (alreadyConfirmed) AlreadyConfirmed else InfoReceived,
+                            transactionId = details.transactionId,
                             uriInfo = details.info,
                             exchangeBaseUrl = details.info.defaultExchangeBaseUrl
                                 ?: details.info.possibleExchanges.firstOrNull()?.exchangeBaseUrl
                         )
                     )
                 }
+
+                // fetching amount details would overwrite AlreadyConfirmed in the
+                // conflated flow, possibly before the screen ever observes it
+                if (alreadyConfirmed) return@launch
 
                 // then extend with amount details (not for cash acceptor)
                 if (!status.isCashAcceptor) {
@@ -475,6 +478,9 @@ class WithdrawManager(
     @UiThread
     fun refreshTosStatus(exchanges: List<ExchangeItem>) = scope.launch {
         _withdrawStatus.update { status ->
+            // only lift the ToS gate: overwriting Confirming would re-enable the
+            // confirm button mid-confirmation
+            if (status.status != TosReviewRequired) return@update status
             var newStatus = status
             status.exchangeBaseUrl?.let { exchangeBaseUrl ->
                 exchanges.find { it.exchangeBaseUrl == exchangeBaseUrl }?.let { exchange ->

@@ -61,6 +61,7 @@ import kotlinx.coroutines.launch
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
+import net.taler.wallet.backend.WalletResponse
 import net.taler.wallet.balances.BalanceManager
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.EmptyComposable
@@ -340,8 +341,12 @@ fun handleExchangeAction(
         }
         ExchangeAction.ForgetTos -> {
             scope.launch {
-                exchangeManager.getExchangeTos(exchange.exchangeBaseUrl)?.let { tos ->
-                    exchangeManager.forgetCurrentTos(exchange.exchangeBaseUrl, tos.currentEtag)
+                val response = exchangeManager.getExchangeTos(exchange.exchangeBaseUrl)
+                if (response is WalletResponse.Success) {
+                    exchangeManager.forgetCurrentTos(
+                        exchangeBaseUrl = exchange.exchangeBaseUrl,
+                        currentEtag = response.result.currentEtag,
+                    )
                 }
             }
         }

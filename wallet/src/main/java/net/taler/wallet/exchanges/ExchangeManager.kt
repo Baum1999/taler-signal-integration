@@ -33,6 +33,7 @@ import net.taler.wallet.main.TAG
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
+import net.taler.wallet.backend.WalletResponse
 import net.taler.wallet.balances.GetCurrencySpecificationResponse
 import net.taler.wallet.balances.ScopeInfo
 import org.json.JSONObject
@@ -195,17 +196,11 @@ class ExchangeManager(
     suspend fun getExchangeTos(
         exchangeBaseUrl: String,
         language: String? = null,
-    ): TosResponse? {
-        var result: TosResponse? = null
-        api.request("getExchangeTos", TosResponse.serializer()) {
-            language?.let { put("acceptLanguage", it) }
-            put("exchangeBaseUrl", exchangeBaseUrl)
-        }.onError { error ->
-            Log.d(TAG, "Error getExchangeTos: $error")
-        }.onSuccess {
-            result = it
-        }
-        return result
+    ): WalletResponse<TosResponse> = api.request("getExchangeTos", TosResponse.serializer()) {
+        language?.let { put("acceptLanguage", it) }
+        put("exchangeBaseUrl", exchangeBaseUrl)
+    }.onError { error ->
+        Log.d(TAG, "Error getExchangeTos: $error")
     }
 
     /**
@@ -214,19 +209,14 @@ class ExchangeManager(
     suspend fun acceptCurrentTos(
         exchangeBaseUrl: String,
         currentEtag: String,
-    ): Boolean {
-        var success = false
-        api.request<Unit>("setExchangeTosAccepted") {
-            put("exchangeBaseUrl", exchangeBaseUrl)
-            put("etag", currentEtag)
-        }.onError { error ->
-            Log.d(TAG, "Error setExchangeTosAccepted: $error")
-        }.onSuccess {
-            success = true
-            // update exchange list
-            list()
-        }
-        return success
+    ): WalletResponse<Unit> = api.request<Unit>("setExchangeTosAccepted") {
+        put("exchangeBaseUrl", exchangeBaseUrl)
+        put("etag", currentEtag)
+    }.onError { error ->
+        Log.d(TAG, "Error setExchangeTosAccepted: $error")
+    }.onSuccess {
+        // update exchange list
+        list()
     }
 
     /**
