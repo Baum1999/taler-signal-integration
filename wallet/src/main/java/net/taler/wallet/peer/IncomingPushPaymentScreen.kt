@@ -20,10 +20,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
@@ -32,6 +37,8 @@ import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
+import net.taler.wallet.link.ReturnIntentSender
+import net.taler.wallet.link.ReturnStatus
 import net.taler.wallet.main.MainViewModel
 
 @Composable
@@ -44,6 +51,34 @@ fun IncomingPushPaymentScreen(
     val peerManager = model.peerManager
     val transactionManager = model.transactionManager
     val exchangeManager = model.exchangeManager
+    val context = LocalContext.current
+
+    // Der WalletNavHost verwendet einen 200ms-Fade-Exit: eine verlassene
+    // Screen-Instanz bleibt bis zu 200ms weiter komponiert (ihr onDispose
+    // feuert erst danach). Wenn der Nutzer in dieser Zeit ueber Signal einen
+    // ZWEITEN Annehmen-Vorgang startet, ueberschreibt HandleUriScreen das
+    // gemeinsame peerManager.pendingReturnCallback-Feld mit den Daten des
+    // neuen Vorgangs, BEVOR das onDispose der alten Instanz feuert - die alte
+    // Instanz wuerde dann faelschlich mit der Correlation-ID des NEUEN
+    // Vorgangs CANCELLED senden und dessen (Single-Use-)Eintrag verbrauchen,
+    // sodass der neue Vorgang nie sein eigenes READY/CANCELLED bekommt. Fix:
+    // den Wert einmalig bei der ersten Komposition dieser Instanz lokal
+    // einfangen. Das gemeinsame Feld wird HIER bewusst NICHT sofort geleert -
+    // die TOS-Review-Zwischenseite (DisposableEffect unten) disposed diese
+    // Instanz, und eine FRISCHE Instanz liest das Feld nach der Rueckkehr
+    // erneut; ein sofortiges Leeren wuerde der frischen Instanz ein bereits
+    // leeres Feld unterschieben und den Ruecksprung fuer den gesamten
+    // TOS-Umweg stillschweigend verlieren. Stattdessen wird das Feld erst
+    // beim tatsaechlichen Feuern (READY/CANCELLED, siehe consumeCallbackSlot
+    // unten) geleert, und auch dann nur, wenn es noch exakt unserem eigenen
+    // Callback entspricht (Identitaetspruefung per ===) - so bleibt ein
+    // inzwischen von einem zweiten Vorgang gesetzter neuer Wert unangetastet.
+    val myCallback = remember { peerManager.pendingReturnCallback }
+    fun consumeCallbackSlot() {
+        if (peerManager.pendingReturnCallback === myCallback) {
+            peerManager.pendingReturnCallback = null
+        }
+    }
 
     val state = peerManager.incomingPushState.collectAsStateLifecycleAware()
     val exchanges by exchangeManager.exchanges.observeAsState()
@@ -54,9 +89,19 @@ fun IncomingPushPaymentScreen(
         }
     }
 
+    var leavingForSubScreen by remember { mutableStateOf(false) }
+
     LaunchedEffect(state.value) {
         val s = state.value
         if (s is IncomingAccepted) {
+            // docs/API.md 2.10: Ruecksprung feuern, BEVOR der Zustand geloescht
+            // wird - der Cancel-Fallback unten (DisposableEffect.onDispose)
+            // prueft auf einen noch gesetzten pendingReturnCallback und wuerde
+            // sonst faelschlich CANCELLED nachschicken.
+            myCallback?.let { callback ->
+                ReturnIntentSender.fire(context, callback.returnUri, callback.correlationId, ReturnStatus.READY)
+                consumeCallbackSlot()
+            }
             if (transactionManager.selectTransaction(s.transactionId)) {
                 onNavigate(WalletDestination.TransactionPeer, true)
             } else {
@@ -64,6 +109,24 @@ fun IncomingPushPaymentScreen(
             }
         } else if (s is IncomingError) {
             onShowError(s.info)
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            // Nicht feuern, wenn wir gerade nur zur TOS-Review-Zwischenseite
+            // navigieren (WalletDestination.ReviewExchangeTOS) - das ist kein
+            // Verlassen des Annehmen-Vorgangs, nur ein Zwischenschritt, nach
+            // dem eine frische Instanz dieses Composables denselben Vorgang
+            // fortsetzt. Ohne diese Absicherung wuerde jeder Exchange, der
+            // eine aktualisierte TOS-Bestaetigung braucht, faelschlich ein
+            // CANCELLED ausloesen und den spaeteren echten READY unterdruecken.
+            if (!leavingForSubScreen) {
+                myCallback?.let { callback ->
+                    ReturnIntentSender.fire(context, callback.returnUri, callback.correlationId, ReturnStatus.CANCELLED)
+                    consumeCallbackSlot()
+                }
+            }
         }
     }
 
@@ -80,6 +143,7 @@ fun IncomingPushPaymentScreen(
                 data = incomingPush
             ) { terms ->
                 if (terms is IncomingTosReview) {
+                    leavingForSubScreen = true
                     onNavigate(WalletDestination.ReviewExchangeTOS(terms.exchangeBaseUrl), false)
                 } else {
                     peerManager.confirmPeerPushCredit(terms)

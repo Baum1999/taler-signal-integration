@@ -98,6 +98,16 @@ class PeerManager(
     private val _incomingPushState = MutableStateFlow<IncomingState>(IncomingChecking)
     val incomingPushState: StateFlow<IncomingState> = _incomingPushState
 
+    /**
+     * Ruecksprung-Info fuer den aktuell laufenden "Annehmen"-Vorgang
+     * (docs/API.md 2.10) - gesetzt von HandleUriScreen vor preparePeerPushCredit,
+     * gelesen+geloescht von IncomingPushPaymentScreen beim Abschluss/Verlassen
+     * des Bestaetigungsbildschirms. Absichtlich kein Taler-interner Zustand
+     * (keine Persistenz noetig) - ein neuer preparePeerPushCredit-Aufruf
+     * ueberschreibt ihn ohnehin.
+     */
+    var pendingReturnCallback: net.taler.wallet.link.ReturnCallbackInfo? = null
+
     suspend fun checkPeerPullCredit(
         amount: Amount,
         scopeInfo: ScopeInfo,
