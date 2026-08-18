@@ -85,7 +85,9 @@ fun TransactionDepositComposable(
     ) {
         val defaultOptionIndex = 0
         var selectedOptionIndex by remember { mutableIntStateOf(defaultOptionIndex) }
-        val selectedOption = t.kycAuthTransferInfo?.transferOptions[selectedOptionIndex]
+        // Transfer options can be absent while the KYC info is present; indexing an empty list crashes.
+        val selectedOption =
+            t.kycAuthTransferInfo?.transferOptions?.getOrNull(selectedOptionIndex)
 
         LaunchedEffect(selectedOption) {
             selectedOption?.let { onSelectOption(it) }

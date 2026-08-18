@@ -71,6 +71,24 @@ import net.taler.wallet.transactions.WithdrawalDetails.ManualTransfer
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
 import net.taler.wallet.transactions.WithdrawalTransfers
 
+/** Manual-withdrawal accounts, preferred first; unusable ones are dropped. */
+fun TransactionWithdrawal.transferAccounts(): List<WithdrawalExchangeAccountDetails>? =
+    (withdrawalDetails as? ManualTransfer)?.exchangeCreditAccountDetails?.let { details ->
+        details.filter {
+            it.status == WithdrawalExchangeAccountDetails.Status.Ok
+        }.sortedByDescending {
+            it.priority
+        }
+    }
+
+/** The transfer option behind [accountIndex]/[optionIndex]; the indices cannot be trusted to be in range. */
+fun transferOptionAt(
+    accounts: List<WithdrawalExchangeAccountDetails>?,
+    accountIndex: Int,
+    optionIndex: Int,
+): TransferOption? =
+    accounts?.getOrNull(accountIndex)?.transferOptions?.getOrNull(optionIndex)
+
 @Composable
 fun TransactionWithdrawalComposable(
     t: TransactionWithdrawal,
@@ -91,15 +109,7 @@ fun TransactionWithdrawalComposable(
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        val accounts = (t.withdrawalDetails as? ManualTransfer)
-            ?.exchangeCreditAccountDetails
-            ?.let { details ->
-            details.filter {
-                it.status == WithdrawalExchangeAccountDetails.Status.Ok
-            }.sortedByDescending {
-                it.priority
-            }
-        }
+        val accounts = t.transferAccounts()
 
         val defaultAccountIndex = 0
         var selectedAccountIndex by rememberSaveable {
@@ -108,8 +118,8 @@ fun TransactionWithdrawalComposable(
         val defaultOptionIndex = 0
         var selectedOptionIndex by rememberSaveable (selectedAccountIndex) {
             mutableIntStateOf(defaultOptionIndex) }
-        val selectedOption = selectedAccount
-            ?.transferOptions[selectedOptionIndex]
+        val selectedOption =
+            transferOptionAt(accounts, selectedAccountIndex, selectedOptionIndex)
 
         LaunchedEffect(selectedOption) {
             selectedOption?.let { onSelectOption(it) }
@@ -239,9 +249,10 @@ fun TransferAccountChooser(
     selectedIndex: Int,
     onSelectAccount: (index: Int) -> Unit,
 ) {
+    val selected = accounts.getOrNull(selectedIndex) ?: accounts.firstOrNull()
     val selectedIndex = accounts.indexOfFirst {
-        it.paytoUri == accounts[selectedIndex].paytoUri
-    }
+        it.paytoUri == selected?.paytoUri
+    }.coerceAtLeast(0)
 
     PrimaryScrollableTabRow(
         selectedTabIndex = selectedIndex,
@@ -250,7 +261,7 @@ fun TransferAccountChooser(
     ) {
         accounts.forEachIndexed { index, account ->
             Tab(
-                selected = accounts[selectedIndex].paytoUri == account.paytoUri,
+                selected = selected?.paytoUri == account.paytoUri,
                 onClick = { onSelectAccount(index) },
                 text = {
                     if (!account.bankLabel.isNullOrEmpty()) {
