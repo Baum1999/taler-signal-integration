@@ -74,7 +74,8 @@ class PaymentManager(
     @UiThread
     fun createPayment(order: Order, includeProducts: Boolean = true) = scope.launch {
         val merchantConfig = configManager.merchantConfig!!
-        mPayment.value = Payment(order, order.summary, configManager.currency!!)
+        val payment = Payment(order, order.summary, configManager.currency!!)
+        mPayment.value = payment
         val inventoryProducts = if (includeProducts) {
             order.products.mapNotNull { product ->
                 val productId = product.productId ?: return@mapNotNull null
@@ -104,7 +105,13 @@ class PaymentManager(
             onNetworkError(error)
         }) { orderResponse ->
             assertUiThread()
-            mPayment.value = mPayment.value!!.copy(orderId = orderResponse.orderId)
+            if (mPayment.value !== payment) {
+                Log.d(TAG, "Ignoring order ${orderResponse.orderId} for abandoned payment")
+                // cancelPayment() could not delete it yet, it had no order ID back then
+                scope.launch { api.deleteOrder(merchantConfig, orderResponse.orderId) }
+                return@handle
+            }
+            mPayment.value = payment.copy(orderId = orderResponse.orderId)
             checkTimer.start()
         }
     }
@@ -162,7 +169,11 @@ class PaymentManager(
         }) { response ->
             assertUiThread()
             if (!isActive) return@handle // don't continue if job was cancelled
-            val currentValue = requireNotNull(mPayment.value)
+            val currentValue = mPayment.value
+            if (currentValue?.orderId != orderId) {
+                Log.d(TAG, "Ignoring stale check result for order $orderId")
+                return@handle
+            }
             when (response) {
                 is CheckPaymentResponse.Unpaid -> {
                     mPayment.value = currentValue.copy(talerPayUri = response.talerPayUri)
@@ -255,7 +266,7 @@ class PaymentManager(
 
     private fun stopPaymentChecks() {
         checkTimer.cancel()
-        checkJob?.isCancelled
+        checkJob?.cancel()
         checkJob = null
     }
 }
