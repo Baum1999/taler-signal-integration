@@ -17,11 +17,9 @@
 package net.taler.lib.android
 
 import android.app.Activity
-import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.nfc.NdefMessage
 import android.nfc.NdefRecord
 import android.nfc.NfcAdapter.getDefaultAdapter
@@ -29,50 +27,11 @@ import android.nfc.cardemulation.CardEmulation
 import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
 import android.util.Log
-import androidx.core.content.ContextCompat
-import androidx.core.content.IntentCompat
 import java.math.BigInteger
+import java.util.concurrent.atomic.AtomicReference
 
 class TalerNfcService : HostApduService() {
-    private var ndefMessage: NdefMessage? = null
-
-    private val ndefUriBytes: ByteArray?
-        get() = ndefMessage?.toByteArray()
-
-    private val ndefUriLen: ByteArray?
-        get() = ndefUriBytes?.size?.toLong()?.let { size ->
-            fillByteArrayToFixedDimension(
-                BigInteger.valueOf(size).toByteArray(),
-                2
-            )
-        }
-
     private var readCapabilityContainerCheck = false
-
-    private val broadcastReceiver = object: BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            when (intent?.action) {
-                SET_URI_INTENT -> intent.getStringExtra("uri")?.let { uri ->
-                    Log.d(TAG, "onReceive(SET_URI_INTENT) | URI: $uri")
-                    ndefMessage = NdefMessage(createUriRecord(uri))
-                }
-
-                SET_NDEF_INTENT -> IntentCompat.getParcelableExtra(
-                    intent,
-                    "ndef",
-                    NdefMessage::class.java,
-                )?.let { ndef ->
-                    Log.d(TAG, "onReceive(SET_NDEF_INTENT) | NDEF: $ndef")
-                    ndefMessage = ndef
-                }
-
-                CLEAR_NDEF_INTENT -> {
-                    Log.d(TAG, "onReceive(CLEAR_NDEF_INTENT)")
-                    ndefMessage = null
-                }
-            }
-        }
-    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         return START_STICKY
@@ -90,11 +49,18 @@ class TalerNfcService : HostApduService() {
             return A_ERROR
         }
 
-        val message = ndefMessage
+        val message = ndefMessage.get()
         if (message == null) {
             Log.d(TAG, "processCommandApi() no data to write")
             return A_ERROR
         }
+
+        // snapshot: the payload can be replaced between APDUs of one exchange
+        val ndefBytes = message.toByteArray()
+        val ndefLen = fillByteArrayToFixedDimension(
+            BigInteger.valueOf(ndefBytes.size.toLong()).toByteArray(),
+            2,
+        )
 
         //
         // The following flow is based on Appendix E "Example of Mapping Version 2.0 Command Flow"
@@ -138,9 +104,9 @@ class TalerNfcService : HostApduService() {
 
         if (NDEF_READ_BINARY_NLEN.contentEquals(commandApdu)) {
             // Build our response
-            val response = ByteArray(ndefUriLen!!.size + A_OKAY.size)
-            System.arraycopy(ndefUriLen!!, 0, response, 0, ndefUriLen!!.size)
-            System.arraycopy(A_OKAY, 0, response, ndefUriLen!!.size, A_OKAY.size)
+            val response = ByteArray(ndefLen.size + A_OKAY.size)
+            System.arraycopy(ndefLen, 0, response, 0, ndefLen.size)
+            System.arraycopy(A_OKAY, 0, response, ndefLen.size, A_OKAY.size)
 
             Log.d(TAG, "NDEF_READ_BINARY_NLEN triggered. Our Response: " + response.toHex())
 
@@ -152,15 +118,9 @@ class TalerNfcService : HostApduService() {
             val offset = commandApdu.sliceArray(2..3).toHex().toInt(16)
             val length = commandApdu.sliceArray(4..4).toHex().toInt(16)
 
-            val fullResponse = ByteArray(ndefUriLen!!.size + ndefUriBytes!!.size)
-            System.arraycopy(ndefUriLen!!, 0, fullResponse, 0, ndefUriLen!!.size)
-            System.arraycopy(
-                ndefUriBytes!!,
-                0,
-                fullResponse,
-                ndefUriLen!!.size,
-                ndefUriBytes!!.size,
-            )
+            val fullResponse = ByteArray(ndefLen.size + ndefBytes.size)
+            System.arraycopy(ndefLen, 0, fullResponse, 0, ndefLen.size)
+            System.arraycopy(ndefBytes, 0, fullResponse, ndefLen.size, ndefBytes.size)
 
             Log.d(TAG, "NDEF_READ_BINARY triggered. Full data: " + fullResponse.toHex())
             Log.d(TAG, "READ_BINARY - OFFSET: $offset - LEN: $length")
@@ -205,8 +165,6 @@ class TalerNfcService : HostApduService() {
         return result.toString()
     }
 
-    private fun createUriRecord(uri: String) = NdefRecord.createUri(uri)
-
     private fun fillByteArrayToFixedDimension(array: ByteArray, fixedSize: Int): ByteArray {
         if (array.size == fixedSize) {
             return array
@@ -219,33 +177,16 @@ class TalerNfcService : HostApduService() {
         return fillByteArrayToFixedDimension(filledArray, fixedSize)
     }
 
-    override fun onCreate() {
-        super.onCreate()
-        Log.d(TAG, "onCreate() service running")
-        val intentFilter = IntentFilter()
-        intentFilter.addAction(SET_URI_INTENT)
-        intentFilter.addAction(SET_NDEF_INTENT)
-        intentFilter.addAction(CLEAR_NDEF_INTENT)
-        ContextCompat.registerReceiver(
-            this@TalerNfcService,
-            broadcastReceiver,
-            intentFilter,
-            ContextCompat.RECEIVER_NOT_EXPORTED,
-        )
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d(TAG, "onDestroy() NFC service")
-        unregisterReceiver(broadcastReceiver)
-        ndefMessage = null
-    }
-
     companion object {
         private const val TAG = "taler-wallet-hce"
-        const val SET_URI_INTENT = "taler-wallet-set-url"
-        const val SET_NDEF_INTENT = "taler-wallet-set-ndef"
-        const val CLEAR_NDEF_INTENT = "taler-wallet-clear-ndef"
+        /**
+         * The payload to serve, held per process rather than per service instance.
+         * The service is created asynchronously and can be restarted by the system at
+         * any time, so anything stored on the instance is lost or set too late.
+         */
+        private val ndefMessage = AtomicReference<NdefMessage?>(null)
+
+        private fun createUriRecord(uri: String) = NdefRecord.createUri(uri)
 
         private val APDU_SELECT = byteArrayOf(
             0x00.toByte(), // CLA	- Class - Class of instruction
@@ -367,25 +308,20 @@ class TalerNfcService : HostApduService() {
 
         fun setUri(activity: Activity, uri: String) {
             if (!hasNfc(activity)) return
-            val intent = Intent(SET_URI_INTENT)
-            intent.setPackage(activity.packageName)
-            intent.putExtra("uri", uri)
-            activity.sendBroadcast(intent)
+            Log.d(TAG, "setUri() | URI: $uri")
+            ndefMessage.set(NdefMessage(createUriRecord(uri)))
         }
 
         fun setNdefPayload(activity: Activity, ndef: NdefMessage) {
             if (!hasNfc(activity)) return
-            val intent = Intent(SET_NDEF_INTENT)
-            intent.setPackage(activity.packageName)
-            intent.putExtra("ndef", ndef)
-            activity.sendBroadcast(intent)
+            Log.d(TAG, "setNdefPayload() | NDEF: $ndef")
+            ndefMessage.set(ndef)
         }
 
         fun clearNdefPayload(activity: Activity) {
             if (!hasNfc(activity)) return
-            val intent = Intent(CLEAR_NDEF_INTENT)
-            intent.setPackage(activity.packageName)
-            activity.sendBroadcast(intent)
+            Log.d(TAG, "clearNdefPayload()")
+            ndefMessage.set(null)
         }
     }
 }
