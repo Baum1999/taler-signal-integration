@@ -61,7 +61,6 @@ import net.taler.wallet.compose.BottomButtonBox
 import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
-import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.systemBarsPaddingBottom
 import net.taler.wallet.transactions.TransactionInfoComposable
 import net.taler.wallet.useDebounce
@@ -332,7 +331,7 @@ fun PeerPullComposableCheckedPreview() {
         val amountRaw = Amount.fromString("TESTKUDOS", "42.42")
         val amountEffective = Amount.fromString("TESTKUDOS", "42.23")
         OutgoingPullComposable(
-            state = OutgoingChecked(amountRaw, amountEffective, "https://exchange.demo.taler.net/", ExchangeTosStatus.Accepted),
+            state = OutgoingIntro,
             defaultScope = ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),
             scopes = listOf(
                 ScopeInfo.Exchange("KUDOS", "https://exchange.demo.taler.net/"),

@@ -52,17 +52,10 @@ fun OutgoingPullScreen(
     val state by peerManager.pullState.collectAsStateLifecycleAware()
     val viewMode by model.viewMode.collectAsStateLifecycleAware()
     val devMode by model.devMode.observeAsState(false)
-    val exchanges by exchangeManager.exchanges.observeAsState()
 
     DisposableEffect(Unit) {
         onDispose {
             peerManager.resetPullPayment()
-        }
-    }
-
-    LaunchedEffect(exchanges) {
-        exchanges?.let {
-            peerManager.refreshPeerPullCreditTos(it)
         }
     }
 

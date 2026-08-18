@@ -381,26 +381,4 @@ class PeerManager(
             newState
         }
     }
-
-    @UiThread
-    fun refreshPeerPullCreditTos(exchanges: List<ExchangeItem>) = scope.launch {
-        _outgoingPullState.update { state ->
-            var newState = state
-            if (state is OutgoingChecked) {
-                exchanges.find { it.exchangeBaseUrl == state.exchangeBaseUrl }?.let { exchange ->
-                    if (exchange.tosStatus.isAccepted()) {
-                        newState = OutgoingChecked(
-                            amountRaw = state.amountRaw,
-                            amountEffective = state.amountEffective,
-                            exchangeBaseUrl = state.exchangeBaseUrl,
-                            tosStatus = exchange.tosStatus,
-                        )
-                    }
-                } ?: run {
-                    Log.d(TAG, "could not refresh ToS status, exchange ${state.exchangeBaseUrl} was not found")
-                }
-            }
-            newState
-        }
-    }
 }

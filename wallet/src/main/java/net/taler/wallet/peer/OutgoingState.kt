@@ -31,13 +31,6 @@ data object OutgoingIntro : OutgoingState()
 
 data object OutgoingChecking : OutgoingState()
 
-data class OutgoingChecked(
-    val amountRaw: Amount,
-    val amountEffective: Amount,
-    val exchangeBaseUrl: String,
-    val tosStatus: ExchangeTosStatus?,
-) : OutgoingState()
-
 data object OutgoingCreating : OutgoingState()
 
 data class OutgoingResponse(

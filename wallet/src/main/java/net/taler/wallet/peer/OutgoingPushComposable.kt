@@ -62,7 +62,6 @@ import net.taler.wallet.compose.BottomButtonBox
 import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
-import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.payment.stringResId
 import net.taler.wallet.peer.CheckFeeResult.InsufficientBalance
 import net.taler.wallet.peer.CheckFeeResult.None
@@ -85,7 +84,7 @@ fun OutgoingPushComposable(
 ) {
     when(state) {
         is OutgoingChecking, is OutgoingCreating, is OutgoingResponse -> LoadingScreen(modifier)
-        is OutgoingIntro, is OutgoingChecked, is OutgoingError -> OutgoingPushIntroComposable(
+        is OutgoingIntro, is OutgoingError -> OutgoingPushIntroComposable(
             state = state,
             defaultScope = defaultScope,
             scopes = scopes,
@@ -375,7 +374,7 @@ fun PeerPushComposableCheckedPreview() {
     TalerSurface {
         val amountEffective = Amount.fromString("TESTKUDOS", "42.42")
         val amountRaw = Amount.fromString("TESTKUDOS", "42.23")
-        val state = OutgoingChecked(amountRaw, amountEffective, "https://exchange.demo.taler.net", ExchangeTosStatus.Accepted)
+        val state = OutgoingIntro
         OutgoingPushComposable(
             state = state,
             devMode = true,
