@@ -141,13 +141,19 @@ class BackendManager(
         try {
             when (val message = json.decodeFromString<ApiMessage>(msg)) {
                 is ApiMessage.Notification -> {
-                    notificationReceiver.onNotificationReceived(message.payload)
+                    // A throwing receiver must not take the wallet down either.
+                    try {
+                        notificationReceiver.onNotificationReceived(message.payload)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "error handling notification", e)
+                    }
                 }
                 is ApiResponse -> {
                     val id = message.id
                     val cont = requestManager.getAndRemoveContinuation(id)
                     if (cont == null) {
-                        Log.e(TAG, "wallet returned unknown request ID ($id)")
+                        // Normal after a request timed out; wallet-core answered anyway.
+                        Log.w(TAG, "wallet returned unknown request ID ($id)")
                     } else {
                         cont.resume(message)
                     }
