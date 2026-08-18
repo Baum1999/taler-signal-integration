@@ -171,6 +171,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        // the payload outlives the service, so stopping it is no longer enough
+        TalerNfcService.clearNdefPayload(this)
         TalerNfcService.stopService(this)
     }
 
