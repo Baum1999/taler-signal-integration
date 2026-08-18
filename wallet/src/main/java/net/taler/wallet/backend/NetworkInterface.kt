@@ -21,23 +21,25 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.ResponseException
 import io.ktor.client.request.header
-import io.ktor.client.request.headers
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.util.flattenForEach
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.serialization.SerializationException
 import net.taler.common.getDefaultHttpClient
 import net.taler.common.toHttpMethod
 import net.taler.qtart.Networking
 import net.taler.wallet.main.TAG
-import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 
+/** The HTTP client wallet-core drives instead of doing its own networking.
+ * Every request must be answered exactly once: wallet-core suspends a promise per
+ * request with no timeout of its own, so an unanswered request hangs the wallet. */
 @OptIn(DelicateCoroutinesApi::class)
 class NetworkInterface: Networking.RequestHandler {
     private val requests: ConcurrentHashMap<Int, Job> = ConcurrentHashMap()
@@ -55,88 +57,113 @@ class NetworkInterface: Networking.RequestHandler {
         id: Int,
         sendResponse: (resp: Networking.ResponseInfo) -> Unit
     ) {
-        Log.d(TAG, "HTTP: handleRequest($req, $id")
+        Log.d(TAG, "HTTP: handleRequest($req, $id)")
 
         requests[id] = GlobalScope.launch {
-            val client = if (req.redirectMode == Networking.RedirectMode.Transparent) {
-                redirectClient
-            } else {
-                sharedClient
-            }
-
-            var errorMsg: String? = null
-
-            val resp = try {
-                client.request {
-                    url(req.url)
-
-                    method = req.method.toHttpMethod()
-                        ?: error("invalid method")
-
-                    headers {
-                        parseHeaders(req.headers).map {
-                            header(it.key, it.value)
-                        }
-                    }
-
-                    if (req.body != null) {
-                        setBody(req.body)
-                    }
-
-                    timeout {
-                        val t = req.timeoutMs
-                        if (t > 0) {
-                            requestTimeoutMillis = t
-                            socketTimeoutMillis = t
-                        }
-                    }
+            val answered = AtomicBoolean(false)
+            fun answer(
+                status: Int,
+                error: String?,
+                respHeaders: Array<String>,
+                respBody: ByteArray?,
+            ) {
+                if (answered.compareAndSet(false, true)) {
+                    sendResponse(
+                        Networking.ResponseInfo(
+                            requestId = id,
+                            status = status,
+                            errorMsg = error,
+                            headers = respHeaders,
+                            body = respBody,
+                        )
+                    )
                 }
-            } catch (e: ResponseException) {
-                e.response // send non-200 responses to wallet-core anyway
-            } catch (e: IOException) {
-                Log.d(TAG,  "Exception handling HTTP response", e)
-                errorMsg = e.message
-                null
-            } catch (e: SerializationException) {
-                Log.d(TAG, "Exception handling HTTP response", e)
-                errorMsg = e.message
-                null
+            }
+            try {
+                val client = if (req.redirectMode == Networking.RedirectMode.Transparent) {
+                    redirectClient
+                } else {
+                    sharedClient
+                }
+
+                val method = req.method.toHttpMethod()
+                if (method == null) {
+                    // Reporting it as a transport failure is the only way to tell wallet-core.
+                    answer(0, "unsupported HTTP method '${req.method}'", emptyArray(), null)
+                    return@launch
+                }
+
+                var errorMsg: String? = null
+                val resp = try {
+                    client.request {
+                        url(req.url)
+                        this.method = method
+                        parseHeaders(req.headers).forEach { (k, v) -> header(k, v) }
+                        if (req.body != null) {
+                            setBody(req.body)
+                        }
+                        timeout {
+                            val t = req.timeoutMs
+                            if (t > 0) {
+                                requestTimeoutMillis = t
+                                socketTimeoutMillis = t
+                            }
+                        }
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: ResponseException) {
+                    // Send non-200 responses on: a 402 from a sync provider is a normal part
+                    // of the backup protocol, not a failure.
+                    e.response
+                } catch (e: Throwable) {
+                    Log.d(TAG, "Exception performing HTTP request", e)
+                    errorMsg = e.message ?: e.toString()
+                    null
+                }
+
+                // Body reads can fail on their own; keep them inside the catch.
+                val body: ByteArray? = if (resp == null) null else try {
+                    resp.body<ByteArray>()
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Throwable) {
+                    Log.d(TAG, "Exception reading HTTP response body", e)
+                    errorMsg = e.message ?: e.toString()
+                    null
+                }
+
+                val respHeaders = mutableListOf<String>().apply {
+                    resp?.headers?.flattenForEach { k, v -> add("$k: $v") }
+                }.toTypedArray()
+
+                Log.d(TAG, "Sending response to wallet-core")
+                answer(resp?.status?.value ?: 0, errorMsg, respHeaders, body)
+            } catch (e: CancellationException) {
+                // wallet-core cancelled the request; do not answer it.
+                throw e
+            } catch (e: Throwable) {
+                Log.e(TAG, "Unexpected failure handling HTTP request $id", e)
+                answer(0, e.message ?: e.toString(), emptyArray(), null)
             } finally {
                 cleanupRequest(id)
             }
-
-            // HTTP response status code or 0 on error.
-            val status = if (resp?.status?.value != null) resp.status.value else 0
-
-            val headers = mutableListOf<String>().apply {
-                resp?.headers?.flattenForEach { k, v -> add("$k: $v") }
-            }.toTypedArray()
-
-            Log.d(TAG, "Sending response to wallet-core")
-            sendResponse(
-                Networking.ResponseInfo(
-                    requestId = id,
-                    status = status,
-                    errorMsg = errorMsg,
-                    headers = headers,
-                    body = resp?.body(),
-                )
-            )
         }
     }
 
-    private fun parseHeaders(headers: Array<String>) = headers.associate {
-        val parts = it.split(':', limit = 2)
-        parts[0] to parts[1]
-    }
+    /** Splits `"Name: value"` header lines; a line without a colon is skipped, never thrown. */
+    private fun parseHeaders(headers: Array<String>): List<Pair<String, String>> =
+        headers.mapNotNull {
+            val parts = it.split(':', limit = 2)
+            if (parts.size < 2) {
+                Log.w(TAG, "ignoring malformed request header '$it'")
+                null
+            } else parts[0].trim() to parts[1].trim()
+        }
 
     override fun cancelRequest(id: Int): Boolean {
-        Log.d(TAG, "HTTP: cancelRequest($id")
-        requests[id]?.let { job ->
-            job.cancel()
-            requests.remove(id)
-        }
-
+        Log.d(TAG, "HTTP: cancelRequest($id)")
+        requests.remove(id)?.cancel()
         return true
     }
 
