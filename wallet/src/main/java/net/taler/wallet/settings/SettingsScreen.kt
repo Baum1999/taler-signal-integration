@@ -78,6 +78,7 @@ import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.backend.WalletDatabaseBackend
 import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.withdraw.TestWithdrawStatus
 
@@ -291,7 +292,7 @@ fun SettingsScreen(
                 }
             )
 
-            SettingsItem(
+            if (model.databaseBackend != WalletDatabaseBackend.Sqlite) SettingsItem(
                 title = stringResource(R.string.settings_migrate_db),
                 summary = stringResource(R.string.settings_migrate_db_summary),
                 icon = Icons.Default.Memory,

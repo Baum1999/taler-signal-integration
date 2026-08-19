@@ -35,8 +35,7 @@ private const val WALLET_DB = "talerwalletdb.sqlite3"
 class WalletBackendApi(
     private val app: Application,
     private val initialConfig: WalletRunConfig,
-    private val versionReceiver: VersionReceiver,
-    private val initErrorReceiver: InitErrorReceiver,
+    private val initReceiver: InitReceiver,
     notificationReceiver: NotificationReceiver,
 ) {
 
@@ -69,9 +68,9 @@ class WalletBackendApi(
             put("logLevel", "INFO")
             put("config", JSONObject(BackendManager.json.encodeToString(initialConfig)))
         }.onSuccess { response ->
-            versionReceiver.onVersionReceived(response.versionInfo)
+            initReceiver.onInitReceived(response)
         }.onError { error ->
-            initErrorReceiver.onInitError(error)
+            initReceiver.onInitErrorReceived(error)
         }
     }
 

@@ -33,13 +33,11 @@ import net.taler.common.AmountParserException
 import net.taler.common.Event
 import net.taler.wallet.accounts.AccountManager
 import net.taler.wallet.backend.BackendManager
-import net.taler.wallet.backend.InitErrorReceiver
 import net.taler.wallet.backend.NotificationPayload
 import net.taler.wallet.backend.NotificationReceiver
 import net.taler.wallet.backend.TalerErrorInfo
-import net.taler.wallet.backend.VersionReceiver
+import net.taler.wallet.backend.InitReceiver
 import net.taler.wallet.backend.WalletBackendApi
-import net.taler.wallet.backend.WalletCoreVersion
 import net.taler.wallet.backend.WalletRunConfig
 import net.taler.wallet.backend.WalletRunConfig.Features
 import net.taler.wallet.backend.WalletRunConfig.Testing
@@ -57,6 +55,8 @@ import net.taler.wallet.transactions.TransactionStateFilter
 import net.taler.wallet.withdraw.WithdrawManager
 import net.taler.wallet.BuildConfig
 import net.taler.wallet.NetworkManager
+import net.taler.wallet.backend.InitResponse
+import net.taler.wallet.backend.WalletDatabaseBackend
 import net.taler.wallet.donau.DonauManager
 import net.taler.wallet.tokens.TokenManager
 
@@ -74,7 +74,7 @@ private val observabilityNotifications = listOf(
 
 class MainViewModel(
     app: Application,
-) : AndroidViewModel(app), VersionReceiver, NotificationReceiver, InitErrorReceiver {
+) : AndroidViewModel(app), InitReceiver, NotificationReceiver {
 
     private val mDevMode = MutableLiveData(BuildConfig.DEBUG)
     val devMode: LiveData<Boolean> = mDevMode
@@ -87,6 +87,8 @@ class MainViewModel(
     var exchangeVersion: String? = null
         private set
     var merchantVersion: String? = null
+        private set
+    var databaseBackend: WalletDatabaseBackend? = null
         private set
 
     @set:Synchronized
@@ -101,7 +103,7 @@ class MainViewModel(
         logLevel = if (devMode.value == true) "TRACE" else "INFO",
     )
 
-    private val api = WalletBackendApi(app, walletConfig, this, this, this)
+    private val api = WalletBackendApi(app, walletConfig, this, this)
 
     val networkManager = NetworkManager(app.applicationContext)
     val exchangeManager: ExchangeManager = ExchangeManager(api, viewModelScope)
@@ -143,15 +145,16 @@ class MainViewModel(
         api.stopWallet()
     }
 
-    override fun onInitError(error: TalerErrorInfo) {
+    override fun onInitErrorReceived(error: TalerErrorInfo) {
         mInitError.value = error
     }
 
-    override fun onVersionReceived(versionInfo: WalletCoreVersion) {
-        walletVersion = versionInfo.implementationSemver
-        walletVersionHash = versionInfo.implementationGitHash
-        exchangeVersion = versionInfo.exchange
-        merchantVersion = versionInfo.merchant
+    override fun onInitReceived(init: InitResponse) {
+        walletVersion = init.versionInfo.implementationSemver
+        walletVersionHash = init.versionInfo.implementationGitHash
+        exchangeVersion = init.versionInfo.exchange
+        merchantVersion = init.versionInfo.merchant
+        databaseBackend = init.databaseBackend
         mInitError.value = null
     }
 

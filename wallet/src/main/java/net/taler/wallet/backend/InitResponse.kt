@@ -16,12 +16,14 @@
 
 package net.taler.wallet.backend
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.taler.wallet.exchanges.BuiltinExchange
 
 @Serializable
 data class InitResponse(
     val versionInfo: WalletCoreVersion,
+    val databaseBackend: WalletDatabaseBackend,
 )
 
 @Serializable
@@ -69,12 +71,9 @@ data class WalletRunConfig(
     )
 }
 
-fun interface VersionReceiver {
-    fun onVersionReceived(versionInfo: WalletCoreVersion)
-}
-
-fun interface InitErrorReceiver {
-    fun onInitError(error: TalerErrorInfo)
+interface InitReceiver {
+    fun onInitReceived(init: InitResponse)
+    fun onInitErrorReceived(error: TalerErrorInfo)
 }
 
 @Serializable
@@ -89,3 +88,12 @@ data class WalletCoreVersion(
     val corebankApiRange: String,
     val devMode: Boolean,
 )
+
+@Serializable
+enum class WalletDatabaseBackend {
+    @SerialName("indexeddb")
+    IndexedDB,
+
+    @SerialName("sqlite")
+    Sqlite,
+}
