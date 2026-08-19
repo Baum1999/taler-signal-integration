@@ -44,32 +44,32 @@ sealed class NotificationPayload {
          * to the wallet and not visible to the user.
          */
         val isInternal: Boolean? = null,
-        val hintTransactionId: String,
+        val hintTransactionId: String? = null,
     ) : NotificationPayload()
 
     @Serializable
     @SerialName("transaction-state-transition")
     data class TransactionStateTransition(
-        val transactionId: String,
+        val transactionId: String? = null,
         val causeHint: String? = null,
-        val oldTxState: TransactionState,
-        val newTxState: TransactionState,
+        val oldTxState: TransactionState? = null,
+        val newTxState: TransactionState? = null,
         val errorInfo: TalerErrorInfo? = null,
     ) : NotificationPayload()
 
     @Serializable
     @SerialName("task-observability-event")
     data class TaskObservabilityEvent(
-        val taskId: String,
-        val event: ObservabilityEvent,
+        val taskId: String? = null,
+        val event: ObservabilityEvent? = null,
     ) : NotificationPayload()
 
     @Serializable
     @SerialName("request-observability-event")
     data class RequestObservabilityEvent(
         val requestId: Int,
-        val operation: String,
-        val event: ObservabilityEvent,
+        val operation: String? = null,
+        val event: ObservabilityEvent? = null,
     ) : NotificationPayload()
 
     @Serializable

@@ -32,6 +32,7 @@ import net.taler.qtart.TalerWalletCore
 import net.taler.wallet.BuildConfig
 import org.json.JSONObject
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.coroutines.resume
 
 
@@ -129,19 +130,25 @@ class BackendManager(
 
     private fun onMessageReceived(msg: String) = scope.launch {
         Log.d(TAG, "message received: $msg")
-        when (val message = json.decodeFromString<ApiMessage>(msg)) {
-            is ApiMessage.Notification -> {
-                notificationReceiver.onNotificationReceived(message.payload)
-            }
-            is ApiResponse -> {
-                val id = message.id
-                val cont = requestManager.getAndRemoveContinuation(id)
-                if (cont == null) {
-                    Log.e(TAG, "wallet returned unknown request ID ($id)")
-                } else {
-                    cont.resume(message)
+        try {
+            when (val message = json.decodeFromString<ApiMessage>(msg)) {
+                is ApiMessage.Notification -> {
+                    notificationReceiver.onNotificationReceived(message.payload)
+                }
+                is ApiResponse -> {
+                    val id = message.id
+                    val cont = requestManager.getAndRemoveContinuation(id)
+                    if (cont == null) {
+                        Log.e(TAG, "wallet returned unknown request ID ($id)")
+                    } else {
+                        cont.resume(message)
+                    }
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "failed to decode message from wallet-core", e)
         }
     }
 }

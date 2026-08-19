@@ -166,13 +166,15 @@ class MainViewModel(
 
             is NotificationPayload.TransactionStateTransition -> {
                 viewModelScope.launch(Dispatchers.Main) {
-                    // update currently selected transaction
-                    transactionManager.updateTransactionIfSelected(payload.transactionId)
-                    // update currently selected transaction list
-                    transactionManager.getTransactionById(payload.transactionId)?.let { tx ->
-                        val v = viewMode.value
-                        if (v is ViewMode.Transactions && v.selectedScope in tx.scopes) {
-                            transactionManager.loadTransactions(v.selectedScope)
+                    payload.transactionId?.let { id ->
+                        // update currently selected transaction
+                        transactionManager.updateTransactionIfSelected(id)
+                        // update currently selected transaction list
+                        transactionManager.getTransactionById(id)?.let { tx ->
+                            val v = viewMode.value
+                            if (v is ViewMode.Transactions && v.selectedScope in tx.scopes) {
+                                transactionManager.loadTransactions(v.selectedScope)
+                            }
                         }
                     }
                 }
@@ -184,11 +186,13 @@ class MainViewModel(
                     is NotificationPayload.TaskObservabilityEvent -> payload.event
                     is NotificationPayload.RequestObservabilityEvent -> payload.event
                 }
-                mObservabilityLog.getAndUpdate { logs ->
-                    logs.takeLast(OBSERVABILITY_LIMIT)
-                        .toMutableList().apply {
-                            add(event)
-                        }
+                if (event != null) {
+                    mObservabilityLog.getAndUpdate { logs ->
+                        logs.takeLast(OBSERVABILITY_LIMIT)
+                            .toMutableList().apply {
+                                add(event)
+                            }
+                    }
                 }
             }
 
