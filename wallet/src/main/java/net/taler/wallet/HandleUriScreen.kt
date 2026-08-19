@@ -129,8 +129,27 @@ fun HandleUriScreen(
                             net.taler.wallet.link.ReturnCallbackInfo(it.first, it.second)
                         }
                         val cleanUri = net.taler.wallet.link.ReturnCallbackParams.stripQuery(u2)
-                        model.peerManager.preparePeerPushCredit(cleanUri)
-                        onNavigate(WalletDestination.PromptPushPayment, true)
+                        // Bug 1 Fix: eine pay-push-URI, die diese Wallet-Instanz selbst
+                        // erzeugt hat (OwnUriTracker, z.B. Signals "Abbrechen"-Button auf
+                        // der eigenen ausgehenden Zahlungskarte), darf NICHT ueber
+                        // preparePeerPushCredit laufen - das ist der Annahme-Aufruf fuer
+                        // die EMPFANGENDE Seite und wuerde die eigene Zahlung an sich
+                        // selbst "annehmen" lassen. Stattdessen direkt zur eigenen,
+                        // bereits bekannten Transaktion (TransactionPeerPushDebit)
+                        // zurueckspringen - dort existiert bereits ein echtes "Abbrechen"
+                        // (TransactionAction.Abort -> abortTransaction), siehe
+                        // TransactionDetailScreen/TransactionPeerComposable.
+                        val ownTransactionId = net.taler.wallet.link.OwnUriTracker.transactionIdFor(cleanUri)
+                        if (ownTransactionId != null) {
+                            if (model.transactionManager.selectTransaction(ownTransactionId)) {
+                                onNavigate(WalletDestination.TransactionPeer, true)
+                            } else {
+                                onNavigateBack()
+                            }
+                        } else {
+                            model.peerManager.preparePeerPushCredit(cleanUri)
+                            onNavigate(WalletDestination.PromptPushPayment, true)
+                        }
                     }
                     action.startsWith("pay-template/", ignoreCase = true) -> {
                         onNavigate(WalletDestination.PromptPayTemplate(u2), true)

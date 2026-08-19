@@ -33,8 +33,10 @@ import net.taler.wallet.backend.WalletRunConfig
 import net.taler.wallet.peer.PreparePeerPullDebitResponse
 import net.taler.wallet.peer.PreparePeerPushCreditResponse
 import net.taler.wallet.transactions.Transaction
+import net.taler.wallet.transactions.TransactionPeerPullCredit
 import net.taler.wallet.transactions.TransactionPeerPullDebit
 import net.taler.wallet.transactions.TransactionPeerPushCredit
+import net.taler.wallet.transactions.TransactionPeerPushDebit
 
 /**
  * Gebundener Service, der [ITalerLink] fuer Signal exportiert. Absichtlich
@@ -185,6 +187,7 @@ class TalerLinkService : Service() {
                     exchangeBaseUrl = null,
                     summary = null,
                     expirationTimestamp = null,
+                    isOwnPayment = false,
                 )
         }
 
@@ -209,10 +212,34 @@ class TalerLinkService : Service() {
             is WalletResponse.Success -> prepared.result.transactionId
             is WalletResponse.Error -> return errorResult(TalerUriKind.PAY_PUSH, prepared.error)
         }
-        return detailsFor(TalerUriKind.PAY_PUSH, transactionId)
+        val result = detailsFor(TalerUriKind.PAY_PUSH, transactionId)
+        // Bug 2 Fix: TransactionPeerPushCredit/-Debit tragen selbst keinen
+        // Identifikator, der sich mit einer eigenen Transaktion abgleichen
+        // liesse (weder Purse-Pubkey noch Contract-Hash) - wallet-core
+        // liefert also keine verlaessliche Grundlage, um "von mir selbst
+        // versendet" am Transaktionstyp der Antwort zu erkennen. Deshalb
+        // hier stattdessen die URI selbst gegen [OwnUriTracker] pruefen
+        // (mit den beim eigenen Versenden bereits gemerkten URIs) und im
+        // Trefferfall isOwnPayment unabhaengig vom Antworttyp erzwingen.
+        return if (OwnUriTracker.isOwn(uri)) result.copy(isOwnPayment = true) else result
     }
 
+    /**
+     * Bug 4 Fix: anders als preparePeerPushCredit ist preparePeerPullDebit nicht
+     * als idempotent nach einer bereits abgeschlossenen Zahlung verifiziert -
+     * ein erneuter Aufruf auf eine schon bezahlte pay-pull-URI (z.B. beim
+     * naechsten Routine-Poll, nachdem der Nutzer ausserhalb von Signal direkt
+     * in Taler bezahlt hat) kann eine neue, fehlgeschlagene Transaktion
+     * erzeugen statt die bestehende zurueckzugeben. Deshalb: ist fuer diese
+     * URI bereits eine transactionId bekannt (PeerPullDebitCache, siehe dort),
+     * wird preparePeerPullDebit fuer sie nicht mehr aufgerufen - der aktuelle
+     * Zustand kommt dann nur noch aus getTransactionById.
+     */
     private suspend fun previewPeerPullDebit(uri: String): PaymentPreviewResult {
+        val cachedTransactionId = PeerPullDebitCache.cachedTransactionId(uri)
+        if (cachedTransactionId != null) {
+            return detailsFor(TalerUriKind.PAY_PULL, cachedTransactionId)
+        }
         val prepared = api.request(
             "preparePeerPullDebit",
             PreparePeerPullDebitResponse.serializer(),
@@ -223,6 +250,7 @@ class TalerLinkService : Service() {
             is WalletResponse.Success -> prepared.result.transactionId
             is WalletResponse.Error -> return errorResult(TalerUriKind.PAY_PULL, prepared.error)
         }
+        PeerPullDebitCache.remember(uri, transactionId)
         return detailsFor(TalerUriKind.PAY_PULL, transactionId)
     }
 
@@ -240,6 +268,17 @@ class TalerLinkService : Service() {
                     exchangeBaseUrl = tx.exchangeBaseUrl,
                     summary = tx.info.summary,
                     expirationTimestamp = expirationMillisOrNull(tx.info.expiration),
+                    isOwnPayment = false, // PeerPushCredit = incoming (we received money from someone else)
+                )
+                is TransactionPeerPushDebit -> PaymentPreviewResult(
+                    uriKind = kind,
+                    status = TalerTransactionStateMapper.statusFromMajorState(tx.txState.major),
+                    amount = tx.amountEffective.amountStr,
+                    currency = tx.amountEffective.currency,
+                    exchangeBaseUrl = tx.exchangeBaseUrl,
+                    summary = tx.info.summary,
+                    expirationTimestamp = expirationMillisOrNull(tx.info.expiration),
+                    isOwnPayment = true, // PeerPushDebit = outgoing (we sent money to someone else)
                 )
                 is TransactionPeerPullDebit -> PaymentPreviewResult(
                     uriKind = kind,
@@ -249,6 +288,17 @@ class TalerLinkService : Service() {
                     exchangeBaseUrl = tx.exchangeBaseUrl,
                     summary = tx.info.summary,
                     expirationTimestamp = expirationMillisOrNull(tx.info.expiration),
+                    isOwnPayment = true, // PeerPullDebit = outgoing (we paid someone's invoice)
+                )
+                is TransactionPeerPullCredit -> PaymentPreviewResult(
+                    uriKind = kind,
+                    status = TalerTransactionStateMapper.statusFromMajorState(tx.txState.major),
+                    amount = tx.amountEffective.amountStr,
+                    currency = tx.amountEffective.currency,
+                    exchangeBaseUrl = tx.exchangeBaseUrl,
+                    summary = tx.info.summary,
+                    expirationTimestamp = expirationMillisOrNull(tx.info.expiration),
+                    isOwnPayment = false, // PeerPullCredit = incoming (someone paid our invoice)
                 )
                 else -> errorResult(
                     kind,
@@ -286,6 +336,7 @@ class TalerLinkService : Service() {
             exchangeBaseUrl = null,
             summary = null,
             expirationTimestamp = null,
+            isOwnPayment = false,
         )
     }
 

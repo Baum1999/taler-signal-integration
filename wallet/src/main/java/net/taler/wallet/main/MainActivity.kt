@@ -84,6 +84,7 @@ import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.compose.ErrorBottomSheet
 import net.taler.wallet.events.ObservabilityDialog
 import net.taler.wallet.launchInAppBrowser
+import net.taler.wallet.link.OwnUriTracker
 import net.taler.wallet.transactions.TransactionPeerPullCredit
 import net.taler.wallet.transactions.TransactionPeerPushDebit
 import net.taler.wallet.ui.theme.TalerTheme
@@ -263,6 +264,16 @@ class MainActivity : FragmentActivity() {
                     }?.let { uri ->
                         Log.d(TAG, "Transaction ${tx.transactionId} selected with URI $uri")
                         TalerNfcService.setUri(this@MainActivity, uri)
+                        // Bug 2 Fix (Signal-Integration): eigene ausgehende URIs merken,
+                        // damit TalerLinkService.previewPeerPushCredit spaeter erkennen
+                        // kann, wenn dieselbe URI (z.B. an sich selbst per Signal
+                        // geschickt) wieder als eingehend angenommen werden soll -
+                        // siehe OwnUriTracker. Die transactionId wird mitgemerkt, damit
+                        // HandleUriScreen bei einem spaeteren Wieder-Oeffnen (z.B. ueber
+                        // Signals "Abbrechen"-Button) direkt zur eigenen Transaktion
+                        // zurueckfinden kann, statt sie faelschlich als eingehend zu
+                        // behandeln.
+                        OwnUriTracker.track(uri, tx.transactionId)
                     }
                 }
             }

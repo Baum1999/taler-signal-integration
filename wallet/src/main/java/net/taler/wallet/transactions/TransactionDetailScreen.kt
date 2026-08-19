@@ -76,6 +76,8 @@ import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.compose.rememberCurrencySpec
 import net.taler.wallet.deposit.TransactionDepositComposable
 import net.taler.wallet.launchInAppBrowser
+import net.taler.wallet.link.ReturnIntentSender
+import net.taler.wallet.link.ReturnStatus
 import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.main.TAG
 import net.taler.wallet.payment.PayStatus
@@ -118,6 +120,35 @@ fun TransactionDetailScreen(
     }
     var showMenu by remember(targetPaytoUri) { mutableStateOf(false) }
     val copyPaytoUri = stringResource(R.string.copy_payto_uri)
+
+    // Bug 1 Fix (Signal-Integration, docs/API.md 2.10): HandleUriScreen
+    // navigiert fuer eine EIGENE ausgehende pay-push-URI (Signals
+    // "Abbrechen"-Button) direkt hierher statt zum Annehmen-Bildschirm, und
+    // hinterlegt dafuer denselben peerManager.pendingReturnCallback wie der
+    // normale Annehmen-Flow (IncomingPushPaymentScreen). Anders als dort
+    // genuegt hier ein einziges Feuern beim Verlassen dieses Bildschirms -
+    // TalerReturnActivity ignoriert den status-Wert ohnehin und stoesst in
+    // jedem Fall nur einen sofortigen Re-Check per statusForUri an, der
+    // Signal den tatsaechlichen, dann aktuellen Zustand liefert (egal ob
+    // abgebrochen oder unveraendert). remember faengt den Wert einmalig bei
+    // der ersten Komposition ein (== null ausserhalb von TransactionPeer
+    // oder ohne aktiven Ruecksprung), die Identitaetspruefung per === vor
+    // dem Loeschen schuetzt vor einem Race mit einem inzwischen neu
+    // gesetzten Callback (gleiches Muster wie IncomingPushPaymentScreen).
+    val peerManager = model.peerManager
+    val myReturnCallback = remember {
+        if (destination is WalletDestination.TransactionPeer) peerManager.pendingReturnCallback else null
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            myReturnCallback?.let { callback ->
+                ReturnIntentSender.fire(context, callback.returnUri, callback.correlationId, ReturnStatus.READY)
+                if (peerManager.pendingReturnCallback === myReturnCallback) {
+                    peerManager.pendingReturnCallback = null
+                }
+            }
+        }
+    }
 
     GlobalScaffold(
         model = model,
