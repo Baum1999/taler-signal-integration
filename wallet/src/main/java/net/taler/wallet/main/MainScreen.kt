@@ -96,6 +96,7 @@ fun MainScreen(
     val networkStatus by model.networkManager.networkStatus.observeAsState(false)
     val balanceState by model.balanceManager.state.observeAsState(BalanceState.None)
     val viewMode by model.viewMode.collectAsStateLifecycleAware()
+    val dbMigrationStatus by model.dbMigrationStatus.collectAsStateLifecycleAware()
     val devMode by model.devMode.observeAsState(false)
     val txResult by remember(viewMode) {
         val v = viewMode as? ViewMode.Transactions
@@ -203,6 +204,21 @@ fun MainScreen(
 
         LaunchedEffect(viewMode) {
             model.settingsManager.saveViewMode(context, viewMode)
+        }
+
+        val migrateCompleteMsg = stringResource(R.string.settings_db_migrate_complete)
+        val migrateFailedMsg = stringResource(R.string.settings_db_migrate_failed)
+        LaunchedEffect(dbMigrationStatus) {
+            when (dbMigrationStatus) {
+                DbMigrationStatus.Complete ->
+                    snackbarHostState.showSnackbar(migrateCompleteMsg)
+
+                DbMigrationStatus.Failed ->
+                    snackbarHostState.showSnackbar(migrateFailedMsg)
+
+                else -> {}
+            }
+            model.resetDbMigrationStatus()
         }
 
         BackHandler(selectionMode || (tab == MainTab.ASSETS && viewMode !is ViewMode.Assets)) {

@@ -181,6 +181,8 @@
     <string name="settings_db_import_success">Datenbank aus Datei importiert</string>
     <string name="settings_db_migrate_canceled">Migration abgebrochen</string>
     <string name="settings_db_migrate_done">Datenbankmigration gestartet</string>
+    <string name="settings_db_migrate_complete">SQLite-Datenbankmigration abgeschlossen</string>
+    <string name="settings_db_migrate_failed">SQLite-Datenbankmigration fehlgeschlagen</string>
     <string name="settings_migrate_db">Datenbank migrieren (experimentell!)</string>
     <string name="settings_migrate_db_summary">Auf die neue SQLite-Datenbank umstellen</string>
     <string name="settings_dialog_migrate_db_message">Dadurch wird die Wallet-Datenbank auf die neue SQLite-Datenbank migriert. Die Migration ist experimentell und kann zu Datenverlust führen. Möchten Sie fortfahren?</string>

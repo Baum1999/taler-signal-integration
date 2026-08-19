@@ -509,6 +509,8 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="settings_db_import_summary">Restore database from file</string>
     <string name="settings_db_migrate_canceled">Migration cancelled</string>
     <string name="settings_db_migrate_done">Database migration started</string>
+    <string name="settings_db_migrate_complete">SQLite database migration complete</string>
+    <string name="settings_db_migrate_failed">SQLite database migration failed</string>
     <string name="settings_dev_mode">Developer mode</string>
     <string name="settings_dev_mode_summary">Shows more information intended for debugging</string>
     <string name="settings_dialog_import_message">This operation will overwrite your existing database. Do you want to continue?</string>

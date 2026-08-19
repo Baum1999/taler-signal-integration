@@ -285,6 +285,8 @@
     <string name="settings_db_import_error">Erreur d\'importation de la base de données</string>
     <string name="settings_db_migrate_canceled">Migration annulée</string>
     <string name="settings_db_migrate_done">Migration de la base de données démarrée</string>
+    <string name="settings_db_migrate_complete">Migration SQLite de la base de données terminée</string>
+    <string name="settings_db_migrate_failed">Échec de la migration SQLite de la base de données</string>
     <string name="settings_migrate_db">Migrer la base de données (expérimental !)</string>
     <string name="settings_migrate_db_summary">Passer au nouveau backend SQLite</string>
     <string name="settings_dialog_migrate_db_message">Cette opération migrera la base de données du portefeuille vers le nouveau backend SQLite. La migration est expérimentale et peut entraîner une perte de données. Voulez-vous continuer ?</string>

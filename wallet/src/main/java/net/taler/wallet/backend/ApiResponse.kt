@@ -19,30 +19,18 @@ package net.taler.wallet.backend
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
-import net.taler.wallet.events.ObservabilityEvent
 
 @Serializable
 sealed class ApiMessage {
-
     @Serializable
     @SerialName("notification")
     data class Notification(
         val payload: NotificationPayload,
     ) : ApiMessage()
-
 }
 
 @Serializable
-data class NotificationPayload(
-    val type: String,
-    val id: String? = null,
-    val event: ObservabilityEvent? = null,
-    val transactionId: String? = null,
-)
-
-@Serializable
 sealed class ApiResponse : ApiMessage() {
-
     abstract val id: Int
     abstract val operation: String
 

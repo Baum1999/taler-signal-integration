@@ -63,15 +63,6 @@ import net.taler.wallet.tokens.TokenManager
 const val TAG = "taler-wallet"
 const val OBSERVABILITY_LIMIT = 100
 
-private val transactionNotifications = listOf(
-    "transaction-state-transition",
-)
-
-private val observabilityNotifications = listOf(
-    "task-observability-event",
-    "request-observability-event",
-)
-
 class MainViewModel(
     app: Application,
 ) : AndroidViewModel(app), InitReceiver, NotificationReceiver {
@@ -137,6 +128,9 @@ class MainViewModel(
     private val mInitError = MutableStateFlow<TalerErrorInfo?>(null)
     val initError: StateFlow<TalerErrorInfo?> = mInitError
 
+    private val mDbMigrationStatus = MutableStateFlow(DbMigrationStatus.None)
+    val dbMigrationStatus: StateFlow<DbMigrationStatus> = mDbMigrationStatus
+
     fun startWallet() {
         api.startWallet()
     }
@@ -159,32 +153,23 @@ class MainViewModel(
     }
 
     override fun onNotificationReceived(payload: NotificationPayload) {
-        if (payload.type == "waiting-for-retry") return // ignore ping)
-
         val str = BackendManager.json.encodeToString(payload)
         Log.i(TAG, "Received notification from wallet-core: $str")
 
-        // Only update balances when we're told they changed
-        if (payload.type == "balance-change") viewModelScope.launch(Dispatchers.Main) {
-            balanceManager.loadAssets()
-        }
-
-        if (payload.type in observabilityNotifications && payload.event != null) {
-            mObservabilityLog.getAndUpdate { logs ->
-                logs.takeLast(OBSERVABILITY_LIMIT)
-                    .toMutableList().apply {
-                        add(payload.event)
-                    }
+        when (payload) {
+            // Only update balances when we're told they changed
+            is NotificationPayload.BalanceChange -> {
+                viewModelScope.launch(Dispatchers.Main) {
+                    balanceManager.loadAssets()
+                }
             }
-        }
 
-        if (payload.type in transactionNotifications) viewModelScope.launch(Dispatchers.Main) {
-            payload.transactionId?.let { id ->
-                // update currently selected transaction
-                transactionManager.updateTransactionIfSelected(id)
-                // update currently selected transaction list
-                if (payload.type == "transaction-state-transition") {
-                    transactionManager.getTransactionById(id)?.let { tx ->
+            is NotificationPayload.TransactionStateTransition -> {
+                viewModelScope.launch(Dispatchers.Main) {
+                    // update currently selected transaction
+                    transactionManager.updateTransactionIfSelected(payload.transactionId)
+                    // update currently selected transaction list
+                    transactionManager.getTransactionById(payload.transactionId)?.let { tx ->
                         val v = viewMode.value
                         if (v is ViewMode.Transactions && v.selectedScope in tx.scopes) {
                             transactionManager.loadTransactions(v.selectedScope)
@@ -192,6 +177,32 @@ class MainViewModel(
                     }
                 }
             }
+
+            is NotificationPayload.TaskObservabilityEvent,
+            is NotificationPayload.RequestObservabilityEvent -> {
+                val event = when(payload) {
+                    is NotificationPayload.TaskObservabilityEvent -> payload.event
+                    is NotificationPayload.RequestObservabilityEvent -> payload.event
+                }
+                mObservabilityLog.getAndUpdate { logs ->
+                    logs.takeLast(OBSERVABILITY_LIMIT)
+                        .toMutableList().apply {
+                            add(event)
+                        }
+                }
+            }
+
+            is NotificationPayload.DatabaseMaintenanceProgress -> {
+                if (payload.operation == "indexeddb-to-native-migration") {
+                    if (payload.phase == "complete") {
+                        mDbMigrationStatus.value = DbMigrationStatus.Complete
+                    } else if (payload.phase == "failed") {
+                        mDbMigrationStatus.value = DbMigrationStatus.Failed
+                    }
+                }
+            }
+
+            else -> {}
         }
     }
 
@@ -296,6 +307,10 @@ class MainViewModel(
         }
     }
 
+    fun resetDbMigrationStatus() {
+        mDbMigrationStatus.value = DbMigrationStatus.None
+    }
+
     fun showObservabilityLog() {
         mShowObservabilityLog.value = true
     }
@@ -325,4 +340,10 @@ sealed class AmountResult {
     data class Success(val amount: Amount) : AmountResult()
     data class InsufficientBalance(val amount: Amount) : AmountResult()
     data object InvalidAmount : AmountResult()
+}
+
+enum class DbMigrationStatus {
+    None,
+    Complete,
+    Failed,
 }
