@@ -190,7 +190,7 @@ class MainActivity : FragmentActivity() {
                         confirmButton = {
                             Button(onClick = {
                                 showDbExportConfirm = false
-                                dbExportLauncher.launch("talerwalletdb.sqlite3")
+                                dbExportLauncher.launch("taler-wallet-db-${System.currentTimeMillis()}.sqlite3")
                             }) {
                                 Text(stringResource(R.string.wallet_export_database_confirm))
                             }

@@ -505,6 +505,8 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="settings_db_export_message">Exporting database, please wait until confirmation</string>
     <string name="settings_db_export_success">Database exported to file</string>
     <string name="settings_db_export_summary">Save internal database</string>
+    <string name="settings_db_export_raw">Export raw database</string>
+    <string name="settings_db_export_raw_summary">Save raw SQLite database file</string>
     <string name="settings_db_import">Import database</string>
     <string name="settings_db_import_error">Error importing database</string>
     <string name="settings_db_import_message">Importing database, please wait until confirmation</string>

@@ -29,7 +29,7 @@ import net.taler.wallet.backend.TalerErrorCode.NONE
 import org.json.JSONObject
 import java.io.File
 
-private const val WALLET_DB = "talerwalletdb.sqlite3"
+const val WALLET_DB = "talerwalletdb.sqlite3"
 
 @OptIn(DelicateCoroutinesApi::class)
 class WalletBackendApi(

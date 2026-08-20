@@ -53,6 +53,8 @@ import androidx.compose.material.icons.filled.DomainAdd
 import androidx.compose.material.icons.filled.LocalAtm
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.VideoLibrary
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -60,10 +62,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -131,6 +137,10 @@ fun SettingsScreen(
             settingsManager.importDb(it)
         }
     }
+    val rawDbExportLauncher = rememberLauncherForActivityResult(CreateDocument("application/octet-stream")) { uri ->
+        uri?.let { settingsManager.exportRawDb(it) }
+    }
+    var pendingDbExport by remember { mutableStateOf<DbExportType?>(null) }
 
     val biometricEnrollLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
@@ -233,7 +243,14 @@ fun SettingsScreen(
                 title = stringResource(R.string.settings_db_export),
                 summary = stringResource(R.string.settings_db_export_summary),
                 icon = ImageVector.vectorResource(R.drawable.ic_unarchive),
-                onClick = { dbExportLauncher.launch("taler-wallet-db-${System.currentTimeMillis()}.json") }
+                onClick = { pendingDbExport = DbExportType.Json }
+            )
+
+            SettingsItem(
+                title = stringResource(R.string.settings_db_export_raw),
+                summary = stringResource(R.string.settings_db_export_raw_summary),
+                icon = ImageVector.vectorResource(R.drawable.ic_database),
+                onClick = { pendingDbExport = DbExportType.Raw }
             )
 
             SettingsItem(
@@ -248,6 +265,24 @@ fun SettingsScreen(
                         }
                         .setPositiveButton(R.string.cancel) { _, _ ->
                             scope.launch { snackbarHostState.showSnackbar(importCanceledMessage) }
+                        }
+                        .show()
+                }
+            )
+
+            if (model.databaseBackend != WalletDatabaseBackend.Sqlite) SettingsItem(
+                title = stringResource(R.string.settings_migrate_db),
+                summary = stringResource(R.string.settings_migrate_db_summary),
+                icon = Icons.Default.Memory,
+                onClick = {
+                    MaterialAlertDialogBuilder(context)
+                        .setMessage(R.string.settings_dialog_migrate_db_message)
+                        .setNegativeButton(R.string.settings_migrate_db) { _, _ ->
+                            model.enableMigrateNativeDb { onShowError(it) }
+                            scope.launch { snackbarHostState.showSnackbar(migrateDoneMessage) }
+                        }
+                        .setPositiveButton(R.string.cancel) { _, _ ->
+                            scope.launch { snackbarHostState.showSnackbar(migrateCanceledMessage) }
                         }
                         .show()
                 }
@@ -292,24 +327,6 @@ fun SettingsScreen(
                 }
             )
 
-            if (model.databaseBackend != WalletDatabaseBackend.Sqlite) SettingsItem(
-                title = stringResource(R.string.settings_migrate_db),
-                summary = stringResource(R.string.settings_migrate_db_summary),
-                icon = Icons.Default.Memory,
-                onClick = {
-                    MaterialAlertDialogBuilder(context)
-                        .setMessage(R.string.settings_dialog_migrate_db_message)
-                        .setNegativeButton(R.string.settings_migrate_db) { _, _ ->
-                            model.enableMigrateNativeDb { onShowError(it) }
-                            scope.launch { snackbarHostState.showSnackbar(migrateDoneMessage) }
-                        }
-                        .setPositiveButton(R.string.cancel) { _, _ ->
-                            scope.launch { snackbarHostState.showSnackbar(migrateCanceledMessage) }
-                        }
-                        .show()
-                }
-            )
-
             SettingsItem(
                 title = stringResource(R.string.settings_reset),
                 summary = stringResource(R.string.settings_reset_summary),
@@ -329,6 +346,32 @@ fun SettingsScreen(
                         .show()
                 }
             )
+
+            pendingDbExport?.let { exportType ->
+                AlertDialog(
+                    onDismissRequest = { pendingDbExport = null },
+                    title = { Text(stringResource(R.string.wallet_export_database)) },
+                    text = { Text(stringResource(R.string.wallet_export_database_warning)) },
+                    confirmButton = {
+                        Button(onClick = {
+                            pendingDbExport = null
+                            when (exportType) {
+                                DbExportType.Json ->
+                                    dbExportLauncher.launch("taler-wallet-db-${System.currentTimeMillis()}.json")
+                                DbExportType.Raw ->
+                                    rawDbExportLauncher.launch("taler-wallet-db-${System.currentTimeMillis()}.sqlite3")
+                            }
+                        }) {
+                            Text(stringResource(R.string.wallet_export_database_confirm))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { pendingDbExport = null }) {
+                            Text(stringResource(R.string.cancel))
+                        }
+                    }
+                )
+            }
         }
     }
 }
@@ -497,3 +540,5 @@ private fun promptAuthEnrollment(onPromptEnrollment: (Intent) -> Unit) {
         onPromptEnrollment(intent)
     }
 }
+
+private enum class DbExportType { Json, Raw }

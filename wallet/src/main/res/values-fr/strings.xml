@@ -265,6 +265,8 @@
     <string name="exchange_tos_forget">Refuser les conditions d\'utilisation</string>
     <string name="exchange_tos_view">Voir les conditions d\'utilisation</string>
     <string name="settings_db_export_summary">Sauver la base de donnée interne</string>
+    <string name="settings_db_export_raw">Exporter la base de données brute</string>
+    <string name="settings_db_export_raw_summary">Sauver le fichier brut de la base de données SQLite</string>
     <string name="settings_db_import_summary">Restauration de la base de données à partir d\'un fichier</string>
     <string name="settings_dialog_reset_message">Voulez-vous vraiment réinitialiser le portefeuille et perdre toutes les pièces et tous les achats ?</string>
     <string name="transaction_preparing_kyc">KYC requis, préparation du test</string>

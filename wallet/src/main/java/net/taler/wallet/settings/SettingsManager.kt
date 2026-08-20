@@ -31,6 +31,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.backend.WALLET_DB
 import net.taler.wallet.main.ViewMode
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.backend.WalletResponse.Error
@@ -194,7 +195,7 @@ class SettingsManager(
         scope.launch(Dispatchers.IO) {
             try {
                 context.contentResolver.openOutputStream(uri, "wt")?.use { outputStream ->
-                    val dbFile = File(context.filesDir, "talerwalletdb.sqlite3")
+                    val dbFile = File(context.filesDir, WALLET_DB)
                     dbFile.inputStream().use { it.copyTo(outputStream) }
                 } ?: onDbExportError()
             } catch (e: Exception) {
