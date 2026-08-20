@@ -70,6 +70,9 @@ sealed interface WalletDestination {
     data object OutgoingPull : WalletDestination
 
     @Serializable
+    data class ComposeSend(val correlationId: String) : WalletDestination
+
+    @Serializable
     data class Deposit(
         val amount: String? = null,
         val receiverName: String? = null,

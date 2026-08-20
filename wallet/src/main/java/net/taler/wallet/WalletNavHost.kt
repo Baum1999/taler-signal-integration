@@ -17,6 +17,8 @@
 package net.taler.wallet
 
 import androidx.activity.ComponentActivity
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -44,6 +46,7 @@ import net.taler.wallet.donau.SetDonauScreen
 import net.taler.wallet.exchanges.ExchangeListScreen
 import net.taler.wallet.exchanges.ExchangeShoppingScreen
 import net.taler.wallet.exchanges.ReviewExchangeTosScreen
+import net.taler.wallet.link.ComposeSendScreen
 import net.taler.wallet.link.ConnectedAppsScreen
 import net.taler.wallet.main.MainScreen
 import net.taler.wallet.main.MainViewModel
@@ -213,6 +216,27 @@ fun WalletNavHost(
                 onNavigate = onNavigate,
                 onNavigateBack = onNavigateBack,
                 onShowError = { onShowError(it) }
+            )
+        }
+        composable<WalletDestination.ComposeSend>(
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
+        ) { backStackEntry ->
+            val dest = backStackEntry.toRoute<WalletDestination.ComposeSend>()
+            ComposeSendScreen(
+                model = model,
+                correlationId = dest.correlationId,
+                onNavigate = onNavigate,
+                onNavigateBack = onNavigateBack,
+                onShowError = { onShowError(it) },
+                // Fix (Regression aus Final-Review C2-Fix): siehe Kommentar
+                // am navController-Parameter in ComposeSendScreen.kt - wird
+                // dort NUR im Erfolgs-Pfad statt des geteilten
+                // onNavigateBack() verwendet, um den swallowenden
+                // BackHandler auf dem OnBackPressedDispatcher zu umgehen.
+                navController = navController,
             )
         }
         composable<WalletDestination.OutgoingPull> {

@@ -36,7 +36,7 @@ enum class ReturnStatus(val wireValue: String) {
  */
 object ReturnIntentSender {
 
-    fun fire(context: Context, returnUri: String, correlationId: String, status: ReturnStatus): Boolean {
+    fun fire(context: Context, returnUri: String, correlationId: String, status: ReturnStatus, talerUri: String? = null): Boolean {
         // returnUri kommt aus einem taler://pay-push/...-URI, der NICHT
         // zwingend von Signals eigenem Annehmen-Button stammt (QR-Code,
         // Web-Link, fremde Chat-Nachricht) - der Angreifer kontrolliert also
@@ -68,9 +68,20 @@ object ReturnIntentSender {
         ) ?: return false
 
         val (packageName, className) = target
+        // Fix (Final-Review I1): returnUri ist laut Kommentar oben angreifer-
+        // kontrolliert (kann aus einem taler://pay-push/...-URI aus nicht
+        // vertrauenswuerdiger Quelle stammen) und koennte bereits eigene Query-
+        // Parameter mit denselben Namen (correlationId/status/talerUri) tragen.
+        // Uri.getQueryParameter liefert bei doppelten Keys den ERSTEN Treffer -
+        // ein vorab eingeschleuster Parameter wuerde also die unten von Taler
+        // angehaengten, legitimen Werte auf Empfaengerseite verschatten.
+        // clearQuery() entfernt nur die Query-Komponente, Schema/Host/Pfad
+        // (bereits oben verifiziert) bleiben unveraendert.
         val targetUri = Uri.parse(returnUri).buildUpon()
+            .clearQuery()
             .appendQueryParameter("correlationId", correlationId)
             .appendQueryParameter("status", status.wireValue)
+            .apply { talerUri?.let { appendQueryParameter("talerUri", it) } }
             .build()
         val explicitIntent = Intent(Intent.ACTION_VIEW, targetUri).apply {
             setClassName(packageName, className)

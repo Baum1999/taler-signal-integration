@@ -18,6 +18,7 @@ package net.taler.wallet.link
 
 import android.app.Service
 import android.content.Intent
+import android.net.Uri
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
@@ -114,6 +115,13 @@ class TalerLinkService : Service() {
             val kind = TalerUriParser.classify(uri)
                 ?: throw IllegalArgumentException("Kein erkanntes Taler-URI-Schema")
             return OperationStatusResult(runBlocking(Dispatchers.IO) { preview(kind, uri) }.status)
+        }
+
+        override fun prepareSend(request: PrepareSendRequest): PrepareSendResult {
+            assertConnected()
+            PendingSendStore.put(request)
+            val deepLink = "talerlink://compose-send?correlationId=${Uri.encode(request.correlationId)}"
+            return PrepareSendResult(deepLink)
         }
 
         /**

@@ -19,9 +19,9 @@ package net.taler.wallet.main
 import android.content.Intent
 import android.content.Intent.ACTION_SEND
 import android.content.Intent.EXTRA_TEXT
+import android.net.Uri
 import android.nfc.NdefMessage
 import android.nfc.NfcAdapter
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -93,6 +93,7 @@ class MainActivity : FragmentActivity() {
     private val model: MainViewModel by viewModels()
 
     private var pendingLaunchUri: String? = null
+    private var pendingComposeSendId: String? = null
     private var nav: NavController? = null
     private lateinit var biometricPrompt: BiometricPrompt
     private lateinit var promptInfo: BiometricPrompt.PromptInfo
@@ -149,6 +150,16 @@ class MainActivity : FragmentActivity() {
                 LaunchedEffect(databaseMigrationState, walletUnlocked) {
                     if (walletUnlocked && databaseMigrationState is DatabaseMigrationState.Failed) {
                         errorInfo = model.consumeDatabaseMigrationFailure()
+                    }
+                    pendingComposeSendId?.let { id ->
+                        // Fix round 2 (Task-A6 Review): hoechstens eine
+                        // ComposeSend-Instanz gleichzeitig auf dem Back-Stack
+                        // zulassen - siehe emitComposeSend() unten fuer die
+                        // ausfuehrliche Begruendung (gleicher Mechanismus).
+                        nav?.navigate(WalletDestination.ComposeSend(id)) {
+                            popUpTo<WalletDestination.ComposeSend> { inclusive = true }
+                            launchSingleTop = true
+                        }
                     }
                 }
 
@@ -262,7 +273,14 @@ class MainActivity : FragmentActivity() {
                         is TransactionPeerPullCredit -> tx.talerUri
                         else -> return@collect
                     }?.let { uri ->
-                        Log.d(TAG, "Transaction ${tx.transactionId} selected with URI $uri")
+                        // Fix (Final-Review C1): $uri hier NICHT loggen - es ist die
+                        // rohe taler://pay-push/...-URI (Bearer-Instrument), die bei
+                        // jedem compose-send ueber transactionManager.selectTransaction
+                        // durch diesen bestehenden Collector laeuft. Log.d landet auch in
+                        // Release-Builds in logcat (Proguard entfernt es nicht) - Verstoss
+                        // gegen Iron Rule 3 ("niemals loggen"). Die transactionId allein
+                        // ist als Korrelationshandle unbedenklich.
+                        Log.d(TAG, "Transaction ${tx.transactionId} selected")
                         TalerNfcService.setUri(this@MainActivity, uri)
                         // Bug 2 Fix (Signal-Integration): eigene ausgehende URIs merken,
                         // damit TalerLinkService.previewPeerPushCredit spaeter erkennen
@@ -350,9 +368,53 @@ class MainActivity : FragmentActivity() {
             navigateOrQueue(trimmed)
         }
 
+        fun emitComposeSend(correlationId: String) {
+            if (nav != null) {
+                // Fix round 2 (Task-A6 Review): hoechstens eine ComposeSend-
+                // Instanz gleichzeitig auf dem Back-Stack zulassen. Ohne
+                // popUpTo/launchSingleTop koennte ein zweiter
+                // talerlink://compose-send Deep-Link (andere correlationId)
+                // waehrend ein erster ComposeSendScreen noch offen ist und auf
+                // seine Zahlung wartet, eine ZWEITE Instanz oben auf den
+                // Stack legen - WalletNavHost.kt's animierte Enter/Exit-
+                // Transitions koennen beide Composables dann kurzzeitig
+                // gleichzeitig am Leben halten. Die zweite Instanz wuerde
+                // beim Betreten peerManager.resetPushPayment() aufrufen und
+                // damit den GETEILTEN pushState der ersten, noch wartenden
+                // Instanz ueberschreiben - exakt der "payment committed but
+                // reported CANCELLED"-Fehlermodus aus Fix round 1 Critical
+                // #2, nur ueber einen anderen Ausloeser (Cross-Instance-
+                // Ueberschreiben statt liegengebliebener State). popUpTo<
+                // WalletDestination.ComposeSend>(inclusive = true) entfernt
+                // eine evtl. vorhandene AELTERE ComposeSend-Instanz zuerst
+                // (deren onDispose feuert dabei deterministisch CANCELLED,
+                // als Teil derselben Navigations-Transaktion - keine Race
+                // gegen deren eigenes spaeteres Settling), BEVOR die neue
+                // Instanz komponiert wird und ihrerseits resetPushPayment()
+                // aufruft. launchSingleTop verhindert zusaetzlich einen
+                // doppelten Push, falls dieselbe correlationId zweimal
+                // hereinkommt. popUpTo ist scoped auf genau den
+                // ComposeSend-Routentyp und poppt daher keine anderen
+                // Destinationen (z.B. Main) vom Stack.
+                nav?.navigate(WalletDestination.ComposeSend(correlationId)) {
+                    popUpTo<WalletDestination.ComposeSend> { inclusive = true }
+                    launchSingleTop = true
+                }
+            } else {
+                pendingComposeSendId = correlationId
+            }
+        }
+
         // For VIEW intents (taler://, payto://, ...) the system sets intent.data;
         // for NDEF_DISCOVERED it is the URI of the first NDEF record on the tag.
-        intent.dataString?.let { emitUri(it) }
+        intent.dataString?.let { uri ->
+            val parsed = Uri.parse(uri)
+            if (parsed.scheme == "talerlink" && parsed.host == "compose-send") {
+                parsed.getQueryParameter("correlationId")?.let { id -> emitComposeSend(id) }
+            } else {
+                emitUri(uri)
+            }
+        }
 
         if (intent.action == ACTION_SEND && intent.type == "text/plain") {
             intent.getStringExtra(EXTRA_TEXT)?.let { emitUri(it) }

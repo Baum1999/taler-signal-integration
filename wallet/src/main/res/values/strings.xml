@@ -561,6 +561,14 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="taler_link_consent_message">%1$s wants to prepare payments through this wallet. Every payment still needs to be confirmed here in GNU Taler - %1$s can only prepare, never trigger, a payment. You can disconnect at any time under Settings → Connected apps.</string>
     <string name="taler_link_consent_allow">Connect</string>
     <string name="taler_link_consent_deny">Deny</string>
+    <string name="compose_send_title">Send payment</string>
+    <string name="compose_send_fee_label">Fee: %1$s</string>
+    <string name="compose_send_total_label">Total: %1$s</string>
+    <string name="compose_send_recipient_hint_format">→ %1$s</string>
+    <string name="compose_send_button">Send</string>
+    <string name="compose_send_error_invalid_amount">Invalid amount from Signal: %1$s %2$s</string>
+    <string name="compose_send_error_non_positive_amount">Non-positive amount from Signal: %1$s %2$s</string>
+    <string name="compose_send_error_uri_timeout">Timed out waiting for payment URI after transaction was created</string>
 
     <!-- Refunds -->
 
