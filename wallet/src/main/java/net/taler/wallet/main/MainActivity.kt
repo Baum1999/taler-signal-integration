@@ -44,10 +44,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -124,6 +126,10 @@ class MainActivity : FragmentActivity() {
                 val logExportLauncher = rememberLauncherForActivityResult(CreateDocument("text/plain")) { uri ->
                     uri?.let { model.settingsManager.exportLogcat(it) }
                 }
+                val dbExportLauncher = rememberLauncherForActivityResult(CreateDocument("application/octet-stream")) { uri ->
+                    uri?.let { model.settingsManager.exportRawDb(it) }
+                }
+                var showDbExportConfirm by remember { mutableStateOf(false) }
 
                 LaunchedEffect(initError) {
                     if (initError == null) {
@@ -141,7 +147,7 @@ class MainActivity : FragmentActivity() {
                             model = model,
                             error = error,
                             onExportLogs = { logExportLauncher.launch("taler-wallet-logcat.txt") },
-                            onRetry = { model.startWallet() },
+                            onExportDb = { showDbExportConfirm = true },
                         )
                     } ?: run {
                         WalletNavHost(
@@ -173,6 +179,27 @@ class MainActivity : FragmentActivity() {
                         devMode = devMode,
                         sheetState = errorSheetState,
                         onDismiss = { errorInfo = null }
+                    )
+                }
+
+                if (showDbExportConfirm) {
+                    AlertDialog(
+                        onDismissRequest = { showDbExportConfirm = false },
+                        title = { Text(stringResource(R.string.wallet_export_database)) },
+                        text = { Text(stringResource(R.string.wallet_export_database_warning)) },
+                        confirmButton = {
+                            Button(onClick = {
+                                showDbExportConfirm = false
+                                dbExportLauncher.launch("talerwalletdb.sqlite3")
+                            }) {
+                                Text(stringResource(R.string.wallet_export_database_confirm))
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showDbExportConfirm = false }) {
+                                Text(stringResource(R.string.cancel))
+                            }
+                        }
                     )
                 }
             }

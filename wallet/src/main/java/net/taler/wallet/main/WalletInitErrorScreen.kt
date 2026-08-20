@@ -18,7 +18,6 @@ package net.taler.wallet.main
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,39 +25,27 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
 import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorInfo
-import net.taler.wallet.compose.CopyToClipboardButton
 import net.taler.wallet.compose.ErrorComposable
-import net.taler.wallet.compose.ExpandableCard
 import net.taler.wallet.compose.GlobalScaffold
-import net.taler.wallet.compose.ShareButton
 
 @OptIn(ExperimentalSerializationApi::class)
 @Composable
@@ -66,7 +53,7 @@ fun WalletInitErrorScreen(
     model: MainViewModel,
     error: TalerErrorInfo,
     onExportLogs: () -> Unit,
-    onRetry: () -> Unit,
+    onExportDb: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val devMode by model.devMode.observeAsState(false)
@@ -110,15 +97,15 @@ fun WalletInitErrorScreen(
 
             Button(
                 modifier = Modifier.fillMaxWidth(),
-                onClick = onRetry,
+                onClick = onExportDb,
             ) {
                 Icon(
-                    Icons.Default.Refresh,
+                    painterResource(R.drawable.ic_database),
                     contentDescription = null,
                     modifier = Modifier.size(ButtonDefaults.IconSize),
                 )
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text(stringResource(R.string.transactions_retry))
+                Text(stringResource(R.string.wallet_export_database))
             }
 
             BottomInsetsSpacer()

@@ -29,7 +29,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.main.ViewMode
@@ -39,6 +38,7 @@ import net.taler.wallet.backend.WalletResponse.Success
 import net.taler.wallet.balances.BalanceManager
 import net.taler.wallet.main.TAG
 import org.json.JSONObject
+import java.io.File
 
 class SettingsManager(
     private val context: Context,
@@ -181,6 +181,31 @@ class SettingsManager(
                     }
                     return@launch
                 }
+            }
+        }
+    }
+
+    fun exportRawDb(uri: Uri?) {
+        if (uri == null) {
+            onDbExportError()
+            return
+        }
+
+        scope.launch(Dispatchers.IO) {
+            try {
+                context.contentResolver.openOutputStream(uri, "wt")?.use { outputStream ->
+                    val dbFile = File(context.filesDir, "talerwalletdb.sqlite3")
+                    dbFile.inputStream().use { it.copyTo(outputStream) }
+                } ?: onDbExportError()
+            } catch (e: Exception) {
+                Log.e(SettingsManager::class.simpleName, "Error exporting raw db: ", e)
+                withContext(Dispatchers.Main) {
+                    onDbExportError()
+                }
+                return@launch
+            }
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, R.string.settings_db_export_success, LENGTH_LONG).show()
             }
         }
     }

@@ -403,6 +403,9 @@
     <string name="wallet_init_error_title">Initialisierungsfehler</string>
     <string name="wallet_init_error_message">Beim Starten der Wallet ist ein Fehler aufgetreten. Dies kann nach einem App-Update oder bei inkompatiblen Wallet-Daten passieren. Bitte versuche es erneut, und falls das Problem bestehen bleibt, exportiere die Protokolle und melde dieses Problem den Entwicklern.</string>
     <string name="wallet_export_logs">Protokolle exportieren</string>
+    <string name="wallet_export_database">Datenbank exportieren</string>
+    <string name="wallet_export_database_warning">Achtung: Diese Datei enthält vertrauliche Daten, mit denen andere auf Ihr Geld zugreifen könnten. Exportieren Sie sie nur an einen sicheren Ort und teilen Sie sie nur mit jemandem, dem Sie vertrauen.</string>
+    <string name="wallet_export_database_confirm">Trotzdem exportieren</string>
     <string name="receive_peer_create_button_amount">%1$s anfordern</string>
     <string name="send_peer_create_button_amount">%1$s übertragen</string>
     <string name="send_deposits_no_currencies_error">Es sind keine bekannten Währungen für Einzahlungen verfügbar.</string>
