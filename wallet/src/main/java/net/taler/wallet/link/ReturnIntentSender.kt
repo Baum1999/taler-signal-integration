@@ -85,6 +85,7 @@ object ReturnIntentSender {
             .build()
         val explicitIntent = Intent(Intent.ACTION_VIEW, targetUri).apply {
             setClassName(packageName, className)
+            setPackage(packageName)
         }
         context.startActivity(explicitIntent)
         return true
