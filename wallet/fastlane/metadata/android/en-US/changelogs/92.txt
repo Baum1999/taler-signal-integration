@@ -1,0 +1,5 @@
+- Upgraded wallet-core to v1.6.32
+- Fixed bugs causing infinite loading screens
+- Wallet is now more resilient to init errors, allows exporting diagnostics, logs and database
+- Additional fixes in handling of NFC payments
+- Experimental setting to migrate to faster database
