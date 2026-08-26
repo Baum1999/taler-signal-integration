@@ -50,6 +50,7 @@ import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo
+import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.transactions.AmountType
@@ -92,6 +93,8 @@ fun TransactionPaymentComposable(
     ) {
         return TransactionPaymentPrompt(
             payStatus = payStatus,
+            devMode = devMode,
+            modifier = modifier,
             onConfirmPay = onConfirmPay,
             onAbortPay = { onTransition(Abort) },
             onSetupDonau = onSetupDonau,
@@ -156,6 +159,8 @@ fun TransactionPaymentComposable(
 @Composable
 fun TransactionPaymentPrompt(
     payStatus: PayStatus,
+    devMode: Boolean,
+    modifier: Modifier = Modifier,
     onConfirmPay: (Int?, useDonau: Boolean) -> Unit,
     onAbortPay: () -> Unit,
     onSetupDonau: (donauBaseUrl: String) -> Unit,
@@ -187,6 +192,15 @@ fun TransactionPaymentPrompt(
                 onSetupDonau(donauBaseUrl)
             },
         )
+
+        is PayStatus.Error -> ErrorComposable(
+            error = status.error,
+            modifier = modifier,
+            devMode = devMode,
+            message = stringResource(R.string.payment_template_error),
+            scrollable = false,
+        )
+
         else -> {}
     }
 

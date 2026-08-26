@@ -58,6 +58,7 @@ fun ErrorComposable(
     devMode: Boolean,
     message: String? = null,
     scrollable: Boolean = true,
+    onRetry: (() -> Unit)? = null,
     onClose: (() -> Unit)? = null,
 ) {
     val scrollState = rememberScrollState()
@@ -141,6 +142,13 @@ fun ErrorComposable(
                     content = jsonError,
                 )
             }
+        }
+
+        if (onRetry != null) Button(
+            modifier = Modifier.padding(bottom = 16.dp),
+            onClick = onRetry,
+        ) {
+            Text(text = stringResource(R.string.transactions_retry))
         }
 
         if (onClose != null) Button(

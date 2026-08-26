@@ -84,9 +84,7 @@ fun PayTemplateScreen(
                 }
             }
 
-            is PayStatus.Pending -> if (s.error != null) {
-                onShowError(s.error)
-            }
+            is PayStatus.Error -> onShowError(s.error)
 
             is PayStatus.Checked -> {
                 val usableCurrencies = balanceManager.getCurrencies()
@@ -115,6 +113,7 @@ fun PayTemplateScreen(
                     is BalanceState.Success -> PayTemplateComposable(
                         currencies = state.balances.map { it.currency },
                         payStatus = payStatus,
+                        devMode = devMode,
                         onSubmit = { params ->
                             scope.launch { prepareTemplate(uri, params) }
                         },

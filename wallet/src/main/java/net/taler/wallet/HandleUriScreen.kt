@@ -158,11 +158,6 @@ fun HandleUriScreen(
         }
     }
 
-    LaunchedEffect(payStatus) {
-        val error = (payStatus as? PayStatus.Pending)?.error ?: return@LaunchedEffect
-        errorInfo = error
-    }
-
     Box(Modifier.fillMaxSize()) {
         if (networkStatus == true) {
             LoadingScreen()

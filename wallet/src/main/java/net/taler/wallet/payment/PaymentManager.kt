@@ -30,6 +30,7 @@ import net.taler.common.ContractTerms
 import net.taler.common.TalerUtils.getLocalizedString
 import net.taler.wallet.main.TAG
 import net.taler.wallet.backend.BackendManager
+import net.taler.wallet.backend.NotificationPayload
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.backend.WalletResponse
@@ -40,6 +41,7 @@ import net.taler.wallet.exchanges.ExchangeManager
 import org.json.JSONObject
 import net.taler.wallet.payment.GetChoicesForPaymentResponse.ChoiceSelectionDetail
 import net.taler.wallet.payment.GetChoicesForPaymentResponse.ChoiceSelectionDetail.PaymentPossible
+import net.taler.wallet.transactions.TransactionMajorState
 
 sealed class PayStatus {
     data object None : PayStatus()
@@ -75,6 +77,11 @@ sealed class PayStatus {
         val transactionId: String? = null,
         val error: TalerErrorInfo? = null,
     ) : PayStatus()
+
+    data class Error(
+        val error: TalerErrorInfo,
+    ) : PayStatus()
+
     data class Success(
         val transactionId: String,
         val automaticExecution: Boolean,
@@ -110,6 +117,15 @@ class PaymentManager(
     private val mPayStatus = MutableLiveData<PayStatus>(PayStatus.None)
     internal val payStatus: LiveData<PayStatus> = mPayStatus
 
+    /**
+     * Transaction id of the currently prepared payment. Watched for
+     * transaction-state-transition notifications so that a transaction
+     * deleted by wallet-core (e.g. after a failed claim) surfaces an
+     * error in the UI instead of leaving the user on a loading screen.
+     */
+    @Volatile
+    private var currentTransactionId: String? = null
+
     suspend fun preparePay(url: String): String? {
         var transactionId: String? = null
         api.request("preparePayForUriV2", PreparePayV2Response.serializer()) {
@@ -117,6 +133,7 @@ class PaymentManager(
         }.onError {
             handleError("preparePayForUriV2", it)
         }.onSuccess { response ->
+            currentTransactionId = response.transactionId
             transactionId = response.transactionId
         }
         return transactionId
@@ -282,14 +299,35 @@ class PaymentManager(
         }.onError {
             handleError("preparePayForTemplate", it)
         }.onSuccess { response ->
+            currentTransactionId = response.transactionId
             transactionId = response.transactionId
         }
         return transactionId
     }
 
+    /**
+     * Called on transaction-state-transition notifications. If the currently
+     * prepared transaction is deleted by wallet-core (e.g. claim failed), the
+     * UI is taken out of its loading state and shown the error instead.
+     */
+    fun onTransactionStateTransition(payload: NotificationPayload.TransactionStateTransition) {
+        val transactionId = payload.transactionId
+        if (transactionId == null || transactionId != currentTransactionId) return
+        val newTxState = payload.newTxState ?: return
+        if (newTxState.major != TransactionMajorState.Deleted) return
+        currentTransactionId = null
+        val errorInfo = payload.errorInfo
+        if (errorInfo == null) {
+            Log.e(TAG, "prepared transaction $transactionId deleted by wallet-core without error info")
+            return
+        }
+        Log.e(TAG, "prepared transaction $transactionId deleted by wallet-core: $errorInfo")
+        mPayStatus.postValue(PayStatus.Error(error = errorInfo))
+    }
+
     private fun handleError(operation: String, error: TalerErrorInfo) {
         Log.e(TAG, "got $operation error result $error")
-        mPayStatus.postValue(PayStatus.Pending(error = error))
+        mPayStatus.postValue(PayStatus.Error(error = error))
     }
 
 }

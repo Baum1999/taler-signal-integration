@@ -165,6 +165,7 @@ class MainViewModel(
             }
 
             is NotificationPayload.TransactionStateTransition -> {
+                paymentManager.onTransactionStateTransition(payload)
                 viewModelScope.launch(Dispatchers.Main) {
                     payload.transactionId?.let { id ->
                         // update currently selected transaction
