@@ -77,6 +77,9 @@ sealed class NotificationPayload {
     data class DatabaseMaintenanceProgress(
         val operation: String,
         val phase: String,
+        val progressToken: String? = null,
+        val completionPercent: Int? = null,
+        val error: TalerErrorInfo? = null,
     ) : NotificationPayload()
 
     @Serializable(with = UnknownPayloadSerializer::class)

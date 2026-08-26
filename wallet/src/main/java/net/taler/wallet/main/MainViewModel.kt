@@ -35,9 +35,11 @@ import net.taler.wallet.accounts.AccountManager
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.NotificationPayload
 import net.taler.wallet.backend.NotificationReceiver
+import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.InitReceiver
 import net.taler.wallet.backend.WalletBackendApi
+import net.taler.wallet.backend.WalletDatabaseBackend
 import net.taler.wallet.backend.WalletRunConfig
 import net.taler.wallet.backend.WalletRunConfig.Features
 import net.taler.wallet.backend.WalletRunConfig.Testing
@@ -56,9 +58,10 @@ import net.taler.wallet.withdraw.WithdrawManager
 import net.taler.wallet.BuildConfig
 import net.taler.wallet.NetworkManager
 import net.taler.wallet.backend.InitResponse
-import net.taler.wallet.backend.WalletDatabaseBackend
+import net.taler.wallet.backend.MigrateDatabaseResponse
 import net.taler.wallet.donau.DonauManager
 import net.taler.wallet.tokens.TokenManager
+import java.util.UUID
 
 const val TAG = "taler-wallet"
 const val OBSERVABILITY_LIMIT = 100
@@ -79,8 +82,8 @@ class MainViewModel(
         private set
     var merchantVersion: String? = null
         private set
-    var databaseBackend: WalletDatabaseBackend? = null
-        private set
+    private val mDatabaseBackend = MutableStateFlow<WalletDatabaseBackend?>(null)
+    val databaseBackend: StateFlow<WalletDatabaseBackend?> = mDatabaseBackend
 
     @set:Synchronized
     private var walletConfig = WalletRunConfig(
@@ -90,6 +93,7 @@ class MainViewModel(
         ),
         features = Features(
             enableV1Contracts = true,
+            useNativeDb = true,
         ),
         logLevel = if (devMode.value == true) "TRACE" else "INFO",
     )
@@ -128,8 +132,9 @@ class MainViewModel(
     private val mInitError = MutableStateFlow<TalerErrorInfo?>(null)
     val initError: StateFlow<TalerErrorInfo?> = mInitError
 
-    private val mDbMigrationStatus = MutableStateFlow(DbMigrationStatus.None)
-    val dbMigrationStatus: StateFlow<DbMigrationStatus> = mDbMigrationStatus
+    private val mDatabaseMigrationState =
+        MutableStateFlow<DatabaseMigrationState>(DatabaseMigrationState.None)
+    val databaseMigrationState: StateFlow<DatabaseMigrationState> = mDatabaseMigrationState
 
     fun startWallet() {
         api.startWallet()
@@ -148,7 +153,13 @@ class MainViewModel(
         walletVersionHash = init.versionInfo.implementationGitHash
         exchangeVersion = init.versionInfo.exchange
         merchantVersion = init.versionInfo.merchant
-        databaseBackend = init.databaseBackend
+        mDatabaseBackend.value = init.databaseBackend
+        if (
+            init.databaseBackend == WalletDatabaseBackend.IndexedDB &&
+            mDatabaseMigrationState.value == DatabaseMigrationState.None
+        ) {
+            mDatabaseMigrationState.value = DatabaseMigrationState.Prompt
+        }
         mInitError.value = null
     }
 
@@ -198,13 +209,7 @@ class MainViewModel(
             }
 
             is NotificationPayload.DatabaseMaintenanceProgress -> {
-                if (payload.operation == "indexeddb-to-native-migration") {
-                    if (payload.phase == "complete") {
-                        mDbMigrationStatus.value = DbMigrationStatus.Complete
-                    } else if (payload.phase == "failed") {
-                        mDbMigrationStatus.value = DbMigrationStatus.Failed
-                    }
-                }
+                updateDatabaseMigrationProgress(payload)
             }
 
             else -> {}
@@ -291,29 +296,87 @@ class MainViewModel(
         }
     }
 
-    /**
-     * Enables the experimental migration of the wallet database to the new
-     * native SQLite backend. This may result in data loss and cannot be undone.
-     */
-    fun enableMigrateNativeDb(onError: (error: TalerErrorInfo) -> Unit) {
-        viewModelScope.launch {
-            val config = walletConfig.copy(
-                features = walletConfig.features?.copy(
-                    migrateNativeDb = true,
-                ) ?: Features(
-                    migrateNativeDb = true,
-                ),
-            )
-
-            api.setWalletConfig(config)
-                .onSuccess {
-                    walletConfig = config
-                }.onError(onError)
+    fun offerDatabaseMigration() {
+        if (
+            mDatabaseBackend.value == WalletDatabaseBackend.IndexedDB &&
+            mDatabaseMigrationState.value !is DatabaseMigrationState.Migrating &&
+            mDatabaseMigrationState.value !is DatabaseMigrationState.Cancelling
+        ) {
+            mDatabaseMigrationState.value = DatabaseMigrationState.Prompt
         }
     }
 
-    fun resetDbMigrationStatus() {
-        mDbMigrationStatus.value = DbMigrationStatus.None
+    fun deferDatabaseMigration() {
+        if (
+            mDatabaseMigrationState.value == DatabaseMigrationState.Prompt ||
+            mDatabaseMigrationState.value is DatabaseMigrationState.Failed
+        ) {
+            mDatabaseMigrationState.value = DatabaseMigrationState.Deferred
+        }
+    }
+
+    fun migrateDatabase() {
+        if (mDatabaseBackend.value != WalletDatabaseBackend.IndexedDB) return
+        if (
+            mDatabaseMigrationState.value is DatabaseMigrationState.Migrating ||
+            mDatabaseMigrationState.value is DatabaseMigrationState.Cancelling
+        ) return
+
+        val progressToken = UUID.randomUUID().toString()
+        mDatabaseMigrationState.value = DatabaseMigrationState.Migrating(progressToken, 0)
+
+        viewModelScope.launch {
+            api.migrateDatabase(progressToken)
+                .onSuccess { response ->
+                    mDatabaseBackend.value = response.databaseBackend
+                    mDatabaseMigrationState.value = response.toDatabaseMigrationState()
+                }
+                .onError { error ->
+                    mDatabaseMigrationState.value =
+                        mDatabaseMigrationState.value.withMigrationError(error)
+                }
+        }
+    }
+
+    fun cancelDatabaseMigration(onError: (error: TalerErrorInfo) -> Unit) {
+        val state = mDatabaseMigrationState.value as? DatabaseMigrationState.Migrating ?: return
+        mDatabaseMigrationState.value = DatabaseMigrationState.Cancelling(
+            progressToken = state.progressToken,
+            completionPercent = state.completionPercent,
+        )
+        viewModelScope.launch {
+            api.cancelDatabaseMigration(state.progressToken).onError { error ->
+                val current = mDatabaseMigrationState.value
+                if (
+                    current is DatabaseMigrationState.Cancelling &&
+                    current.progressToken == state.progressToken
+                ) {
+                    mDatabaseMigrationState.value = DatabaseMigrationState.Migrating(
+                        progressToken = state.progressToken,
+                        completionPercent = current.completionPercent,
+                    )
+                    onError(error)
+                }
+            }
+        }
+    }
+
+    fun acknowledgeDatabaseMigrationComplete() {
+        if (mDatabaseMigrationState.value == DatabaseMigrationState.Complete) {
+            mDatabaseMigrationState.value = DatabaseMigrationState.None
+        }
+    }
+
+    fun consumeDatabaseMigrationFailure(): TalerErrorInfo? {
+        val state = mDatabaseMigrationState.value as? DatabaseMigrationState.Failed ?: return null
+        mDatabaseMigrationState.value = DatabaseMigrationState.Deferred
+        return state.error
+    }
+
+    private fun updateDatabaseMigrationProgress(
+        payload: NotificationPayload.DatabaseMaintenanceProgress,
+    ) {
+        mDatabaseMigrationState.value = mDatabaseMigrationState.value.withProgress(payload)
     }
 
     fun showObservabilityLog() {
@@ -347,8 +410,64 @@ sealed class AmountResult {
     data object InvalidAmount : AmountResult()
 }
 
-enum class DbMigrationStatus {
-    None,
-    Complete,
-    Failed,
+sealed interface DatabaseMigrationState {
+    data object None : DatabaseMigrationState
+    data object Prompt : DatabaseMigrationState
+    data object Deferred : DatabaseMigrationState
+    data class Migrating(
+        val progressToken: String,
+        val completionPercent: Int,
+    ) : DatabaseMigrationState
+
+    data class Cancelling(
+        val progressToken: String,
+        val completionPercent: Int,
+    ) : DatabaseMigrationState
+
+    data object Complete : DatabaseMigrationState
+    data class Failed(val error: TalerErrorInfo) : DatabaseMigrationState
 }
+
+internal fun DatabaseMigrationState.withProgress(
+    payload: NotificationPayload.DatabaseMaintenanceProgress,
+): DatabaseMigrationState {
+    if (payload.operation != "indexeddb-to-native-migration") return this
+    val percent = payload.completionPercent?.coerceIn(0, 100)
+
+    return when (this) {
+        is DatabaseMigrationState.Migrating -> {
+            if (payload.progressToken != progressToken) this
+            else copy(completionPercent = percent ?: completionPercent)
+        }
+
+        is DatabaseMigrationState.Cancelling -> {
+            if (payload.progressToken != progressToken) this
+            else copy(completionPercent = percent ?: completionPercent)
+        }
+
+        else -> this
+    }
+}
+
+internal fun DatabaseMigrationState.withMigrationError(
+    error: TalerErrorInfo,
+): DatabaseMigrationState =
+    if (
+        this is DatabaseMigrationState.Cancelling &&
+        error.code == TalerErrorCode.WALLET_CORE_REQUEST_CANCELLED
+    ) {
+        DatabaseMigrationState.Deferred
+    } else {
+        DatabaseMigrationState.Failed(error)
+    }
+
+internal fun MigrateDatabaseResponse.toDatabaseMigrationState(): DatabaseMigrationState =
+    if (databaseBackend == WalletDatabaseBackend.Sqlite) {
+        DatabaseMigrationState.Complete
+    } else {
+        DatabaseMigrationState.Failed(
+            TalerErrorInfo.makeCustomError(
+                message = "Database migration completed without switching to SQLite",
+            ),
+        )
+    }

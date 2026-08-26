@@ -105,8 +105,6 @@ fun SettingsScreen(
     val testRunningMessage = stringResource(R.string.settings_test_running)
     val resetDoneMessage = stringResource(R.string.settings_alert_reset_done)
     val resetCanceledMessage = stringResource(R.string.settings_alert_reset_canceled)
-    val migrateDoneMessage = stringResource(R.string.settings_db_migrate_done)
-    val migrateCanceledMessage = stringResource(R.string.settings_db_migrate_canceled)
     val biometricAuthUnavailableMessage = stringResource(R.string.biometric_auth_unavailable)
     val scope = rememberCoroutineScope()
     val settingsManager = model.settingsManager
@@ -115,6 +113,7 @@ fun SettingsScreen(
     val biometricLockEnabled by settingsManager.getBiometricLockEnabled(context).collectAsState(false)
     val devModeEnabled by settingsManager.getDevModeEnabled(context).collectAsState(false)
     val withdrawTestStatus by withdrawManager.withdrawTestStatus.collectAsState()
+    val databaseBackend by model.databaseBackend.collectAsState()
 
     val walletVersion = model.walletVersion
     val walletVersionHash = model.walletVersionHash?.take(7)
@@ -270,22 +269,11 @@ fun SettingsScreen(
                 }
             )
 
-            if (model.databaseBackend != WalletDatabaseBackend.Sqlite) SettingsItem(
+            if (databaseBackend == WalletDatabaseBackend.IndexedDB) SettingsItem(
                 title = stringResource(R.string.settings_migrate_db),
                 summary = stringResource(R.string.settings_migrate_db_summary),
                 icon = Icons.Default.Memory,
-                onClick = {
-                    MaterialAlertDialogBuilder(context)
-                        .setMessage(R.string.settings_dialog_migrate_db_message)
-                        .setNegativeButton(R.string.settings_migrate_db) { _, _ ->
-                            model.enableMigrateNativeDb { onShowError(it) }
-                            scope.launch { snackbarHostState.showSnackbar(migrateDoneMessage) }
-                        }
-                        .setPositiveButton(R.string.cancel) { _, _ ->
-                            scope.launch { snackbarHostState.showSnackbar(migrateCanceledMessage) }
-                        }
-                        .show()
-                }
+                onClick = model::offerDatabaseMigration,
             )
 
             SettingsItem(

@@ -47,7 +47,7 @@ class BackendManager(
     companion object {
         private const val TAG = "BackendManager"
         private const val TAG_CORE = "taler-wallet-embedded"
-        private const val REQUEST_TIMEOUT_MS = 60_000L
+        const val REQUEST_TIMEOUT_MS = 60_000L
         val json = Json {
             ignoreUnknownKeys = true
             coerceInputValues = true
@@ -98,9 +98,13 @@ class BackendManager(
         coreRunning.set(false)
     }
 
-    suspend fun send(operation: String, args: JSONObject? = null): ApiResponse {
+    suspend fun send(
+        operation: String,
+        args: JSONObject? = null,
+        timeoutMs: Long? = REQUEST_TIMEOUT_MS,
+    ): ApiResponse {
         var requestId = -1
-        val response = withTimeoutOrNull(REQUEST_TIMEOUT_MS) {
+        suspend fun awaitResponse(): ApiResponse =
             suspendCancellableCoroutine { cont ->
                 requestManager.addRequest(cont) { id ->
                     requestId = id
@@ -116,6 +120,10 @@ class BackendManager(
                     requestManager.getAndRemoveContinuation(requestId)
                 }
             }
+        if (timeoutMs == null) return awaitResponse()
+
+        val response = withTimeoutOrNull(timeoutMs) {
+            awaitResponse()
         }
         if (response != null) return response
         return ApiResponse.Error(

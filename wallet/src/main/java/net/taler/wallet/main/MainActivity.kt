@@ -42,11 +42,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -122,6 +124,8 @@ class MainActivity : FragmentActivity() {
                 val errorSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = !devMode)
                 val authenticated by model.authenticated.collectAsState()
                 val biometricEnabled by model.settingsManager.getBiometricLockEnabled(this).collectAsState(false)
+                val databaseMigrationState by model.databaseMigrationState.collectAsState()
+                val walletUnlocked = !biometricEnabled || authenticated
 
                 val logExportLauncher = rememberLauncherForActivityResult(CreateDocument("text/plain")) { uri ->
                     uri?.let { model.settingsManager.exportLogcat(it) }
@@ -138,6 +142,12 @@ class MainActivity : FragmentActivity() {
                                 pendingLaunchUri = null
                             }
                         }
+                    }
+                }
+
+                LaunchedEffect(databaseMigrationState, walletUnlocked) {
+                    if (walletUnlocked && databaseMigrationState is DatabaseMigrationState.Failed) {
+                        errorInfo = model.consumeDatabaseMigrationFailure()
                     }
                 }
 
@@ -201,6 +211,29 @@ class MainActivity : FragmentActivity() {
                             }
                         }
                     )
+                }
+
+                if (walletUnlocked) when (val state = databaseMigrationState) {
+                    DatabaseMigrationState.Prompt -> DatabaseMigrationPrompt(
+                        onMigrate = model::migrateDatabase,
+                        onLater = model::deferDatabaseMigration,
+                    )
+
+                    is DatabaseMigrationState.Migrating -> DatabaseMigrationProgressDialog(
+                        completionPercent = state.completionPercent,
+                        cancelling = false,
+                        onCancel = {
+                            model.cancelDatabaseMigration { errorInfo = it }
+                        },
+                    )
+
+                    is DatabaseMigrationState.Cancelling -> DatabaseMigrationProgressDialog(
+                        completionPercent = state.completionPercent,
+                        cancelling = true,
+                        onCancel = {},
+                    )
+
+                    else -> {}
                 }
             }
         }
@@ -380,6 +413,81 @@ class MainActivity : FragmentActivity() {
         // wallet-core belongs to the retained MainViewModel, not to this activity
         if (!isChangingConfigurations) model.stopWallet()
     }
+}
+
+@Composable
+private fun DatabaseMigrationPrompt(
+    onMigrate: () -> Unit,
+    onLater: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onLater,
+        title = { Text(stringResource(R.string.wallet_db_migration_title)) },
+        text = { Text(stringResource(R.string.wallet_db_migration_message)) },
+        confirmButton = {
+            Button(onClick = onMigrate) {
+                Text(stringResource(R.string.wallet_db_migration_now))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onLater) {
+                Text(stringResource(R.string.wallet_db_migration_later))
+            }
+        },
+    )
+}
+
+@Composable
+private fun DatabaseMigrationProgressDialog(
+    completionPercent: Int,
+    cancelling: Boolean,
+    onCancel: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = {},
+        title = {
+            Text(
+                stringResource(
+                    if (cancelling) {
+                        R.string.wallet_db_migration_cancelling
+                    } else {
+                        R.string.wallet_db_migration_in_progress
+                    },
+                ),
+            )
+        },
+        text = {
+            Column {
+                LinearProgressIndicator(
+                    progress = { completionPercent / 100f },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text(
+                    text = stringResource(
+                        R.string.wallet_db_migration_progress,
+                        completionPercent,
+                    ),
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onCancel,
+                enabled = !cancelling,
+            ) {
+                Text(
+                    stringResource(
+                        if (cancelling) {
+                            R.string.wallet_db_migration_cancelling
+                        } else {
+                            R.string.cancel
+                        },
+                    ),
+                )
+            }
+        },
+    )
 }
 
 @Composable

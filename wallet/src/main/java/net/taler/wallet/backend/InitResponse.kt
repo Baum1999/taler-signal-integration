@@ -67,9 +67,15 @@ data class WalletRunConfig(
     data class Features(
         val allowHttp: Boolean = false,
         val enableV1Contracts: Boolean = false,
-        val migrateNativeDb: Boolean = false,
+        val useNativeDb: Boolean = false,
     )
 }
+
+@Serializable
+data class MigrateDatabaseResponse(
+    val migrated: Boolean,
+    val databaseBackend: WalletDatabaseBackend,
+)
 
 interface InitReceiver {
     fun onInitReceived(init: InitResponse)
