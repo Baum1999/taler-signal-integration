@@ -42,8 +42,8 @@ android {
         applicationId "net.taler.wallet"
         minSdkVersion 24
         targetSdkVersion 37
-        versionCode 94
-        versionName "1.6.5"
+        versionCode 95
+        versionName "1.6.6"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

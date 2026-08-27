@@ -1,0 +1,3 @@
+- Upgraded wallet-core to v1.6.38.
+- Introduced a new database for faster payments.
+- Fixed an issue that caused an infinite loading screen on failed payments.
