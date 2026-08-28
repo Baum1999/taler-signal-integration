@@ -17,10 +17,56 @@
 package net.taler.wallet.withdraw
 
 import net.taler.common.Bech32.Companion.generateFakeSegwitAddress
+import net.taler.wallet.exchanges.ExchangeItem
+import net.taler.wallet.exchanges.ExchangeTosStatus
 import org.junit.Assert
 import org.junit.Test
 
 class WithdrawManagerKtTest {
+
+    private fun exchange(baseUrl: String) = ExchangeItem(
+        exchangeBaseUrl = baseUrl,
+        currency = "CHF",
+        paytoUris = emptyList(),
+        tosStatus = ExchangeTosStatus.Accepted,
+    )
+
+    @Test
+    fun initialExchangePrefersBankDefault() {
+        val tops = exchange("https://exchange.taler-ops.ch/")
+        val bfh = exchange("https://exchange.taler.ti.bfh.ch/")
+        val info = WithdrawalDetailsForUri(
+            currency = "CHF",
+            defaultExchangeBaseUrl = bfh.exchangeBaseUrl,
+            possibleExchanges = listOf(tops, bfh),
+            status = WithdrawalOperationStatusFlag.Pending,
+        )
+
+        Assert.assertEquals(bfh.exchangeBaseUrl, info.initialExchangeBaseUrl())
+    }
+
+    @Test
+    fun initialExchangeFallsBackToFirstPossibleExchange() {
+        val tops = exchange("https://exchange.taler-ops.ch/")
+        val bfh = exchange("https://exchange.taler.ti.bfh.ch/")
+        val info = WithdrawalDetailsForUri(
+            currency = "CHF",
+            possibleExchanges = listOf(bfh, tops),
+            status = WithdrawalOperationStatusFlag.Pending,
+        )
+
+        Assert.assertEquals(bfh.exchangeBaseUrl, info.initialExchangeBaseUrl())
+    }
+
+    @Test
+    fun initialExchangeIsMissingWithoutDefaultOrPossibilities() {
+        val info = WithdrawalDetailsForUri(
+            currency = "CHF",
+            status = WithdrawalOperationStatusFlag.Pending,
+        )
+
+        Assert.assertNull(info.initialExchangeBaseUrl())
+    }
 
     @Test
     fun generateMainnet() {

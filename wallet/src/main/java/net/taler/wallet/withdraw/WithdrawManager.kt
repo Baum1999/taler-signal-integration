@@ -184,6 +184,9 @@ data class WithdrawalDetailsForUri(
     val status: WithdrawalOperationStatusFlag,
 )
 
+internal fun WithdrawalDetailsForUri.initialExchangeBaseUrl(): String? =
+    defaultExchangeBaseUrl ?: possibleExchanges.firstOrNull()?.exchangeBaseUrl
+
 @Serializable
 data class WithdrawalDetailsForAmount(
     /**
@@ -313,8 +316,7 @@ class WithdrawManager(
                 val tx = transactionManager.getTransactionById(details.transactionId)
                     ?: error("transaction ${details.transactionId} not found")
 
-                val exchangeBaseUrl = details.info.defaultExchangeBaseUrl
-                    ?: details.info.possibleExchanges.firstOrNull()?.exchangeBaseUrl
+                val exchangeBaseUrl = details.info.initialExchangeBaseUrl()
 
                 // Handle no exchanges configured by bank.
                 if (exchangeBaseUrl == null) {
@@ -336,8 +338,7 @@ class WithdrawManager(
                             status = if (alreadyConfirmed) AlreadyConfirmed else InfoReceived,
                             transactionId = details.transactionId,
                             uriInfo = details.info,
-                            exchangeBaseUrl = details.info.defaultExchangeBaseUrl
-                                ?: details.info.possibleExchanges.firstOrNull()?.exchangeBaseUrl
+                            exchangeBaseUrl = exchangeBaseUrl,
                         )
                     )
                 }
@@ -348,10 +349,10 @@ class WithdrawManager(
 
                 // then extend with amount details (not for cash acceptor)
                 if (!status.isCashAcceptor) {
-                    getWithdrawalDetailsForAmount(
+                    getWithdrawalDetailsForExchange(
+                        exchangeBaseUrl = exchangeBaseUrl,
                         amount = details.info.amount
                             ?: Amount.zero(details.info.currency),
-                        defaultExchangeBaseUrl = details.info.defaultExchangeBaseUrl,
                         loading = loading,
                     )
                 }
@@ -362,13 +363,11 @@ class WithdrawManager(
     fun getWithdrawalDetailsForAmount(
         amount: Amount,
         scopeInfo: ScopeInfo? = null,
-        defaultExchangeBaseUrl: String? = null,
         loading: Boolean = true,
     ) = scope.launch {
         // complete exchangeBaseUrl if missing
         val exchange = scopeInfo?.let { exchangeManager.findExchange(it) }
-            ?: defaultExchangeBaseUrl?.let { exchangeManager.findExchange(it) }
-            ?: exchangeManager.findExchange(amount.currency)
+            ?: exchangeManager.findExchangeByCurrency(amount.currency)
         if (exchange != null) {
             getWithdrawalDetails(
                 amount = amount,
