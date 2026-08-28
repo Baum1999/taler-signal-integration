@@ -150,6 +150,11 @@ fun HandleUriScreen(
         }
     }
 
+    LaunchedEffect(payStatus) {
+        val error = (payStatus as? PayStatus.Error)?.error ?: return@LaunchedEffect
+        errorInfo = error
+    }
+
     LaunchedEffect(errorInfo) {
         val currentError = errorInfo
         if (currentError != null) {

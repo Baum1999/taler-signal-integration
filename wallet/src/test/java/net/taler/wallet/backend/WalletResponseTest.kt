@@ -17,6 +17,9 @@
 package net.taler.wallet.backend
 
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import net.taler.wallet.balances.BalanceResponse
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -76,4 +79,32 @@ class WalletResponseTest {
         val info = json.decodeFromString(TalerErrorInfo.serializer(), infoJson)
         println(info.userFacingMsg)
     }
+
+    @Test
+    fun knownWalletErrorCodeRoundTrips() {
+        val info = json.decodeFromString(
+            TalerErrorInfo.serializer(),
+            """{"code":7049}""",
+        )
+
+        assertEquals(TalerErrorCode.WALLET_MERCHANT_ORDER_NOT_FOUND, info.code)
+        assertEquals(7049, info.rawCode)
+        assertEquals(7049, encodedCode(info))
+    }
+
+    @Test
+    fun futureWalletErrorCodeRoundTripsWithoutBecomingMinusOne() {
+        val info = json.decodeFromString(
+            TalerErrorInfo.serializer(),
+            """{"code":7998}""",
+        )
+
+        assertEquals(TalerErrorCode.UNKNOWN, info.code)
+        assertEquals(7998, info.rawCode)
+        assertEquals(7998, encodedCode(info))
+    }
+
+    private fun encodedCode(info: TalerErrorInfo): Int = json
+        .parseToJsonElement(json.encodeToString(TalerErrorInfo.serializer(), info))
+        .jsonObject.getValue("code").jsonPrimitive.int
 }

@@ -92,7 +92,9 @@ fun TransactionPaymentComposable(
         )
     ) {
         return TransactionPaymentPrompt(
-            payStatus = payStatus,
+            // Scope the shared payment status to this transaction, so an
+            // error or late response from another payment is never shown.
+            payStatus = payStatus.forTransaction(t.transactionId),
             devMode = devMode,
             modifier = modifier,
             onConfirmPay = onConfirmPay,

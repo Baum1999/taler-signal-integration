@@ -1718,6 +1718,9 @@ enum class TalerErrorCode(val code: Int) {
     /** A parameter in the request is malformed or missing. */
     WALLET_CORE_API_BAD_REQUEST(7048),
 
+    /** The order could not be found. Maybe the merchant deleted it. */
+    WALLET_MERCHANT_ORDER_NOT_FOUND(7049),
+
     /** The HTTP server failed to allocate memory. Restarting services periodically can help, especially if Postgres is using excessive amounts of memory. Check with the system administrator to investigate. */
     GENERIC_ALLOCATION_FAILURE(71),
 

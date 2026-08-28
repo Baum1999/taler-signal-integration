@@ -29,6 +29,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -72,6 +73,10 @@ data class TalerErrorInfo(
 
     // Error extra details
     val extra: Map<String, JsonElement> = mapOf(),
+
+    // Preserve codes that are newer than this app's error-code registry,
+    // so they are not re-encoded as -1.
+    val rawCode: Int = code.code,
 ) {
     val userFacingMsg: String
         get() {
@@ -119,6 +124,8 @@ class TalerErrorInfoSerializer : KSerializer<TalerErrorInfo> {
         val json = decoder.json
         val filtersMap = decoder.decodeSerializableValue(stringToJsonElementSerializer)
 
+        val rawCode = filtersMap["code"]?.jsonPrimitive?.intOrNull
+            ?: TalerErrorCode.UNKNOWN.code
         val code = filtersMap["code"]?.let {
             json.decodeFromJsonElement(TalerErrorCode.serializer(), it)
         } ?: TalerErrorCode.UNKNOWN
@@ -132,12 +139,12 @@ class TalerErrorInfoSerializer : KSerializer<TalerErrorInfo> {
         val knownKeys = setOf("code", "hint", "message")
         val unknownFilters = filtersMap.filter { (key, _) -> !knownKeys.contains(key) }
 
-        return TalerErrorInfo(code, hint, message, unknownFilters)
+        return TalerErrorInfo(code, hint, message, unknownFilters, rawCode)
     }
 
     override fun serialize(encoder: Encoder, value: TalerErrorInfo) {
         encoder.encodeSerializableValue(JsonObject.serializer(), buildJsonObject {
-            put("code", JsonPrimitive(value.code.code))
+            put("code", JsonPrimitive(value.rawCode))
             put("hint", JsonPrimitive(value.hint))
             put("message", JsonPrimitive(value.message))
             value.extra.forEach { (key, value) -> put(key, value) }
