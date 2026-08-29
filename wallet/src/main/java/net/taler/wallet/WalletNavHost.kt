@@ -46,6 +46,7 @@ import net.taler.wallet.donau.SetDonauScreen
 import net.taler.wallet.exchanges.ExchangeListScreen
 import net.taler.wallet.exchanges.ExchangeShoppingScreen
 import net.taler.wallet.exchanges.ReviewExchangeTosScreen
+import net.taler.wallet.link.ComposeRefundScreen
 import net.taler.wallet.link.ComposeSendScreen
 import net.taler.wallet.link.ConnectedAppsScreen
 import net.taler.wallet.main.MainScreen
@@ -235,6 +236,27 @@ fun WalletNavHost(
                 // am navController-Parameter in ComposeSendScreen.kt - wird
                 // dort NUR im Erfolgs-Pfad statt des geteilten
                 // onNavigateBack() verwendet, um den swallowenden
+                // BackHandler auf dem OnBackPressedDispatcher zu umgehen.
+                navController = navController,
+            )
+        }
+        composable<WalletDestination.ComposeRefund>(
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
+        ) { backStackEntry ->
+            val dest = backStackEntry.toRoute<WalletDestination.ComposeRefund>()
+            ComposeRefundScreen(
+                model = model,
+                correlationId = dest.correlationId,
+                onNavigate = onNavigate,
+                onNavigateBack = onNavigateBack,
+                onShowError = { onShowError(it) },
+                // Gleicher Grund wie navController-Parameter in
+                // ComposeSendScreen.kt/ComposeRefundScreen.kt: wird NUR im
+                // Erfolgs-Pfad statt des geteilten onNavigateBack() verwendet,
+                // um den waehrend des Commit-Fensters swallowenden
                 // BackHandler auf dem OnBackPressedDispatcher zu umgehen.
                 navController = navController,
             )

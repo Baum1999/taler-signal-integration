@@ -81,6 +81,15 @@ fun OutgoingPushComposable(
     getFees: suspend (amount: AmountScope) -> CheckFeeResult?,
     onSend: (amount: AmountScope, summary: String, hours: Long) -> Unit,
     modifier: Modifier = Modifier,
+    // Optionale Vorbefuellung, Default null aendert das normale Verhalten
+    // (leeres Formular) nicht. Genutzt vom Signal-Fork's ComposeRefundScreen,
+    // um den Rueckerstattungsbetrag/-zweck aus der bereits Taler-seitig
+    // aufgeloesten Original-Transaktion vorzubefuellen, statt Signal
+    // irgendetwas erfinden zu lassen (die Zahl kommt weiterhin aus einem
+    // frueheren Taler-Aufruf, nie aus Signal) - bleibt trotzdem editierbar,
+    // eine Rueckerstattung ist eine neue Zahlung, keine erzwungene Kopie.
+    initialAmount: Amount? = null,
+    initialSubject: String? = null,
 ) {
     when(state) {
         is OutgoingChecking, is OutgoingCreating, is OutgoingResponse -> LoadingScreen(modifier)
@@ -93,6 +102,8 @@ fun OutgoingPushComposable(
             getFees = getFees,
             onSend = onSend,
             modifier = modifier,
+            initialAmount = initialAmount,
+            initialSubject = initialSubject,
         )
     }
 }
@@ -107,11 +118,13 @@ fun OutgoingPushIntroComposable(
     getFees: suspend (amount: AmountScope) -> CheckFeeResult?,
     onSend: (amount: AmountScope, summary: String, hours: Long) -> Unit,
     modifier: Modifier = Modifier,
+    initialAmount: Amount? = null,
+    initialSubject: String? = null,
 ) {
     var amount by remember {
         val scope = defaultScope ?: scopes[0]
         val currency = scope.currency
-        mutableStateOf(AmountScope(Amount.zero(currency), scope))
+        mutableStateOf(AmountScope(initialAmount ?: Amount.zero(currency), scope))
     }
     val selectedSpec by produceState<CurrencySpecification?>(
         initialValue = null,
@@ -120,7 +133,7 @@ fun OutgoingPushIntroComposable(
         value = getCurrencySpec(amount.scope)
     }
     var feeResult by remember { mutableStateOf<CheckFeeResult>(None()) }
-    var subject by rememberSaveable { mutableStateOf("") }
+    var subject by rememberSaveable { mutableStateOf(initialSubject ?: "") }
 
     var option by rememberSaveable { mutableStateOf(DEFAULT_EXPIRY) }
     var hours by rememberSaveable { mutableLongStateOf(DEFAULT_EXPIRY.hours) }

@@ -20,12 +20,12 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,24 +36,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
-import net.taler.common.Amount
-import net.taler.common.AmountParserException
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.compose.GlobalScaffold
-import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.main.MainViewModel
-import net.taler.wallet.payment.stringResId
-import net.taler.wallet.peer.CheckFeeResult
 import net.taler.wallet.peer.OutgoingCreating
 import net.taler.wallet.peer.OutgoingError
+import net.taler.wallet.peer.OutgoingPushComposable
 import net.taler.wallet.peer.OutgoingResponse
 import net.taler.wallet.transactions.TransactionPeerPushDebit
-
-private const val EXPIRATION_HOURS = 24L // wie DEFAULT_EXPIRY = ExpirationOption.DAYS_1 in PeerManager.kt
 
 // Fix round 1 (Task-A6 Review, Critical #2): Sicherheitsnetz - falls
 // initiatePeerPushDebit erfolgreich eine transactionId liefert, die
@@ -64,15 +58,17 @@ private const val TALER_URI_TIMEOUT_MS = 15_000L
 
 /**
  * Bestaetigungs-Screen fuer einen von Signal ueber prepareSend vorbereiteten
- * Versand (docs/API.md 2.7). Bewusst KEINE Wiederverwendung von
- * OutgoingPushScreen/OutgoingPushComposable - jener Screen hat einen eigenen
- * Scope/Exchange-Picker anhand der Guthaben des Nutzers, der zu einem bereits
- * vorausgefuellten, betragsseitig entschiedenen Flow nicht passt. Stattdessen
- * ruft dieser kleine, eigenstaendige Screen dieselben PeerManager-Funktionen
- * direkt auf. Die eigentliche ausgehende Zahlung entsteht ausschliesslich
- * durch initiatePeerPushDebit unten - ausgeloest erst durch einen Tap des
- * Nutzers auf den Send-Button in diesem (Taler-eigenen) Screen, niemals
- * automatisch.
+ * Versand (docs/API.md 2.7). Der Betrag wird NICHT mehr von Signal
+ * vorausgefuellt (frueher: PrepareSendRequest.amount/currency) - Signal
+ * darf keine Betraege kennen/anzeigen, also fragt Taler den Betrag jetzt
+ * selbst ab. Deshalb Wiederverwendung von OutgoingPushComposable (derselbe
+ * "Betrag eingeben -> Gebuehr live pruefen -> Zweck -> bestaetigen"-Flow wie
+ * beim normalen "Send"-Bildschirm aus dem Aktionen-Menue), statt einer
+ * eigenen Betrags-UI - null Aenderungen an OutgoingPushComposable/
+ * AmountScopeField selbst, nur Wiederverwendung von aussen. Die eigentliche
+ * ausgehende Zahlung entsteht ausschliesslich durch initiatePeerPushDebit im
+ * onSend-Callback unten - ausgeloest erst durch einen Tap des Nutzers,
+ * niemals automatisch.
  */
 @Composable
 fun ComposeSendScreen(
@@ -157,75 +153,27 @@ fun ComposeSendScreen(
         }
     }
 
-    val amount = remember(request) {
-        try {
-            Amount.fromString(request.currency, request.amount)
-        } catch (e: AmountParserException) {
-            null
-        }
-    }
-
-    if (amount == null) {
-        // Fix (Final-Review I3): NICHT mehr sofort fireReturn/onNavigateBack
-        // hinterher - nur den Fehler zeigen, siehe Begruendung am oben
-        // registrierten onDispose-Hook, der den Ruecksprung uebernimmt,
-        // sobald der Nutzer den Screen tatsaechlich verlaesst.
+    // Neu (Betrag kommt nicht mehr von Signal): OutgoingPushIntroComposable
+    // greift bei der ersten Komposition auf scopes[0] zu (defaultScope ?:
+    // scopes[0]) - hat der Nutzer noch nie ein Taler-Guthaben empfangen, ist
+    // diese Liste leer und das wuerde crashen. Signal kann das vorher nicht
+    // wissen (Regel 2: keine Balance-Abfrage von Signal aus), also hier
+    // sichtbar abfangen statt crashen zu lassen - gleiches Prinzip wie die
+    // fruehere amount==null-Pruefung: nur Fehler zeigen, Ruecksprung dem
+    // onDispose-Hook oben ueberlassen.
+    val scopes = remember { model.balanceManager.getScopes(true) }
+    if (scopes.isEmpty()) {
         LaunchedEffect(Unit) {
             onShowError(
                 TalerErrorInfo.makeCustomError(
-                    // Fix (Final-Review I5): Rule 6 - keine hartcodierten,
-                    // nutzersichtbaren Strings. ErrorComposable rendert
-                    // userFacingMsg auch bei devMode=false, und der Text ist
-                    // ueber "Kopieren/Teilen" exportierbar.
-                    context.getString(
-                        R.string.compose_send_error_invalid_amount,
-                        request.currency,
-                        request.amount,
-                    ),
+                    context.getString(R.string.compose_send_error_no_balance),
                 )
             )
         }
         return
     }
 
-    // Fix round 1 (Task-A6 Review, Important #3): Amount.checkValue begrenzt
-    // nur nach oben - ein "-5" oder "0" von Signal wuerde sonst klaglos ueber
-    // Amount.fromString durchgehen und direkt in initiatePeerPushDebit
-    // landen. Non-positive Betraege wie einen Parse-Fehler behandeln.
-    if (amount.isZero() || amount.value < 0) {
-        // Fix (Final-Review I3): siehe Kommentar im amount==null-Zweig oben -
-        // gleiches Prinzip, kein sofortiges fireReturn/onNavigateBack mehr.
-        LaunchedEffect(Unit) {
-            onShowError(
-                TalerErrorInfo.makeCustomError(
-                    context.getString(
-                        R.string.compose_send_error_non_positive_amount,
-                        request.currency,
-                        request.amount,
-                    ),
-                )
-            )
-        }
-        return
-    }
-
-    // Minor Fix (withSpec statt bare toString): die Ein-Parameter-Variante
-    // von getSpecForCurrency ist deprecated ("Please find spec via scopeInfo
-    // instead"); die Zwei-Parameter-Variante (currency, scopes) ist der
-    // empfohlene Ersatz und wird genau so direkt im Composable-Body
-    // aufgerufen wie in TransactionDetailScreen.kt (dort mit tx.scopes).
-    // balanceManager.getScopes(true) liefert dieselben "fuer Peer-Zahlungen
-    // geeigneten" Scopes, die auch OutgoingPushScreen.kt fuer denselben Zweck
-    // verwendet.
-    val currencySpec = remember(amount.currency) {
-        model.exchangeManager.getSpecForCurrency(amount.currency, model.balanceManager.getScopes(true))
-    }
-
-    var fees by remember { mutableStateOf<CheckFeeResult?>(null) }
-    LaunchedEffect(amount) {
-        fees = peerManager.checkPeerPushFees(amount)
-    }
-
+    val devMode by model.devMode.observeAsState(false)
     val pushState by peerManager.pushState.collectAsStateLifecycleAware()
 
     // Fix round 1 (Task-A6 Review, Critical #1 Teil b): beide reaktiven
@@ -348,31 +296,19 @@ fun ComposeSendScreen(
             // Fix round 1 (Task-A6 Review, Important #2): waehrend
             // initiatePeerPushDebit unterwegs ist (OutgoingCreating) oder die
             // Transaktion bereits erzeugt, aber noch nicht mit talerUri
-            // abgeschlossen ist (OutgoingResponse, s.o.), Ladeanzeige statt
-            // tippbarem Formular zeigen - verhindert, dass ein zweiter Tap
-            // waehrend des fire-and-forget-Aufrufs eine zweite, verwaiste
-            // Zahlung erzeugt.
-            if (initiated && (pushState is OutgoingCreating || pushState is OutgoingResponse)) {
-                LoadingScreen(modifier = Modifier.padding(paddingValues))
-                return@GlobalScaffold
-            }
-
+            // abgeschlossen ist (OutgoingResponse, s.o.): OutgoingPushComposable
+            // rendert dafuer bereits selbst einen LoadingScreen ueber sein
+            // eigenes when(state) (siehe OutgoingPushComposable.kt Zeile
+            // ~85f.) - kein eigener Zweig hier noetig, sonst doppelt.
+            // Doppel-Tap-Schutz bleibt trotzdem erhalten: initiatePeerPushDebit
+            // setzt synchron OutgoingCreating, wodurch die Composable beim
+            // naechsten Recompose auf LoadingScreen wechselt - identisches
+            // Muster wie im unveraenderten OutgoingPushScreen.kt.
             Column(modifier = Modifier.padding(paddingValues).padding(16.dp)) {
-                Text(
-                    amount.withSpec(currencySpec).toString(),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                // Fix (Final-Review I4): recipientHint ist der Anzeigename des
-                // REMOTEN Signal-Kontakts - aus Talers Sicht angreifer-
-                // kontrolliert. Vorher stand er mit " -> " verkettet in
-                // DERSELBEN Text-Composable wie der bestaetigte Betrag
-                // (maxLines=2) - ein Profilname mit fuehrendem Zeilenumbruch
-                // haette eine zweite, wie eine echte Gebuehrenzeile
-                // aussehende Zeile einschleusen koennen. Jetzt: eigene
-                // Text-Composable, maxLines=1 (ein eingebetteter
-                // Zeilenumbruch kann keine zweite sichtbare Zeile mehr
-                // erzeugen) und Steuerzeichen (inkl. Zeilenumbrueche) vor der
+                // Fix (Final-Review I4, weiterhin gueltig): recipientHint ist
+                // der Anzeigename des REMOTEN Signal-Kontakts - aus Talers
+                // Sicht angreifer-kontrolliert. Eigene Text-Composable,
+                // maxLines=1, Steuerzeichen (inkl. Zeilenumbrueche) vor der
                 // Anzeige entfernt.
                 request.recipientHint
                     ?.filter { it.isDefined() && !it.isISOControl() }
@@ -384,92 +320,65 @@ fun ComposeSendScreen(
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
-                request.purpose?.let { Text(it) }
-                when (val f = fees) {
-                    is CheckFeeResult.Success -> {
-                        // Fix round 1 (Task-A6 Review, Important #1): die
-                        // "Fee"-Beschriftung muss die tatsaechliche Gebuehr
-                        // zeigen (amountEffective - amountRaw), nicht den
-                        // GESAMTEN abgehenden Betrag (amountEffective) -
-                        // gleiche Berechnung wie OutgoingPushComposable.kt
-                        // (dort unter R.string.payment_fee).
-                        //
-                        // Fix round 2 (Task-A6 Review, Important #1
-                        // Nachtrag): Amount.minus() wirft eine
-                        // AmountOverflowException, wenn die linke Seite nicht
-                        // groesser als die rechte ist - die Subtraktion darf
-                        // deshalb nicht unbedingt erfolgen. Exakt derselbe
-                        // Guard wie OutgoingPushComposable.kt Zeile ~193
-                        // (dort: "is Success -> if (res.amountEffective >
-                        // res.amountRaw) { ... }"): nur wenn effektiv wirklich
-                        // mehr abgeht als roh angefragt wurde, existiert eine
-                        // Gebuehr und wird gezeigt. Sind beide Betraege
-                        // gleich (kein Fee), wird keine Zeile angezeigt statt
-                        // einer immer sichtbaren "Fee: 0"-Zeile.
-                        if (f.amountEffective > f.amountRaw) {
-                            val fee = f.amountEffective - f.amountRaw
-                            Text(
-                                stringResource(
-                                    R.string.compose_send_fee_label,
-                                    fee.withSpec(currencySpec).toString(),
-                                )
-                            )
-                        }
-                        // Fix (Final-Review I2): PROMPT.md's eigener
-                        // Milestone-Text verlangt "Bestaetigung zeigt
-                        // X+Gebuehr" - bislang wurde nur der Rohbetrag und
-                        // (getrennt) die Gebuehr gezeigt, nie die tatsaechlich
-                        // vom Nutzer autorisierte Gesamtsumme. amountEffective
-                        // kommt direkt aus dem echten CheckFeeResult.Success
-                        // (kein clientseitiges Nachrechnen ausser der bereits
-                        // vorhandenen Subtraktion oben).
-                        Text(
-                            stringResource(
-                                R.string.compose_send_total_label,
-                                f.amountEffective.withSpec(currencySpec).toString(),
-                            )
-                        )
+                // Neu: Kontextinfo, die Signal jetzt statt eines Betrags
+                // mitgibt (docs/API.md 2.4) - rein informativ, keine der
+                // beiden Zeilen beeinflusst, was tatsaechlich gesendet wird.
+                if (request.isGroup) {
+                    request.memberCount?.let { count ->
+                        Text(stringResource(R.string.compose_send_group_hint, count))
                     }
-
-                    is CheckFeeResult.InsufficientBalance -> {
-                        // Fix round 1 (Task-A6 Review, Important #4): bislang
-                        // wurde dieser Fall komplett verschluckt (when-Zweig
-                        // war "else -> Unit") - der Nutzer sah keine Fee-Zeile
-                        // und konnte trotzdem tippen, was zu einem stillen
-                        // OutgoingError-Abbruch fuehrte. Mindestens sichtbare
-                        // Meldung zeigen, gleiches Prinzip wie
-                        // OutgoingPushComposable.kt (dort ueber
-                        // res.causeHint?.stringResId()).
-                        Text(
-                            stringResource(
-                                f.causeHint?.stringResId()
-                                    ?: R.string.payment_balance_insufficient
-                            )
-                        )
-                    }
-
-                    is CheckFeeResult.None, null -> Unit
+                    Text(stringResource(R.string.compose_send_group_warning))
                 }
-                Button(
-                    // Fix round 1 (Task-A6 Review, Important #2 + #4): Button
-                    // erst enabled, wenn eine erfolgreiche Fee-Pruefung
-                    // vorliegt (verhindert Tap vor Abschluss von
-                    // checkPeerPushFees und bei InsufficientBalance/None), und
-                    // nur solange noch nicht initiiert (verhindert Doppel-Tap
-                    // waehrend initiatePeerPushDebit unterwegs ist).
-                    enabled = !initiated && fees is CheckFeeResult.Success,
-                    onClick = {
+                if (request.disappearingMessagesSeconds > 0) {
+                    Text(
+                        stringResource(
+                            R.string.compose_send_disappearing_hint,
+                            formatDuration(context, request.disappearingMessagesSeconds),
+                        )
+                    )
+                }
+                // OutgoingPushComposable deckt Intro/Checked/Error (Formular
+                // bzw. ErrorComposable) UND Checking/Creating/Response
+                // (LoadingScreen) bereits vollstaendig ueber sein eigenes
+                // when(state) ab (siehe OutgoingPushComposable.kt) - kein
+                // eigener Error-/Loading-Zweig hier noetig.
+                OutgoingPushComposable(
+                    state = pushState,
+                    defaultScope = null,
+                    scopes = scopes,
+                    devMode = devMode,
+                    getCurrencySpec = model.exchangeManager::getSpecForScopeInfo,
+                    getFees = {
+                        model.selectScope(it.scope)
+                        peerManager.checkPeerPushFees(it.amount, restrictScope = it.scope)
+                    },
+                    onSend = { amountScope, summary, hours ->
                         initiated = true
                         peerManager.initiatePeerPushDebit(
-                            amount = amount,
-                            summary = request.purpose ?: "",
-                            expirationHours = EXPIRATION_HOURS,
+                            amountScope.amount,
+                            summary,
+                            hours,
+                            restrictScope = amountScope.scope,
                         )
                     },
-                ) {
-                    Text(stringResource(R.string.compose_send_button))
-                }
+                )
             }
         }
+    }
+}
+
+private fun formatDuration(context: android.content.Context, seconds: Int): String = when {
+    seconds < 60 -> context.resources.getQuantityString(R.plurals.compose_send_duration_seconds, seconds, seconds)
+    seconds < 3_600 -> (seconds / 60).let {
+        context.resources.getQuantityString(R.plurals.compose_send_duration_minutes, it, it)
+    }
+    seconds < 86_400 -> (seconds / 3_600).let {
+        context.resources.getQuantityString(R.plurals.compose_send_duration_hours, it, it)
+    }
+    seconds < 604_800 -> (seconds / 86_400).let {
+        context.resources.getQuantityString(R.plurals.compose_send_duration_days, it, it)
+    }
+    else -> (seconds / 604_800).let {
+        context.resources.getQuantityString(R.plurals.compose_send_duration_weeks, it, it)
     }
 }

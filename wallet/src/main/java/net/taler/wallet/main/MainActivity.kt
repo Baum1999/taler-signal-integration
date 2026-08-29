@@ -94,6 +94,7 @@ class MainActivity : FragmentActivity() {
 
     private var pendingLaunchUri: String? = null
     private var pendingComposeSendId: String? = null
+    private var pendingComposeRefundId: String? = null
     private var nav: NavController? = null
     private lateinit var biometricPrompt: BiometricPrompt
     private lateinit var promptInfo: BiometricPrompt.PromptInfo
@@ -158,6 +159,14 @@ class MainActivity : FragmentActivity() {
                         // ausfuehrliche Begruendung (gleicher Mechanismus).
                         nav?.navigate(WalletDestination.ComposeSend(id)) {
                             popUpTo<WalletDestination.ComposeSend> { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                    pendingComposeRefundId?.let { id ->
+                        // Meilenstein 6: gleicher Einzelinstanz-Mechanismus wie
+                        // pendingComposeSendId oben, siehe emitComposeRefund().
+                        nav?.navigate(WalletDestination.ComposeRefund(id)) {
+                            popUpTo<WalletDestination.ComposeRefund> { inclusive = true }
                             launchSingleTop = true
                         }
                     }
@@ -405,12 +414,30 @@ class MainActivity : FragmentActivity() {
             }
         }
 
+        // Meilenstein 6: gleicher Einzelinstanz-Mechanismus wie
+        // emitComposeSend oben (siehe dortige ausfuehrliche Begruendung),
+        // eigener Routentyp/eigenes pending-Feld, damit ein compose-send- und
+        // ein compose-refund-Deep-Link einander nicht gegenseitig vom
+        // Stack poppen.
+        fun emitComposeRefund(correlationId: String) {
+            if (nav != null) {
+                nav?.navigate(WalletDestination.ComposeRefund(correlationId)) {
+                    popUpTo<WalletDestination.ComposeRefund> { inclusive = true }
+                    launchSingleTop = true
+                }
+            } else {
+                pendingComposeRefundId = correlationId
+            }
+        }
+
         // For VIEW intents (taler://, payto://, ...) the system sets intent.data;
         // for NDEF_DISCOVERED it is the URI of the first NDEF record on the tag.
         intent.dataString?.let { uri ->
             val parsed = Uri.parse(uri)
             if (parsed.scheme == "talerlink" && parsed.host == "compose-send") {
                 parsed.getQueryParameter("correlationId")?.let { id -> emitComposeSend(id) }
+            } else if (parsed.scheme == "talerlink" && parsed.host == "compose-refund") {
+                parsed.getQueryParameter("correlationId")?.let { id -> emitComposeRefund(id) }
             } else {
                 emitUri(uri)
             }
