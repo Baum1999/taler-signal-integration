@@ -35,8 +35,8 @@ import java.util.concurrent.CopyOnWriteArrayList
  * dieselbe Instanz zurueck. [release] faehrt wallet-core erst herunter, wenn
  * kein Aufrufer mehr eine Referenz haelt.
  */
-object WalletCoreSingleton : VersionReceiver, NotificationReceiver {
-    private val versionReceivers = CopyOnWriteArrayList<VersionReceiver>()
+object WalletCoreSingleton : InitReceiver, NotificationReceiver {
+    private val initReceivers = CopyOnWriteArrayList<InitReceiver>()
     private val notificationReceivers = CopyOnWriteArrayList<NotificationReceiver>()
 
     private var api: WalletBackendApi? = null
@@ -62,12 +62,12 @@ object WalletCoreSingleton : VersionReceiver, NotificationReceiver {
         }
     }
 
-    fun addVersionReceiver(r: VersionReceiver) {
-        versionReceivers.add(r)
+    fun addInitReceiver(r: InitReceiver) {
+        initReceivers.add(r)
     }
 
-    fun removeVersionReceiver(r: VersionReceiver) {
-        versionReceivers.remove(r)
+    fun removeInitReceiver(r: InitReceiver) {
+        initReceivers.remove(r)
     }
 
     fun addNotificationReceiver(r: NotificationReceiver) {
@@ -78,8 +78,12 @@ object WalletCoreSingleton : VersionReceiver, NotificationReceiver {
         notificationReceivers.remove(r)
     }
 
-    override fun onVersionReceived(versionInfo: WalletCoreVersion) {
-        versionReceivers.forEach { it.onVersionReceived(versionInfo) }
+    override fun onInitReceived(init: InitResponse) {
+        initReceivers.forEach { it.onInitReceived(init) }
+    }
+
+    override fun onInitErrorReceived(error: TalerErrorInfo) {
+        initReceivers.forEach { it.onInitErrorReceived(error) }
     }
 
     override fun onNotificationReceived(payload: NotificationPayload) {

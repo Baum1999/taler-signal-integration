@@ -107,12 +107,12 @@ class MainViewModel(
     private val api = WalletCoreSingleton.acquire(app, walletConfig)
 
     init {
-        WalletCoreSingleton.addVersionReceiver(this)
+        WalletCoreSingleton.addInitReceiver(this)
         WalletCoreSingleton.addNotificationReceiver(this)
     }
 
     override fun onCleared() {
-        WalletCoreSingleton.removeVersionReceiver(this)
+        WalletCoreSingleton.removeInitReceiver(this)
         WalletCoreSingleton.removeNotificationReceiver(this)
         super.onCleared()
     }
