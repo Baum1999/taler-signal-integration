@@ -47,6 +47,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.JsonPrimitive
@@ -109,6 +110,12 @@ fun OutgoingPushComposable(
     // noetig, der Nutzer tippt den Pro-Kopf-Betrag danach einfach selbst ins
     // selbe Feld.
     groupSplitMemberCount: Int? = null,
+    // Fix (UX-Befund: Gruppen-/disappearing-messages-Hinweise sind Teil
+    // desselben frueheren Top-Banners wie der Aufteilungs-Rechner) - vom
+    // Aufrufer (ComposeSendScreen) befuellter Slot, direkt unter dem
+    // Betragsfeld gerendert statt davor. Leer per Default, aendert also
+    // nichts am unveraenderten OutgoingPushScreen.kt/ComposeRefundScreen.kt.
+    contextContent: @Composable () -> Unit = {},
 ) {
     when(state) {
         is OutgoingChecking, is OutgoingCreating, is OutgoingResponse -> LoadingScreen(modifier)
@@ -125,6 +132,7 @@ fun OutgoingPushComposable(
             initialSubject = initialSubject,
             initialExpirationHours = initialExpirationHours,
             groupSplitMemberCount = groupSplitMemberCount,
+            contextContent = contextContent,
         )
     }
 }
@@ -143,6 +151,7 @@ fun OutgoingPushIntroComposable(
     initialSubject: String? = null,
     initialExpirationHours: Long? = null,
     groupSplitMemberCount: Int? = null,
+    contextContent: @Composable () -> Unit = {},
 ) {
     var amount by remember {
         val scope = defaultScope ?: scopes[0]
@@ -267,6 +276,8 @@ fun OutgoingPushIntroComposable(
                 }
             )
 
+            contextContent()
+
             groupSplitMemberCount?.let { count ->
                 GroupSplitHint(memberCount = count, total = amount.amount, spec = selectedSpec)
             }
@@ -373,7 +384,18 @@ fun OutgoingPushIntroComposable(
  * Eingabe dafuer war die vom Nutzer gemeldete Dopplung) und kein "Vorschlag
  * uebernehmen"-Button mehr - der Pro-Kopf-Betrag ist nur eine Live-Anzeige,
  * der Nutzer traegt ihn bei Bedarf selbst ins Betragsfeld oben ein.
+ *
+ * Fix (UX-Befund: editierbare Personenzahl): `memberCount` (die tatsaechliche
+ * Gruppengroesse von Signal) ist nur noch der Vorbefuellungswert eines
+ * editierbaren Feldes - manche Gruppenzahlungen betreffen nicht alle
+ * Mitglieder. Vorerst hart auf [MAX_SPLIT_MEMBERS] begrenzt: ohne Begrenzung
+ * koennte ein winziger Betrag durch eine riesige, frei eingetippte Zahl
+ * geteilt werden und BigDecimal.divide(scale=8) unnoetig lange rechnen -
+ * dieselbe Grenze wie die Datenbasis heutiger Signal-Gruppen ist bewusst
+ * NICHT das Kriterium, es geht nur um eine sinnvolle erste Obergrenze.
  */
+private const val MAX_SPLIT_MEMBERS = 10
+
 @Composable
 private fun GroupSplitHint(
     memberCount: Int,
@@ -382,6 +404,7 @@ private fun GroupSplitHint(
 ) {
     var splitEnabled by rememberSaveable { mutableStateOf(false) }
     var includeSelf by rememberSaveable { mutableStateOf(true) }
+    var memberCountInput by rememberSaveable { mutableStateOf(memberCount.toString()) }
 
     Row(
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -398,8 +421,23 @@ private fun GroupSplitHint(
             Checkbox(checked = includeSelf, onCheckedChange = { includeSelf = it })
             Text(stringResource(R.string.compose_send_split_include_self_checkbox))
         }
-        val perPerson = if (total.isZero()) null else try {
-            splitAmountEvenly(total, memberCount, includeSelf)
+        OutlinedTextField(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            value = memberCountInput,
+            onValueChange = { input ->
+                if (input.length <= 2 && input.all { it.isDigit() }) memberCountInput = input
+            },
+            label = { Text(stringResource(R.string.compose_send_split_member_count_label)) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+        )
+        val enteredCount = memberCountInput.toIntOrNull()
+        val perPerson = if (total.isZero() || enteredCount == null ||
+            enteredCount !in 1..MAX_SPLIT_MEMBERS
+        ) {
+            null
+        } else try {
+            splitAmountEvenly(total, enteredCount, includeSelf)
         } catch (e: IllegalArgumentException) {
             null
         }

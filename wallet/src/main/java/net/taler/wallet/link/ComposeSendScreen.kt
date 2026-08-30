@@ -56,7 +56,18 @@ import net.taler.wallet.transactions.TransactionPeerPushDebit
 // anschliessend ausgewaehlte Transaktion aber auch nach dieser Zeit noch
 // keine talerUri hat, brechen wir SICHTBAR mit einem Fehler ab, statt die
 // bereits committete Zahlung stillschweigend als CANCELLED zu melden.
-private const val TALER_URI_TIMEOUT_MS = 15_000L
+//
+// Fix (UX-Befund: "Timed out waiting for payment URI" tritt in der Praxis
+// auf): 15s waren gegen den oeffentlichen, geteilten
+// exchange.demo.taler.net zu knapp bemessen - die Zahlung committet dabei
+// tatsaechlich (Purse wird angelegt), nur die URI-Bestaetigung braucht
+// laenger als das Timeout. Das Timeout meldet dann faelschlich einen
+// Fehler, obwohl die Zahlung gleich danach durchkommt - der Nutzer versucht
+// daraufhin erneut zu senden und erzeugt so ungewollt eine zweite,
+// unabhaengige Zahlung (zwei separate Nachrichten/URIs statt einer). 45s
+// geben dem Exchange mehr Luft, ohne den Nutzer bei einem echten Haenger
+// endlos warten zu lassen.
+private const val TALER_URI_TIMEOUT_MS = 45_000L
 
 /**
  * Bestaetigungs-Screen fuer einen von Signal ueber prepareSend vorbereiteten
@@ -337,30 +348,6 @@ fun ComposeSendScreen(
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
-                // Neu: Kontextinfo, die Signal jetzt statt eines Betrags
-                // mitgibt (docs/API.md 2.4) - rein informativ, keine der
-                // beiden Zeilen beeinflusst, was tatsaechlich gesendet wird.
-                if (request.isGroup) {
-                    request.memberCount?.let { count ->
-                        Text(stringResource(R.string.compose_send_group_hint, count))
-                    }
-                    Text(stringResource(R.string.compose_send_group_warning))
-                    // Fix (Signal-Fork UX-Befund #1/#2/#4): der Aufteilungs-
-                    // Rechner ist keine eigene Banner-Sektion mehr hier oben,
-                    // sondern wird als GroupSplitHint direkt unter dem
-                    // Betragsfeld INNERHALB von OutgoingPushComposable
-                    // gerendert (siehe groupSplitMemberCount unten) - dort,
-                    // wo er inhaltlich hingehoert, statt vor dem eigentlichen
-                    // Formular zu stehen.
-                }
-                if (request.disappearingMessagesSeconds > 0) {
-                    Text(
-                        stringResource(
-                            R.string.compose_send_disappearing_hint,
-                            formatDuration(context, request.disappearingMessagesSeconds),
-                        )
-                    )
-                }
                 // OutgoingPushComposable deckt Intro/Checked/Error (Formular
                 // bzw. ErrorComposable) UND Checking/Creating/Response
                 // (LoadingScreen) bereits vollstaendig ueber sein eigenes
@@ -395,6 +382,32 @@ fun ComposeSendScreen(
                         .takeIf { it > 0 }
                         ?.let { seconds -> ((seconds + 3599) / 3600).toLong() },
                     groupSplitMemberCount = request.memberCount.takeIf { request.isGroup },
+                    // Fix (UX-Befund: "Einschieber von oben ist immer noch
+                    // da"): Gruppen-Hinweis/-Warnung und der disappearing-
+                    // messages-Hinweis sind ebenfalls Teil des frueheren
+                    // Banners - nicht nur der Aufteilungs-Rechner. Wandern
+                    // deshalb genau wie GroupSplitHint jetzt INNERHALB des
+                    // Formulars direkt unter das Betragsfeld, statt als
+                    // Textblock vor dem gesamten Formular zu stehen. Nur
+                    // recipientHint oben (wer ist der Empfaenger) bleibt
+                    // bewusst vor dem Formular - das ist Kontext, den man
+                    // braucht, BEVOR man ueberhaupt einen Betrag eintippt.
+                    contextContent = {
+                        if (request.isGroup) {
+                            request.memberCount?.let { count ->
+                                Text(stringResource(R.string.compose_send_group_hint, count))
+                            }
+                            Text(stringResource(R.string.compose_send_group_warning))
+                        }
+                        if (request.disappearingMessagesSeconds > 0) {
+                            Text(
+                                stringResource(
+                                    R.string.compose_send_disappearing_hint,
+                                    formatDuration(context, request.disappearingMessagesSeconds),
+                                )
+                            )
+                        }
+                    },
                 )
             }
         }
