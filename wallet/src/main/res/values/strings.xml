@@ -571,9 +571,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="compose_send_group_warning">This creates a single payment link. Whoever confirms first in Taler receives the money.</string>
     <string name="compose_send_split_checkbox">Calculate amount per person</string>
     <string name="compose_send_split_include_self_checkbox">Count myself in the split</string>
-    <string name="compose_send_split_total_label">Total amount to split</string>
     <string name="compose_send_split_suggestion">Suggestion: %1$s per person</string>
-    <string name="compose_send_split_apply_button">Use suggested amount</string>
     <string name="compose_send_disappearing_hint">Messages in this chat disappear after %1$s.</string>
     <plurals name="compose_send_duration_seconds">
         <item quantity="one">%d second</item>

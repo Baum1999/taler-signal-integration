@@ -18,6 +18,7 @@ package net.taler.wallet.peer
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -26,6 +27,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -39,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -62,6 +65,7 @@ import net.taler.wallet.compose.BottomButtonBox
 import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.link.splitAmountEvenly
 import net.taler.wallet.payment.stringResId
 import net.taler.wallet.peer.CheckFeeResult.InsufficientBalance
 import net.taler.wallet.peer.CheckFeeResult.None
@@ -90,6 +94,21 @@ fun OutgoingPushComposable(
     // eine Rueckerstattung ist eine neue Zahlung, keine erzwungene Kopie.
     initialAmount: Amount? = null,
     initialSubject: String? = null,
+    // Fix (Signal-Fork UX-Befund #3): Chat hat disappearing messages auf X
+    // Stunden stehen - der Zahlungslink darf die sichtbare Nachricht nicht
+    // ueberleben, sonst bleibt eine laengst aus dem Chat verschwundene
+    // Zahlung serverseitig weiter offen. Nur gesetzt, wenn Signal einen
+    // aktiven disappearing-messages-Timer mitgibt (ComposeSendScreen).
+    initialExpirationHours: Long? = null,
+    // Fix (Signal-Fork UX-Befund #1/#2/#4): ersetzt die vormals separate
+    // GroupSplitCalculator-Banner-UI oberhalb dieses Formulars. Nur gesetzt
+    // bei Gruppen-Versand (ComposeSendScreen) - zeigt direkt unter dem
+    // Betragsfeld einen Live-Hinweis, der den bereits eingetippten Betrag
+    // (denselben, der auch gesendet wird - keine zweite Eingabe mehr) durch
+    // die Gruppengroesse teilt. Kein eigenes "Vorschlag uebernehmen" mehr
+    // noetig, der Nutzer tippt den Pro-Kopf-Betrag danach einfach selbst ins
+    // selbe Feld.
+    groupSplitMemberCount: Int? = null,
 ) {
     when(state) {
         is OutgoingChecking, is OutgoingCreating, is OutgoingResponse -> LoadingScreen(modifier)
@@ -104,6 +123,8 @@ fun OutgoingPushComposable(
             modifier = modifier,
             initialAmount = initialAmount,
             initialSubject = initialSubject,
+            initialExpirationHours = initialExpirationHours,
+            groupSplitMemberCount = groupSplitMemberCount,
         )
     }
 }
@@ -120,6 +141,8 @@ fun OutgoingPushIntroComposable(
     modifier: Modifier = Modifier,
     initialAmount: Amount? = null,
     initialSubject: String? = null,
+    initialExpirationHours: Long? = null,
+    groupSplitMemberCount: Int? = null,
 ) {
     var amount by remember {
         val scope = defaultScope ?: scopes[0]
@@ -135,14 +158,24 @@ fun OutgoingPushIntroComposable(
     var feeResult by remember { mutableStateOf<CheckFeeResult>(None()) }
     var subject by rememberSaveable { mutableStateOf(initialSubject ?: "") }
 
-    var option by rememberSaveable { mutableStateOf(DEFAULT_EXPIRY) }
-    var hours by rememberSaveable { mutableLongStateOf(DEFAULT_EXPIRY.hours) }
+    var option by rememberSaveable {
+        mutableStateOf(if (initialExpirationHours != null) ExpirationOption.CUSTOM else DEFAULT_EXPIRY)
+    }
+    var hours by rememberSaveable { mutableLongStateOf(initialExpirationHours ?: DEFAULT_EXPIRY.hours) }
 
     amount.useDebounce {
         feeResult = getFees(it) ?: None()
-        (feeResult as? Success)?.let { res ->
-            option = ExpirationOption.CUSTOM
-            hours = res.defaultExpiration.toHours()
+        // Fix (Signal-Fork UX-Befund #3): ist die Gueltigkeit bereits durch
+        // den disappearing-messages-Timer des Chats vorgegeben, darf der vom
+        // Exchange vorgeschlagene Standard das nicht mehr stillschweigend
+        // ueberschreiben - sonst zeigt der Screen weiterhin "verschwindet
+        // nach 8h", waehrend die Zahlung tatsaechlich 1 Tag (o.ae.) gueltig
+        // bleibt.
+        if (initialExpirationHours == null) {
+            (feeResult as? Success)?.let { res ->
+                option = ExpirationOption.CUSTOM
+                hours = res.defaultExpiration.toHours()
+            }
         }
     }
 
@@ -233,6 +266,10 @@ fun OutgoingPushIntroComposable(
                     }
                 }
             )
+
+            groupSplitMemberCount?.let { count ->
+                GroupSplitHint(memberCount = count, total = amount.amount, spec = selectedSpec)
+            }
 
             if (state is OutgoingError) {
                 ErrorComposable(
@@ -325,6 +362,52 @@ fun OutgoingPushIntroComposable(
                 Text(text = stringResource(R.string.send_peer_create_button_amount,
                     amount.amount.withSpec(selectedSpec)))
             }
+        }
+    }
+}
+
+/**
+ * Ersetzt die vormalige, separate GroupSplitCalculator-Banner-UI (Signal-Fork
+ * UX-Befund #1/#2/#4): kein eigenes Eingabefeld fuer den Gesamtbetrag mehr
+ * (der bereits eingetippte Betrag oben IST der Gesamtbetrag - eine zweite
+ * Eingabe dafuer war die vom Nutzer gemeldete Dopplung) und kein "Vorschlag
+ * uebernehmen"-Button mehr - der Pro-Kopf-Betrag ist nur eine Live-Anzeige,
+ * der Nutzer traegt ihn bei Bedarf selbst ins Betragsfeld oben ein.
+ */
+@Composable
+private fun GroupSplitHint(
+    memberCount: Int,
+    total: Amount,
+    spec: CurrencySpecification?,
+) {
+    var splitEnabled by rememberSaveable { mutableStateOf(false) }
+    var includeSelf by rememberSaveable { mutableStateOf(true) }
+
+    Row(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        verticalAlignment = CenterVertically,
+    ) {
+        Checkbox(checked = splitEnabled, onCheckedChange = { splitEnabled = it })
+        Text(stringResource(R.string.compose_send_split_checkbox))
+    }
+    if (splitEnabled) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            verticalAlignment = CenterVertically,
+        ) {
+            Checkbox(checked = includeSelf, onCheckedChange = { includeSelf = it })
+            Text(stringResource(R.string.compose_send_split_include_self_checkbox))
+        }
+        val perPerson = if (total.isZero()) null else try {
+            splitAmountEvenly(total, memberCount, includeSelf)
+        } catch (e: IllegalArgumentException) {
+            null
+        }
+        perPerson?.let {
+            Text(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                text = stringResource(R.string.compose_send_split_suggestion, it.withSpec(spec)),
+            )
         }
     }
 }

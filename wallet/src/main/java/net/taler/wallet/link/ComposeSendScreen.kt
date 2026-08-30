@@ -18,24 +18,17 @@ package net.taler.wallet.link
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -44,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import kotlinx.coroutines.delay
-import net.taler.common.Amount
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
@@ -201,19 +193,6 @@ fun ComposeSendScreen(
     val devMode by model.devMode.observeAsState(false)
     val pushState by peerManager.pushState.collectAsStateLifecycleAware()
 
-    // Aufteilungs-Rechner (docs/API.md 2.4, vormals zurueckgestellter
-    // Folgepunkt): initialAmount wird von OutgoingPushIntroComposable nur
-    // EINMALIG beim ersten Compose gelesen (remember ohne Keys, siehe
-    // OutgoingPushComposable.kt:124-128) - genau das reicht hier, denn ein
-    // Tap auf "Vorschlag uebernehmen" in GroupSplitCalculator soll den
-    // Betrag ohnehin nur einmalig vorschlagen, nicht laufend synchronisieren
-    // (Regel 4: keine zweite Quelle der Wahrheit fuer den Betrag). Der
-    // Zaehler erzwingt per key() unten einen frischen Mount der Composable
-    // mit dem neuen initialAmount; ohne Tap bleibt splitApplyCounter bei 0
-    // und das Verhalten ist identisch zum Ist-Zustand (initialAmount = null).
-    var appliedSplitAmount by remember { mutableStateOf<Amount?>(null) }
-    var splitApplyCounter by remember { mutableStateOf(0) }
-
     // Fix round 1 (Task-A6 Review, Critical #1 Teil b): beide reaktiven
     // Effekte unten reagieren erst NACH einem tatsaechlichen Tap auf den
     // Send-Button (initiated = true, gesetzt im onClick unten). Vor diesem
@@ -366,16 +345,13 @@ fun ComposeSendScreen(
                         Text(stringResource(R.string.compose_send_group_hint, count))
                     }
                     Text(stringResource(R.string.compose_send_group_warning))
-                    request.memberCount?.let { count ->
-                        GroupSplitCalculator(
-                            memberCount = count,
-                            currency = scopes.first().currency,
-                            onApply = {
-                                appliedSplitAmount = it
-                                splitApplyCounter++
-                            },
-                        )
-                    }
+                    // Fix (Signal-Fork UX-Befund #1/#2/#4): der Aufteilungs-
+                    // Rechner ist keine eigene Banner-Sektion mehr hier oben,
+                    // sondern wird als GroupSplitHint direkt unter dem
+                    // Betragsfeld INNERHALB von OutgoingPushComposable
+                    // gerendert (siehe groupSplitMemberCount unten) - dort,
+                    // wo er inhaltlich hingehoert, statt vor dem eigentlichen
+                    // Formular zu stehen.
                 }
                 if (request.disappearingMessagesSeconds > 0) {
                     Text(
@@ -390,82 +366,37 @@ fun ComposeSendScreen(
                 // (LoadingScreen) bereits vollstaendig ueber sein eigenes
                 // when(state) ab (siehe OutgoingPushComposable.kt) - kein
                 // eigener Error-/Loading-Zweig hier noetig.
-                key(splitApplyCounter) {
-                    OutgoingPushComposable(
-                        state = pushState,
-                        defaultScope = null,
-                        scopes = scopes,
-                        devMode = devMode,
-                        getCurrencySpec = model.exchangeManager::getSpecForScopeInfo,
-                        getFees = {
-                            model.selectScope(it.scope)
-                            peerManager.checkPeerPushFees(it.amount, restrictScope = it.scope)
-                        },
-                        onSend = { amountScope, summary, hours ->
-                            initiated = true
-                            peerManager.initiatePeerPushDebit(
-                                amountScope.amount,
-                                summary,
-                                hours,
-                                restrictScope = amountScope.scope,
-                            )
-                        },
-                        initialAmount = appliedSplitAmount,
-                    )
-                }
+                OutgoingPushComposable(
+                    state = pushState,
+                    defaultScope = null,
+                    scopes = scopes,
+                    devMode = devMode,
+                    getCurrencySpec = model.exchangeManager::getSpecForScopeInfo,
+                    getFees = {
+                        model.selectScope(it.scope)
+                        peerManager.checkPeerPushFees(it.amount, restrictScope = it.scope)
+                    },
+                    onSend = { amountScope, summary, hours ->
+                        initiated = true
+                        peerManager.initiatePeerPushDebit(
+                            amountScope.amount,
+                            summary,
+                            hours,
+                            restrictScope = amountScope.scope,
+                        )
+                    },
+                    // Fix (Signal-Fork UX-Befund #3): Gueltigkeit des
+                    // Zahlungslinks an den disappearing-messages-Timer des
+                    // Chats koppeln, statt sie unabhaengig vom (bereits
+                    // angezeigten) Hinweistext laufen zu lassen. Aufrunden
+                    // auf volle Stunden, mindestens 1h (0 Stunden waere ein
+                    // sofort abgelaufener Link).
+                    initialExpirationHours = request.disappearingMessagesSeconds
+                        .takeIf { it > 0 }
+                        ?.let { seconds -> ((seconds + 3599) / 3600).toLong() },
+                    groupSplitMemberCount = request.memberCount.takeIf { request.isGroup },
+                )
             }
-        }
-    }
-}
-
-// Reiner UI-Vorschlagsrechner (docs/API.md 2.4) - berechnet nichts, was das
-// Formular unten nicht ohnehin editierbar liesse: das Ergebnis wird nur
-// ueber onApply nach oben gereicht und dort einmalig als initialAmount
-// gesetzt (Regel 4). Waehrung folgt zwingend der gleichen scopes[0]-
-// Fallback-Logik wie OutgoingPushIntroComposable selbst, siehe Kommentar am
-// GroupSplitCalculator-Aufruf oben.
-@Composable
-private fun GroupSplitCalculator(
-    memberCount: Int,
-    currency: String,
-    onApply: (Amount) -> Unit,
-) {
-    var splitEnabled by rememberSaveable { mutableStateOf(false) }
-    var includeSelf by rememberSaveable { mutableStateOf(true) }
-    var totalInput by rememberSaveable { mutableStateOf("") }
-
-    Row(verticalAlignment = CenterVertically) {
-        Checkbox(checked = splitEnabled, onCheckedChange = { splitEnabled = it })
-        Text(stringResource(R.string.compose_send_split_checkbox))
-    }
-    if (splitEnabled) {
-        Row(verticalAlignment = CenterVertically) {
-            Checkbox(checked = includeSelf, onCheckedChange = { includeSelf = it })
-            Text(stringResource(R.string.compose_send_split_include_self_checkbox))
-        }
-        val suggestion = totalInput
-            .takeIf { Amount.isValidAmountStr(it) }
-            ?.let { Amount.fromString(currency, it) }
-            ?.let {
-                try {
-                    splitAmountEvenly(it, memberCount, includeSelf)
-                } catch (e: IllegalArgumentException) {
-                    null
-                }
-            }
-        OutlinedTextField(
-            value = totalInput,
-            onValueChange = { totalInput = it },
-            label = { Text(stringResource(R.string.compose_send_split_total_label)) },
-            supportingText = suggestion?.let {
-                { Text(stringResource(R.string.compose_send_split_suggestion, it.toString())) }
-            },
-        )
-        Button(
-            enabled = suggestion != null,
-            onClick = { suggestion?.let(onApply) },
-        ) {
-            Text(stringResource(R.string.compose_send_split_apply_button))
         }
     }
 }
