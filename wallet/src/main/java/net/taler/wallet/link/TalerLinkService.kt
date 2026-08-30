@@ -55,6 +55,7 @@ import net.taler.wallet.withdraw.WithdrawExchangeResponse
 class TalerLinkService : Service() {
 
     private val consentStore by lazy { ConsentStore(applicationContext) }
+    private val ownUriTracker by lazy { OwnUriTracker(applicationContext) }
     private lateinit var api: WalletBackendApi
 
     private val binder = object : ITalerLink.Stub() {
@@ -247,7 +248,7 @@ class TalerLinkService : Service() {
      * isOwnPayment-Override ueber OwnUriTracker.isOwn() entfaellt damit.
      */
     private suspend fun previewPeerPushCredit(uri: String): PaymentPreviewResult {
-        OwnUriTracker.transactionIdFor(uri)?.let { ownTransactionId ->
+        ownUriTracker.transactionIdFor(uri)?.let { ownTransactionId ->
             return detailsFor(TalerUriKind.PAY_PUSH, ownTransactionId)
         }
 
@@ -284,7 +285,7 @@ class TalerLinkService : Service() {
         if (TalerUriParser.classify(uri) != TalerUriKind.PAY_PUSH) {
             throw IllegalStateException("originalUri ist keine pay-push-URI")
         }
-        if (OwnUriTracker.isOwn(uri)) {
+        if (ownUriTracker.isOwn(uri)) {
             throw IllegalStateException("originalUri ist eine selbst versendete Zahlung, keine empfangene")
         }
         val prepared = api.request(

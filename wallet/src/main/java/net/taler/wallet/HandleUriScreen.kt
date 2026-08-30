@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.net.toUri
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -43,6 +44,7 @@ fun HandleUriScreen(
     val networkStatus by model.networkManager.networkStatus.observeAsState()
     val payStatus by model.paymentManager.payStatus.observeAsState(PayStatus.None)
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     fun processTalerUri() {
         if (processing) return
@@ -139,7 +141,8 @@ fun HandleUriScreen(
                         // zurueckspringen - dort existiert bereits ein echtes "Abbrechen"
                         // (TransactionAction.Abort -> abortTransaction), siehe
                         // TransactionDetailScreen/TransactionPeerComposable.
-                        val ownTransactionId = net.taler.wallet.link.OwnUriTracker.transactionIdFor(cleanUri)
+                        val ownTransactionId =
+                            net.taler.wallet.link.OwnUriTracker(context).transactionIdFor(cleanUri)
                         if (ownTransactionId != null) {
                             if (model.transactionManager.selectTransaction(ownTransactionId)) {
                                 onNavigate(WalletDestination.TransactionPeer, true)

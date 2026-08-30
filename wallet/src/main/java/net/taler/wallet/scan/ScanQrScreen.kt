@@ -100,6 +100,7 @@ import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.compose.GlobalScaffold
+import net.taler.wallet.link.TalerUriExtractor
 import net.taler.wallet.main.MainViewModel
 
 enum class ScanTab { SCAN_QR, ENTER_LINK }
@@ -526,11 +527,10 @@ private fun EnterLinkTab(
     var error by remember { mutableStateOf<String?>(null) }
     val clipboard = context.getSystemService<ClipboardManager>()
 
-    val isValidTalerUri = { uri: String ->
-        uri.trim().startsWith("taler://", ignoreCase = true) ||
-            uri.trim().startsWith("taler+http://", ignoreCase = true) ||
-            uri.trim().startsWith("payto://", ignoreCase = true)
-    }
+    // Erkennt auch eine Taler-URI, die nicht allein im Feld steht - z.B. mit
+    // Begleittext davor ("Zahlung: taler://...") oder als JSON-Wrapper
+    // ({"uri": "taler://..."}), siehe TalerUriExtractor.
+    val isValidTalerUri = { uri: String -> TalerUriExtractor.extract(uri) != null }
 
     val getClipboardContents = {
         val item = clipboard?.primaryClip?.getItemAt(0)
@@ -577,8 +577,9 @@ private fun EnterLinkTab(
 
         Button(
             onClick = {
-                if (isValidTalerUri(uriText)) {
-                    onUriSubmitted(uriText.trim())
+                val extracted = TalerUriExtractor.extract(uriText)
+                if (extracted != null) {
+                    onUriSubmitted(extracted)
                 } else {
                     error = invalidUriError
                 }

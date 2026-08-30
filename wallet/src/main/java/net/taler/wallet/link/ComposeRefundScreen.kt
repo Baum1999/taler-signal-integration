@@ -58,7 +58,10 @@ import net.taler.wallet.peer.OutgoingResponse
 import net.taler.wallet.transactions.TransactionPeerPushCredit
 import net.taler.wallet.transactions.TransactionPeerPushDebit
 
-private const val TALER_URI_TIMEOUT_MS = 15_000L // wie in ComposeSendScreen.kt, gleiche Begruendung
+// Fix (UX-Befund, siehe ComposeSendScreen.kt fuer die vollstaendige
+// Begruendung): 15s waren gegen den oeffentlichen exchange.demo.taler.net
+// zu knapp bemessen.
+private const val TALER_URI_TIMEOUT_MS = 45_000L
 
 /**
  * Bestaetigungs-Screen fuer eine von Signal ueber prepareRefund vorbereitete
@@ -230,7 +233,7 @@ fun ComposeRefundScreen(
             val expectedId = (pushState as? OutgoingResponse)?.transactionId
             if (t is TransactionPeerPushDebit && t.transactionId == expectedId) {
                 t.talerUri?.let { uri ->
-                    OwnUriTracker.track(uri, t.transactionId)
+                    OwnUriTracker(context).track(uri, t.transactionId)
                     sentRefundStore.record(entry.originalTransactionId, t.transactionId)
                     fireReturn(ReturnStatus.READY, uri)
                     // Gleicher Grund wie ComposeSendScreen.kt: NICHT das

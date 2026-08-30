@@ -300,7 +300,7 @@ class MainActivity : FragmentActivity() {
                         // Signals "Abbrechen"-Button) direkt zur eigenen Transaktion
                         // zurueckfinden kann, statt sie faelschlich als eingehend zu
                         // behandeln.
-                        OwnUriTracker.track(uri, tx.transactionId)
+                        OwnUriTracker(this@MainActivity).track(uri, tx.transactionId)
                     }
                 }
             }

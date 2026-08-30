@@ -288,7 +288,7 @@ fun ComposeSendScreen(
                     // dortige Log.d loggte frueher die volle taler://-URI mit
                     // - per Final-Review C1 behoben (MainActivity.kt loggt
                     // jetzt nur noch die transactionId).
-                    OwnUriTracker.track(uri, tx.transactionId)
+                    OwnUriTracker(context).track(uri, tx.transactionId)
                     fireReturn(ReturnStatus.READY, uri)
                     // Fix (Regression aus Final-Review C2-Fix): NICHT das
                     // geteilte onNavigateBack() - das wuerde ueber densel-
