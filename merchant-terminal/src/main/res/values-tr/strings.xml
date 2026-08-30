@@ -84,6 +84,8 @@
     <string name="order_custom_add_button">Ekle</string>
     <string name="menu_reload">Envanteri yeniden yükle</string>
     <string name="toast_reloading">Envanter yeniden yükleniyor</string>
+    <string name="toast_history_updating">Sipariş geçmişi güncelleniyor</string>
+    <string name="toast_history_updated">Sipariş geçmişi güncellendi</string>
     <string name="config_old_label">JSON dosyası (eski)</string>
     <string name="config_manual_label">Manuel yapılandırma</string>
     <string name="config_setup_password">Satıcı (yeni)</string>

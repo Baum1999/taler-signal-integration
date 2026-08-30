@@ -128,6 +128,8 @@
     <string name="error_cancelled">התשלום בוטל</string>
     <string name="error_history">שגיאה בטעינת היסטוריית ההזמנות</string>
     <string name="toast_reloading">טוען מלאי מחדש</string>
+    <string name="toast_history_updating">היסטוריית ההזמנות מתעדכנת</string>
+    <string name="toast_history_updated">היסטוריית ההזמנות עודכנה</string>
     <string name="toast_back_to_exit">לחצו שוב על «חזרה» כדי לצאת</string>
     <string name="host_apdu_service_desc">תשלומי NFC של Taler Merchant</string>
     <string-array name="settings_language_values"><item></item><item>en</item><item>de</item><item>es</item><item>fi</item><item>fr</item><item>it</item><item>ru</item><item>sv</item><item>tr</item><item>uk</item><item>he</item></string-array>

@@ -134,6 +134,8 @@
     <string name="config_fragment_camera_needed_text">Для сканирования QR требуется разрешение на камеру</string>
     <string name="host_apdu_service_desc">NFC-платежи Taler Merchant</string>
     <string name="toast_reloading">Перезагрузка инвентаря</string>
+    <string name="toast_history_updating">История заказов обновляется</string>
+    <string name="toast_history_updated">История заказов обновлена</string>
     <string name="product_unavailable">Недоступно</string>
     <string name="product_out_of_stock">Нет в наличии</string>
     <string name="order_delete">Удалить заказ</string>

@@ -141,6 +141,8 @@
     <string name="error_cancelled">Pagamento annullato</string>
     <string name="error_history">Errore durante il recupero dello storico pagamenti</string>
     <string name="toast_reloading">Ricaricamento inventario</string>
+    <string name="toast_history_updating">Aggiornamento della cronologia degli ordini</string>
+    <string name="toast_history_updated">Cronologia degli ordini aggiornata</string>
     <string name="toast_back_to_exit">Premi di nuovo «indietro» per uscire</string>
     <string name="host_apdu_service_desc">Pagamenti NFC Taler Merchant</string>
     <string-array name="settings_language_values"><item></item><item>en</item><item>de</item><item>es</item><item>fi</item><item>fr</item><item>it</item><item>ru</item><item>sv</item><item>tr</item><item>uk</item><item>he</item></string-array>

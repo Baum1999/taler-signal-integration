@@ -133,6 +133,8 @@
     <string name="config_fragment_camera_needed_text">Kamerabehörighet krävs för QR-skanning</string>
     <string name="host_apdu_service_desc">Taler Merchant NFC-betalningar</string>
     <string name="toast_reloading">Laddar om lager</string>
+    <string name="toast_history_updating">Uppdaterar orderhistoriken</string>
+    <string name="toast_history_updated">Orderhistoriken har uppdaterats</string>
     <string name="menu_reload">Ladda om lager</string>
     <string name="product_unavailable">Inte tillganglig</string>
     <string name="product_out_of_stock">Slut i lager</string>

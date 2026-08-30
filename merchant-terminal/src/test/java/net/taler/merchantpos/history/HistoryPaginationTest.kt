@@ -78,10 +78,52 @@ class HistoryPaginationTest {
         assertTrue(pagination.reachedEnd)
     }
 
-    private fun entry(rowId: Long) = OrderHistoryEntry(
+    @Test
+    fun `newer order from a later page moves to the top`() {
+        val pagination = HistoryPagination()
+        pagination.addPage(
+            listOf(
+                entry(rowId = 100, timestampMillis = 100_000),
+                entry(rowId = 99, timestampMillis = 90_000),
+            ),
+            reset = true,
+        )
+
+        pagination.addPage(
+            listOf(
+                entry(rowId = 98, timestampMillis = 110_000),
+                entry(rowId = 97, timestampMillis = 80_000),
+            ),
+            reset = false,
+        )
+
+        assertEquals(listOf(98L, 100L, 99L, 97L), pagination.items.map { it.rowId })
+        assertEquals(97L, pagination.nextOffset)
+    }
+
+    @Test
+    fun `equal timestamps use newest row first`() {
+        val pagination = HistoryPagination()
+
+        pagination.addPage(
+            listOf(
+                entry(rowId = 9, timestampMillis = 1_000),
+                entry(rowId = 11, timestampMillis = 1_000),
+                entry(rowId = 10, timestampMillis = 1_000),
+            ),
+            reset = true,
+        )
+
+        assertEquals(listOf(11L, 10L, 9L), pagination.items.map { it.rowId })
+    }
+
+    private fun entry(
+        rowId: Long,
+        timestampMillis: Long = rowId * 1_000,
+    ) = OrderHistoryEntry(
         orderId = "order-$rowId",
         rowId = rowId,
-        timestamp = Timestamp.fromMillis(rowId * 1_000),
+        timestamp = Timestamp.fromMillis(timestampMillis),
         amount = Amount("KUDOS", rowId, 0),
         summary = "Order $rowId",
         paid = false,

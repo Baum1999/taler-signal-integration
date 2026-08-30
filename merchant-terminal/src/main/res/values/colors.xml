@@ -44,4 +44,7 @@
 
 <color name="colorShadow">#000000</color>
 <color name="colorScrim">#000000</color>
+
+<!-- Taler POS logo lettering; the blue mark remains unchanged in both themes. -->
+<color name="talerPosLogoText">#000000</color>
 </resources>

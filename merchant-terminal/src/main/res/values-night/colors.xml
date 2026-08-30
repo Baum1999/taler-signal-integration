@@ -46,5 +46,7 @@
 
     <color name="colorShadow">#000000</color>
     <color name="colorScrim">#000000</color>
-</resources>
 
+    <!-- Matches the dark Taler POS logo supplied by the iOS asset catalog. -->
+    <color name="talerPosLogoText">#E5E2E1</color>
+</resources>

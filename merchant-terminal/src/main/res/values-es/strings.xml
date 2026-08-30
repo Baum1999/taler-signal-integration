@@ -121,6 +121,8 @@
     <string name="product_image">Imagen del producto</string>
     <string name="product_category_uncategorized">Sin categoría</string>
     <string name="toast_reloading">Recargando inventario</string>
+    <string name="toast_history_updating">Actualizando el historial de pedidos</string>
+    <string name="toast_history_updated">Historial de pedidos actualizado</string>
     <string name="config_qr_label">Configuración QR</string>
     <string name="scan_qr_hint">Escanea el código QR del backoffice del comercio</string>
     <string name="forever">Para siempre</string>

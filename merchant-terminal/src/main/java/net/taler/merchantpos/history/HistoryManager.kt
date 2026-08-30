@@ -21,6 +21,7 @@ import androidx.annotation.UiThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import net.taler.lib.android.assertUiThread
 import net.taler.merchantlib.CheckPaymentResponse
@@ -59,9 +60,13 @@ class HistoryManager(
     val error: LiveData<HistoryError?> = mError
 
     private val pagination = HistoryPagination()
+    private var historyLoadJob: Job? = null
+    private var historyLoadGeneration = 0
 
     @UiThread
-    internal fun fetchHistory() = fetchHistoryPage(reset = true)
+    internal fun fetchHistory(onFinished: (() -> Unit)? = null) {
+        startHistoryLoad(reset = true, onFinished = onFinished)
+    }
 
     @UiThread
     internal fun loadMoreHistoryIfNeeded(lastVisibleIndex: Int) {
@@ -69,11 +74,27 @@ class HistoryManager(
         if (mIsLoading.value == true || mIsLoadingMore.value == true || pagination.reachedEnd) return
         if (currentItems.isEmpty()) return
         if (lastVisibleIndex < currentItems.lastIndex - LOAD_MORE_THRESHOLD) return
-        fetchHistoryPage(reset = false)
+        startHistoryLoad(reset = false)
     }
 
     @UiThread
-    private fun fetchHistoryPage(reset: Boolean) = scope.launch {
+    private fun startHistoryLoad(reset: Boolean, onFinished: (() -> Unit)? = null) {
+        if (!reset && historyLoadJob?.isActive == true) return
+
+        val generation = ++historyLoadGeneration
+        historyLoadJob?.cancel()
+        historyLoadJob = scope.launch {
+            val succeeded = fetchHistoryPages(reset, generation)
+            if (succeeded && generation == historyLoadGeneration) onFinished?.invoke()
+        }
+    }
+
+    /**
+     * Publishes the first page immediately, then keeps loading the remaining
+     * history sequentially. This lets timestamp sorting cover the complete
+     * history without requiring the user to scroll through every page first.
+     */
+    private suspend fun fetchHistoryPages(reset: Boolean, generation: Int): Boolean {
         if (reset) {
             mIsLoading.value = true
             mIsLoadingMore.value = false
@@ -81,18 +102,34 @@ class HistoryManager(
             mIsLoadingMore.value = true
         }
         val merchantConfig = configManager.merchantConfig!!
-        val offset = if (reset) null else pagination.nextOffset
-        api.getOrderHistory(
-            merchantConfig = merchantConfig,
-            limit = -PAGE_SIZE,
-            offset = offset,
-        ).handle({ onError(R.string.error_history, it) }) { response ->
-            assertUiThread()
-            mIsLoading.value = false
-            mIsLoadingMore.value = false
-            val newItems = pagination.addPage(response.orders, reset)
-            publishItems()
-            enrichOrders(newItems)
+
+        var resetPage = reset
+        while (true) {
+            val offset = if (resetPage) null else pagination.nextOffset
+            val response = api.getOrderHistory(
+                merchantConfig = merchantConfig,
+                limit = -PAGE_SIZE,
+                offset = offset,
+            )
+
+            // A refresh may have superseded this request while it was in flight.
+            if (generation != historyLoadGeneration) return false
+
+            var succeeded = false
+            response.handle({ onError(R.string.error_history, it) }) { history ->
+                assertUiThread()
+                succeeded = true
+                val newItems = pagination.addPage(history.orders, resetPage)
+                val hasMorePages = !pagination.reachedEnd
+                mIsLoading.value = false
+                mIsLoadingMore.value = hasMorePages
+                publishItems()
+                enrichOrders(newItems)
+            }
+
+            if (!succeeded) return false
+            if (pagination.reachedEnd) return true
+            resetPage = false
         }
     }
 
@@ -186,6 +223,10 @@ class HistoryManager(
 }
 
 internal class HistoryPagination {
+    private val newestFirst = compareByDescending<OrderHistoryEntry> { it.timestamp.ms }
+        .thenByDescending { it.rowId ?: Long.MIN_VALUE }
+        .thenByDescending { it.orderId }
+
     private val loadedItems = mutableListOf<OrderHistoryEntry>()
 
     var nextOffset: Long? = null
@@ -215,7 +256,10 @@ internal class HistoryPagination {
         val existingOrderIds = loadedItems.mapTo(mutableSetOf()) { it.orderId }
         val newItems = page.filterNot { it.orderId in existingOrderIds }
         loadedItems += newItems
+        loadedItems.sortWith(newestFirst)
 
+        // Pagination follows the backend's raw page order, independently from
+        // the timestamp order used to present the combined list.
         val pageOffset = page.lastOrNull()?.rowId
         val cursorAdvanced = pageOffset != null && (reset || pageOffset != previousOffset)
         if (pageOffset != null) nextOffset = pageOffset
@@ -227,6 +271,7 @@ internal class HistoryPagination {
     fun replaceItems(items: List<OrderHistoryEntry>) {
         loadedItems.clear()
         loadedItems.addAll(items)
+        loadedItems.sortWith(newestFirst)
         nextOffset = items.lastOrNull()?.rowId
         reachedEnd = false
     }
@@ -238,6 +283,7 @@ internal class HistoryPagination {
         val index = loadedItems.indexOfFirst { it.orderId == orderId }
         if (index == -1) return false
         loadedItems[index] = transform(loadedItems[index])
+        loadedItems.sortWith(newestFirst)
         return true
     }
 }

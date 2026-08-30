@@ -134,6 +134,8 @@
     <string name="config_fragment_camera_needed_text">QR-skannaus vaatii kameran käyttöoikeuden</string>
     <string name="host_apdu_service_desc">Taler Merchant NFC -maksut</string>
     <string name="toast_reloading">Ladataan varastoa uudelleen</string>
+    <string name="toast_history_updating">Tilaushistoriaa päivitetään</string>
+    <string name="toast_history_updated">Tilaushistoria päivitetty</string>
     <string name="product_unavailable">Ei saatavilla</string>
     <string name="product_out_of_stock">Loppu varastosta</string>
     <string name="order_delete">Poista tilaus</string>

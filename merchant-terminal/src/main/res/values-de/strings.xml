@@ -95,6 +95,8 @@
     <string name="order_custom_product">Bezeichnung des Einzelartikels</string>
     <string name="host_apdu_service_desc">NFC-Zahlungen mit Taler Merchant</string>
     <string name="toast_reloading">Bestand wird neu geladen</string>
+    <string name="toast_history_updating">Bestellverlauf wird aktualisiert</string>
+    <string name="toast_history_updated">Bestellverlauf aktualisiert</string>
     <string name="config_old_deprecation">Diese Konfigurationsmethode ist veraltet; bitte die neue Merchant-API-Konfiguration verwenden.</string>
     <string name="product_image">Abbildung des Artikels</string>
     <string name="product_category_uncategorized">Ohne Kategorie</string>

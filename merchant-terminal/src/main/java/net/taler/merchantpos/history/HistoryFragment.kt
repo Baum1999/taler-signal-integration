@@ -17,6 +17,7 @@
 package net.taler.merchantpos.history
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,6 +50,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.compose.runtime.livedata.observeAsState
 import kotlinx.coroutines.flow.collectLatest
 import net.taler.lib.android.toRelativeTime
@@ -124,7 +126,20 @@ class HistoryFragment : Fragment(), HistoryActionListener {
         if (model.configManager.merchantConfig?.baseUrl == null) {
             (requireActivity() as MainActivity).navigateTo(PosDestination.Config)
         } else {
-            historyManager.fetchHistory()
+            Toast.makeText(
+                requireContext(),
+                R.string.toast_history_updating,
+                Toast.LENGTH_SHORT,
+            ).show()
+            historyManager.fetchHistory {
+                if (isAdded && lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                    Toast.makeText(
+                        requireContext(),
+                        R.string.toast_history_updated,
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+            }
         }
     }
 

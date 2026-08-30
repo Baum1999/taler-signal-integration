@@ -121,6 +121,8 @@
     <string name="product_image">Зображення продукту</string>
     <string name="product_category_uncategorized">Без категорії</string>
     <string name="toast_reloading">Перезавантаження інвентарю</string>
+    <string name="toast_history_updating">Історія замовлень оновлюється</string>
+    <string name="toast_history_updated">Історію замовлень оновлено</string>
     <string name="config_qr_label">QR-конфігурація</string>
     <string name="scan_qr_hint">Скануйте QR-код із бекофісу продавця</string>
     <string name="forever">Назавжди</string>
