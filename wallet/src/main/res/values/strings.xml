@@ -569,6 +569,11 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="compose_send_error_no_balance">You don\'t have any Taler balance yet. Withdraw funds first, then try sending again.</string>
     <string name="compose_send_group_hint">Sending to a group of %1$d members.</string>
     <string name="compose_send_group_warning">This creates a single payment link. Whoever confirms first in Taler receives the money.</string>
+    <string name="compose_send_split_checkbox">Calculate amount per person</string>
+    <string name="compose_send_split_include_self_checkbox">Count myself in the split</string>
+    <string name="compose_send_split_total_label">Total amount to split</string>
+    <string name="compose_send_split_suggestion">Suggestion: %1$s per person</string>
+    <string name="compose_send_split_apply_button">Use suggested amount</string>
     <string name="compose_send_disappearing_hint">Messages in this chat disappear after %1$s.</string>
     <plurals name="compose_send_duration_seconds">
         <item quantity="one">%d second</item>
@@ -596,6 +601,8 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="compose_refund_title">Refund payment</string>
     <string name="compose_refund_original_summary_format">For: %1$s</string>
     <string name="compose_refund_error_original_not_found">Could not find the original payment to refund</string>
+    <string name="compose_refund_already_sent_warning">A refund for this payment was already sent on %1$s.</string>
+    <string name="compose_refund_already_sent_override">Discard old refund &amp; create new one</string>
 
     <!-- Refunds -->
 

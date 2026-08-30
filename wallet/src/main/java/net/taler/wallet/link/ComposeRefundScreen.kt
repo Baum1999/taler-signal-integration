@@ -16,10 +16,15 @@
 
 package net.taler.wallet.link
 
+import android.text.format.DateUtils
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -35,9 +40,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hasRoute
 import kotlinx.coroutines.delay
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
+import net.taler.wallet.WalletDestination
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.LoadingScreen
@@ -80,10 +87,21 @@ fun ComposeRefundScreen(
     val peerManager = model.peerManager
     val transactionManager = model.transactionManager
     val context = LocalContext.current
+    val sentRefundStore = remember { SentRefundStore(context.applicationContext) }
 
     // take() ist single-use - genau einmal bei der ersten Komposition lesen,
     // gleiches Muster wie ComposeSendScreen.kt.
     val entry = remember { PendingRefundStore.take(correlationId) }
+
+    // Dauerhafte "schon erstattet"-Pruefung (SentRefundStore.kt) - unabhaengig
+    // von PendingRefundStore/correlationId, ueberlebt App-/Prozessneustarts.
+    // overrideWarning: Nutzer hat explizit "verwerfen & neu erstellen"
+    // gewaehlt, der alte Eintrag bleibt bestehen, bis diese neue Rueckerstattung
+    // tatsaechlich gesendet wird (record() unten ueberschreibt ihn dann).
+    val alreadySent = remember(entry) {
+        entry?.let { sentRefundStore.entryFor(it.originalTransactionId) }
+    }
+    var overrideWarning by remember { mutableStateOf(false) }
 
     var fired by remember { mutableStateOf(false) }
     fun fireReturn(status: ReturnStatus, talerUri: String? = null) {
@@ -109,7 +127,22 @@ fun ComposeRefundScreen(
             // Gleiches Cancel-Prinzip wie ComposeSendScreen.kt: erst wenn der
             // Nutzer den Screen tatsaechlich verlaesst, nie synchron mit
             // einem onShowError-Aufruf im selben Tick.
-            fireReturn(ReturnStatus.CANCELLED)
+            //
+            // Ausnahme: MainActivity.emitComposeRefund() navigiert mit
+            // popUpTo<ComposeRefund>{inclusive=true}, was diese Instanz
+            // ersetzt statt sie zu verlassen (z.B. erneuter Refund-Tap,
+            // waehrend die App im Hintergrund lief und dieser Screen nie
+            // disposed wurde). In diesem Fall ist die aktuelle Backstack-
+            // Entry bereits die NEUE ComposeRefund-Instanz - CANCELLED darf
+            // dann nicht feuern, sonst reisst der startActivity()-Ruecksprung
+            // zu Signal (ReturnIntentSender) den Fokus vom gerade erst
+            // gezeigten neuen Screen wieder weg (sichtbares Aufblitzen/
+            // "Taler ploppt auf und schliesst sofort wieder").
+            val supersededByNewInstance = navController.currentBackStackEntry
+                ?.destination?.hasRoute<WalletDestination.ComposeRefund>() == true
+            if (!supersededByNewInstance) {
+                fireReturn(ReturnStatus.CANCELLED)
+            }
         }
     }
 
@@ -198,6 +231,7 @@ fun ComposeRefundScreen(
             if (t is TransactionPeerPushDebit && t.transactionId == expectedId) {
                 t.talerUri?.let { uri ->
                     OwnUriTracker.track(uri, t.transactionId)
+                    sentRefundStore.record(entry.originalTransactionId, t.transactionId)
                     fireReturn(ReturnStatus.READY, uri)
                     // Gleicher Grund wie ComposeSendScreen.kt: NICHT das
                     // geteilte onNavigateBack(), siehe Kommentar am
@@ -217,6 +251,40 @@ fun ComposeRefundScreen(
         ) { paddingValues ->
             if (tx == null) {
                 LoadingScreen(modifier = Modifier.padding(paddingValues))
+                return@GlobalScaffold
+            }
+
+            // Dauerhafte Dopplungs-Warnung (SentRefundStore.kt): fuer diese
+            // originalTransactionId wurde bereits erfolgreich eine
+            // Rueckerstattung gesendet. Blockiert das Formular, bis der
+            // Nutzer explizit "verwerfen & neu erstellen" waehlt - der alte
+            // SentRefundStore-Eintrag bleibt dabei unveraendert bestehen und
+            // wird erst ueberschrieben, wenn die neue Rueckerstattung
+            // tatsaechlich abgeschickt wird (siehe record()-Aufruf oben).
+            if (alreadySent != null && !overrideWarning) {
+                Column(
+                    modifier = Modifier.padding(paddingValues).padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Text(
+                        stringResource(
+                            R.string.compose_refund_already_sent_warning,
+                            DateUtils.formatDateTime(
+                                context,
+                                alreadySent.sentAtMillis,
+                                DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME,
+                            ),
+                        ),
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = onNavigateBack) {
+                            Text(stringResource(R.string.cancel))
+                        }
+                        Button(onClick = { overrideWarning = true }) {
+                            Text(stringResource(R.string.compose_refund_already_sent_override))
+                        }
+                    }
+                }
                 return@GlobalScaffold
             }
 
