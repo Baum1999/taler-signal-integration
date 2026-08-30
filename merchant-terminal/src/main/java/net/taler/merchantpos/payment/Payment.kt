@@ -24,7 +24,17 @@ data class Payment(
     val currency: String,
     val orderId: String? = null,
     val talerPayUri: String? = null,
+    val insecureTalerPayUri: String? = null,
+    val httpsUpgradeAccepted: Boolean = false,
+    val insecureUriAccepted: Boolean = false,
     val claimed: Boolean = false,
     val paid: Boolean = false,
     val error: String? = null
 )
+
+private const val INSECURE_TALER_SCHEME = "taler+http://"
+
+internal fun upgradeTalerPayUriToHttps(uri: String): String? {
+    if (!uri.startsWith(INSECURE_TALER_SCHEME, ignoreCase = true)) return null
+    return "taler://${uri.substring(INSECURE_TALER_SCHEME.length)}"
+}

@@ -95,6 +95,8 @@
     <string name="settings_instance_description">Ändra handlarportalens URL, användarnamn, lösenord och andra inställningar.</string>
     <string name="settings_instance_button">Ändra inloggningsinställningar</string>
     <string name="settings_logout_button">Logga ut</string>
+    <string name="settings_logout_warning">När du loggar ut tas handlaranslutningen, inloggningsuppgifterna och den cachelagrade konfigurationen bort från enheten. Du måste ansluta igen innan du kan använda terminalen.</string>
+    <string name="settings_logout_confirmation">Är du säker på att du vill logga ut?</string>
     <string name="config_merchant_url">Handlarportalens URL</string>
     <string name="amount_entry_label">Belopp</string>
     <string name="amount_entry_charge">Debitera</string>
@@ -142,4 +144,9 @@
     <string name="force_delete_dialog_title">Tvinga borttagning av beställningen?</string>
     <string name="force_delete_dialog_message">Den här beställningen har reserverats av en plånbok. En tvingad borttagning frigör alla lagerlås och hindrar plånboken från att slutföra betalningen.</string>
     <string name="force_delete_dialog_confirm">Tvinga borttagning</string>
+    <string name="insecure_payment_dialog_title">Problem med betalningslänken</string>
+    <string name="insecure_payment_dialog_message">Beställningen skapades, men betalningslänken kanske inte kan öppnas i kundens plånbok. Du kan prova en korrigerad betalningslänk, fortsätta som den är eller avbryta beställningen.</string>
+    <string name="insecure_payment_dialog_try_https">Prova korrigerad länk</string>
+    <string name="insecure_payment_dialog_continue_as_is">Fortsätt som den är</string>
+    <string name="insecure_payment_dialog_cancel_order">Avbryt beställning</string>
 </resources>

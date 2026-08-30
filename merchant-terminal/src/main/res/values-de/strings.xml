@@ -131,6 +131,8 @@
     <string name="settings_instance_button">Anmeldeeinstellungen ändern</string>
     <string name="settings_logout_button">Abmelden</string>
     <string name="settings_about_title">Über</string>
+    <string name="settings_logout_warning">Beim Abmelden werden die Händlerverbindung, die Anmeldedaten und die zwischengespeicherte Konfiguration von diesem Gerät entfernt. Sie müssen erneut eine Verbindung herstellen, bevor Sie das Terminal verwenden können.</string>
+    <string name="settings_logout_confirmation">Möchten Sie sich wirklich abmelden?</string>
     <string name="amount_entry_charge">Kassieren</string>
     <string name="amount_entry_create_order_charge">Bestellung erstellen (Betrag kassieren)</string>
     <string name="amount_entry_backspace">Löschen</string>
@@ -138,6 +140,11 @@
     <string name="force_delete_dialog_title">Löschen der Bestellung erzwingen?</string>
     <string name="force_delete_dialog_message">Diese Bestellung wurde von einer Wallet beansprucht. Erzwungenes Löschen hebt Bestandssperren auf und verhindert den Abschluss der Zahlung in der Wallet.</string>
     <string name="force_delete_dialog_confirm">Löschen erzwingen</string>
+    <string name="insecure_payment_dialog_title">Problem mit dem Zahlungslink</string>
+    <string name="insecure_payment_dialog_message">Die Bestellung wurde erstellt, aber ihr Zahlungslink lässt sich möglicherweise nicht in der Wallet des Kunden öffnen. Sie können einen korrigierten Zahlungslink versuchen, unverändert fortfahren oder die Bestellung stornieren.</string>
+    <string name="insecure_payment_dialog_try_https">Korrigierten Link versuchen</string>
+    <string name="insecure_payment_dialog_continue_as_is">Unverändert fortfahren</string>
+    <string name="insecure_payment_dialog_cancel_order">Bestellung stornieren</string>
     <string-array name="settings_language_values">
         <item></item>
         <item>en</item>

@@ -99,6 +99,8 @@
     <string name="settings_instance_description">Изменить URL портала продавца, имя пользователя, пароль и другие настройки.</string>
     <string name="settings_instance_button">Изменить настройки входа</string>
     <string name="settings_logout_button">Выйти</string>
+    <string name="settings_logout_warning">При выходе из системы с этого устройства будут удалены подключение к продавцу, учетные данные и кэшированная конфигурация. Перед использованием терминала потребуется подключиться снова.</string>
+    <string name="settings_logout_confirmation">Вы уверены, что хотите выйти из системы?</string>
     <string name="config_merchant_url">URL портала продавца</string>
     <string name="amount_entry_label">Сумма</string>
     <string name="amount_entry_charge">Списать</string>
@@ -142,4 +144,9 @@
     <string name="force_delete_dialog_title">Принудительно удалить заказ?</string>
     <string name="force_delete_dialog_message">Этот заказ был заявлен кошельком. Принудительное удаление снимет все блокировки запасов и не позволит кошельку завершить оплату.</string>
     <string name="force_delete_dialog_confirm">Удалить принудительно</string>
+    <string name="insecure_payment_dialog_title">Проблема с платёжной ссылкой</string>
+    <string name="insecure_payment_dialog_message">Заказ создан, но платёжная ссылка может не открыться в кошельке клиента. Можно попробовать исправленную платёжную ссылку, продолжить как есть или отменить заказ.</string>
+    <string name="insecure_payment_dialog_try_https">Попробовать исправленную ссылку</string>
+    <string name="insecure_payment_dialog_continue_as_is">Продолжить как есть</string>
+    <string name="insecure_payment_dialog_cancel_order">Отменить заказ</string>
 </resources>

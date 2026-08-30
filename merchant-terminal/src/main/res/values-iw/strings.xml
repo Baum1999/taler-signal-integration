@@ -46,6 +46,8 @@
     <string name="settings_instance_description">שינוי כתובת פורטל הסוחר, שם המשתמש, הסיסמה והגדרות נוספות.</string>
     <string name="settings_instance_button">שינוי הגדרות התחברות</string>
     <string name="settings_logout_button">התנתק</string>
+    <string name="settings_logout_warning">ההתנתקות תמחק מהמכשיר את החיבור לבית העסק, את פרטי ההתחברות ואת התצורה השמורה במטמון. יהיה צורך להתחבר מחדש לפני השימוש במסוף.</string>
+    <string name="settings_logout_confirmation">האם לצאת מהמערכת?</string>
     <string name="config_old_label">קובץ JSON (ישן)</string>
     <string name="config_setup_password">סיסמה</string>
     <string name="config_old_deprecation">שיטת תצורה זו מיושנת, השתמשו בתצורת API הסוחר החדשה.</string>
@@ -140,4 +142,9 @@
     <string name="force_delete_dialog_title">לכפות את מחיקת ההזמנה?</string>
     <string name="force_delete_dialog_message">ההזמנה נתבעה על ידי ארנק. מחיקה כפויה שלה תשחרר את כל נעילות המלאי ותמנע מהארנק להשלים את התשלום.</string>
     <string name="force_delete_dialog_confirm">מחיקה כפויה</string>
+    <string name="insecure_payment_dialog_title">בעיה בקישור התשלום</string>
+    <string name="insecure_payment_dialog_message">ההזמנה נוצרה, אך ייתכן שקישור התשלום לא ייפתח בארנק של הלקוח. אפשר לנסות קישור תשלום מתוקן, להמשיך כפי שהוא או לבטל את ההזמנה.</string>
+    <string name="insecure_payment_dialog_try_https">ניסיון עם קישור מתוקן</string>
+    <string name="insecure_payment_dialog_continue_as_is">המשך כפי שהוא</string>
+    <string name="insecure_payment_dialog_cancel_order">ביטול ההזמנה</string>
 </resources>

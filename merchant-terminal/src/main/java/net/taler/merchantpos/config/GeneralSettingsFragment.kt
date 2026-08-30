@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -41,6 +42,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.runtime.Composable
@@ -198,11 +200,54 @@ private fun GeneralSettingsScreen(
     var selectedInitialOrderScreen by rememberSaveable {
         mutableStateOf(initialSelectedOrderScreen)
     }
+    var logoutConfirmationStep by rememberSaveable { mutableStateOf(0) }
     val selectedInitialOrderLabel =
         initialOrderOptions.firstOrNull { it.screen == selectedInitialOrderScreen }?.label
             ?: initialOrderOptions.firstOrNull()?.label.orEmpty()
 
     PosTheme {
+        when (logoutConfirmationStep) {
+            1 -> AlertDialog(
+                onDismissRequest = { logoutConfirmationStep = 0 },
+                title = { Text(stringResource(R.string.settings_logout_button)) },
+                text = { Text(stringResource(R.string.settings_logout_warning)) },
+                confirmButton = {
+                    Button(onClick = { logoutConfirmationStep = 2 }) {
+                        Text(stringResource(R.string.payment_back_button))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { logoutConfirmationStep = 0 }) {
+                        Text(stringResource(android.R.string.cancel))
+                    }
+                },
+            )
+
+            2 -> AlertDialog(
+                onDismissRequest = { logoutConfirmationStep = 0 },
+                title = { Text(stringResource(R.string.settings_logout_button)) },
+                text = { Text(stringResource(R.string.settings_logout_confirmation)) },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            logoutConfirmationStep = 0
+                            onLogoutClick()
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                        ),
+                    ) {
+                        Text(stringResource(R.string.settings_logout_button))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { logoutConfirmationStep = 0 }) {
+                        Text(stringResource(android.R.string.cancel))
+                    }
+                },
+            )
+        }
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -267,7 +312,7 @@ private fun GeneralSettingsScreen(
                     }
                     Button(
                         modifier = Modifier.fillMaxWidth(),
-                        onClick = onLogoutClick,
+                        onClick = { logoutConfirmationStep = 1 },
                         shape = SettingsControlShape,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.errorContainer,

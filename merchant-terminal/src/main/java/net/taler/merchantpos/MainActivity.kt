@@ -122,7 +122,11 @@ class MainActivity : AppCompatActivity() {
         TalerNfcService.startService(this)
 
         model.paymentManager.payment.observe(this) { payment ->
-            payment?.talerPayUri?.let {
+            val paymentNfcUri = payment?.talerPayUri?.takeIf {
+                !payment.claimed && !payment.paid && payment.error == null
+            }
+            paymentNfcUri?.let {
+                TalerNfcService.clearNdefPayload(this)
                 TalerNfcService.setUri(this, it)
             } ?: run {
                 TalerNfcService.clearNdefPayload(this)

@@ -106,6 +106,8 @@
     <string name="settings_instance_description">Satıcı portalı URL’sini, kullanıcı adını, şifreyi ve diğer ayarları değiştirin.</string>
     <string name="settings_instance_button">Oturum açma ayarlarını değiştir</string>
     <string name="settings_logout_button">Oturumu kapat</string>
+    <string name="settings_logout_warning">Oturumu kapattığınızda satıcı bağlantısı, giriş bilgileri ve önbelleğe alınmış yapılandırma bu cihazdan kaldırılır. Terminali kullanmadan önce yeniden bağlanmanız gerekir.</string>
+    <string name="settings_logout_confirmation">Oturumu kapatmak istediğinizden emin misiniz?</string>
     <string name="amount_entry_label">Tutar</string>
     <string name="amount_entry_charge">Ücret al</string>
     <string name="amount_entry_create_order_charge">Sipariş oluştur (tutarı ücretlendir)</string>
@@ -142,4 +144,9 @@
     <string name="force_delete_dialog_title">Sipariş zorla silinsin mi?</string>
     <string name="force_delete_dialog_message">Bu sipariş bir cüzdan tarafından talep edildi. Zorla silinmesi tüm envanter kilitlerini kaldıracak ve cüzdanın ödemeyi tamamlamasını engelleyecektir.</string>
     <string name="force_delete_dialog_confirm">Zorla sil</string>
+    <string name="insecure_payment_dialog_title">Ödeme bağlantısı sorunu</string>
+    <string name="insecure_payment_dialog_message">Sipariş oluşturuldu, ancak ödeme bağlantısı müşterinin cüzdanında açılmayabilir. Düzeltilmiş bir ödeme bağlantısını deneyebilir, olduğu gibi devam edebilir veya siparişi iptal edebilirsiniz.</string>
+    <string name="insecure_payment_dialog_try_https">Düzeltilmiş bağlantıyı dene</string>
+    <string name="insecure_payment_dialog_continue_as_is">Olduğu gibi devam et</string>
+    <string name="insecure_payment_dialog_cancel_order">Siparişi iptal et</string>
 </resources>

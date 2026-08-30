@@ -58,9 +58,7 @@ class HistoryManager(
     private val mError = MutableLiveData<HistoryError?>(null)
     val error: LiveData<HistoryError?> = mError
 
-    private val loadedItems = mutableListOf<OrderHistoryEntry>()
-    private var nextOffset: Long? = null
-    private var reachedEnd = false
+    private val pagination = HistoryPagination()
 
     @UiThread
     internal fun fetchHistory() = fetchHistoryPage(reset = true)
@@ -68,7 +66,7 @@ class HistoryManager(
     @UiThread
     internal fun loadMoreHistoryIfNeeded(lastVisibleIndex: Int) {
         val currentItems = (mItems.value as? HistoryResult.Success)?.items ?: return
-        if (mIsLoading.value == true || mIsLoadingMore.value == true || reachedEnd) return
+        if (mIsLoading.value == true || mIsLoadingMore.value == true || pagination.reachedEnd) return
         if (currentItems.isEmpty()) return
         if (lastVisibleIndex < currentItems.lastIndex - LOAD_MORE_THRESHOLD) return
         fetchHistoryPage(reset = false)
@@ -83,7 +81,7 @@ class HistoryManager(
             mIsLoadingMore.value = true
         }
         val merchantConfig = configManager.merchantConfig!!
-        val offset = if (reset) null else nextOffset
+        val offset = if (reset) null else pagination.nextOffset
         api.getOrderHistory(
             merchantConfig = merchantConfig,
             limit = -PAGE_SIZE,
@@ -92,20 +90,7 @@ class HistoryManager(
             assertUiThread()
             mIsLoading.value = false
             mIsLoadingMore.value = false
-            if (reset) {
-                loadedItems.clear()
-                reachedEnd = false
-            }
-            val page = response.orders
-            val existingOrderIds = loadedItems.mapTo(mutableSetOf()) { it.orderId }
-            val newItems = page.filterNot { it.orderId in existingOrderIds }
-            if (newItems.isNotEmpty()) {
-                loadedItems += newItems
-                nextOffset = newItems.lastOrNull()?.rowId ?: loadedItems.lastOrNull()?.rowId
-            }
-            if (page.size < PAGE_SIZE || newItems.isEmpty()) {
-                reachedEnd = true
-            }
+            val newItems = pagination.addPage(response.orders, reset)
             publishItems()
             enrichOrders(newItems)
         }
@@ -155,13 +140,12 @@ class HistoryManager(
     }
 
     private fun publishItems() {
-        mItems.value = HistoryResult.Success(loadedItems.toList())
+        mItems.value = HistoryResult.Success(pagination.items)
     }
 
     @UiThread
     internal fun debugSetHistory(items: List<OrderHistoryEntry>) {
-        loadedItems.clear()
-        loadedItems.addAll(items)
+        pagination.replaceItems(items)
         publishItems()
     }
 
@@ -189,9 +173,7 @@ class HistoryManager(
         orderId: String,
         transform: (OrderHistoryEntry) -> OrderHistoryEntry,
     ) {
-        val index = loadedItems.indexOfFirst { it.orderId == orderId }
-        if (index == -1) return
-        loadedItems[index] = transform(loadedItems[index])
+        if (!pagination.updateItem(orderId, transform)) return
         publishItems()
     }
 
@@ -200,5 +182,62 @@ class HistoryManager(
         mIsLoading.value = false
         mIsLoadingMore.value = false
         mError.value = HistoryError(mainResId, msg)
+    }
+}
+
+internal class HistoryPagination {
+    private val loadedItems = mutableListOf<OrderHistoryEntry>()
+
+    var nextOffset: Long? = null
+        private set
+
+    var reachedEnd: Boolean = false
+        private set
+
+    val items: List<OrderHistoryEntry>
+        get() = loadedItems.toList()
+
+    /**
+     * Adds one backend page and returns only entries that were not loaded before.
+     *
+     * The backend's limit is an upper bound, so a short page does not prove that
+     * iteration is complete. Depending on backend cursor semantics, a page may
+     * also repeat the order at [nextOffset]. In that case it is de-duplicated.
+     */
+    fun addPage(page: List<OrderHistoryEntry>, reset: Boolean): List<OrderHistoryEntry> {
+        if (reset) {
+            loadedItems.clear()
+            nextOffset = null
+            reachedEnd = false
+        }
+
+        val previousOffset = nextOffset
+        val existingOrderIds = loadedItems.mapTo(mutableSetOf()) { it.orderId }
+        val newItems = page.filterNot { it.orderId in existingOrderIds }
+        loadedItems += newItems
+
+        val pageOffset = page.lastOrNull()?.rowId
+        val cursorAdvanced = pageOffset != null && (reset || pageOffset != previousOffset)
+        if (pageOffset != null) nextOffset = pageOffset
+
+        reachedEnd = page.isEmpty() || newItems.isEmpty() || !cursorAdvanced
+        return newItems
+    }
+
+    fun replaceItems(items: List<OrderHistoryEntry>) {
+        loadedItems.clear()
+        loadedItems.addAll(items)
+        nextOffset = items.lastOrNull()?.rowId
+        reachedEnd = false
+    }
+
+    fun updateItem(
+        orderId: String,
+        transform: (OrderHistoryEntry) -> OrderHistoryEntry,
+    ): Boolean {
+        val index = loadedItems.indexOfFirst { it.orderId == orderId }
+        if (index == -1) return false
+        loadedItems[index] = transform(loadedItems[index])
+        return true
     }
 }

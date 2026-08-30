@@ -54,6 +54,8 @@
     <string name="settings_instance_description">Change merchant portal URL, username, password, and other settings.</string>
     <string name="settings_instance_button">Modify login settings</string>
     <string name="settings_logout_button">Log out</string>
+    <string name="settings_logout_warning">Logging out removes the merchant connection, login credentials, and cached configuration from this device. You will need to connect again before using the terminal.</string>
+    <string name="settings_logout_confirmation">Are you sure you want to log out?</string>
     <string name="settings_about_title">About</string>
     <string name="config_old_label">JSON file (old)</string>
     <string name="config_setup_password">Password</string>
@@ -92,6 +94,11 @@
     <string name="force_delete_dialog_title">Force delete order?</string>
     <string name="force_delete_dialog_message">This order has been claimed by a wallet. Force deleting it will release any inventory locks and prevent the wallet from completing the payment.</string>
     <string name="force_delete_dialog_confirm">Force delete</string>
+    <string name="insecure_payment_dialog_title">Payment link problem</string>
+    <string name="insecure_payment_dialog_message">The order was created, but its payment link may not open in the customer’s wallet. You can try a fixed payment link, proceed as is, or cancel the order.</string>
+    <string name="insecure_payment_dialog_try_https">Try fixed link</string>
+    <string name="insecure_payment_dialog_continue_as_is">Continue as is</string>
+    <string name="insecure_payment_dialog_cancel_order">Cancel order</string>
     <string name="payment_share_uri">Share payment URI</string>
     <string name="payment_copy_uri">Copy payment URI</string>
 

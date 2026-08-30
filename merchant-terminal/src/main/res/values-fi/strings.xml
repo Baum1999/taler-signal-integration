@@ -99,6 +99,8 @@
     <string name="settings_instance_description">Muuta kauppiasportaalin URL-osoitetta, käyttäjätunnusta, salasanaa ja muita asetuksia.</string>
     <string name="settings_instance_button">Muokkaa kirjautumisasetuksia</string>
     <string name="settings_logout_button">Kirjaudu ulos</string>
+    <string name="settings_logout_warning">Uloskirjautuminen poistaa kauppiasyhteyden, kirjautumistiedot ja välimuistiin tallennetut asetukset tältä laitteelta. Sinun on muodostettava yhteys uudelleen ennen päätteen käyttöä.</string>
+    <string name="settings_logout_confirmation">Haluatko varmasti kirjautua ulos?</string>
     <string name="config_merchant_url">Kauppiasportaalin URL</string>
     <string name="amount_entry_label">Summa</string>
     <string name="amount_entry_charge">Veloita</string>
@@ -142,4 +144,9 @@
     <string name="force_delete_dialog_title">Pakotetaanko tilauksen poistaminen?</string>
     <string name="force_delete_dialog_message">Lompakko on lunastanut tämän tilauksen. Pakotettu poistaminen vapauttaa kaikki varastovaraukset ja estää lompakkoa suorittamasta maksua.</string>
     <string name="force_delete_dialog_confirm">Pakota poisto</string>
+    <string name="insecure_payment_dialog_title">Maksulinkin ongelma</string>
+    <string name="insecure_payment_dialog_message">Tilaus luotiin, mutta sen maksulinkki ei ehkä avaudu asiakkaan lompakossa. Voit kokeilla korjattua maksulinkkiä, jatkaa sellaisenaan tai peruuttaa tilauksen.</string>
+    <string name="insecure_payment_dialog_try_https">Kokeile korjattua linkkiä</string>
+    <string name="insecure_payment_dialog_continue_as_is">Jatka sellaisenaan</string>
+    <string name="insecure_payment_dialog_cancel_order">Peruuta tilaus</string>
 </resources>

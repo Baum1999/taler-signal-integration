@@ -87,6 +87,8 @@
     <string name="settings_instance_description">Modifica l’URL del portale commerciante, il nome utente, la password e altre impostazioni.</string>
     <string name="settings_instance_button">Modifica impostazioni di accesso</string>
     <string name="settings_logout_button">Disconnetti</string>
+    <string name="settings_logout_warning">Disconnettendoti, la connessione all’esercente, le credenziali di accesso e la configurazione memorizzata nella cache verranno rimosse da questo dispositivo. Dovrai riconnetterti prima di usare il terminale.</string>
+    <string name="settings_logout_confirmation">Vuoi davvero disconnetterti?</string>
     <string name="config_label">Impostazioni commerciante</string>
     <string name="config_old_label">File JSON (vecchio)</string>
     <string name="config_setup_password">Password</string>
@@ -149,6 +151,11 @@
     <string name="force_delete_dialog_title">Eliminare forzatamente l’ordine?</string>
     <string name="force_delete_dialog_message">Questo ordine è stato reclamato da un portafoglio. L’eliminazione forzata rilascerà tutti i blocchi dell’inventario e impedirà al portafoglio di completare il pagamento.</string>
     <string name="force_delete_dialog_confirm">Elimina forzatamente</string>
+    <string name="insecure_payment_dialog_title">Problema con il link di pagamento</string>
+    <string name="insecure_payment_dialog_message">L’ordine è stato creato, ma il link di pagamento potrebbe non aprirsi nel portafoglio del cliente. Puoi provare un link di pagamento corretto, continuare così com’è oppure annullare l’ordine.</string>
+    <string name="insecure_payment_dialog_try_https">Prova il link corretto</string>
+    <string name="insecure_payment_dialog_continue_as_is">Continua così com’è</string>
+    <string name="insecure_payment_dialog_cancel_order">Annulla ordine</string>
     <string name="order_delete">Cancella ordine</string>
     <string name="error_order_creation">Errore: impossibile creare l’ordine</string>
     <string name="error_inventory_unavailable">Errore: inventario disponibile insufficiente</string>

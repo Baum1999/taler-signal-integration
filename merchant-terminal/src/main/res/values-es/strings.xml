@@ -105,6 +105,8 @@
     <string name="settings_instance_description">Cambia la URL del portal del comercio, el nombre de usuario, la contraseña y otros ajustes.</string>
     <string name="settings_instance_button">Modificar ajustes de inicio de sesión</string>
     <string name="settings_logout_button">Cerrar sesión</string>
+    <string name="settings_logout_warning">Al cerrar sesión, se eliminarán de este dispositivo la conexión con el comercio, las credenciales de inicio de sesión y la configuración almacenada en caché. Tendrá que volver a conectarse antes de usar el terminal.</string>
+    <string name="settings_logout_confirmation">¿Seguro que quiere cerrar sesión?</string>
     <string name="amount_entry_label">Importe</string>
     <string name="amount_entry_charge">Cobrar</string>
     <string name="amount_entry_create_order_charge">Crear pedido (cobrar importe)</string>
@@ -142,4 +144,9 @@
     <string name="force_delete_dialog_title">¿Forzar la eliminación del pedido?</string>
     <string name="force_delete_dialog_message">Este pedido ha sido reclamado por una cartera. Forzar su eliminación liberará cualquier bloqueo de inventario e impedirá que la cartera complete el pago.</string>
     <string name="force_delete_dialog_confirm">Forzar eliminación</string>
+    <string name="insecure_payment_dialog_title">Problema con el enlace de pago</string>
+    <string name="insecure_payment_dialog_message">El pedido se creó, pero es posible que el enlace de pago no se abra en la cartera del cliente. Puedes probar un enlace de pago corregido, continuar tal cual o cancelar el pedido.</string>
+    <string name="insecure_payment_dialog_try_https">Probar enlace corregido</string>
+    <string name="insecure_payment_dialog_continue_as_is">Continuar tal cual</string>
+    <string name="insecure_payment_dialog_cancel_order">Cancelar pedido</string>
 </resources>

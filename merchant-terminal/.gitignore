@@ -1,2 +1,3 @@
 /build
 /.bundle
+/src/debug/assets/screenshot-products/*.png

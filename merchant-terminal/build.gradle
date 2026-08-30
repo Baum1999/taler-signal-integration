@@ -91,6 +91,11 @@ dependencies {
 
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.2.0"
 
+    // Experimental external NFC URI broadcaster connected through Android USB host mode.
+    // Its source is kept under src/experimental and is intentionally excluded from builds.
+    // FIXME: Add an experimental build variant before enabling this dependency.
+    // implementation "com.github.mik3y:usb-serial-for-android:3.10.0"
+
     testImplementation 'androidx.test.ext:junit:1.3.0'
     testImplementation 'org.robolectric:robolectric:4.16.1'
 

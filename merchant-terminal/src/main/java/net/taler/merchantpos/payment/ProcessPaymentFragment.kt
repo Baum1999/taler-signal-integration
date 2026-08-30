@@ -87,6 +87,9 @@ class ProcessPaymentFragment : Fragment() {
                     payment = it,
                     deviceHasNfc = deviceHasNfc,
                     showForceDeleteDialog = deleteNeedsForce == true,
+                    onTryHttps = paymentManager::tryHttpsPaymentUri,
+                    onContinueAsIs = paymentManager::continueWithInsecurePaymentUri,
+                    onCancelInsecurePayment = paymentManager::tryDeleteOrder,
                     onCancel = {
                         if (it.claimed) {
                             paymentManager.tryDeleteOrder()
@@ -174,6 +177,9 @@ private fun ProcessPaymentScreen(
     payment: Payment,
     deviceHasNfc: Boolean,
     showForceDeleteDialog: Boolean,
+    onTryHttps: () -> Unit,
+    onContinueAsIs: () -> Unit,
+    onCancelInsecurePayment: () -> Unit,
     onCancel: () -> Unit,
     onForceDelete: () -> Unit,
     onDismissForceDelete: () -> Unit,
@@ -198,6 +204,40 @@ private fun ProcessPaymentScreen(
             dismissButton = {
                 OutlinedButton(onClick = onDismissForceDelete) {
                     Text(stringResource(R.string.payment_cancel))
+                }
+            },
+        )
+    } else if (payment.insecureTalerPayUri != null) {
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text(stringResource(R.string.insecure_payment_dialog_title)) },
+            text = { Text(stringResource(R.string.insecure_payment_dialog_message)) },
+            confirmButton = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Button(
+                        onClick = onTryHttps,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(R.string.insecure_payment_dialog_try_https))
+                    }
+                    OutlinedButton(
+                        onClick = onContinueAsIs,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(R.string.insecure_payment_dialog_continue_as_is))
+                    }
+                    OutlinedButton(
+                        onClick = onCancelInsecurePayment,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error,
+                        ),
+                    ) {
+                        Text(stringResource(R.string.insecure_payment_dialog_cancel_order))
+                    }
                 }
             },
         )
@@ -452,6 +492,9 @@ internal fun PaymentScreenContent(payment: Payment) {
         payment = payment,
         deviceHasNfc = false,
         showForceDeleteDialog = false,
+        onTryHttps = {},
+        onContinueAsIs = {},
+        onCancelInsecurePayment = {},
         onCancel = {},
         onForceDelete = {},
         onDismissForceDelete = {},

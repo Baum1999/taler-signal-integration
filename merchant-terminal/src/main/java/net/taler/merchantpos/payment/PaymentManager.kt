@@ -176,7 +176,25 @@ class PaymentManager(
             }
             when (response) {
                 is CheckPaymentResponse.Unpaid -> {
-                    mPayment.value = currentValue.copy(talerPayUri = response.talerPayUri)
+                    val upgradedUri = upgradeTalerPayUriToHttps(response.talerPayUri)
+                    mPayment.value = when {
+                        upgradedUri == null -> currentValue.copy(
+                            talerPayUri = response.talerPayUri,
+                            insecureTalerPayUri = null,
+                        )
+                        currentValue.httpsUpgradeAccepted -> currentValue.copy(
+                            talerPayUri = upgradedUri,
+                            insecureTalerPayUri = null,
+                        )
+                        currentValue.insecureUriAccepted -> currentValue.copy(
+                            talerPayUri = response.talerPayUri,
+                            insecureTalerPayUri = null,
+                        )
+                        else -> currentValue.copy(
+                            talerPayUri = null,
+                            insecureTalerPayUri = response.talerPayUri,
+                        )
+                    }
                 }
                 is CheckPaymentResponse.Claimed -> {
                     mPayment.value = currentValue.copy(claimed = true)
@@ -187,6 +205,31 @@ class PaymentManager(
                 }
             }
         }
+    }
+
+    @UiThread
+    fun tryHttpsPaymentUri() {
+        val currentValue = mPayment.value ?: return
+        val insecureUri = currentValue.insecureTalerPayUri ?: return
+        val upgradedUri = upgradeTalerPayUriToHttps(insecureUri) ?: return
+        mPayment.value = currentValue.copy(
+            talerPayUri = upgradedUri,
+            insecureTalerPayUri = null,
+            httpsUpgradeAccepted = true,
+            insecureUriAccepted = false,
+        )
+    }
+
+    @UiThread
+    fun continueWithInsecurePaymentUri() {
+        val currentValue = mPayment.value ?: return
+        val insecureUri = currentValue.insecureTalerPayUri ?: return
+        mPayment.value = currentValue.copy(
+            talerPayUri = insecureUri,
+            insecureTalerPayUri = null,
+            httpsUpgradeAccepted = false,
+            insecureUriAccepted = true,
+        )
     }
 
     private fun onNetworkError(error: String) {

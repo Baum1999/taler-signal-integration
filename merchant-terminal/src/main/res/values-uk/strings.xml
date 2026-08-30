@@ -105,6 +105,8 @@
     <string name="settings_instance_description">Змінити URL порталу продавця, ім’я користувача, пароль та інші налаштування.</string>
     <string name="settings_instance_button">Змінити налаштування входу</string>
     <string name="settings_logout_button">Вийти</string>
+    <string name="settings_logout_warning">Після виходу з системи з цього пристрою буде видалено підключення до продавця, облікові дані та кешовану конфігурацію. Перед використанням термінала потрібно буде підключитися знову.</string>
+    <string name="settings_logout_confirmation">Ви впевнені, що хочете вийти з системи?</string>
     <string name="amount_entry_label">Сума</string>
     <string name="amount_entry_charge">Стягнути</string>
     <string name="amount_entry_create_order_charge">Створити замовлення (стягнути суму)</string>
@@ -142,4 +144,9 @@
     <string name="force_delete_dialog_title">Примусово видалити замовлення?</string>
     <string name="force_delete_dialog_message">Це замовлення було заявлено гаманцем. Примусове видалення зніме всі блокування запасів і не дозволить гаманцю завершити оплату.</string>
     <string name="force_delete_dialog_confirm">Примусово видалити</string>
+    <string name="insecure_payment_dialog_title">Проблема з платіжним посиланням</string>
+    <string name="insecure_payment_dialog_message">Замовлення створено, але платіжне посилання може не відкритися в гаманці клієнта. Можна спробувати виправлене платіжне посилання, продовжити як є або скасувати замовлення.</string>
+    <string name="insecure_payment_dialog_try_https">Спробувати виправлене посилання</string>
+    <string name="insecure_payment_dialog_continue_as_is">Продовжити як є</string>
+    <string name="insecure_payment_dialog_cancel_order">Скасувати замовлення</string>
 </resources>
