@@ -118,10 +118,12 @@ fun ComposeSendScreen(
     val request = remember { PendingSendStore.take(correlationId) }
 
     var fired by remember { mutableStateOf(false) }
-    fun fireReturn(status: ReturnStatus, talerUri: String? = null) {
+    var currentPaymentData by remember { mutableStateOf<TalerPaymentData?>(null) }
+    
+    fun fireReturn(status: ReturnStatus, talerUri: String? = null, talerPaymentData: TalerPaymentData? = null) {
         if (fired || request == null) return
         fired = true
-        ReturnIntentSender.fire(context, request.returnUri, request.correlationId, status, talerUri)
+        ReturnIntentSender.fire(context, request.returnUri, request.correlationId, status, talerUri, talerPaymentData)
     }
 
     if (request == null) {
@@ -237,19 +239,26 @@ fun ComposeSendScreen(
             // sichtbarer Fehler statt Stille (siehe Review Critical #2).
             delay(TALER_URI_TIMEOUT_MS)
             if (!fired) {
-                // Fix (Final-Review I3): kein sofortiges fireReturn/
-                // onNavigateBack mehr nach onShowError - siehe Begruendung am
-                // onDispose-Hook oben. Der obere Screen bleibt (Loading- bzw.
-                // Formular-Ansicht) sichtbar komponiert, die GlobalScaffold-
-                // TopBar mit Zurueck-Pfeil bleibt bedienbar; erst wenn der
-                // Nutzer darueber tatsaechlich verlaesst, feuert onDispose
-                // CANCELLED - Signal kommt dann erst NACH dem Fehler in den
-                // Vordergrund, nicht gleichzeitig damit.
+                // Fix (Timeout-Pfad): resetPushPayment und fireReturn(CANCELLED)
+                // aufrufen, damit der BackHandler nicht dauerhaft aktiv bleibt.
+                // Siehe REVIEW.md offener Befund: ohne Reset bleibt der Nutzer
+                // im UI gefangen, da BackHandler(initiated && (OutgoingCreating
+                // || OutgoingResponse)) weiterhin enabled ist.
+                peerManager.resetPushPayment()
+                fireReturn(ReturnStatus.CANCELLED)
+                // Fix (Final-Review I3): kein sofortiges onNavigateBack nach onShowError
+                // - siehe Begruendung am onDispose-Hook oben. Der obere Screen bleibt
+                // (Loading- bzw. Formular-Ansicht) sichtbar komponiert, die GlobalScaffold-
+                // TopBar mit Zurueck-Pfeil bleibt bedienbar; erst wenn der Nutzer
+                // darueber tatsaechlich verlaesst, feuert onDispose CANCELLED.
+                // Nach fireReturn(CANCELLED) darf onNavigateBack sofort aufgerufen werden,
+                // da der BackHandler durch den Reset von pushState nicht mehr blockiert.
                 onShowError(
                     TalerErrorInfo.makeCustomError(
                         context.getString(R.string.compose_send_error_uri_timeout),
                     )
                 )
+                onNavigateBack()
             }
         } else if (s is OutgoingError) {
             // Fix (Final-Review I3): gleiches Prinzip wie oben - nur zeigen,
@@ -289,7 +298,10 @@ fun ComposeSendScreen(
                     // - per Final-Review C1 behoben (MainActivity.kt loggt
                     // jetzt nur noch die transactionId).
                     OwnUriTracker(context).track(uri, tx.transactionId)
-                    fireReturn(ReturnStatus.READY, uri)
+                    // Wenn currentPaymentData existiert (z.B. von Gruppen-Split),
+                    // füge die URI hinzu und sende es als JSON-Objekt
+                    val finalPaymentData = currentPaymentData?.copy(uri = listOf(uri))
+                    fireReturn(ReturnStatus.READY, uri, finalPaymentData)
                     // Fix (Regression aus Final-Review C2-Fix): NICHT das
                     // geteilte onNavigateBack() - das wuerde ueber densel-
                     // ben OnBackPressedDispatcher laufen, auf dem der oben
@@ -371,6 +383,20 @@ fun ComposeSendScreen(
                             hours,
                             restrictScope = amountScope.scope,
                         )
+                    },
+                    onSplitDataChanged = { includeSelf, totalAmount ->
+                        // Speichere Split-Daten für spätere Verwendung im TalerPaymentData
+                        if (request.isGroup && request.memberCount != null) {
+                            currentPaymentData = TalerPaymentData(
+                                legacyText = context.getString(R.string.taler_payment_legacy_text),
+                                version = 1,
+                                includeSelf = includeSelf,
+                                totalAmount = totalAmount?.toString(),
+                                uri = emptyList()
+                            )
+                        } else {
+                            currentPaymentData = null
+                        }
                     },
                     // Fix (Signal-Fork UX-Befund #3): Gueltigkeit des
                     // Zahlungslinks an den disappearing-messages-Timer des

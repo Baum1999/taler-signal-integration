@@ -20,6 +20,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import kotlinx.serialization.json.Json
 
 enum class ReturnStatus(val wireValue: String) {
     READY("ready"),
@@ -36,7 +37,14 @@ enum class ReturnStatus(val wireValue: String) {
  */
 object ReturnIntentSender {
 
-    fun fire(context: Context, returnUri: String, correlationId: String, status: ReturnStatus, talerUri: String? = null): Boolean {
+    fun fire(
+        context: Context,
+        returnUri: String,
+        correlationId: String,
+        status: ReturnStatus,
+        talerUri: String? = null,
+        talerPaymentData: TalerPaymentData? = null,
+    ): Boolean {
         // returnUri kommt aus einem taler://pay-push/...-URI, der NICHT
         // zwingend von Signals eigenem Annehmen-Button stammt (QR-Code,
         // Web-Link, fremde Chat-Nachricht) - der Angreifer kontrolliert also
@@ -82,6 +90,7 @@ object ReturnIntentSender {
             .appendQueryParameter("correlationId", correlationId)
             .appendQueryParameter("status", status.wireValue)
             .apply { talerUri?.let { appendQueryParameter("talerUri", it) } }
+            .apply { talerPaymentData?.let { appendQueryParameter("talerPaymentData", Json.encodeToString(it)) } }
             .build()
         val explicitIntent = Intent(Intent.ACTION_VIEW, targetUri).apply {
             setClassName(packageName, className)

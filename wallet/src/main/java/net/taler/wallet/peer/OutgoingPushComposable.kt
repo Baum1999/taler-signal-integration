@@ -110,6 +110,9 @@ fun OutgoingPushComposable(
     // noetig, der Nutzer tippt den Pro-Kopf-Betrag danach einfach selbst ins
     // selbe Feld.
     groupSplitMemberCount: Int? = null,
+    // Callback für Split-Datenänderungen (includeSelf, totalAmount)
+    // Wird aufgerufen, wenn der Nutzer den Split-Rechner verwendet
+    onSplitDataChanged: (includeSelf: Boolean?, totalAmount: Amount?) -> Unit = { _, _ -> },
     // Fix (UX-Befund: Gruppen-/disappearing-messages-Hinweise sind Teil
     // desselben frueheren Top-Banners wie der Aufteilungs-Rechner) - vom
     // Aufrufer (ComposeSendScreen) befuellter Slot, direkt unter dem
@@ -133,6 +136,7 @@ fun OutgoingPushComposable(
             initialExpirationHours = initialExpirationHours,
             groupSplitMemberCount = groupSplitMemberCount,
             contextContent = contextContent,
+            onSplitDataChanged = onSplitDataChanged,
         )
     }
 }
@@ -152,6 +156,7 @@ fun OutgoingPushIntroComposable(
     initialExpirationHours: Long? = null,
     groupSplitMemberCount: Int? = null,
     contextContent: @Composable () -> Unit = {},
+    onSplitDataChanged: (includeSelf: Boolean?, totalAmount: Amount?) -> Unit = { _, _ -> },
 ) {
     var amount by remember {
         val scope = defaultScope ?: scopes[0]
@@ -279,7 +284,12 @@ fun OutgoingPushIntroComposable(
             contextContent()
 
             groupSplitMemberCount?.let { count ->
-                GroupSplitHint(memberCount = count, total = amount.amount, spec = selectedSpec)
+                GroupSplitHint(
+                    memberCount = count,
+                    total = amount.amount,
+                    spec = selectedSpec,
+                    onSplitDataChanged = onSplitDataChanged
+                )
             }
 
             if (state is OutgoingError) {
@@ -401,10 +411,26 @@ private fun GroupSplitHint(
     memberCount: Int,
     total: Amount,
     spec: CurrencySpecification?,
+    onSplitDataChanged: (includeSelf: Boolean?, totalAmount: Amount?) -> Unit,
 ) {
     var splitEnabled by rememberSaveable { mutableStateOf(false) }
     var includeSelf by rememberSaveable { mutableStateOf(true) }
     var memberCountInput by rememberSaveable { mutableStateOf(memberCount.toString()) }
+    
+    // Rufe Callback auf, wenn sich die Split-Daten ändern
+    LaunchedEffect(splitEnabled, includeSelf, memberCountInput) {
+        if (splitEnabled) {
+            val enteredCount = memberCountInput.toIntOrNull()
+            val totalAmount = if (enteredCount != null && enteredCount in 1..MAX_SPLIT_MEMBERS) {
+                total
+            } else {
+                null
+            }
+            onSplitDataChanged(includeSelf, totalAmount)
+        } else {
+            onSplitDataChanged(null, null)
+        }
+    }
 
     Row(
         modifier = Modifier.padding(horizontal = 16.dp),

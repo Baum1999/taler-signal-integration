@@ -56,6 +56,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.key.utf16CodePoint
+import androidx.compose.ui.autofill.autofill
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.res.stringResource
@@ -281,14 +282,16 @@ internal fun AmountInputFieldBase(
     OutlinedTextField(
         value = amount.toString(showSymbol = showSymbol),
         onValueChange = {},
-        modifier = modifier.onKeyEvent {
-            if (it.type == KeyEventType.KeyDown) return@onKeyEvent false
-            if (it.key == Key.Backspace) {
-                currentOnRemoveDigit()
-            } else {
-                currentOnEnterDigit(it.utf16CodePoint.toChar())
-            }
-        },
+        modifier = modifier
+            .autofill(autofillHints = listOf("amount"))
+            .onKeyEvent {
+                if (it.type == KeyEventType.KeyDown) return@onKeyEvent false
+                if (it.key == Key.Backspace) {
+                    currentOnRemoveDigit()
+                } else {
+                    currentOnEnterDigit(it.utf16CodePoint.toChar())
+                }
+            },
         readOnly = true,
         textStyle = LocalTextStyle.current.copy(
             fontSize = MaterialTheme.typography.titleLarge.fontSize,
@@ -297,7 +300,7 @@ internal fun AmountInputFieldBase(
         supportingText = supportingText,
         isError = isError,
         keyboardOptions = KeyboardOptions.Default.copy(
-            keyboardType = KeyboardType.NumberPassword,
+            keyboardType = KeyboardType.Decimal,
         ).merge(keyboardOptions),
         keyboardActions = keyboardActions,
         singleLine = true,
@@ -331,7 +334,7 @@ fun startSession(
             singleLine = false,
             autoCorrect = false,
             capitalization = KeyboardCapitalization.None,
-            keyboardType = KeyboardType.NumberPassword,
+            keyboardType = KeyboardType.Decimal,
             imeAction = imeAction,
         ),
         onEditCommand = onEditCommand,
