@@ -57,6 +57,7 @@ import net.taler.wallet.WalletDestination
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.BalanceState
 import net.taler.wallet.balances.BalancesComposable
+import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.scan.ScanTab
@@ -332,10 +333,6 @@ fun MainScreen(
             )
         }
 
-        val disableActions = remember(balanceState, online) {
-            !online || (balanceState as? BalanceState.Success)?.balances?.isEmpty() ?: true
-        }
-
         val selectedScope = (viewMode as? ViewMode.Transactions)?.selectedScope
 
         val selectedBalance = remember(balanceState, selectedScope) {
@@ -343,6 +340,12 @@ fun MainScreen(
             selectedScope?.let {
                 balances?.find { it.scopeInfo == selectedScope }
             }
+        }
+
+        val disableActions = remember(balanceState, online) {
+            val hasSpendableBalance = (balanceState as? BalanceState.Success)?.balances
+                ?.any { it.scopeInfo !is ScopeInfo.ExchangeLegacyKeys } ?: false
+            !online || !hasSpendableBalance
         }
 
         TalerActionsModal(

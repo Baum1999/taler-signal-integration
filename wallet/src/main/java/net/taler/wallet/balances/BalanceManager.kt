@@ -30,6 +30,7 @@ import net.taler.wallet.main.TAG
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.backend.WalletResponse
+import net.taler.wallet.balances.ScopeInfo.ExchangeLegacyKeys
 import net.taler.wallet.donau.DonauSummaryItem
 import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.exchanges.ExchangeManager
@@ -115,24 +116,28 @@ class BalanceManager(
     }
 
     @UiThread
-    fun getCurrencies() = balances.value?.map { balanceItem ->
+    fun getCurrencies() = spendableBalances().map { balanceItem ->
         balanceItem.currency
-    } ?: emptyList()
+    }
 
     @UiThread
-    fun getScopes(forPeer: Boolean = false) = balances.value?.filter {
+    fun getScopes(forPeer: Boolean = false) = spendableBalances().filter {
         !forPeer || !it.disablePeerPayments
-    }?.map { it.scopeInfo } ?: emptyList()
+    }.map { it.scopeInfo }
 
     @UiThread
     fun hasSufficientBalance(amount: Amount): Boolean {
-        balances.value?.forEach { balanceItem ->
+        spendableBalances().forEach { balanceItem ->
             if (balanceItem.currency == amount.currency) {
                 return balanceItem.available >= amount
             }
         }
         return false
     }
+
+    private fun spendableBalances() = balances.value
+        ?.filter { it.scopeInfo !is ExchangeLegacyKeys }
+        ?: emptyList()
 
     fun addGlobalCurrencyExchange(
         currency: String,

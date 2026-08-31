@@ -33,6 +33,7 @@ import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
 import net.taler.wallet.accounts.ListBankAccountsResult
+import net.taler.wallet.balances.ScopeInfo.ExchangeLegacyKeys
 import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.LoadingScreen
@@ -87,7 +88,7 @@ fun DepositScreen(
     ) { paddingValues ->
         val knownBankAccounts by accountManager.bankAccounts.collectAsStateLifecycleAware()
         val knownCurrencies by model.balanceManager.balances.map {
-            it.map { bl -> bl.currency }
+            it.filter { bl -> bl.scopeInfo !is ExchangeLegacyKeys }.map { bl -> bl.currency }
         }.observeAsState(emptyList())
         val devMode by model.devMode.observeAsState(false)
 

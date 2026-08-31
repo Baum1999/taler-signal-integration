@@ -58,16 +58,31 @@ sealed class ScopeInfo {
         val url: String,
     ): ScopeInfo()
 
+    @Serializable
+    @SerialName("exchange-legacy-keys")
+    data class ExchangeLegacyKeys(
+        override val currency: String,
+        val url: String,
+        val masterPub: String,
+    ): ScopeInfo()
+
     fun toPrefs(): PrefsScopeInfo {
         val type = when (this) {
             is Global -> ScopeInfoType.GLOBAL
             is Exchange -> ScopeInfoType.EXCHANGE
             is Auditor -> ScopeInfoType.AUDITOR
+            is ExchangeLegacyKeys -> ScopeInfoType.EXCHANGE_LEGACY_KEYS
         }
 
         val url = when (this) {
             is Exchange -> url
             is Auditor -> url
+            is ExchangeLegacyKeys -> url
+            else -> null
+        }
+
+        val masterPub = when (this) {
+            is ExchangeLegacyKeys -> masterPub
             else -> null
         }
 
@@ -78,6 +93,8 @@ sealed class ScopeInfo {
             .apply {
                 if (url != null)
                     setUrl(url)
+                if (masterPub != null)
+                    setMasterPub(masterPub)
             }.build()
     }
 
@@ -93,6 +110,12 @@ sealed class ScopeInfo {
             ScopeInfoType.AUDITOR -> Auditor(
                 currency =  scope.currency,
                 url = scope.url,
+            )
+
+            ScopeInfoType.EXCHANGE_LEGACY_KEYS -> ExchangeLegacyKeys(
+                currency = scope.currency,
+                url = scope.url,
+                masterPub = scope.masterPub,
             )
 
             else -> null

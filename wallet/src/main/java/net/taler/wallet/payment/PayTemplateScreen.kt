@@ -36,6 +36,7 @@ import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.BalanceState
+import net.taler.wallet.balances.ScopeInfo.ExchangeLegacyKeys
 import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.LoadingScreen
@@ -111,7 +112,7 @@ fun PayTemplateScreen(
                     is BalanceState.None, is BalanceState.Loading -> LoadingScreen()
                     is BalanceState.Error -> ErrorComposable(state.error, devMode = devMode)
                     is BalanceState.Success -> PayTemplateComposable(
-                        currencies = state.balances.map { it.currency },
+                        currencies = state.balances.filter { it.scopeInfo !is ExchangeLegacyKeys }.map { it.currency },
                         payStatus = payStatus,
                         devMode = devMode,
                         onSubmit = { params ->

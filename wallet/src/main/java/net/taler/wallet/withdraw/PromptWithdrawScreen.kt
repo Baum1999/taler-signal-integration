@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import net.taler.wallet.NavigateCallback
+import net.taler.wallet.balances.ScopeInfo.ExchangeLegacyKeys
 
 @Composable
 fun PromptWithdrawScreen(
@@ -66,7 +67,7 @@ fun PromptWithdrawScreen(
     }
 
     val scopes by balanceManager.balances
-        .map { bl -> bl.map { it.scopeInfo } }
+        .map { bl -> bl.filter { it.scopeInfo !is ExchangeLegacyKeys }.map { it.scopeInfo } }
         .map { bl ->
             val scope = status.amountInfo?.scopeInfo
             if (scope != null && !bl.contains(scope)) {

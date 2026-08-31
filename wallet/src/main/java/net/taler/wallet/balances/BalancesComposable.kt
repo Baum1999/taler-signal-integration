@@ -32,26 +32,38 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.EventRepeat
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Badge
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import net.taler.common.Amount
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo.Auditor
 import net.taler.wallet.balances.ScopeInfo.Exchange
+import net.taler.wallet.balances.ScopeInfo.ExchangeLegacyKeys
 import net.taler.wallet.balances.ScopeInfo.Global
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.ErrorComposable
@@ -190,6 +202,11 @@ fun BalanceRow(
                     Text(
                         balance.available.toString(),
                         style = MaterialTheme.typography.displaySmall,
+                        textDecoration = if (balance.scopeInfo is ExchangeLegacyKeys) {
+                            TextDecoration.LineThrough
+                        } else {
+                            TextDecoration.None
+                        },
                     )
                 },
                 overlineContent = {
@@ -209,16 +226,53 @@ fun BalanceRow(
                                 ),
                             )
 
+                            is ExchangeLegacyKeys -> Text(
+                                stringResource(
+                                    R.string.balance_scope_exchange,
+                                    cleanExchange(balance.scopeInfo.url)
+                                ),
+                            )
+
                             else -> {}
                         }
                     }
                 },
+                trailingContent = {
+                    if (balance.scopeInfo is ExchangeLegacyKeys) {
+                        LegacyBalanceWarningTooltip()
+                    }
+                }
             )
 
             if (!balance.pendingIncoming.isZero() || !balance.pendingOutgoing.isZero()) {
                 HorizontalDivider()
                 PendingComposable(balance, onPendingClick)
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LegacyBalanceWarningTooltip() {
+    val tooltipState = rememberTooltipState()
+    val coroutineScope = rememberCoroutineScope()
+
+    TooltipBox(
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above, 4.dp),
+        tooltip = { PlainTooltip { Text(stringResource(R.string.balances_legacy_unavailable)) } },
+        state = tooltipState,
+    ) {
+        Box(
+            modifier = Modifier
+                .clickable { coroutineScope.launch { tooltipState.show() } },
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.Default.Warning,
+                tint = MaterialTheme.colorScheme.error,
+                contentDescription = stringResource(R.string.balances_legacy_unavailable),
+            )
         }
     }
 }
@@ -331,10 +385,17 @@ fun BalancesComposablePreview() {
             disablePeerPayments = false,
         ),
         BalanceItem(
-            scopeInfo = Auditor("MXN", "https://auditor.taler.banxico.org.mx"),
+            scopeInfo = Auditor("MXN", "https://auditor.taler.mx"),
             available = Amount.fromJSONString("MXN:5.50"),
             pendingIncoming = Amount.fromJSONString("MXN:1.40"),
             pendingOutgoing = Amount.fromJSONString("MXN:0"),
+            disablePeerPayments = false,
+        ),
+        BalanceItem(
+            scopeInfo = ExchangeLegacyKeys("KUDOS", "https://legacy.taler.net", masterPub = "123"),
+            available = Amount.fromJSONString("KUDOS:5.50"),
+            pendingIncoming = Amount.fromJSONString("KUDOS:1.40"),
+            pendingOutgoing = Amount.fromJSONString("KUDOS:0"),
             disablePeerPayments = false,
         ),
     )

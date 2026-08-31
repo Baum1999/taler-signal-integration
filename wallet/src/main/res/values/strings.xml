@@ -158,6 +158,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="balances_empty_withdraw_kudos_button">Get demo cash</string>
     <string name="balances_empty_withdraw_kudos_message">Get demo cash to experience how to pay with digital cash.</string>
     <string name="balances_inbound_amount">+%1$s incoming</string>
+    <string name="balances_legacy_unavailable">Legacy balance unavailable</string>
     <!-- must be minus sign! (− U+2212) -->
     <string name="balances_outbound_amount">−%1$s outgoing</string>
     <string name="balances_section_statements">Donation statements</string>

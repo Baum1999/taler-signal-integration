@@ -7,12 +7,14 @@ enum ScopeInfoType {
   GLOBAL = 0;
   EXCHANGE = 1;
   AUDITOR = 2;
+  EXCHANGE_LEGACY_KEYS = 3;
 }
 
 message PrefsScopeInfo {
   ScopeInfoType type = 1;
   string currency = 2;
   optional string url = 3;
+  optional string masterPub = 4;
 }
 
 enum PrefsStateFilter {

@@ -256,6 +256,7 @@
     <string name="balance_scope_auditor">Auditeur : %1$s</string>
     <string name="balances_empty_withdraw_kudos_message">Obtenez de l\'argent fictif pour découvrir comment payer avec de l\'argent numérique.</string>
     <string name="balances_inbound_amount">+%1$s entrant</string>
+    <string name="balances_legacy_unavailable">Solde hérité indisponible</string>
     <string name="balances_outbound_amount">−%1$s sortant</string>
     <string name="exchange_delete_force">Forcer la suppression (purge)</string>
     <string name="payment_template_error">Erreur de création de la commande</string>

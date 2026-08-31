@@ -59,6 +59,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -70,7 +71,9 @@ import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.BalanceItem
+import net.taler.wallet.balances.LegacyBalanceWarningTooltip
 import net.taler.wallet.balances.ScopeInfo.Exchange
+import net.taler.wallet.balances.ScopeInfo.ExchangeLegacyKeys
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.compose.Banner
 import net.taler.wallet.compose.LoadingScreen
@@ -243,10 +246,23 @@ fun TransactionsHeader(
                                 .basicMarquee(),
                             style = MaterialTheme.typography.bodySmall,
                         )
+                    } else if (balance.scopeInfo is ExchangeLegacyKeys) {
+                        Text(
+                            cleanExchange(balance.scopeInfo.url),
+                            modifier = Modifier
+                                .padding(top = 3.dp)
+                                .basicMarquee(),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
                     }
                 },
                 trailingContent = {
-                    Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (balance.scopeInfo is ExchangeLegacyKeys) {
+                            LegacyBalanceWarningTooltip()
+                        }
+                        Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                    }
                 }
             )
         }
@@ -265,6 +281,11 @@ fun TransactionsHeader(
                 balance.available.toString(showSymbol = false),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
+                textDecoration = if (balance.scopeInfo is ExchangeLegacyKeys) {
+                    TextDecoration.LineThrough
+                } else {
+                    TextDecoration.None
+                },
             )
         }
     }

@@ -162,6 +162,7 @@ fun ScopeDropdown(
             is ScopeInfo.Global -> scope.currency
             is ScopeInfo.Exchange -> cleanExchange(scope.url)
             is ScopeInfo.Auditor -> cleanExchange(scope.url)
+            is ScopeInfo.ExchangeLegacyKeys -> cleanExchange(scope.url)
         }
 
         val colors = OutlinedTextFieldDefaults.colors()
@@ -238,6 +239,12 @@ fun ScopeDropdown(
                                     )
 
                                     is ScopeInfo.Auditor -> stringResource(
+                                        R.string.currency_url,
+                                        s.currency,
+                                        cleanExchange(s.url),
+                                    )
+
+                                    is ScopeInfo.ExchangeLegacyKeys -> stringResource(
                                         R.string.currency_url,
                                         s.currency,
                                         cleanExchange(s.url),

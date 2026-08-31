@@ -245,6 +245,7 @@
     <string name="amount_transfer">Betrag</string>
     <string name="balances_empty_withdraw_kudos_button">Demo-Geld erhalten</string>
     <string name="balances_inbound_amount">+%1$s eingehend</string>
+    <string name="balances_legacy_unavailable">Legacy-Guthaben nicht verfügbar</string>
     <string name="balances_outbound_amount">−%1$s abgehend</string>
     <string name="transaction_deposit_to">Einzahlung an %1$s</string>
     <string name="transaction_peer_push_credit">Erhalten</string>
