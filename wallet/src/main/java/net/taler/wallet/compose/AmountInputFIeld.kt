@@ -56,7 +56,6 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.key.utf16CodePoint
-import androidx.compose.ui.autofill.autofill
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalTextInputService
 import androidx.compose.ui.res.stringResource
@@ -283,7 +282,6 @@ internal fun AmountInputFieldBase(
         value = amount.toString(showSymbol = showSymbol),
         onValueChange = {},
         modifier = modifier
-            .autofill(autofillHints = listOf("amount"))
             .onKeyEvent {
                 if (it.type == KeyEventType.KeyDown) return@onKeyEvent false
                 if (it.key == Key.Backspace) {
