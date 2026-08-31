@@ -108,6 +108,12 @@
     <string name="config_changed">Passato al nuovo commerciante con %s</string>
     <string name="config_fetching_label">Recupero configurazione</string>
     <string name="config_docs">Consulta <a href="https://docs.taler.net/taler-merchant-pos-terminal.html#apis-and-data-formats">la documentazione</a> per il formato della configurazione.</string>
+    <string name="config_no_instance">Nessuna istanza?</string>
+    <string name="config_instance_tutorial_description">1. Consulta i tutorial di configurazione su:</string>
+    <string name="config_instance_demo_description">2. Puoi provare l’app con l’istanza demo pubblica. Tieni presente che questa istanza è condivisa: chiunque può modificarne i dati in qualsiasi momento. Usala solo per esplorare l’app e le sue funzionalità.</string>
+    <string name="config_fill_demo_credentials">Inserisci credenziali demo</string>
+    <string name="config_instance_review_description">3. Se stai esaminando questa app, molto probabilmente hai già accesso a un utente di test controllato. Usa il pulsante qui sotto per precompilare l’URL del portale commerciante.</string>
+    <string name="config_fill_review_url">Inserisci URL per la revisione</string>
     <string name="config_qr_label">Configurazione QR</string>
     <string name="scan_qr_hint">Scansiona il codice QR dal backoffice commerciante</string>
     <string name="forever">Per sempre</string>

@@ -63,6 +63,12 @@
     <string name="config_changed">Изменено на нового продавца используя %s</string>
     <string name="config_fetching_label">Получение конфигурации</string>
     <string name="config_docs">Пожалуйста перейдите к <a href="https://docs.taler.net/taler-merchant-pos-terminal.html#apis-and-data-formats">документации</a> по формату конфигурации</string>
+    <string name="config_no_instance">Нет экземпляра?</string>
+    <string name="config_instance_tutorial_description">1. Ознакомьтесь с инструкциями по настройке:</string>
+    <string name="config_instance_demo_description">2. Вы можете попробовать приложение с общедоступным демонстрационным экземпляром. Учтите, что этот экземпляр используется совместно—любой пользователь может изменить его данные в любое время. Используйте его только для знакомства с приложением и его возможностями.</string>
+    <string name="config_fill_demo_credentials">Заполнить демо-данные</string>
+    <string name="config_instance_review_description">3. Если вы проверяете это приложение, скорее всего, у вас уже есть доступ к контролируемому тестовому пользователю. Используйте кнопку ниже, чтобы заполнить URL портала продавца.</string>
+    <string name="config_fill_review_url">Заполнить URL для проверки</string>
     <string name="payment_claimed">Ожидание пока клиент подтвердит платёж…</string>
     <string name="payment_order_id">Чек №%s</string>
     <string name="refund_amount">Сумма</string>

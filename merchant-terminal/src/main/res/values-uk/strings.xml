@@ -88,6 +88,12 @@
     <string name="config_error_product_category_id">Помилка: продукт %1$s посилається на невідомий ідентифікатор категорії %2$d</string>
     <string name="config_changed">Змінено на нового продавця, використовуючи %s</string>
     <string name="config_docs">Будь ласка, зверніться до <a href="https://docs.taler.net/taler-merchant-pos-terminal.html#apis-and-data-formats">документації</a> для формату конфігурації.</string>
+    <string name="config_no_instance">Немає екземпляра?</string>
+    <string name="config_instance_tutorial_description">1. Ознайомтеся з інструкціями з налаштування:</string>
+    <string name="config_instance_demo_description">2. Ви можете спробувати застосунок із загальнодоступним демонстраційним екземпляром. Зверніть увагу, що цей екземпляр використовується спільно—будь-хто може змінити його дані в будь-який час. Використовуйте його лише для ознайомлення із застосунком та його можливостями.</string>
+    <string name="config_fill_demo_credentials">Заповнити демо-дані</string>
+    <string name="config_instance_review_description">3. Якщо ви перевіряєте цей застосунок, найімовірніше, у вас уже є доступ до контрольованого тестового користувача. Скористайтеся кнопкою нижче, щоб заповнити URL порталу продавця.</string>
+    <string name="config_fill_review_url">Заповнити URL для перевірки</string>
     <string name="refund_reason">Причина повернення</string>
     <string name="menu_amount_entry">Замовлення за сумою</string>
     <string name="product_category_all_objects">Усе</string>

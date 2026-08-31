@@ -81,6 +81,13 @@
     <string name="config_changed">Changed to new merchant using %s</string>
     <string name="config_fetching_label">Fetching configuration</string>
     <string name="config_docs">Please refer to <a href="https://docs.taler.net/taler-merchant-pos-terminal.html#apis-and-data-formats">the documentation</a> for the configuration format.</string>
+    <string name="config_no_instance">No instance?</string>
+    <string name="config_instance_tutorial_description">1. Check out the setup tutorials at:</string>
+    <string name="config_instance_tutorial_link" translatable="false">tutorials.taler.net</string>
+    <string name="config_instance_demo_description">2. You can try the app with the public demo instance. Note that this instance is shared—anyone can modify its data at any time. Use it only to explore the app and its features.</string>
+    <string name="config_fill_demo_credentials">Fill demo credentials</string>
+    <string name="config_instance_review_description">3. If you are reviewing this app, you most likely already have access to a controlled test user. Use the button below to prefill the merchant portal URL.</string>
+    <string name="config_fill_review_url">Fill review URL</string>
 
     <string name="payment_intro_nfc">Please let customer scan QR Code or use NFC to pay.</string>
     <string name="payment_intro">Please let customer scan QR Code to pay.</string>

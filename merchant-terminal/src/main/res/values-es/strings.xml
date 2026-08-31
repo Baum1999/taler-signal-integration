@@ -75,6 +75,12 @@
     <string name="config_error_currency">Error: Producto %1$s tiene una divisa %2$s, pero %3$s esperada</string>
     <string name="config_changed">Cambiado al nuevo comercio usando %s</string>
     <string name="config_docs">Por favor consulta <a href="https://docs.taler.net/taler-merchant-pos-terminal.html#apis-and-data-formats">la documentación</a> para la configuración del formato.</string>
+    <string name="config_no_instance">¿No tienes una instancia?</string>
+    <string name="config_instance_tutorial_description">1. Consulta los tutoriales de configuración en:</string>
+    <string name="config_instance_demo_description">2. Puedes probar la aplicación con la instancia pública de demostración. Ten en cuenta que esta instancia es compartida: cualquiera puede modificar sus datos en cualquier momento. Úsala únicamente para explorar la aplicación y sus funciones.</string>
+    <string name="config_fill_demo_credentials">Rellenar credenciales de demostración</string>
+    <string name="config_instance_review_description">3. Si estás revisando esta aplicación, probablemente ya tengas acceso a un usuario de prueba controlado. Usa el botón de abajo para rellenar la URL del portal del vendedor.</string>
+    <string name="config_fill_review_url">Rellenar URL de revisión</string>
     <string name="refund_error_max_amount">Mayor que la cantidad del pedido de %s</string>
     <string name="refund_intro_nfc">Por favor permite al cliente escanear el código QR o usar NFC para ofrecer un reembolso</string>
     <string name="payment_claimed">A la espera de que el cliente confirme el pago…</string>

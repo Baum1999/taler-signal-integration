@@ -56,6 +56,12 @@
     <string name="config_error_malformed">Fehler: Die JSON-Konfiguration ist fehlerhaft</string>
     <string name="config_error_unknown">Fehler: Ungültige Konfiguration</string>
     <string name="config_docs">Informationen zum Konfigurationsformat finden Sie in <a href="https://docs.taler.net/taler-merchant-pos-terminal.html#apis-and-data-formats">der Dokumentation</a>.</string>
+    <string name="config_no_instance">Keine Instanz?</string>
+    <string name="config_instance_tutorial_description">1. Sehen Sie sich die Einrichtungsanleitungen an unter:</string>
+    <string name="config_instance_demo_description">2. Sie können die App mit der öffentlichen Demo-Instanz ausprobieren. Beachten Sie, dass diese Instanz gemeinsam genutzt wird—jeder kann ihre Daten jederzeit ändern. Verwenden Sie sie nur, um die App und ihre Funktionen kennenzulernen.</string>
+    <string name="config_fill_demo_credentials">Demo-Zugangsdaten einfügen</string>
+    <string name="config_instance_review_description">3. Wenn Sie diese App prüfen, haben Sie höchstwahrscheinlich bereits Zugriff auf einen kontrollierten Testbenutzer. Verwenden Sie die Schaltfläche unten, um die URL des Händlerportals einzufügen.</string>
+    <string name="config_fill_review_url">Prüf-URL einfügen</string>
     <string name="refund_error_max_amount">Größer als Bestellbetrag von %s</string>
     <string name="refund_error_backend">Fehler bei der Verarbeitung der Rückerstattung</string>
     <string name="refund_reason_wrong_order">Falsche Bestellung</string>

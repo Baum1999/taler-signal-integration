@@ -32,6 +32,12 @@
     <string name="config_changed">%s kullanılarak yeni satıcı olarak değiştirildi</string>
     <string name="config_fetching_label">Kurulum getiriliyor</string>
     <string name="config_docs">Lütfen kurulum formatı için <a href="https://docs.taler.net/taler-merchant-pos-terminal.html#apis-and-data-formats">belgelere</a> bakın.</string>
+    <string name="config_no_instance">Örneğiniz yok mu?</string>
+    <string name="config_instance_tutorial_description">1. Kurulum eğitimlerine göz atın:</string>
+    <string name="config_instance_demo_description">2. Uygulamayı herkese açık demo örneğiyle deneyebilirsiniz. Bu örneğin paylaşıldığını ve herkesin verilerini istediği zaman değiştirebileceğini unutmayın. Yalnızca uygulamayı ve özelliklerini keşfetmek için kullanın.</string>
+    <string name="config_fill_demo_credentials">Demo bilgilerini doldur</string>
+    <string name="config_instance_review_description">3. Bu uygulamayı inceliyorsanız büyük olasılıkla kontrollü bir test kullanıcısına zaten erişiminiz vardır. Satıcı portalı URL’sini doldurmak için aşağıdaki düğmeyi kullanın.</string>
+    <string name="config_fill_review_url">İnceleme URL’sini doldur</string>
     <string name="payment_intro_nfc">Lütfen müşterinin QR Kodunu taramasına veya ödeme yapmak için NFC kullanmasına izin verin.</string>
     <string name="payment_intro">Lütfen müşterinin ödeme yapmak için QR Kodunu taramasına izin verin.</string>
     <string name="payment_claimed">Müşterinin ödemeyi onaylaması bekleniyor…</string>

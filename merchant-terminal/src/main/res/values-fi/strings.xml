@@ -82,6 +82,12 @@
     <string name="config_auth_error">Virhe: Virheellinen käyttäjätunnus tai salasana</string>
     <string name="config_fetching_label">Haetaan määritystä</string>
     <string name="config_docs">Katso määritysmuodon <a href="https://docs.taler.net/taler-merchant-pos-terminal.html#apis-and-data-formats">dokumentaatiosta</a>.</string>
+    <string name="config_no_instance">Ei instanssia?</string>
+    <string name="config_instance_tutorial_description">1. Tutustu käyttöönotto-ohjeisiin osoitteessa:</string>
+    <string name="config_instance_demo_description">2. Voit kokeilla sovellusta julkisella demoinstanssilla. Huomaa, että instanssi on yhteiskäytössä—kuka tahansa voi muuttaa sen tietoja milloin tahansa. Käytä sitä vain sovellukseen ja sen ominaisuuksiin tutustumiseen.</string>
+    <string name="config_fill_demo_credentials">Täytä demotunnukset</string>
+    <string name="config_instance_review_description">3. Jos arvioit tätä sovellusta, sinulla on todennäköisesti jo hallittu testikäyttäjä. Esitäytä kauppiasportaalin URL-osoite alla olevalla painikkeella.</string>
+    <string name="config_fill_review_url">Täytä arviointi-URL</string>
     <string name="refund_error_deadline">Palautusaika on umpeutunut</string>
     <string name="menu_amount_entry">Tilaus summan mukaan</string>
     <string name="product_category_all_objects">Kaikki</string>

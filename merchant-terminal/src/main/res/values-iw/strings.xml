@@ -71,6 +71,12 @@
     <string name="config_changed">הוחלף לסוחר חדש עם %s</string>
     <string name="config_fetching_label">טוען תצורה</string>
     <string name="config_docs">עיינו ב<a href="https://docs.taler.net/taler-merchant-pos-terminal.html#apis-and-data-formats">תיעוד</a> עבור מבנה התצורה.</string>
+    <string name="config_no_instance">אין מופע?</string>
+    <string name="config_instance_tutorial_description">1. עיינו במדריכי ההגדרה בכתובת:</string>
+    <string name="config_instance_demo_description">2. אפשר לנסות את היישום באמצעות מופע ההדגמה הציבורי. שימו לב שזהו מופע משותף—כל אחד יכול לשנות את הנתונים שלו בכל עת. השתמשו בו רק כדי להכיר את היישום ואת התכונות שלו.</string>
+    <string name="config_fill_demo_credentials">מילוי פרטי התחברות להדגמה</string>
+    <string name="config_instance_review_description">3. אם אתם בודקים את היישום, סביר שכבר יש לכם גישה למשתמש בדיקה מבוקר. השתמשו בכפתור למטה כדי למלא מראש את כתובת פורטל הסוחר.</string>
+    <string name="config_fill_review_url">מילוי כתובת לבדיקה</string>
     <string name="config_qr_label">תצורת QR</string>
     <string name="scan_qr_hint">סרקו את קוד ה-QR ממשרד האחורי של הסוחר</string>
     <string name="forever">לתמיד</string>

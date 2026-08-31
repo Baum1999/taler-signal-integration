@@ -31,6 +31,9 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -103,15 +106,26 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 
 private enum class ConfigMode { Manual, Qr }
+
+private const val DEMO_MERCHANT_HOST = "backend.demo.taler.net"
+private const val DEMO_INSTANCE = "sandbox"
+private const val DEMO_PASSWORD = "sandbox"
+private const val INSTANCE_SETUP_TUTORIAL_URL =
+    "https://tutorials.taler.net/merchant/merchant-backoffice/obtain-instance/index"
 
 class ConfigFragment : Fragment() {
 
@@ -651,6 +665,112 @@ private fun ManualConfigScreen(
                     enabled = !isSubmitting,
                 ) {
                     Text(stringResource(R.string.config_ok))
+                }
+            }
+        }
+        item {
+            InstanceHelpCard(
+                onOpenTutorial = {
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                },
+                onFillDemoCredentials = {
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                    onMerchantUrlChanged(DEMO_MERCHANT_HOST)
+                    onUsernameChanged(DEMO_INSTANCE)
+                    onTokenChanged(DEMO_PASSWORD)
+                },
+                onFillReviewUrl = {
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                    onMerchantUrlChanged(DEMO_MERCHANT_HOST)
+                    onUsernameChanged("")
+                    onTokenChanged("")
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun InstanceHelpCard(
+    onOpenTutorial: () -> Unit,
+    onFillDemoCredentials: () -> Unit,
+    onFillReviewUrl: () -> Unit,
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded }
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.config_no_instance),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Icon(
+                    imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                    contentDescription = null,
+                )
+            }
+
+            AnimatedVisibility(visible = expanded) {
+                Column {
+                    HorizontalDivider()
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+                        Column {
+                            Text(
+                                text = stringResource(R.string.config_instance_tutorial_description),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            TextButton(
+                                onClick = {
+                                    onOpenTutorial()
+                                    uriHandler.openUri(INSTANCE_SETUP_TUTORIAL_URL)
+                                },
+                            ) {
+                                Text(stringResource(R.string.config_instance_tutorial_link))
+                            }
+                        }
+
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = stringResource(R.string.config_instance_demo_description),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            OutlinedButton(onClick = onFillDemoCredentials) {
+                                Text(stringResource(R.string.config_fill_demo_credentials))
+                            }
+                        }
+
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = stringResource(R.string.config_instance_review_description),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            OutlinedButton(onClick = onFillReviewUrl) {
+                                Text(stringResource(R.string.config_fill_review_url))
+                            }
+                        }
+                    }
                 }
             }
         }

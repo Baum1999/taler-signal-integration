@@ -8,6 +8,12 @@
     <string name="config_error_network">Erreur : impossible de se connecter au serveur de configuration</string>
     <string name="config_error_product_zero">Erreur : aucun produit valide trouvé</string>
     <string name="config_docs">Veuillez vous référer à <a href="https://docs.taler.net/taler-merchant-pos-terminal.html#apis-and-data-formats">la documentation</a> pour le format de configuration.</string>
+    <string name="config_no_instance">Pas d’instance ?</string>
+    <string name="config_instance_tutorial_description">1. Consultez les tutoriels de configuration à l’adresse :</string>
+    <string name="config_instance_demo_description">2. Vous pouvez essayer l’application avec l’instance de démonstration publique. Cette instance est partagée : n’importe qui peut modifier ses données à tout moment. Utilisez-la uniquement pour découvrir l’application et ses fonctionnalités.</string>
+    <string name="config_fill_demo_credentials">Renseigner les identifiants de démonstration</string>
+    <string name="config_instance_review_description">3. Si vous évaluez cette application, vous avez probablement déjà accès à un utilisateur de test contrôlé. Utilisez le bouton ci-dessous pour préremplir l’URL du portail commerçant.</string>
+    <string name="config_fill_review_url">Renseigner l’URL d’évaluation</string>
     <string name="refund_confirm">Approuver le remboursement</string>
     <string name="refund_error_backend">Erreur lors du traitement du remboursement</string>
     <string name="menu_settings">Paramètres</string>

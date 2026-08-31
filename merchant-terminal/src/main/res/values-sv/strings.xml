@@ -72,6 +72,12 @@
     <string name="config_error_currency">Fel: Produkten %1$s har valutan %2$s, men %3$s förväntas</string>
     <string name="config_fetching_label">Hämtar konfiguration</string>
     <string name="config_docs">Se <a href="https://docs.taler.net/taler-merchant-pos-terminal.html#apis-and-data-formats">dokumentationen</a> för konfigurationsformat.</string>
+    <string name="config_no_instance">Ingen instans?</string>
+    <string name="config_instance_tutorial_description">1. Läs installationsguiderna på:</string>
+    <string name="config_instance_demo_description">2. Du kan prova appen med den offentliga demoinstansen. Observera att instansen delas—vem som helst kan ändra dess data när som helst. Använd den endast för att utforska appen och dess funktioner.</string>
+    <string name="config_fill_demo_credentials">Fyll i demouppgifter</string>
+    <string name="config_instance_review_description">3. Om du granskar appen har du troligen redan tillgång till en kontrollerad testanvändare. Använd knappen nedan för att fylla i handlarportalens URL.</string>
+    <string name="config_fill_review_url">Fyll i gransknings-URL</string>
     <string name="refund_error_zero">Måste vara positivt</string>
     <string name="refund_intro_nfc">Låt kunden skanna QR-kod eller använd NFC för att erbjuda återbetalning</string>
     <string name="refund_intro">Låt kunden skanna QR-koden för att erbjuda återbetalning</string>
