@@ -20,6 +20,10 @@ import android.util.Log
 import androidx.annotation.UiThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -33,12 +37,15 @@ import net.taler.wallet.main.TAG
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
+import net.taler.wallet.backend.WalletResponse
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.cleanExchange
 import net.taler.wallet.exchanges.ExchangeItem
 import net.taler.wallet.exchanges.ExchangeManager
 import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.payment.InsufficientBalanceHint
+import net.taler.wallet.transactions.Transaction
+import net.taler.wallet.transactions.TransactionPeerPushDebit
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit.HOURS
 import net.taler.wallet.peer.CheckPeerPushDebitResponse.*
@@ -249,26 +256,150 @@ class PeerManager(
     ) {
         _outgoingPushState.value = OutgoingCreating
         scope.launch(Dispatchers.IO) {
-            val expiry = Timestamp.fromMillis(System.currentTimeMillis() + HOURS.toMillis(expirationHours))
-            api.request("initiatePeerPushDebit", InitiatePeerPushDebitResponse.serializer()) {
-                restrictScope?.let { put("restrictScope", JSONObject(BackendManager.json.encodeToString(it))) }
-                put("amount", amount.toJSONString())
-                put("partialContractTerms", JSONObject().apply {
-                    put("amount", amount.toJSONString())
-                    put("summary", summary)
-                    put("purse_expiration", JSONObject(Json.encodeToString(expiry)))
-                })
-            }.onSuccess { response ->
-                _outgoingPushState.value = OutgoingResponse(response.transactionId)
-            }.onError { error ->
-                Log.e(TAG, "got initiatePeerPushDebit error result $error")
-                _outgoingPushState.value = OutgoingError(error)
-            }
+            requestInitiatePeerPushDebit(amount, summary, expirationHours, restrictScope)
+                .onSuccess { response ->
+                    _outgoingPushState.value = OutgoingResponse(response.transactionId)
+                }.onError { error ->
+                    Log.e(TAG, "got initiatePeerPushDebit error result $error")
+                    _outgoingPushState.value = OutgoingError(error)
+                }
         }
     }
 
     fun resetPushPayment() {
         _outgoingPushState.value = OutgoingIntro
+    }
+
+    /**
+     * Reiner Netzwerk-Aufruf ohne Seiteneffekt auf _outgoingPushState - von
+     * initiatePeerPushDebit (Einzel-Sende-Pfad, ein Aufruf) UND
+     * initiatePeerPushDebitGroup (Gruppen-Split-Pfad, N parallele Aufrufe,
+     * siehe unten) genutzt, damit die Anfrage-Konstruktion nur an einer
+     * Stelle steht.
+     */
+    private suspend fun requestInitiatePeerPushDebit(
+        amount: Amount,
+        summary: String,
+        expirationHours: Long,
+        restrictScope: ScopeInfo?,
+    ): WalletResponse<InitiatePeerPushDebitResponse> {
+        val expiry = Timestamp.fromMillis(System.currentTimeMillis() + HOURS.toMillis(expirationHours))
+        return api.request("initiatePeerPushDebit", InitiatePeerPushDebitResponse.serializer()) {
+            restrictScope?.let { put("restrictScope", JSONObject(BackendManager.json.encodeToString(it))) }
+            put("amount", amount.toJSONString())
+            put("partialContractTerms", JSONObject().apply {
+                put("amount", amount.toJSONString())
+                put("summary", summary)
+                put("purse_expiration", JSONObject(Json.encodeToString(expiry)))
+            })
+        }
+    }
+
+    /**
+     * Erzeugt [count] unabhaengige peer-push-debit-Purses parallel (eine pro
+     * Gruppen-Empfaenger-Anteil, siehe PROMPT_parallel_group_split.md).
+     * Jeder Anteil hat seinen eigenen Retry-Zaehler - ein Fehlschlag bei
+     * einem Anteil bricht die anderen nicht ab (Regel 9 dort). Gibt NUR das
+     * Ergebnis zurueck, trifft keine Entscheidung ueber Teilerfolg (Regel
+     * 11) - das ist Sache des Aufrufers (ComposeSendScreen, Meilenstein 3).
+     *
+     * Bewusst unabhaengig von _outgoingPushState/OutgoingState: dieser Pfad
+     * kann N Purses gleichzeitig in Flug haben, das bestehende Single-Item-
+     * State-Modell kann das nicht abbilden (Regel 8 aus PROMPT.md: minimale
+     * Eingriffe in bestehende Dateien/Zustaende).
+     */
+    suspend fun initiatePeerPushDebitGroup(
+        count: Int,
+        amountPerShare: Amount,
+        summary: String,
+        expirationHours: Long,
+        restrictScope: ScopeInfo? = null,
+        maxRetries: Int = 2,
+    ): List<ShareResult> {
+        require(count > 0) { "count must be positive, was $count" }
+        return coroutineScope {
+            (0 until count).map {
+                async(Dispatchers.IO) {
+                    initiatePeerPushDebitShareWithRetry(
+                        amountPerShare, summary, expirationHours, restrictScope, maxRetries,
+                    )
+                }
+            }.awaitAll()
+        }
+    }
+
+    private suspend fun initiatePeerPushDebitShareWithRetry(
+        amount: Amount,
+        summary: String,
+        expirationHours: Long,
+        restrictScope: ScopeInfo?,
+        maxRetries: Int,
+    ): ShareResult {
+        var transactionId: String? = null
+        var attempt = 0
+        while (true) {
+            val result: ShareResult = if (transactionId == null) {
+                when (val response = requestInitiatePeerPushDebit(amount, summary, expirationHours, restrictScope)) {
+                    is WalletResponse.Success -> {
+                        val id = response.result.transactionId
+                        transactionId = id
+                        waitForShareTalerUri(id)
+                    }
+                    is WalletResponse.Error -> ShareResult.Failure(null, response.error)
+                }
+            } else {
+                // Purse existiert schon (voriger Versuch ist an der
+                // Merge-Bestaetigung gescheitert/getimeoutet, nicht an der
+                // Purse-Erstellung selbst) - retryTransaction statt einer
+                // weiteren, ueberfluessigen Purse (sonst haeufen sich
+                // verwaiste Purses bei jedem Retry an).
+                when (val retryResponse = api.request<Unit>("retryTransaction") {
+                    put("transactionId", transactionId)
+                }) {
+                    is WalletResponse.Success -> waitForShareTalerUri(transactionId)
+                    is WalletResponse.Error -> ShareResult.Failure(transactionId, retryResponse.error)
+                }
+            }
+            if (result is ShareResult.Success) return result
+            result as ShareResult.Failure
+            transactionId = result.transactionId ?: transactionId
+            attempt++
+            if (attempt > maxRetries) return ShareResult.Failure(transactionId, result.error)
+        }
+    }
+
+    /**
+     * Aktives Polling statt reinem Warten auf eine Notification (Regel 10 in
+     * PROMPT_parallel_group_split.md) - im Live-Debugging vom 2026-09-01
+     * beobachtet, dass eine Transaktion mit bereits gesetzter talerUri
+     * trotzdem auf einen laengst veralteten, nie automatisch erneut
+     * versuchten Merge-Fehler stehen bleiben kann; reines Notification-
+     * Warten wuerde diesen Zustand nie bemerken.
+     */
+    private suspend fun waitForShareTalerUri(
+        transactionId: String,
+        pollIntervalMs: Long = 2_000L,
+        timeoutMs: Long = 45_000L,
+    ): ShareResult {
+        val deadline = System.currentTimeMillis() + timeoutMs
+        while (System.currentTimeMillis() < deadline) {
+            when (val response = api.request("getTransactionById", Transaction.serializer()) {
+                put("transactionId", transactionId)
+            }) {
+                is WalletResponse.Success -> {
+                    val tx = response.result
+                    val talerUri = (tx as? TransactionPeerPushDebit)?.talerUri
+                    if (talerUri != null) return ShareResult.Success(transactionId, talerUri)
+                    tx.error?.let { return ShareResult.Failure(transactionId, it) }
+                }
+                is WalletResponse.Error -> return ShareResult.Failure(transactionId, response.error)
+            }
+            delay(pollIntervalMs)
+        }
+        return ShareResult.Failure(
+            transactionId,
+            TalerErrorInfo.makeCustomError("Timed out waiting for payment URI (group share)"),
+        )
     }
 
     fun preparePeerPullDebit(
