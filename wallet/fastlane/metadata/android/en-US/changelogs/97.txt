@@ -1,0 +1,4 @@
+- Upgraded wallet-core to v1.6.41.
+- Fixed errors from a previous payment appearing in a new one.
+- Fixed more issues that could cause infinite loading screens.
+- Show expired non-spendable legacy balances in the UI.
