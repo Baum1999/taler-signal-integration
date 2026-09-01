@@ -33,3 +33,4 @@ publish.sh
 .classpath
 .project
 .settings
+.kotlin/
