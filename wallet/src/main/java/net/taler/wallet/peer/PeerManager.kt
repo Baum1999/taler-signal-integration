@@ -45,6 +45,7 @@ import net.taler.wallet.exchanges.ExchangeManager
 import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.payment.InsufficientBalanceHint
 import net.taler.wallet.transactions.Transaction
+import net.taler.wallet.transactions.TransactionMajorState
 import net.taler.wallet.transactions.TransactionPeerPushDebit
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit.HOURS
@@ -87,6 +88,21 @@ data class GetMaxPeerPushDebitAmountResponse(
     val exchangeBaseUrl: String? = null,
 )
 
+/**
+ * Echte Endzustaende der wallet-core-Transaktions-Zustandsmaschine (siehe
+ * TransactionState.kt) - dieselbe Klassifikation wie
+ * TalerTransactionStateMapper.statusFromMajorState (dort Failed/Aborted/
+ * Deleted -> UNGUELTIG, Expired -> ABGELAUFEN). Alles ausserhalb dieser Menge
+ * ist Uebergangszustand, in dem waitForShareTalerUri weiterpollen muss statt
+ * abzubrechen.
+ */
+private val TERMINAL_FAILURE_STATES = setOf(
+    TransactionMajorState.Failed,
+    TransactionMajorState.Aborted,
+    TransactionMajorState.Deleted,
+    TransactionMajorState.Expired,
+)
+
 class PeerManager(
     private val api: WalletBackendApi,
     private val exchangeManager: ExchangeManager,
@@ -98,6 +114,9 @@ class PeerManager(
 
     private val _outgoingPushState = MutableStateFlow<OutgoingState>(OutgoingIntro)
     val pushState: StateFlow<OutgoingState> = _outgoingPushState
+
+    private val _groupPushState = MutableStateFlow<GroupPushState>(GroupPushState.Idle)
+    val groupPushState: StateFlow<GroupPushState> = _groupPushState
 
     private val _incomingPullState = MutableStateFlow<IncomingState>(IncomingChecking)
     val incomingPullState: StateFlow<IncomingState> = _incomingPullState
@@ -328,6 +347,32 @@ class PeerManager(
         }
     }
 
+    /**
+     * UI-Einstiegspunkt fuer den Gruppen-Split-Versand (Meilenstein 3,
+     * PROMPT_parallel_group_split.md) - Fire-and-forget-Wrapper um
+     * [initiatePeerPushDebitGroup], analog zu [initiatePeerPushDebit] fuer
+     * den Einzel-Pfad. Eigener [_groupPushState], bewusst getrennt von
+     * [_outgoingPushState] (Regel 8 PROMPT.md: der Einzel-Pfad kennt genau
+     * EINE Purse gleichzeitig, das Gruppen-Modell N).
+     */
+    fun initiatePeerPushDebitGroupAsync(
+        count: Int,
+        amountPerShare: Amount,
+        summary: String,
+        expirationHours: Long,
+        restrictScope: ScopeInfo? = null,
+    ) {
+        _groupPushState.value = GroupPushState.InProgress(count)
+        scope.launch(Dispatchers.IO) {
+            val results = initiatePeerPushDebitGroup(count, amountPerShare, summary, expirationHours, restrictScope)
+            _groupPushState.value = GroupPushState.Done(results)
+        }
+    }
+
+    fun resetGroupPushState() {
+        _groupPushState.value = GroupPushState.Idle
+    }
+
     private suspend fun initiatePeerPushDebitShareWithRetry(
         amount: Amount,
         summary: String,
@@ -379,7 +424,8 @@ class PeerManager(
     private suspend fun waitForShareTalerUri(
         transactionId: String,
         pollIntervalMs: Long = 2_000L,
-        timeoutMs: Long = 45_000L,
+        timeoutMs: Long = 600_000L, // 10 Minuten, konsistent mit TALER_URI_TIMEOUT_MS in
+                                     // ComposeSendScreen.kt/ComposeRefundScreen.kt (39-47s Exchange-Latenz)
     ): ShareResult {
         val deadline = System.currentTimeMillis() + timeoutMs
         while (System.currentTimeMillis() < deadline) {
@@ -390,7 +436,23 @@ class PeerManager(
                     val tx = response.result
                     val talerUri = (tx as? TransactionPeerPushDebit)?.talerUri
                     if (talerUri != null) return ShareResult.Success(transactionId, talerUri)
-                    tx.error?.let { return ShareResult.Failure(transactionId, it) }
+                    // tx.error ist nur der letzte Fehler aus dem juengsten Hintergrundversuch,
+                    // kein "endgueltig gescheitert"-Flag - kann transient/ueberholt sein, waehrend
+                    // die Transaktion parallel erfolgreich weiterlaeuft (Live-Debugging
+                    // 2026-09-01). Massgeblich ist stattdessen tx.txState.major, die verifizierte
+                    // Zustandsmaschine von wallet-core (siehe TransactionState.kt und dieselbe
+                    // Klassifikation in TalerTransactionStateMapper.statusFromMajorState): nur
+                    // Failed/Aborted/Deleted/Expired sind echte Endzustaende, alles andere
+                    // (Pending, Finalizing, Suspended*, Aborting, Unknown, None) ist Uebergang -
+                    // dort wird weitergepollt statt abzubrechen.
+                    if (tx.txState.major in TERMINAL_FAILURE_STATES) {
+                        return ShareResult.Failure(
+                            transactionId,
+                            tx.error ?: TalerErrorInfo.makeCustomError(
+                                "Transaction ended in terminal state ${tx.txState.major} (group share)",
+                            ),
+                        )
+                    }
                 }
                 is WalletResponse.Error -> return ShareResult.Failure(transactionId, response.error)
             }

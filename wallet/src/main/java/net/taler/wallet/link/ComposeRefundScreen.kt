@@ -61,7 +61,13 @@ import net.taler.wallet.transactions.TransactionPeerPushDebit
 // Fix (UX-Befund, siehe ComposeSendScreen.kt fuer die vollstaendige
 // Begruendung): 15s waren gegen den oeffentlichen exchange.demo.taler.net
 // zu knapp bemessen.
-private const val TALER_URI_TIMEOUT_MS = 45_000L
+//
+// Fix (Live-Debugging 2026-09-01, siehe ComposeSendScreen.kt fuer den
+// vollstaendigen Logcat-Beweis): auch 45s reichten nicht - der
+// Purse-Erstellungs-Request selbst (Voraussetzung fuer jede talerUri)
+// brauchte live gemessen 39-47s. Denselben grosszuegigeren Wert wie dort
+// uebernommen, statt hier unabhaengig neu zu kalibrieren.
+private const val TALER_URI_TIMEOUT_MS = 600_000L // 10 Minuten
 
 /**
  * Bestaetigungs-Screen fuer eine von Signal ueber prepareRefund vorbereitete

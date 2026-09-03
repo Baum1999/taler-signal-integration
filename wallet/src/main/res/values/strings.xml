@@ -216,6 +216,8 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="transactions_fail_dialog_message">Are you sure you abandon this transaction? Funds still in transit WILL GET LOST.</string>
     <string name="transactions_fail_dialog_title">Abandon transaction</string>
     <string name="transactions_filter_nonfinal">You are viewing pending transactions</string>
+    <string name="transactions_group_header">Group payment</string>
+    <string name="transactions_group_share_count">%1$d recipients</string>
     <string name="transactions_receive_funds">Request</string>
     <string name="transactions_resume">Resume</string>
     <string name="transactions_retry">Retry</string>
@@ -569,11 +571,12 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="compose_send_error_no_balance">You don\'t have any Taler balance yet. Withdraw funds first, then try sending again.</string>
     <string name="taler_payment_legacy_text">This is a GNU Taler link. Update Signal or copy the URI below into the GNU Taler app to make the payment.</string>
     <string name="compose_send_group_hint">Sending to a group of %1$d members.</string>
-    <string name="compose_send_group_warning">This creates a single payment link. Whoever confirms first in Taler receives the money.</string>
-    <string name="compose_send_split_checkbox">Calculate amount per person</string>
+    <string name="compose_send_group_warning">Without splitting, this creates a single payment link and whoever confirms first in Taler receives the money. Splitting below creates one separate link per person instead.</string>
+    <string name="compose_send_split_checkbox">Split into one payment link per person</string>
     <string name="compose_send_split_include_self_checkbox">Count myself in the split</string>
     <string name="compose_send_split_member_count_label">Number of people (max 10)</string>
     <string name="compose_send_split_suggestion">Suggestion: %1$s per person</string>
+    <string name="compose_send_group_partial_failure">%1$d of %2$d payment links could not be created. The ones that succeeded were not sent - check your Taler transaction list to retry or cancel them, then try again.</string>
     <string name="compose_send_disappearing_hint">Messages in this chat disappear after %1$s.</string>
     <plurals name="compose_send_duration_seconds">
         <item quantity="one">%d second</item>

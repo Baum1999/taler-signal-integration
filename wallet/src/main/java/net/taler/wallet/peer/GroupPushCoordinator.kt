@@ -49,3 +49,14 @@ fun List<ShareResult>.allSucceeded(): Boolean =
 /** Anteile, die nach Ausschoepfen der Retries endgueltig gescheitert sind. */
 fun List<ShareResult>.failures(): List<ShareResult.Failure> =
     filterIsInstance<ShareResult.Failure>()
+
+/**
+ * UI-Zustand fuer PeerManager.initiatePeerPushDebitGroupAsync (Meilenstein
+ * 3) - eigenstaendig von OutgoingState (peer/OutgoingState.kt), das genau
+ * EINE Purse gleichzeitig kennt.
+ */
+sealed class GroupPushState {
+    data object Idle : GroupPushState()
+    data class InProgress(val total: Int) : GroupPushState()
+    data class Done(val results: List<ShareResult>) : GroupPushState()
+}

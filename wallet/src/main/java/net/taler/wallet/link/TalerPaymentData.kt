@@ -26,7 +26,8 @@ import kotlinx.serialization.Serializable
  * - version: Versionsnummer des JSON-Formats (aktuell 1)
  * - includeSelf: Bei Gruppen-Split: ob der Sender sich selbst mitgezählt hat (null = keine Split-Info)
  * - totalAmount: Bei Gruppen-Split: der ursprüngliche Gesamtbetrag vor dem Split (null = keine Split-Info)
- * - uri: Liste der Taler-URIs (aktuell immer genau 1 Element, für zukünftige Erweiterungen Liste)
+ * - uri: Liste der Taler-URIs (bei einem Gruppen-Split-Versand eine pro Empfaenger-Anteil,
+ *   siehe PROMPT_parallel_group_split.md; bei einer regulaeren Einzelzahlung genau 1 Element)
  */
 @Serializable
 data class TalerPaymentData(

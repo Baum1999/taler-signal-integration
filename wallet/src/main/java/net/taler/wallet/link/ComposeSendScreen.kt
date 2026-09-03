@@ -42,13 +42,21 @@ import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.compose.GlobalScaffold
+import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.main.MainViewModel
+import net.taler.wallet.peer.GroupPushState
+import net.taler.wallet.peer.GroupShareInfo
+import net.taler.wallet.peer.GroupShareStore
 import net.taler.wallet.peer.OutgoingCreating
 import net.taler.wallet.peer.OutgoingError
 import net.taler.wallet.peer.OutgoingPushComposable
 import net.taler.wallet.peer.OutgoingResponse
+import net.taler.wallet.peer.ShareResult
+import net.taler.wallet.peer.allSucceeded
+import net.taler.wallet.peer.failures
+import net.taler.wallet.peer.successfulUris
 import net.taler.wallet.transactions.TransactionPeerPushDebit
 
 // Fix round 1 (Task-A6 Review, Critical #2): Sicherheitsnetz - falls
@@ -61,13 +69,27 @@ import net.taler.wallet.transactions.TransactionPeerPushDebit
 // auf): 15s waren gegen den oeffentlichen, geteilten
 // exchange.demo.taler.net zu knapp bemessen - die Zahlung committet dabei
 // tatsaechlich (Purse wird angelegt), nur die URI-Bestaetigung braucht
-// laenger als das Timeout. Das Timeout meldet dann faelschlich einen
-// Fehler, obwohl die Zahlung gleich danach durchkommt - der Nutzer versucht
-// daraufhin erneut zu senden und erzeugt so ungewollt eine zweite,
-// unabhaengige Zahlung (zwei separate Nachrichten/URIs statt einer). 45s
-// geben dem Exchange mehr Luft, ohne den Nutzer bei einem echten Haenger
-// endlos warten zu lassen.
-private const val TALER_URI_TIMEOUT_MS = 45_000L
+// laenger als das Timeout.
+//
+// Fix (Live-Debugging 2026-09-01, mit Logcat-Beweis): 45s war IMMER NOCH
+// zu knapp - nicht wegen des Merge-Schritts (der laeuft ohnehin asynchron
+// im Hintergrund weiter, talerUri braucht ihn nicht), sondern weil schon
+// der GET .../purses/<id>/create-Request selbst - der allererste Schritt,
+// ohne den es ueberhaupt keine talerUri geben kann - gegen den oeffentlichen
+// exchange.demo.taler.net gemessen 39-47s brauchte (zwei unabhaengige
+// Live-Messungen: 46666ms und 39154ms, siehe BackendManager-Logcat
+// task-observability-event/http-fetch-start|finish-success fuer
+// ".../purses/<pursePub>/create"). Das Timeout feuerte dabei zuverlaessig
+// 1-2s VOR Abschluss des Requests: Taler meldete "cancelled" an Signal
+// (keine Nachricht kommt an), waehrend die Zahlung im Hintergrund trotzdem
+// committete und als "ausstehend" liegen blieb - exakt das urspruenglich
+// gemeldete Symptom. Bewusst grosszuegig neu gesetzt statt nur leicht
+// erhoeht, da die Streuung der Live-Messwerte zeigt, dass ein knapp
+// bemessener fester Wert hier strukturell unzuverlaessig ist; das
+// Sicherheitsnetz bleibt trotzdem bestehen, nur mit sehr viel mehr Luft,
+// damit ein echter, dauerhafter Haenger weiterhin sichtbar wird statt
+// endlos zu laden.
+private const val TALER_URI_TIMEOUT_MS = 600_000L // 10 Minuten
 
 /**
  * Bestaetigungs-Screen fuer einen von Signal ueber prepareSend vorbereiteten
@@ -144,10 +166,14 @@ fun ComposeSendScreen(
     // pushState unten ueberhaupt gelesen wird); der DisposableEffect
     // spiegelt exakt das Muster aus OutgoingPushScreen.kt fuer den Fall, dass
     // der Nutzer den Screen ohne Tap wieder verlaesst.
-    remember { peerManager.resetPushPayment() }
+    remember {
+        peerManager.resetPushPayment()
+        peerManager.resetGroupPushState()
+    }
     DisposableEffect(Unit) {
         onDispose {
             peerManager.resetPushPayment()
+            peerManager.resetGroupPushState()
             // Nutzer verlaesst den Screen (Zurueck/Home), ohne dass zuvor
             // schon READY gefeuert wurde - gleiches Cancel-Prinzip wie
             // IncomingPushPaymentScreen. Der fired-Guard in fireReturn
@@ -205,6 +231,7 @@ fun ComposeSendScreen(
 
     val devMode by model.devMode.observeAsState(false)
     val pushState by peerManager.pushState.collectAsStateLifecycleAware()
+    val groupPushState by peerManager.groupPushState.collectAsStateLifecycleAware()
 
     // Fix round 1 (Task-A6 Review, Critical #1 Teil b): beide reaktiven
     // Effekte unten reagieren erst NACH einem tatsaechlichen Tap auf den
@@ -223,8 +250,69 @@ fun ComposeSendScreen(
     // wallet-core-Coroutine im Hintergrund trotzdem fertig laeuft (Geld
     // bewegt sich, Signal zeigt nichts, Nutzer glaubt abgebrochen zu haben).
     // Gleiches Muster wie DepositScreen.kt/MainScreen.kt.
-    BackHandler(initiated && (pushState is OutgoingCreating || pushState is OutgoingResponse)) {
+    BackHandler(
+        initiated && (
+            pushState is OutgoingCreating || pushState is OutgoingResponse ||
+                groupPushState is GroupPushState.InProgress
+            )
+    ) {
         // absichtlich leer: Back wird in diesem Fenster geschluckt.
+    }
+
+    // Gruppen-Split-Versand (Meilenstein 3): eigener, vom obigen Einzel-Pfad
+    // (pushState) unabhaengiger Effekt - initiatePeerPushDebitGroupAsync hat
+    // N Purses gleichzeitig in Flug, das bestehende OutgoingResponse/
+    // selectedTransaction-Muster oben kennt nur eine.
+    LaunchedEffect(groupPushState, initiated) {
+        if (!initiated) return@LaunchedEffect
+        val s = groupPushState
+        if (s is GroupPushState.Done) {
+            val results = s.results
+            if (results.allSucceeded()) {
+                val uris = results.successfulUris()
+                val finalPaymentData = currentPaymentData?.copy(uri = uris)
+                // Jede der N URIs ist eine eigenstaendige ausgehende Zahlung
+                // (Regel 3 PROMPT.md: die URI ist ein Inhaberpapier) - alle
+                // einzeln nachverfolgen, nicht nur die erste, sonst wuerden
+                // Anteile 2..N spaeter faelschlich als fremd erkannt.
+                val successes = results.filterIsInstance<ShareResult.Success>()
+                val groupShareStore = GroupShareStore(context)
+                successes.forEachIndexed { index, share ->
+                    OwnUriTracker(context).track(share.talerUri, share.transactionId)
+                    // Reine lokale UI-Zusatzinfo fuer die Transaktionsliste
+                    // (Sammelzeile "Gruppenzahlung"), bewusst getrennt vom
+                    // Contract-Term-`summary` - Nutzer-Vorgabe 2026-09-02,
+                    // siehe GroupShareStore.kt.
+                    groupShareStore.save(
+                        share.transactionId,
+                        GroupShareInfo(request.correlationId, index, successes.size),
+                    )
+                }
+                fireReturn(ReturnStatus.READY, uris.firstOrNull(), finalPaymentData)
+                navController.popBackStack()
+            } else {
+                // Regel 11 (PROMPT_parallel_group_split.md): kein Alleingang
+                // bei Teil-Fehlschlag - weder automatisch mit weniger als N
+                // URIs senden noch bereits erfolgreiche Purses automatisch
+                // per abortTransaction zurueckrollen. Erfolgreiche Purses
+                // bleiben bestehen (sichtbar/verwaltbar in Talers eigener
+                // Transaktionsliste, retry/abort dort moeglich) - nur der
+                // Ruecksprung zu Signal bleibt aus, damit kein unvollstaen-
+                // diges JSON-Paket (weniger URIs als Mitglieder) verschickt
+                // wird.
+                peerManager.resetGroupPushState()
+                initiated = false
+                onShowError(
+                    TalerErrorInfo.makeCustomError(
+                        context.getString(
+                            R.string.compose_send_group_partial_failure,
+                            results.failures().size,
+                            results.size,
+                        )
+                    )
+                )
+            }
+        }
     }
 
     LaunchedEffect(pushState, initiated) {
@@ -364,7 +452,14 @@ fun ComposeSendScreen(
                 // bzw. ErrorComposable) UND Checking/Creating/Response
                 // (LoadingScreen) bereits vollstaendig ueber sein eigenes
                 // when(state) ab (siehe OutgoingPushComposable.kt) - kein
-                // eigener Error-/Loading-Zweig hier noetig.
+                // eigener Error-/Loading-Zweig hier noetig. Der Gruppen-Pfad
+                // (groupPushState) lebt AUSSERHALB dieses when(state) (eigener,
+                // von pushState unabhaengiger Zustand) - deshalb hier ein
+                // eigenes Gate, statt OutgoingPushComposable per zusaetzlichem
+                // Parameter um einen zweiten Zustands-Input zu erweitern.
+                if (groupPushState is GroupPushState.InProgress) {
+                    LoadingScreen(Modifier.fillMaxSize())
+                } else {
                 OutgoingPushComposable(
                     state = pushState,
                     defaultScope = null,
@@ -381,6 +476,16 @@ fun ComposeSendScreen(
                             amountScope.amount,
                             summary,
                             hours,
+                            restrictScope = amountScope.scope,
+                        )
+                    },
+                    onSendGroup = { amountScope, count, summary, hours ->
+                        initiated = true
+                        peerManager.initiatePeerPushDebitGroupAsync(
+                            count = count,
+                            amountPerShare = amountScope.amount,
+                            summary = summary,
+                            expirationHours = hours,
                             restrictScope = amountScope.scope,
                         )
                     },
@@ -435,6 +540,7 @@ fun ComposeSendScreen(
                         }
                     },
                 )
+                }
             }
         }
     }

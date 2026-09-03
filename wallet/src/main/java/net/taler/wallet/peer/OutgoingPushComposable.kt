@@ -86,6 +86,14 @@ fun OutgoingPushComposable(
     getFees: suspend (amount: AmountScope) -> CheckFeeResult?,
     onSend: (amount: AmountScope, summary: String, hours: Long) -> Unit,
     modifier: Modifier = Modifier,
+    // Gruppen-Split-Versand (Meilenstein 3, PROMPT_parallel_group_split.md):
+    // wird statt [onSend] aufgerufen, wenn der Split-Rechner aktiv und
+    // gueltig ist - amount ist dabei bereits der Pro-Kopf-Anteil (Gesamt-
+    // betrag / count), count die Anzahl der zu erzeugenden Purses/URIs.
+    // Default no-op aendert nichts an OutgoingPushScreen.kt/ComposeRefund-
+    // Screen.kt, die groupSplitMemberCount nie setzen und diesen Zweig
+    // deshalb nie erreichen.
+    onSendGroup: (amount: AmountScope, count: Int, summary: String, hours: Long) -> Unit = { _, _, _, _ -> },
     // Optionale Vorbefuellung, Default null aendert das normale Verhalten
     // (leeres Formular) nicht. Genutzt vom Signal-Fork's ComposeRefundScreen,
     // um den Rueckerstattungsbetrag/-zweck aus der bereits Taler-seitig
@@ -130,6 +138,7 @@ fun OutgoingPushComposable(
             getCurrencySpec = getCurrencySpec,
             getFees = getFees,
             onSend = onSend,
+            onSendGroup = onSendGroup,
             modifier = modifier,
             initialAmount = initialAmount,
             initialSubject = initialSubject,
@@ -151,6 +160,7 @@ fun OutgoingPushIntroComposable(
     getFees: suspend (amount: AmountScope) -> CheckFeeResult?,
     onSend: (amount: AmountScope, summary: String, hours: Long) -> Unit,
     modifier: Modifier = Modifier,
+    onSendGroup: (amount: AmountScope, count: Int, summary: String, hours: Long) -> Unit = { _, _, _, _ -> },
     initialAmount: Amount? = null,
     initialSubject: String? = null,
     initialExpirationHours: Long? = null,
@@ -176,6 +186,54 @@ fun OutgoingPushIntroComposable(
         mutableStateOf(if (initialExpirationHours != null) ExpirationOption.CUSTOM else DEFAULT_EXPIRY)
     }
     var hours by rememberSaveable { mutableLongStateOf(initialExpirationHours ?: DEFAULT_EXPIRY.hours) }
+
+    // Gruppen-Split-Rechner-Zustand (Meilenstein 3): hierher hochgezogen
+    // (statt in GroupSplitHint selbst zu leben), damit der Send-Button
+    // unten weiss, ob/wie viele parallele Anteile er ueber [onSendGroup]
+    // statt des normalen Einzel-[onSend] anfordern muss.
+    var splitEnabled by rememberSaveable { mutableStateOf(false) }
+    var includeSelf by rememberSaveable { mutableStateOf(true) }
+    var memberCountInput by rememberSaveable {
+        mutableStateOf(groupSplitMemberCount?.toString() ?: "")
+    }
+
+    LaunchedEffect(splitEnabled, includeSelf, memberCountInput, amount.amount) {
+        if (splitEnabled) {
+            val enteredCount = memberCountInput.toIntOrNull()
+            val totalAmount = if (enteredCount != null && enteredCount in 1..MAX_SPLIT_MEMBERS) {
+                amount.amount
+            } else {
+                null
+            }
+            onSplitDataChanged(includeSelf, totalAmount)
+        } else {
+            onSplitDataChanged(null, null)
+        }
+    }
+
+    // Nur gueltig, wenn Split aktiv, die Personenzahl im erlaubten Bereich
+    // liegt UND es mindestens einen Empfaenger AUSSER dem Sender gibt.
+    //
+    // Fix (Bug-Befund 2026-09-02: 3 statt 2 URIs bei einer 3-koepfigen
+    // Gruppe): [count] hier ist die Anzahl der zu erzeugenden Payment-Links,
+    // NICHT der Divisor fuer die Betragsaufteilung - die beiden sind
+    // verschiedene Groessen und wurden vorher faelschlich gleichgesetzt.
+    // memberCountInput ist die Gesamtgroesse INKLUSIVE Sender
+    // (PrepareSendRequest.memberCount), der Sender bekommt aber nie einen
+    // eigenen Payment-Link - unabhaengig von [includeSelf], das nur
+    // beeinflusst, ob der Sender-Anteil in die Betrags-Division miteinfliesst
+    // (splitDivisor/splitAmountEvenly). Bei includeSelf=true und
+    // memberCount=3 erzeugte splitDivisor() bisher 3 - genau ein Link zu viel
+    // (der ungueltige "eigene" Link an den Sender selbst).
+    val resolvedSplit = if (splitEnabled) {
+        val enteredCount = memberCountInput.toIntOrNull()
+        if (enteredCount != null && enteredCount in 1..MAX_SPLIT_MEMBERS && !amount.amount.isZero()) {
+            val recipientCount = enteredCount - 1
+            if (recipientCount > 0) {
+                recipientCount to splitAmountEvenly(amount.amount, enteredCount, includeSelf)
+            } else null
+        } else null
+    } else null
 
     amount.useDebounce {
         feeResult = getFees(it) ?: None()
@@ -283,12 +341,16 @@ fun OutgoingPushIntroComposable(
 
             contextContent()
 
-            groupSplitMemberCount?.let { count ->
+            groupSplitMemberCount?.let {
                 GroupSplitHint(
-                    memberCount = count,
                     total = amount.amount,
                     spec = selectedSpec,
-                    onSplitDataChanged = onSplitDataChanged
+                    splitEnabled = splitEnabled,
+                    onSplitEnabledChanged = { splitEnabled = it },
+                    includeSelf = includeSelf,
+                    onIncludeSelfChanged = { includeSelf = it },
+                    memberCountInput = memberCountInput,
+                    onMemberCountInputChanged = { memberCountInput = it },
                 )
             }
 
@@ -373,12 +435,32 @@ fun OutgoingPushIntroComposable(
         BottomButtonBox(Modifier.fillMaxWidth()) {
             Button(
                 modifier = Modifier.systemBarsPaddingBottom(),
-                enabled = feeResult is Success && !amount.amount.isZero(),
-                onClick = { onSend(
-                    amount,
-                    subject.ifBlank { defaultSubject },
-                    hours,
-                ) },
+                // Split-Checkbox aktiv, aber (noch) keine gueltige
+                // Personenzahl eingegeben: Button bleibt deaktiviert statt
+                // stillschweigend auf den normalen Einzel-Pfad zurueckzu-
+                // fallen - sonst wuerde ein Tippfehler in der Personenzahl
+                // den GESAMTEN eingegebenen Betrag an EINE Person schicken,
+                // obwohl der Nutzer sichtbar "Aufteilen" angehakt hat.
+                enabled = feeResult is Success && !amount.amount.isZero() &&
+                    (!splitEnabled || resolvedSplit != null),
+                onClick = {
+                    val split = resolvedSplit
+                    if (split != null) {
+                        val (count, perShare) = split
+                        onSendGroup(
+                            amount.copy(amount = perShare),
+                            count,
+                            subject.ifBlank { defaultSubject },
+                            hours,
+                        )
+                    } else {
+                        onSend(
+                            amount,
+                            subject.ifBlank { defaultSubject },
+                            hours,
+                        )
+                    }
+                },
             ) {
                 Text(text = stringResource(R.string.send_peer_create_button_amount,
                     amount.amount.withSpec(selectedSpec)))
@@ -408,35 +490,20 @@ private const val MAX_SPLIT_MEMBERS = 10
 
 @Composable
 private fun GroupSplitHint(
-    memberCount: Int,
     total: Amount,
     spec: CurrencySpecification?,
-    onSplitDataChanged: (includeSelf: Boolean?, totalAmount: Amount?) -> Unit,
+    splitEnabled: Boolean,
+    onSplitEnabledChanged: (Boolean) -> Unit,
+    includeSelf: Boolean,
+    onIncludeSelfChanged: (Boolean) -> Unit,
+    memberCountInput: String,
+    onMemberCountInputChanged: (String) -> Unit,
 ) {
-    var splitEnabled by rememberSaveable { mutableStateOf(false) }
-    var includeSelf by rememberSaveable { mutableStateOf(true) }
-    var memberCountInput by rememberSaveable { mutableStateOf(memberCount.toString()) }
-    
-    // Rufe Callback auf, wenn sich die Split-Daten ändern
-    LaunchedEffect(splitEnabled, includeSelf, memberCountInput) {
-        if (splitEnabled) {
-            val enteredCount = memberCountInput.toIntOrNull()
-            val totalAmount = if (enteredCount != null && enteredCount in 1..MAX_SPLIT_MEMBERS) {
-                total
-            } else {
-                null
-            }
-            onSplitDataChanged(includeSelf, totalAmount)
-        } else {
-            onSplitDataChanged(null, null)
-        }
-    }
-
     Row(
         modifier = Modifier.padding(horizontal = 16.dp),
         verticalAlignment = CenterVertically,
     ) {
-        Checkbox(checked = splitEnabled, onCheckedChange = { splitEnabled = it })
+        Checkbox(checked = splitEnabled, onCheckedChange = onSplitEnabledChanged)
         Text(stringResource(R.string.compose_send_split_checkbox))
     }
     if (splitEnabled) {
@@ -444,14 +511,14 @@ private fun GroupSplitHint(
             modifier = Modifier.padding(horizontal = 16.dp),
             verticalAlignment = CenterVertically,
         ) {
-            Checkbox(checked = includeSelf, onCheckedChange = { includeSelf = it })
+            Checkbox(checked = includeSelf, onCheckedChange = onIncludeSelfChanged)
             Text(stringResource(R.string.compose_send_split_include_self_checkbox))
         }
         OutlinedTextField(
             modifier = Modifier.padding(horizontal = 16.dp),
             value = memberCountInput,
             onValueChange = { input ->
-                if (input.length <= 2 && input.all { it.isDigit() }) memberCountInput = input
+                if (input.length <= 2 && input.all { it.isDigit() }) onMemberCountInputChanged(input)
             },
             label = { Text(stringResource(R.string.compose_send_split_member_count_label)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),

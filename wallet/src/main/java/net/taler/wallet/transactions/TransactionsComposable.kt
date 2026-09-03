@@ -48,9 +48,15 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
@@ -77,6 +83,7 @@ import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.cardPaddings
 import net.taler.wallet.main.ViewMode
+import net.taler.wallet.peer.GroupShareStore
 import net.taler.wallet.transactions.AmountType.Negative
 import net.taler.wallet.transactions.AmountType.Neutral
 import net.taler.wallet.transactions.AmountType.Positive
@@ -113,6 +120,17 @@ fun TransactionsComposable(
     selectedItems: MutableList<String>,
     onToggleSelection: (String) -> Unit,
 ) {
+    // @Composable-Aufrufe (LocalContext.current, remember) sind innerhalb des
+    // LazyColumn-Scope-Builders unten NICHT erlaubt (LazyListScope.() -> Unit
+    // ist kein @Composable-Kontext, nur die einzelnen item{}/items{}-Inhalte
+    // sind es) - deshalb hier auf Funktionsebene berechnet, nicht dort unten.
+    val groupShareStore = GroupShareStore(LocalContext.current)
+    val entries = if (txResult is Success) {
+        remember(txResult.transactions) { groupTransactions(txResult.transactions, groupShareStore) }
+    } else {
+        emptyList()
+    }
+
     Column(Modifier.fillMaxSize()) {
         LazyColumn(
             Modifier
@@ -149,24 +167,45 @@ fun TransactionsComposable(
                         EmptyTransactionsComposable()
                     }
                 } else {
-                    items(txResult.transactions, key = { it.transactionId }) { tx ->
-                        val isSelected = selectedItems.contains(tx.transactionId)
+                    items(
+                        entries,
+                        key = { entry ->
+                            when (entry) {
+                                is TransactionListEntry.Single -> entry.tx.transactionId
+                                is TransactionListEntry.Group -> "group_${entry.groupId}"
+                            }
+                        },
+                    ) { entry ->
+                        when (entry) {
+                            is TransactionListEntry.Single -> {
+                                val tx = entry.tx
+                                val isSelected = selectedItems.contains(tx.transactionId)
+                                TransactionRow(
+                                    tx, balance.available.spec,
+                                    isSelected = isSelected,
+                                    selectionMode = selectionMode,
+                                    onTransactionClick = {
+                                        if (selectionMode) {
+                                            onToggleSelection(tx.transactionId)
+                                        } else {
+                                            onTransactionClick(tx)
+                                        }
+                                    },
+                                    onTransactionSelect = {
+                                        onToggleSelection(tx.transactionId)
+                                    },
+                                )
+                            }
 
-                        TransactionRow(
-                            tx, balance.available.spec,
-                            isSelected = isSelected,
-                            selectionMode = selectionMode,
-                            onTransactionClick = {
-                                if (selectionMode) {
-                                    onToggleSelection(tx.transactionId)
-                                } else {
-                                    onTransactionClick(tx)
-                                }
-                            },
-                            onTransactionSelect = {
-                                onToggleSelection(tx.transactionId)
-                            },
-                        )
+                            is TransactionListEntry.Group -> GroupTransactionRow(
+                                entry = entry,
+                                spec = balance.available.spec,
+                                selectionMode = selectionMode,
+                                selectedItems = selectedItems,
+                                onTransactionClick = onTransactionClick,
+                                onToggleSelection = onToggleSelection,
+                            )
+                        }
                     }
                 }
 
@@ -181,6 +220,127 @@ fun TransactionsComposable(
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * Anzeige-Eintrag der Transaktionsliste: entweder eine gewoehnliche
+ * Einzeltransaktion oder eine Gruppen-Sammelzeile fuer mehrere Anteile
+ * eines Gruppen-Split-Versands (siehe GroupShareStore.kt). Rein UI-seitig -
+ * wallet-core kennt den Gruppenbegriff nicht, das ist reine Praesentation
+ * der bereits vorhandenen Einzeltransaktionen.
+ */
+private sealed class TransactionListEntry {
+    data class Single(val tx: Transaction) : TransactionListEntry()
+    data class Group(val groupId: String, val shares: List<Transaction>) : TransactionListEntry()
+}
+
+/**
+ * Fasst [transactions] anhand von [groupShareStore] zu Anzeige-Eintraegen
+ * zusammen: Transaktionen mit demselben `groupId` werden zu einer
+ * gemeinsamen [TransactionListEntry.Group] zusammengefasst (an der Position
+ * ihres ersten Auftretens in [transactions], damit die zeitliche
+ * Sortierung der Liste erhalten bleibt), alle anderen bleiben einzelne
+ * [TransactionListEntry.Single]. Ist von einer Gruppe nur noch EIN Anteil
+ * in [transactions] sichtbar (z.B. wegen eines aktiven Filters), lohnt sich
+ * keine Sammelzeile fuer nur ein Element - bleibt Single.
+ */
+private fun groupTransactions(
+    transactions: List<Transaction>,
+    groupShareStore: GroupShareStore,
+): List<TransactionListEntry> {
+    val sharesByGroup = linkedMapOf<String, MutableList<Transaction>>()
+    for (tx in transactions) {
+        val info = groupShareStore.get(tx.transactionId) ?: continue
+        sharesByGroup.getOrPut(info.groupId) { mutableListOf() }.add(tx)
+    }
+
+    val emittedGroups = mutableSetOf<String>()
+    return transactions.mapNotNull { tx ->
+        val info = groupShareStore.get(tx.transactionId)
+        val shares = info?.let { sharesByGroup[it.groupId] }
+        when {
+            info == null || shares == null || shares.size <= 1 ->
+                TransactionListEntry.Single(tx)
+
+            info.groupId in emittedGroups -> null
+
+            else -> {
+                emittedGroups += info.groupId
+                TransactionListEntry.Group(info.groupId, shares)
+            }
+        }
+    }
+}
+
+/**
+ * Auf-/zuklappbare Sammelzeile fuer einen Gruppen-Split-Versand. Jeder
+ * Anteil bleibt darunter eine ganz normale, einzeln anklickbare/
+ * auswaehlbare [TransactionRow] - Navigation zur Detailansicht und
+ * Mehrfachauswahl funktionieren identisch zu einer einzelnen Transaktion.
+ */
+@Composable
+private fun GroupTransactionRow(
+    entry: TransactionListEntry.Group,
+    spec: CurrencySpecification?,
+    selectionMode: Boolean,
+    selectedItems: MutableList<String>,
+    onTransactionClick: (tx: Transaction) -> Unit,
+    onToggleSelection: (String) -> Unit,
+) {
+    var expanded by rememberSaveable(entry.groupId) { mutableStateOf(false) }
+
+    Column(Modifier.animateContentSize()) {
+        ListItem(
+            modifier = Modifier
+                .defaultMinSize(minHeight = 80.dp)
+                .clickable { expanded = !expanded },
+            leadingContent = {
+                Icon(
+                    Icons.Filled.ArrowDropDown,
+                    contentDescription = null,
+                    modifier = if (expanded) Modifier else Modifier.rotate(-90f),
+                )
+            },
+            headlineContent = {
+                Text(
+                    stringResource(R.string.transactions_group_header),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            },
+            supportingContent = {
+                Text(
+                    stringResource(R.string.transactions_group_share_count, entry.shares.size),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+        )
+
+        if (expanded) {
+            Column(Modifier.padding(start = 16.dp)) {
+                entry.shares.forEach { tx ->
+                    val isSelected = selectedItems.contains(tx.transactionId)
+                    TransactionRow(
+                        tx, spec,
+                        isSelected = isSelected,
+                        selectionMode = selectionMode,
+                        onTransactionClick = {
+                            if (selectionMode) {
+                                onToggleSelection(tx.transactionId)
+                            } else {
+                                onTransactionClick(tx)
+                            }
+                        },
+                        onTransactionSelect = {
+                            onToggleSelection(tx.transactionId)
+                        },
+                    )
+                }
+            }
+        } else {
+            HorizontalDivider()
         }
     }
 }

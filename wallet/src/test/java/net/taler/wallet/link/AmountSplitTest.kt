@@ -64,4 +64,20 @@ class AmountSplitTest {
             // expected
         }
     }
+
+    @Test
+    fun `splitDivisor including self equals memberCount`() {
+        assertEquals(4, splitDivisor(memberCount = 4, includeSelf = true))
+    }
+
+    @Test
+    fun `splitDivisor excluding self equals memberCount minus one`() {
+        assertEquals(2, splitDivisor(memberCount = 3, includeSelf = false))
+    }
+
+    @Test
+    fun `splitDivisor can be zero or negative for degenerate input - caller must guard`() {
+        assertEquals(0, splitDivisor(memberCount = 1, includeSelf = false))
+        assertEquals(-1, splitDivisor(memberCount = 0, includeSelf = false))
+    }
 }
