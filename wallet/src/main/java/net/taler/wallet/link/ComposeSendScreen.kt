@@ -496,7 +496,20 @@ fun ComposeSendScreen(
                                 legacyText = context.getString(R.string.taler_payment_legacy_text),
                                 version = 1,
                                 includeSelf = includeSelf,
-                                totalAmount = totalAmount?.toString(),
+                                // amountStr statt toString(): letzteres ist
+                                // Amount.toString(showSymbol=true), also
+                                // locale-formatiert MIT Waehrungssymbol (z.B.
+                                // "5,00 EUR") - inkonsistent mit jedem
+                                // anderen Betrag in dieser Pipeline
+                                // (record.amount/PaymentPreviewResult.amount
+                                // nutzen ueberall amountStr, ein reiner
+                                // Dezimalstring ohne Waehrung/Locale). Der
+                                // Signal-Fork validiert totalAmount gegen
+                                // den Pro-Anteil-Betrag (GroupSplitCard.
+                                // computeVerifiedTotal) - das braucht einen
+                                // verlaesslich parsbaren BigDecimal-String,
+                                // keinen localeabhaengigen Anzeigetext.
+                                totalAmount = totalAmount?.amountStr,
                                 uri = emptyList()
                             )
                         } else {
