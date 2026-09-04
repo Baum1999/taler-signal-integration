@@ -26,7 +26,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -55,7 +58,8 @@ fun AliasRegistrationScreen(
     model: MainViewModel,
     onNavigateBack: () -> Unit,
 ) {
-    var aliasType by remember { mutableStateOf("") }
+    var aliasType by remember { mutableStateOf("email") }
+    var aliasTypeExpanded by remember { mutableStateOf(false) }
     var alias by remember { mutableStateOf("") }
     var durationMonths by remember { mutableStateOf("12") }
     var solution by remember { mutableStateOf("") }
@@ -63,6 +67,11 @@ fun AliasRegistrationScreen(
 
     val mailboxState by model.mailboxManager.mailbox.collectAsState()
     val registerResult by model.contactManager.registerResult.collectAsState()
+
+    val aliasTypeOptions = listOf(
+        stringResource(R.string.alias_registration_alias_email),
+        stringResource(R.string.alias_registration_alias_phone),
+    )
 
     DisposableEffect(Unit) {
         onDispose {
@@ -97,19 +106,55 @@ fun AliasRegistrationScreen(
             }
 
             if (registerResult is RegisterResult.Idle || registerResult is RegisterResult.Loading || registerResult is RegisterResult.Error) {
-                OutlinedTextField(
-                    value = aliasType,
-                    onValueChange = { aliasType = it },
-                    label = { Text(stringResource(R.string.alias_registration_alias_type)) },
+                ExposedDropdownMenuBox(
+                    expanded = aliasTypeExpanded,
+                    onExpandedChange = { aliasTypeExpanded = !aliasTypeExpanded },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    enabled = registerResult !is RegisterResult.Loading
-                )
+                        .padding(bottom = 8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = aliasType,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text(stringResource(R.string.alias_registration_alias_type)) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = aliasTypeExpanded) },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth(),
+                        enabled = registerResult !is RegisterResult.Loading
+                    )
+                    ExposedDropdownMenu(
+                        expanded = aliasTypeExpanded,
+                        onDismissRequest = { aliasTypeExpanded = false }
+                    ) {
+                        aliasTypeOptions.forEach { selectionOption ->
+                            DropdownMenuItem(
+                                text = { Text(selectionOption) },
+                                onClick = {
+                                    aliasType = selectionOption
+                                    aliasTypeExpanded = false
+                                },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                            )
+                        }
+                    }
+                }
+
                 OutlinedTextField(
                     value = alias,
                     onValueChange = { alias = it },
                     label = { Text(stringResource(R.string.alias_registration_alias)) },
+                    placeholder = {
+                        Text(
+                            if (aliasType == stringResource(R.string.alias_registration_alias_email)) {
+                                stringResource(R.string.alias_registration_alias_hint_email)
+                            } else if (aliasType == stringResource(R.string.alias_registration_alias_phone)) {
+                                stringResource(R.string.alias_registration_alias_hint_phone)
+                            } else ""
+                        )
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 8.dp),

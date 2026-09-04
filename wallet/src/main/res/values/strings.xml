@@ -103,6 +103,10 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="alias_registration_title">Alias Registration</string>
     <string name="alias_registration_alias_type">Alias Type</string>
     <string name="alias_registration_alias">Alias</string>
+    <string name="alias_registration_alias_email">email</string>
+    <string name="alias_registration_alias_phone">phone</string>
+    <string name="alias_registration_alias_hint_email">user@example.com</string>
+    <string name="alias_registration_alias_hint_phone">+1234567890</string>
     <string name="alias_registration_duration">Duration (months)</string>
     <string name="alias_registration_button">Register Alias</string>
     <string name="alias_registration_exists">Registration already exists.</string>

@@ -34,7 +34,10 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -245,6 +248,7 @@ fun ContactScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddContactDialog(
     initialAlias: String = "",
@@ -261,11 +265,17 @@ fun AddContactDialog(
 ) {
     var alias by remember { mutableStateOf(initialAlias) }
     var aliasType by remember { mutableStateOf(initialAliasType) }
+    var aliasTypeExpanded by remember { mutableStateOf(false) }
     var mailbox by remember {
         mutableStateOf(if (initialMailboxBaseUri.isEmpty()) "" else "$initialMailboxBaseUri$initialMailboxAddress")
     }
     var source by remember { mutableStateOf(initialSource) }
     var petname by remember { mutableStateOf(initialPetname) }
+
+    val aliasTypeOptions = listOf(
+        stringResource(R.string.alias_registration_alias_email),
+        stringResource(R.string.alias_registration_alias_phone),
+    )
 
     val isDuplicate = existingContacts.any { it.alias == alias && it.aliasType == aliasType }
 
@@ -292,16 +302,54 @@ fun AddContactDialog(
                     value = alias,
                     onValueChange = { alias = it },
                     label = { Text("Alias") },
+                    placeholder = {
+                        Text(
+                            if (aliasType == stringResource(R.string.alias_registration_alias_email)) {
+                                stringResource(R.string.alias_registration_alias_hint_email)
+                            } else if (aliasType == stringResource(R.string.alias_registration_alias_phone)) {
+                                stringResource(R.string.alias_registration_alias_hint_phone)
+                            } else ""
+                        )
+                    },
                     isError = isDuplicate,
                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
                 )
-                OutlinedTextField(
-                    value = aliasType,
-                    onValueChange = { aliasType = it },
-                    label = { Text("Alias Type") },
-                    isError = isDuplicate,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
-                )
+
+                ExposedDropdownMenuBox(
+                    expanded = aliasTypeExpanded,
+                    onExpandedChange = { aliasTypeExpanded = !aliasTypeExpanded },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = aliasType,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Alias Type") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = aliasTypeExpanded) },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth(),
+                        isError = isDuplicate,
+                    )
+                    ExposedDropdownMenu(
+                        expanded = aliasTypeExpanded,
+                        onDismissRequest = { aliasTypeExpanded = false }
+                    ) {
+                        aliasTypeOptions.forEach { selectionOption ->
+                            DropdownMenuItem(
+                                text = { Text(selectionOption) },
+                                onClick = {
+                                    aliasType = selectionOption
+                                    aliasTypeExpanded = false
+                                },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                            )
+                        }
+                    }
+                }
 
                 if (isDuplicate) {
                     Text(
