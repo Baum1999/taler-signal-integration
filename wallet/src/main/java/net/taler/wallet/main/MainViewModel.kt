@@ -190,6 +190,7 @@ class MainViewModel(
             mDatabaseMigrationState.value = DatabaseMigrationState.Prompt
         }
         mInitError.value = null
+        mailboxManager.start()
     }
 
     override fun onNotificationReceived(payload: NotificationPayload) {
