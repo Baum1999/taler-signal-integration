@@ -47,8 +47,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.wallet.R
+import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.mailbox.MailboxConfiguration
 import net.taler.wallet.mailbox.MailboxResult
 import net.taler.wallet.main.MainViewModel
 
@@ -58,6 +61,37 @@ fun AliasRegistrationScreen(
     model: MainViewModel,
     onNavigateBack: () -> Unit,
 ) {
+    val mailboxState by model.mailboxManager.mailbox.collectAsState()
+    val registerResult by model.contactManager.registerResult.collectAsState()
+
+    DisposableEffect(Unit) {
+        onDispose {
+            model.contactManager.resetRegistration()
+        }
+    }
+
+    AliasRegistrationContent(
+        mailboxState = mailboxState,
+        registerResult = registerResult,
+        onNavigateBack = onNavigateBack,
+        onRegister = { alias, aliasType, taldirBaseUri, targetUri, durationMonths ->
+            model.contactManager.taldirRegister(alias, aliasType, taldirBaseUri, targetUri, durationMonths)
+        },
+        onComplete = { alias, aliasType, taldirBaseUri, targetUri, solution ->
+            model.contactManager.completeTaldirRegister(alias, aliasType, taldirBaseUri, targetUri, solution)
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AliasRegistrationContent(
+    mailboxState: MailboxResult,
+    registerResult: RegisterResult,
+    onNavigateBack: () -> Unit,
+    onRegister: (String, String, String, String, Int) -> Unit,
+    onComplete: (String, String, String, String, String) -> Unit,
+) {
     var aliasType by remember { mutableStateOf("email") }
     var aliasTypeExpanded by remember { mutableStateOf(false) }
     var alias by remember { mutableStateOf("") }
@@ -65,19 +99,10 @@ fun AliasRegistrationScreen(
     var solution by remember { mutableStateOf("") }
     val taldirBaseUri = "https://taldir.gnunet.org"
 
-    val mailboxState by model.mailboxManager.mailbox.collectAsState()
-    val registerResult by model.contactManager.registerResult.collectAsState()
-
     val aliasTypeOptions = listOf(
         stringResource(R.string.alias_registration_alias_email),
         stringResource(R.string.alias_registration_alias_phone),
     )
-
-    DisposableEffect(Unit) {
-        onDispose {
-            model.contactManager.resetRegistration()
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -174,12 +199,12 @@ fun AliasRegistrationScreen(
                 Button(
                     onClick = {
                         mailboxAddress?.let { targetUri ->
-                            model.contactManager.taldirRegister(
-                                alias = alias,
-                                aliasType = aliasType,
-                                taldirBaseUri = taldirBaseUri,
-                                targetUri = targetUri,
-                                durationMonths = durationMonths.toIntOrNull() ?: 12
+                            onRegister(
+                                alias,
+                                aliasType,
+                                taldirBaseUri,
+                                targetUri,
+                                durationMonths.toIntOrNull() ?: 12
                             )
                         }
                     },
@@ -219,12 +244,12 @@ fun AliasRegistrationScreen(
                         Button(
                             onClick = {
                                 mailboxAddress?.let { targetUri ->
-                                    model.contactManager.completeTaldirRegister(
-                                        alias = alias,
-                                        aliasType = aliasType,
-                                        taldirBaseUri = taldirBaseUri,
-                                        targetUri = targetUri,
-                                        solution = solution
+                                    onComplete(
+                                        alias,
+                                        aliasType,
+                                        taldirBaseUri,
+                                        targetUri,
+                                        solution
                                     )
                                 }
                             },
@@ -262,5 +287,51 @@ fun AliasRegistrationScreen(
                 )
             }
         }
+    }
+}
+
+@Preview
+@Composable
+fun AliasRegistrationContentPreview() {
+    TalerSurface {
+        AliasRegistrationContent(
+            mailboxState = MailboxResult.Success(
+                MailboxConfiguration(
+                    mailboxBaseUrl = "https://mailbox.taler.net",
+                    privateKey = "",
+                    privateEncryptionKey = "",
+                    hAddress = "alice",
+                    expiration = net.taler.common.Timestamp.fromMillis(0)
+                ),
+                emptyList()
+            ),
+            registerResult = RegisterResult.Idle,
+            onNavigateBack = {},
+            onRegister = { _, _, _, _, _ -> },
+            onComplete = { _, _, _, _, _ -> }
+        )
+    }
+}
+
+@Preview
+@Composable
+fun AliasRegistrationContentSuccessPreview() {
+    TalerSurface {
+        AliasRegistrationContent(
+            mailboxState = MailboxResult.Success(
+                MailboxConfiguration(
+                    mailboxBaseUrl = "https://mailbox.taler.net",
+                    privateKey = "",
+                    privateEncryptionKey = "",
+                    hAddress = "alice",
+                    expiration = net.taler.common.Timestamp.fromMillis(0)
+                ),
+                emptyList()
+            ),
+            registerResult = RegisterResult.Success(validFor = null),
+            onNavigateBack = {},
+            onRegister = { _, _, _, _, _ -> },
+            onComplete = { _, _, _, _, _ -> }
+        )
     }
 }

@@ -58,12 +58,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
 import net.taler.wallet.balances.ScopeInfo
+import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.transactions.TransactionStateFilter.Nonfinal
 
@@ -471,5 +473,65 @@ fun ContactItem(
         IconButton(onClick = { onDelete(contact) }) {
             Icon(Icons.Default.Delete, contentDescription = "Delete")
         }
+    }
+}
+
+@Preview
+@Composable
+fun ContactItemPreview() {
+    TalerSurface {
+        ContactItem(
+            contact = ContactEntry(
+                alias = "alice@taler.net",
+                aliasType = "email",
+                mailboxBaseUri = "https://mailbox.taler.net/",
+                mailboxAddress = "alice",
+                source = "manual",
+                petname = "Alice",
+            ),
+            onDelete = {},
+            onSelect = null
+        )
+    }
+}
+
+@Preview
+@Composable
+fun ContactListPreview() {
+    TalerSurface {
+        ContactList(
+            contacts = listOf(
+                ContactEntry(
+                    alias = "alice@taler.net",
+                    aliasType = "email",
+                    mailboxBaseUri = "https://mailbox.taler.net/",
+                    mailboxAddress = "alice",
+                    source = "manual",
+                    petname = "Alice",
+                ),
+                ContactEntry(
+                    alias = "bob@taler.net",
+                    aliasType = "email",
+                    mailboxBaseUri = "https://mailbox.taler.net/",
+                    mailboxAddress = "bob",
+                    source = "manual",
+                    petname = "Bob",
+                ),
+            ),
+            onDelete = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+fun AddContactDialogPreview() {
+    TalerSurface {
+        AddContactDialog(
+            onDismiss = {},
+            onAdd = { _, _, _, _, _, _ -> },
+            onLookup = { _, _ -> },
+            lookupResult = LookupResult.Idle
+        )
     }
 }

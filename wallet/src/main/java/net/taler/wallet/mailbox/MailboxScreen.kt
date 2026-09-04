@@ -61,12 +61,15 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import net.taler.common.Timestamp
 import net.taler.lib.android.toAbsoluteTime
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
+import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.main.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -269,5 +272,44 @@ fun MessageItem(
         IconButton(onClick = { onDelete(message) }) {
             Icon(Icons.Default.Delete, contentDescription = "Delete")
         }
+    }
+}
+
+@Preview
+@Composable
+fun MessageItemPreview() {
+    TalerSurface {
+        MessageItem(
+            message = MailboxMessageRecord(
+                originMailboxBaseUrl = "https://mailbox.taler.net/",
+                downloadedAt = Timestamp.now(),
+                talerUri = "taler://pay-push/...",
+            ),
+            onNavigate = { _, _ -> },
+            onDelete = {}
+        )
+    }
+}
+
+@Preview
+@Composable
+fun MessageListPreview() {
+    TalerSurface {
+        MessageList(
+            messages = listOf(
+                MailboxMessageRecord(
+                    originMailboxBaseUrl = "https://mailbox.taler.net/",
+                    downloadedAt = Timestamp.now(),
+                    talerUri = "taler://pay-push/...",
+                ),
+                MailboxMessageRecord(
+                    originMailboxBaseUrl = "https://mailbox.demo.taler.net/",
+                    downloadedAt = Timestamp.now(),
+                    talerUri = "taler://pay-pull/...",
+                ),
+            ),
+            onNavigate = { _, _ -> },
+            onDelete = {}
+        )
     }
 }
