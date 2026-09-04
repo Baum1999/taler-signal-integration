@@ -68,8 +68,6 @@ import java.util.UUID
 const val TAG = "taler-wallet"
 const val OBSERVABILITY_LIMIT = 100
 
-<<<<<<< HEAD
-=======
 private val transactionNotifications = listOf(
     "transaction-state-transition",
 )
@@ -84,8 +82,6 @@ data class NotifyMessage(
     val actionLabel: String? = null,
     val onAction: (() -> Unit)? = null,
 )
-
->>>>>>> 194dea06 (allow to access mailbox from notifications)
 class MainViewModel(
     app: Application,
 ) : AndroidViewModel(app), InitReceiver, NotificationReceiver {
@@ -154,15 +150,11 @@ class MainViewModel(
     private val mShowObservabilityLog = MutableStateFlow(false)
     val showObservabilityLog: StateFlow<Boolean> = mShowObservabilityLog
 
-<<<<<<< HEAD
-=======
     private val mScanCodeEvent = MutableLiveData<Event<Boolean>>()
     val scanCodeEvent: LiveData<Event<Boolean>> = mScanCodeEvent
 
     private val mShowMessageEvent = MutableLiveData<Event<NotifyMessage>>()
     val showMessageEvent: LiveData<Event<NotifyMessage>> = mShowMessageEvent
-
->>>>>>> 194dea06 (allow to access mailbox from notifications)
     private val mViewMode = MutableStateFlow<ViewMode>(ViewMode.Assets)
     val viewMode: StateFlow<ViewMode> = mViewMode
 
@@ -438,6 +430,10 @@ class MainViewModel(
                 put("devExperimentUri", uri)
             }.onError(onError)
         }
+    }
+
+    fun showInfoMessage(content: String, actionLabel: String? = null, onAction: (() -> Unit)? = null) {
+        mShowMessageEvent.value = Event(NotifyMessage(content, actionLabel, onAction))
     }
 }
 

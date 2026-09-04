@@ -343,9 +343,7 @@ fun TransactionDetailScreen(
                             onTransition = {
                                 handleTransactionAction(tx, it, model, onNavigateBack)
                             }
-                        ) {
-                            handleTransactionAction(tx, it, model, onNavigateBack)
-                        }
+                        )
                     }
                 }
 

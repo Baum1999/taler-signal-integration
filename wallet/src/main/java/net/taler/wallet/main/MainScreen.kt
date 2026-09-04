@@ -128,13 +128,6 @@ fun MainScreen(
         }
     }
 
-    if (showUriInput) UriInputDialog(
-        onDismiss = { showUriInput = false },
-        handleUri = { uri ->
-            onNavigate(WalletDestination.HandleUri(uri), true)
-        },
-    )
-
     val tabTitle = when (tab) {
         MainTab.ASSETS -> when (viewMode) {
             is ViewMode.Transactions -> if (selectionMode) {

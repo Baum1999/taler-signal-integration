@@ -125,9 +125,6 @@ fun HandleUriScreen(
                     action.startsWith("pay-template/", ignoreCase = true) -> {
                         onNavigate(WalletDestination.PromptPayTemplate(u2), true)
                     }
-                    action.startsWith("add-contact/", ignoreCase = true) -> {
-                        onNavigate(WalletDestination.PromptAddContact(u2), true)
-                    }
                     action.startsWith("dev-experiment/", ignoreCase = true) -> {
                         model.applyDevExperiment(u2) { error ->
                             errorInfo = error
@@ -139,6 +136,7 @@ fun HandleUriScreen(
                     }
                     else -> {
                         errorInfo = TalerErrorInfo.makeCustomError("Unsupported URI: $u2")
+                    }
                 }
             } catch (_: CancellationException) {
             }
