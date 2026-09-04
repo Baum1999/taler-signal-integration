@@ -490,31 +490,34 @@ fun ComposeSendScreen(
                         )
                     },
                     onSplitDataChanged = { includeSelf, totalAmount ->
-                        // Speichere Split-Daten für spätere Verwendung im TalerPaymentData
-                        if (request.isGroup && request.memberCount != null) {
-                            currentPaymentData = TalerPaymentData(
-                                legacyText = context.getString(R.string.taler_payment_legacy_text),
-                                version = 1,
-                                includeSelf = includeSelf,
-                                // amountStr statt toString(): letzteres ist
-                                // Amount.toString(showSymbol=true), also
-                                // locale-formatiert MIT Waehrungssymbol (z.B.
-                                // "5,00 EUR") - inkonsistent mit jedem
-                                // anderen Betrag in dieser Pipeline
-                                // (record.amount/PaymentPreviewResult.amount
-                                // nutzen ueberall amountStr, ein reiner
-                                // Dezimalstring ohne Waehrung/Locale). Der
-                                // Signal-Fork validiert totalAmount gegen
-                                // den Pro-Anteil-Betrag (GroupSplitCard.
-                                // computeVerifiedTotal) - das braucht einen
-                                // verlaesslich parsbaren BigDecimal-String,
-                                // keinen localeabhaengigen Anzeigetext.
-                                totalAmount = totalAmount?.amountStr,
-                                uri = emptyList()
-                            )
-                        } else {
-                            currentPaymentData = null
-                        }
+                        // JSON-Paket (TalerPaymentData) jetzt fuer JEDEN
+                        // Versand gebaut, nicht nur Gruppen-Split (Nutzer-
+                        // Vorgabe 2026-09-04: legacyText-Fallback auch im
+                        // 1:1-Chat) - includeSelf/totalAmount bleiben null,
+                        // wenn kein Split aktiv ist (splitEnabled=false ruft
+                        // onSplitDataChanged(null, null) auf, siehe
+                        // OutgoingPushComposable.kt), das JSON traegt dann
+                        // nur die URI plus den Klartext-Fallback.
+                        currentPaymentData = TalerPaymentData(
+                            legacyText = context.getString(R.string.taler_payment_legacy_text),
+                            version = 1,
+                            includeSelf = includeSelf,
+                            // amountStr statt toString(): letzteres ist
+                            // Amount.toString(showSymbol=true), also
+                            // locale-formatiert MIT Waehrungssymbol (z.B.
+                            // "5,00 EUR") - inkonsistent mit jedem
+                            // anderen Betrag in dieser Pipeline
+                            // (record.amount/PaymentPreviewResult.amount
+                            // nutzen ueberall amountStr, ein reiner
+                            // Dezimalstring ohne Waehrung/Locale). Der
+                            // Signal-Fork validiert totalAmount gegen
+                            // den Pro-Anteil-Betrag (GroupSplitCard.
+                            // computeVerifiedTotal) - das braucht einen
+                            // verlaesslich parsbaren BigDecimal-String,
+                            // keinen localeabhaengigen Anzeigetext.
+                            totalAmount = totalAmount?.amountStr,
+                            uri = emptyList()
+                        )
                     },
                     // Fix (Signal-Fork UX-Befund #3): Gueltigkeit des
                     // Zahlungslinks an den disappearing-messages-Timer des
