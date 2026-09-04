@@ -211,7 +211,7 @@ fun AliasRegistrationScreen(
 
             if (mailboxAddress == null) {
                 Text(
-                    text = "Mailbox not configured",
+                    text = if (mailboxState is MailboxResult.Loading) "Loading mailbox..." else "Mailbox not configured",
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(top = 8.dp)
                 )
