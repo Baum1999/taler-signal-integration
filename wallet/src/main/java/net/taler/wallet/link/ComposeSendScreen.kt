@@ -17,8 +17,11 @@
 package net.taler.wallet.link
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -45,6 +49,7 @@ import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.BalanceState
 import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.LoadingScreen
+import net.taler.wallet.compose.SelectionChip
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.main.MainViewModel
@@ -158,6 +163,12 @@ fun ComposeSendScreen(
         LaunchedEffect(Unit) { onNavigateBack() }
         return
     }
+
+    // Nutzer-Vorgabe 2026-09-05: Signal hat nur noch EINEN Button
+    // ("TALER_SEND") - die Richtung (Senden/Anfordern) waehlt der Nutzer
+    // stattdessen hier per Toggle. request.direction ist nur der
+    // Anfangszustand (immer PAY_PUSH, siehe TalerSendActions.kt).
+    var direction by rememberSaveable { mutableStateOf(request.direction) }
 
     // Fix round 1 (Task-A6 Review, Critical #1): peerManager.pushState ist
     // prozessweiter, geteilter Zustand (genau wie transactionManager.selected-
@@ -493,7 +504,7 @@ fun ComposeSendScreen(
             title = {
                 Text(
                     stringResource(
-                        if (request.direction == TalerUriKind.PAY_PULL) {
+                        if (direction == TalerUriKind.PAY_PULL) {
                             R.string.receive_peer_title
                         } else {
                             R.string.compose_send_title
@@ -515,6 +526,30 @@ fun ComposeSendScreen(
             // naechsten Recompose auf LoadingScreen wechselt - identisches
             // Muster wie im unveraenderten OutgoingPushScreen.kt.
             Column(modifier = Modifier.padding(paddingValues).padding(16.dp)) {
+                // Nutzer-Vorgabe 2026-09-05: Signal hat nur noch einen
+                // Button, die Richtung waehlt der Nutzer hier ganz oben im
+                // Screen. Waehrend initiated (Tap auf Senden/Anfordern
+                // bereits erfolgt) bleibt die Auswahl gesperrt - ein
+                // Richtungswechsel mitten in einer bereits committenden
+                // Zahlung waere inkonsistent (siehe initiated-Kommentare
+                // oben bei den LaunchedEffect-Blocken).
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    SelectionChip(
+                        label = { Text(stringResource(R.string.compose_direction_push)) },
+                        selected = direction == TalerUriKind.PAY_PUSH,
+                        value = TalerUriKind.PAY_PUSH,
+                        onSelected = { if (!initiated) direction = it },
+                    )
+                    SelectionChip(
+                        label = { Text(stringResource(R.string.compose_direction_pull)) },
+                        selected = direction == TalerUriKind.PAY_PULL,
+                        value = TalerUriKind.PAY_PULL,
+                        onSelected = { if (!initiated) direction = it },
+                    )
+                }
                 // Fix (Final-Review I4, weiterhin gueltig): recipientHint ist
                 // der Anzeigename des REMOTEN Signal-Kontakts - aus Talers
                 // Sicht angreifer-kontrolliert. Eigene Text-Composable,
@@ -539,12 +574,11 @@ fun ComposeSendScreen(
                 // von pushState unabhaengiger Zustand) - deshalb hier ein
                 // eigenes Gate, statt OutgoingPushComposable per zusaetzlichem
                 // Parameter um einen zweiten Zustands-Input zu erweitern.
-                if (request.direction == TalerUriKind.PAY_PULL) {
+                if (direction == TalerUriKind.PAY_PULL) {
                     // Anfordern-Pfad: kein Gruppen-Split, keine
                     // disappearing-messages-Kopplung - eine Pull-Invoice ist
-                    // konzeptionell ein 1:1-Zahlungswunsch, siehe
-                    // AttachmentKeyboardButton.TALER_REQUEST (nur fuer
-                    // Nicht-Gruppen-Empfaenger gegated, ConversationFragment.kt).
+                    // konzeptionell ein 1:1-Zahlungswunsch, unabhaengig davon,
+                    // ob der Chat selbst eine Gruppe ist.
                     OutgoingPullComposable(
                         state = pullState,
                         defaultScope = null,
