@@ -321,8 +321,24 @@ class TalerLinkService : Service() {
      * URI bereits eine transactionId bekannt (PeerPullDebitCache, siehe dort),
      * wird preparePeerPullDebit fuer sie nicht mehr aufgerufen - der aktuelle
      * Zustand kommt dann nur noch aus getTransactionById.
+     *
+     * Fix (analog zu previewPeerPushCredit oben, jetzt real ausgeloest seit
+     * Signal auch pay-pull-URIs ueber prepareSend/direction=PAY_PULL selbst
+     * erzeugt und deren Klassifizierung sofort per previewForUri abfragt,
+     * siehe TalerReturnActivity.sendComposedPayment): fuer eine URI, die diese
+     * Wallet-Instanz selbst per initiatePeerPullCredit erzeugt hat, darf NIE
+     * preparePeerPullDebit aufgerufen werden - das praepariert eine NEUE
+     * Zahlung GEGEN diese Purse (also "ich bezahle meine eigene Rechnung"),
+     * nicht die eigene ausgehende Anfrage. ownUriTracker kennt die eigene
+     * transactionId bereits (ComposeSendScreen.kt trackt sie im selben Moment
+     * wie beim Push-Pfad), also zuerst dort nachsehen, bevor ueberhaupt ein
+     * Cache-Miss zu preparePeerPullDebit fuehren kann.
      */
     private suspend fun previewPeerPullDebit(uri: String): PaymentPreviewResult {
+        ownUriTracker.transactionIdFor(uri)?.let { ownTransactionId ->
+            return detailsFor(TalerUriKind.PAY_PULL, ownTransactionId)
+        }
+
         val cachedTransactionId = PeerPullDebitCache.cachedTransactionId(uri)
         if (cachedTransactionId != null) {
             return detailsFor(TalerUriKind.PAY_PULL, cachedTransactionId)

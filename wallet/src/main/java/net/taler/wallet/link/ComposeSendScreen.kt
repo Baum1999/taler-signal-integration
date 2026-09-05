@@ -53,12 +53,14 @@ import net.taler.wallet.peer.GroupShareInfo
 import net.taler.wallet.peer.GroupShareStore
 import net.taler.wallet.peer.OutgoingCreating
 import net.taler.wallet.peer.OutgoingError
+import net.taler.wallet.peer.OutgoingPullComposable
 import net.taler.wallet.peer.OutgoingPushComposable
 import net.taler.wallet.peer.OutgoingResponse
 import net.taler.wallet.peer.ShareResult
 import net.taler.wallet.peer.allSucceeded
 import net.taler.wallet.peer.failures
 import net.taler.wallet.peer.successfulUris
+import net.taler.wallet.transactions.TransactionPeerPullCredit
 import net.taler.wallet.transactions.TransactionPeerPushDebit
 
 // Fix round 1 (Task-A6 Review, Critical #2): Sicherheitsnetz - falls
@@ -171,11 +173,13 @@ fun ComposeSendScreen(
     remember {
         peerManager.resetPushPayment()
         peerManager.resetGroupPushState()
+        peerManager.resetPullPayment()
     }
     DisposableEffect(Unit) {
         onDispose {
             peerManager.resetPushPayment()
             peerManager.resetGroupPushState()
+            peerManager.resetPullPayment()
             // Nutzer verlaesst den Screen (Zurueck/Home), ohne dass zuvor
             // schon READY gefeuert wurde - gleiches Cancel-Prinzip wie
             // IncomingPushPaymentScreen. Der fired-Guard in fireReturn
@@ -263,6 +267,7 @@ fun ComposeSendScreen(
     val devMode by model.devMode.observeAsState(false)
     val pushState by peerManager.pushState.collectAsStateLifecycleAware()
     val groupPushState by peerManager.groupPushState.collectAsStateLifecycleAware()
+    val pullState by peerManager.pullState.collectAsStateLifecycleAware()
 
     // Fix round 1 (Task-A6 Review, Critical #1 Teil b): beide reaktiven
     // Effekte unten reagieren erst NACH einem tatsaechlichen Tap auf den
@@ -284,7 +289,8 @@ fun ComposeSendScreen(
     BackHandler(
         initiated && (
             pushState is OutgoingCreating || pushState is OutgoingResponse ||
-                groupPushState is GroupPushState.InProgress
+                groupPushState is GroupPushState.InProgress ||
+                pullState is OutgoingCreating || pullState is OutgoingResponse
             )
     ) {
         // absichtlich leer: Back wird in diesem Fenster geschluckt.
@@ -389,11 +395,36 @@ fun ComposeSendScreen(
         }
     }
 
+    // Pendant zum obigen pushState-Effekt fuer den PAY_PULL-Pfad
+    // (initiatePeerPullCredit statt initiatePeerPushDebit) - gleiches
+    // Timeout-Sicherheitsnetz, gleiche Begruendung.
+    LaunchedEffect(pullState, initiated) {
+        if (!initiated) return@LaunchedEffect
+        val s = pullState
+        if (s is OutgoingResponse) {
+            transactionManager.selectTransaction(s.transactionId)
+            delay(TALER_URI_TIMEOUT_MS)
+            if (!fired) {
+                peerManager.resetPullPayment()
+                fireReturn(ReturnStatus.CANCELLED)
+                onShowError(
+                    TalerErrorInfo.makeCustomError(
+                        context.getString(R.string.compose_send_error_uri_timeout),
+                    )
+                )
+                onNavigateBack()
+            }
+        } else if (s is OutgoingError) {
+            onShowError(s.info)
+        }
+    }
+
     LaunchedEffect(initiated) {
         if (!initiated) return@LaunchedEffect
         transactionManager.selectedTransaction.collect { tx ->
-            val expectedId = (pushState as? OutgoingResponse)?.transactionId
-            if (tx is TransactionPeerPushDebit && tx.transactionId == expectedId) {
+            val expectedPushId = (pushState as? OutgoingResponse)?.transactionId
+            val expectedPullId = (pullState as? OutgoingResponse)?.transactionId
+            if (tx is TransactionPeerPushDebit && tx.transactionId == expectedPushId) {
                 // Fix round 1 (Task-A6 Review, Critical #2): talerUri kann bei
                 // der ERSTEN Momentaufnahme noch null sein (Purse-Erstellung
                 // evtl. noch nicht ganz abgeschlossen, wenn getTransactionById
@@ -441,6 +472,16 @@ fun ComposeSendScreen(
                     // seinen neuen enabled-Wert tatsaechlich uebernimmt.
                     navController.popBackStack()
                 }
+            } else if (tx is TransactionPeerPullCredit && tx.transactionId == expectedPullId) {
+                // Gleiches Muster wie oben fuer TransactionPeerPushDebit -
+                // initiatePeerPullCredit erzeugt die Invoice/Purse, talerUri
+                // kann bei der ersten Momentaufnahme noch fehlen.
+                tx.talerUri?.let { uri ->
+                    OwnUriTracker(context).track(uri, tx.transactionId)
+                    val finalPaymentData = currentPaymentData?.copy(uri = listOf(uri))
+                    fireReturn(ReturnStatus.READY, uri, finalPaymentData)
+                    navController.popBackStack()
+                }
             }
         }
     }
@@ -449,7 +490,17 @@ fun ComposeSendScreen(
         GlobalScaffold(
             model = model,
             modifier = Modifier.fillMaxSize(),
-            title = { Text(stringResource(R.string.compose_send_title)) },
+            title = {
+                Text(
+                    stringResource(
+                        if (request.direction == TalerUriKind.PAY_PULL) {
+                            R.string.receive_peer_title
+                        } else {
+                            R.string.compose_send_title
+                        }
+                    )
+                )
+            },
             onNavigateBack = onNavigateBack,
         ) { paddingValues ->
             // Fix round 1 (Task-A6 Review, Important #2): waehrend
@@ -488,7 +539,40 @@ fun ComposeSendScreen(
                 // von pushState unabhaengiger Zustand) - deshalb hier ein
                 // eigenes Gate, statt OutgoingPushComposable per zusaetzlichem
                 // Parameter um einen zweiten Zustands-Input zu erweitern.
-                if (groupPushState is GroupPushState.InProgress) {
+                if (request.direction == TalerUriKind.PAY_PULL) {
+                    // Anfordern-Pfad: kein Gruppen-Split, keine
+                    // disappearing-messages-Kopplung - eine Pull-Invoice ist
+                    // konzeptionell ein 1:1-Zahlungswunsch, siehe
+                    // AttachmentKeyboardButton.TALER_REQUEST (nur fuer
+                    // Nicht-Gruppen-Empfaenger gegated, ConversationFragment.kt).
+                    OutgoingPullComposable(
+                        state = pullState,
+                        defaultScope = null,
+                        scopes = scopes,
+                        devMode = devMode,
+                        getCurrencySpec = model.exchangeManager::getSpecForScopeInfo,
+                        checkPeerPullCredit = { amountScope, loading ->
+                            model.selectScope(amountScope.scope)
+                            peerManager.checkPeerPullCredit(
+                                amountScope.amount,
+                                scopeInfo = amountScope.scope,
+                                loading = loading,
+                            )
+                        },
+                        onCreateInvoice = { amountScope, summary, hours, exchangeBaseUrl ->
+                            initiated = true
+                            peerManager.initiatePeerPullCredit(
+                                amountScope.amount,
+                                summary,
+                                hours,
+                                exchangeBaseUrl,
+                            )
+                        },
+                        onTosAccept = { exchangeBaseUrl ->
+                            onNavigate(WalletDestination.ReviewExchangeTOS(exchangeBaseUrl), false)
+                        },
+                    )
+                } else if (groupPushState is GroupPushState.InProgress) {
                     LoadingScreen(Modifier.fillMaxSize())
                 } else {
                 OutgoingPushComposable(
