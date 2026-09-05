@@ -61,6 +61,7 @@ import net.taler.wallet.compose.BottomButtonBox
 import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.link.splitAmountEvenly
 import net.taler.wallet.systemBarsPaddingBottom
 import net.taler.wallet.transactions.TransactionInfoComposable
 import net.taler.wallet.useDebounce
@@ -77,6 +78,24 @@ fun OutgoingPullComposable(
     onCreateInvoice: (amount: AmountScope, subject: String, hours: Long, exchangeBaseUrl: String) -> Unit,
     onTosAccept: (exchangeBaseUrl: String) -> Unit,
     modifier: Modifier = Modifier,
+    // Gruppen-Split-Anfordern (Pendant zu onSendGroup in
+    // OutgoingPushComposable): wird statt [onCreateInvoice] aufgerufen, wenn
+    // der Split-Rechner aktiv und gueltig ist - amount ist bereits der
+    // Pro-Kopf-Anteil, count die Anzahl der zu erzeugenden Invoices/URIs.
+    onCreateInvoiceGroup: (
+        amount: AmountScope, count: Int, subject: String, hours: Long, exchangeBaseUrl: String,
+    ) -> Unit = { _, _, _, _, _ -> },
+    // Fix (Signal-Fork: Gruppen-Split fuer "Anfordern" fehlte komplett):
+    // gleiche Kopplung an den disappearing-messages-Timer des Chats wie bei
+    // OutgoingPushComposable - siehe dortiger Kommentar.
+    initialExpirationHours: Long? = null,
+    // Gleiches Prinzip wie in OutgoingPushComposable: nur gesetzt bei
+    // Gruppen-Chats (ComposeSendScreen), aktiviert die Split-UI unten.
+    groupSplitMemberCount: Int? = null,
+    onSplitDataChanged: (includeSelf: Boolean?, totalAmount: Amount?) -> Unit = { _, _ -> },
+    // Gleicher Slot wie in OutgoingPushComposable - vom Aufrufer befuellter
+    // Gruppen-/disappearing-messages-Hinweis, direkt unter dem Betragsfeld.
+    contextContent: @Composable () -> Unit = {},
 ) {
     var subject by rememberSaveable { mutableStateOf("") }
     var amount by remember {
@@ -93,8 +112,43 @@ fun OutgoingPullComposable(
     var checkResult by remember { mutableStateOf<CheckPeerPullCreditResult?>(null) }
     val res = checkResult
 
-    var option by rememberSaveable { mutableStateOf(DEFAULT_EXPIRY) }
-    var hours by rememberSaveable { mutableLongStateOf(DEFAULT_EXPIRY.hours) }
+    var option by rememberSaveable {
+        mutableStateOf(if (initialExpirationHours != null) ExpirationOption.CUSTOM else DEFAULT_EXPIRY)
+    }
+    var hours by rememberSaveable { mutableLongStateOf(initialExpirationHours ?: DEFAULT_EXPIRY.hours) }
+
+    // Gruppen-Split-Rechner-Zustand - identisches Muster wie in
+    // OutgoingPushComposable (siehe dortige Kommentare zu resolvedSplit).
+    var splitEnabled by rememberSaveable { mutableStateOf(false) }
+    var includeSelf by rememberSaveable { mutableStateOf(true) }
+    var memberCountInput by rememberSaveable {
+        mutableStateOf(groupSplitMemberCount?.toString() ?: "")
+    }
+
+    LaunchedEffect(splitEnabled, includeSelf, memberCountInput, amount.amount) {
+        if (splitEnabled) {
+            val enteredCount = memberCountInput.toIntOrNull()
+            val totalAmount = if (enteredCount != null && enteredCount in 1..MAX_SPLIT_MEMBERS) {
+                amount.amount
+            } else {
+                null
+            }
+            onSplitDataChanged(includeSelf, totalAmount)
+        } else {
+            onSplitDataChanged(null, null)
+        }
+    }
+
+    val resolvedSplit = if (splitEnabled) {
+        val enteredCount = memberCountInput.toIntOrNull()
+        if (enteredCount != null && enteredCount in 1..MAX_SPLIT_MEMBERS && !amount.amount.isZero()) {
+            val recipientCount = if (includeSelf) enteredCount - 1 else enteredCount
+            if (recipientCount > 0) {
+                val memberCountForSplit = if (includeSelf) enteredCount else enteredCount + 1
+                recipientCount to splitAmountEvenly(amount.amount, memberCountForSplit, includeSelf)
+            } else null
+        } else null
+    } else null
 
     val tosReview = checkResult != null && !checkResult!!.tosStatus!!.isAccepted()
 
@@ -155,6 +209,27 @@ fun OutgoingPullComposable(
                 isError = amount.amount.isZero(),
                 label = { Text(stringResource(R.string.amount_receive)) },
             )
+
+            contextContent()
+
+            groupSplitMemberCount?.let {
+                GroupSplitHint(
+                    total = amount.amount,
+                    spec = selectedSpec,
+                    splitEnabled = splitEnabled,
+                    onSplitEnabledChanged = { splitEnabled = it },
+                    includeSelf = includeSelf,
+                    onIncludeSelfChanged = { newIncludeSelf ->
+                        memberCountInput.toIntOrNull()?.let { current ->
+                            val adjusted = if (newIncludeSelf) current + 1 else current - 1
+                            memberCountInput = adjusted.coerceIn(1, MAX_SPLIT_MEMBERS).toString()
+                        }
+                        includeSelf = newIncludeSelf
+                    },
+                    memberCountInput = memberCountInput,
+                    onMemberCountInputChanged = { memberCountInput = it },
+                )
+            }
 
             LaunchedEffect(tosReview) {
                 if (!tosReview) amountFocusRequester.requestFocus()
@@ -258,16 +333,33 @@ fun OutgoingPullComposable(
             Button(
                 modifier = Modifier
                     .systemBarsPaddingBottom(),
-                enabled = tosReview || (res != null && !amount.amount.isZero()),
+                // Gleiches Prinzip wie in OutgoingPushComposable: bei
+                // aktivem, aber (noch) ungueltigem Split bleibt der Button
+                // deaktiviert statt stillschweigend auf den Einzel-Pfad
+                // zurueckzufallen.
+                enabled = tosReview ||
+                    (res != null && !amount.amount.isZero() && (!splitEnabled || resolvedSplit != null)),
                 onClick = {
                     val ex = res?.exchangeBaseUrl ?: error("clickable without exchange")
                     if (res.tosStatus?.isAccepted() == true) {
-                        onCreateInvoice(
-                            amount,
-                            subject.ifBlank { defaultSubject },
-                            hours,
-                            ex
-                        )
+                        val split = resolvedSplit
+                        if (split != null) {
+                            val (count, perShare) = split
+                            onCreateInvoiceGroup(
+                                amount.copy(amount = perShare),
+                                count,
+                                subject.ifBlank { defaultSubject },
+                                hours,
+                                ex,
+                            )
+                        } else {
+                            onCreateInvoice(
+                                amount,
+                                subject.ifBlank { defaultSubject },
+                                hours,
+                                ex
+                            )
+                        }
                     } else onTosAccept(ex)
                 },
             ) {

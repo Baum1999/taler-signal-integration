@@ -53,6 +53,7 @@ import net.taler.wallet.compose.SelectionChip
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.main.MainViewModel
+import net.taler.wallet.peer.GroupPullState
 import net.taler.wallet.peer.GroupPushState
 import net.taler.wallet.peer.GroupShareInfo
 import net.taler.wallet.peer.GroupShareStore
@@ -185,12 +186,14 @@ fun ComposeSendScreen(
         peerManager.resetPushPayment()
         peerManager.resetGroupPushState()
         peerManager.resetPullPayment()
+        peerManager.resetGroupPullState()
     }
     DisposableEffect(Unit) {
         onDispose {
             peerManager.resetPushPayment()
             peerManager.resetGroupPushState()
             peerManager.resetPullPayment()
+            peerManager.resetGroupPullState()
             // Nutzer verlaesst den Screen (Zurueck/Home), ohne dass zuvor
             // schon READY gefeuert wurde - gleiches Cancel-Prinzip wie
             // IncomingPushPaymentScreen. Der fired-Guard in fireReturn
@@ -279,6 +282,7 @@ fun ComposeSendScreen(
     val pushState by peerManager.pushState.collectAsStateLifecycleAware()
     val groupPushState by peerManager.groupPushState.collectAsStateLifecycleAware()
     val pullState by peerManager.pullState.collectAsStateLifecycleAware()
+    val groupPullState by peerManager.groupPullState.collectAsStateLifecycleAware()
 
     // Fix round 1 (Task-A6 Review, Critical #1 Teil b): beide reaktiven
     // Effekte unten reagieren erst NACH einem tatsaechlichen Tap auf den
@@ -301,7 +305,8 @@ fun ComposeSendScreen(
         initiated && (
             pushState is OutgoingCreating || pushState is OutgoingResponse ||
                 groupPushState is GroupPushState.InProgress ||
-                pullState is OutgoingCreating || pullState is OutgoingResponse
+                pullState is OutgoingCreating || pullState is OutgoingResponse ||
+                groupPullState is GroupPullState.InProgress
             )
     ) {
         // absichtlich leer: Back wird in diesem Fenster geschluckt.
@@ -349,6 +354,44 @@ fun ComposeSendScreen(
                 // diges JSON-Paket (weniger URIs als Mitglieder) verschickt
                 // wird.
                 peerManager.resetGroupPushState()
+                initiated = false
+                onShowError(
+                    TalerErrorInfo.makeCustomError(
+                        context.getString(
+                            R.string.compose_send_group_partial_failure,
+                            results.failures().size,
+                            results.size,
+                        )
+                    )
+                )
+            }
+        }
+    }
+
+    // Pendant zum obigen Effekt fuer den Gruppen-Split-Anfordern-Pfad
+    // (initiatePeerPullCreditGroupAsync statt initiatePeerPushDebitGroupAsync)
+    // - gleiche Teilerfolg-Semantik, gleiche Begruendung.
+    LaunchedEffect(groupPullState, initiated) {
+        if (!initiated) return@LaunchedEffect
+        val s = groupPullState
+        if (s is GroupPullState.Done) {
+            val results = s.results
+            if (results.allSucceeded()) {
+                val uris = results.successfulUris()
+                val finalPaymentData = currentPaymentData?.copy(uri = uris)
+                val successes = results.filterIsInstance<ShareResult.Success>()
+                val groupShareStore = GroupShareStore(context)
+                successes.forEachIndexed { index, share ->
+                    OwnUriTracker(context).track(share.talerUri, share.transactionId)
+                    groupShareStore.save(
+                        share.transactionId,
+                        GroupShareInfo(request.correlationId, index, successes.size),
+                    )
+                }
+                fireReturn(ReturnStatus.READY, uris.firstOrNull(), finalPaymentData)
+                navController.popBackStack()
+            } else {
+                peerManager.resetGroupPullState()
                 initiated = false
                 onShowError(
                     TalerErrorInfo.makeCustomError(
@@ -565,20 +608,26 @@ fun ComposeSendScreen(
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
-                // OutgoingPushComposable deckt Intro/Checked/Error (Formular
-                // bzw. ErrorComposable) UND Checking/Creating/Response
-                // (LoadingScreen) bereits vollstaendig ueber sein eigenes
-                // when(state) ab (siehe OutgoingPushComposable.kt) - kein
-                // eigener Error-/Loading-Zweig hier noetig. Der Gruppen-Pfad
-                // (groupPushState) lebt AUSSERHALB dieses when(state) (eigener,
-                // von pushState unabhaengiger Zustand) - deshalb hier ein
-                // eigenes Gate, statt OutgoingPushComposable per zusaetzlichem
+                // OutgoingPushComposable/OutgoingPullComposable decken Intro/
+                // Checked/Error (Formular bzw. ErrorComposable) UND Checking/
+                // Creating/Response (LoadingScreen) bereits vollstaendig ueber
+                // ihr eigenes when(state) ab - kein eigener Error-/Loading-
+                // Zweig hier noetig. Die Gruppen-Pfade (groupPushState/
+                // groupPullState) leben AUSSERHALB dieses when(state) (eigener,
+                // von pushState/pullState unabhaengiger Zustand) - deshalb hier
+                // je ein eigenes Gate, statt die Composables per zusaetzlichem
                 // Parameter um einen zweiten Zustands-Input zu erweitern.
-                if (direction == TalerUriKind.PAY_PULL) {
-                    // Anfordern-Pfad: kein Gruppen-Split, keine
-                    // disappearing-messages-Kopplung - eine Pull-Invoice ist
-                    // konzeptionell ein 1:1-Zahlungswunsch, unabhaengig davon,
-                    // ob der Chat selbst eine Gruppe ist.
+                if (direction == TalerUriKind.PAY_PULL && groupPullState is GroupPullState.InProgress) {
+                    LoadingScreen(Modifier.fillMaxSize())
+                } else if (direction == TalerUriKind.PAY_PULL) {
+                    // Fix (Bug-Befund: Gruppen-Split fehlte komplett beim
+                    // Anfordern, Chat-Metadaten - Ablaufzeit, Mitgliederzahl -
+                    // wurden nicht uebernommen): der Anfordern-Pfad bekommt
+                    // jetzt dieselbe Gruppen-Split-/disappearing-messages-
+                    // Kopplung wie der Senden-Pfad unten (initialExpiration-
+                    // Hours/groupSplitMemberCount/contextContent/onSplitData-
+                    // Changed) - eine Gruppen-Zahlungsanforderung ist genauso
+                    // gut denkbar wie ein Gruppen-Split-Versand.
                     OutgoingPullComposable(
                         state = pullState,
                         defaultScope = null,
@@ -601,6 +650,45 @@ fun ComposeSendScreen(
                                 hours,
                                 exchangeBaseUrl,
                             )
+                        },
+                        onCreateInvoiceGroup = { amountScope, count, summary, hours, exchangeBaseUrl ->
+                            initiated = true
+                            peerManager.initiatePeerPullCreditGroupAsync(
+                                count = count,
+                                amountPerShare = amountScope.amount,
+                                summary = summary,
+                                expirationHours = hours,
+                                exchangeBaseUrl = exchangeBaseUrl,
+                            )
+                        },
+                        onSplitDataChanged = { includeSelf, totalAmount ->
+                            currentPaymentData = TalerPaymentData(
+                                legacyText = context.getString(R.string.taler_payment_legacy_text),
+                                version = 1,
+                                includeSelf = includeSelf,
+                                totalAmount = totalAmount?.amountStr,
+                                uri = emptyList()
+                            )
+                        },
+                        initialExpirationHours = request.disappearingMessagesSeconds
+                            .takeIf { it > 0 }
+                            ?.let { seconds -> ((seconds + 3599) / 3600).toLong() },
+                        groupSplitMemberCount = request.memberCount.takeIf { request.isGroup },
+                        contextContent = {
+                            if (request.isGroup) {
+                                request.memberCount?.let { count ->
+                                    Text(stringResource(R.string.compose_receive_group_hint, count))
+                                }
+                                Text(stringResource(R.string.compose_receive_group_warning))
+                            }
+                            if (request.disappearingMessagesSeconds > 0) {
+                                Text(
+                                    stringResource(
+                                        R.string.compose_send_disappearing_hint,
+                                        formatDuration(context, request.disappearingMessagesSeconds),
+                                    )
+                                )
+                            }
                         },
                         onTosAccept = { exchangeBaseUrl ->
                             onNavigate(WalletDestination.ReviewExchangeTOS(exchangeBaseUrl), false)

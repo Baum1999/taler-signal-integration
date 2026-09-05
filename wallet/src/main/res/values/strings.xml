@@ -574,6 +574,8 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="taler_payment_legacy_text">This is a GNU Taler link. Update Signal or copy the URI below into the GNU Taler app to make the payment.</string>
     <string name="compose_send_group_hint">Sending to a group of %1$d members.</string>
     <string name="compose_send_group_warning">Without splitting, this creates a single payment link and whoever confirms first in Taler receives the money. Splitting below creates one separate link per person instead.</string>
+    <string name="compose_receive_group_hint">Requesting from a group of %1$d members.</string>
+    <string name="compose_receive_group_warning">Without splitting, this creates a single payment request and whoever pays first in Taler covers the full amount. Splitting below creates one separate request per person instead.</string>
     <string name="compose_send_split_checkbox">Split into one payment link per person</string>
     <string name="compose_send_split_include_self_checkbox">Count myself in the split</string>
     <string name="compose_send_split_member_count_label">Number of people (max 10)</string>

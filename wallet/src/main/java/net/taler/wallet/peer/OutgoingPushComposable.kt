@@ -517,10 +517,13 @@ fun OutgoingPushIntroComposable(
  * unter wie vielen Personen aufgeteilt wird, statt dass sich nur der
  * Vorschlagsbetrag im Hintergrund aendert.
  */
-private const val MAX_SPLIT_MEMBERS = 10
+// internal statt private: OutgoingPullComposable.kt (Gruppen-Anfordern-Pfad,
+// gleiches Package) nutzt denselben Rechner/dieselbe UI wieder, statt sie zu
+// duplizieren.
+internal const val MAX_SPLIT_MEMBERS = 10
 
 @Composable
-private fun GroupSplitHint(
+internal fun GroupSplitHint(
     total: Amount,
     spec: CurrencySpecification?,
     splitEnabled: Boolean,

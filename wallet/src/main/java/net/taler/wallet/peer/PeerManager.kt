@@ -46,6 +46,7 @@ import net.taler.wallet.exchanges.ExchangeTosStatus
 import net.taler.wallet.payment.InsufficientBalanceHint
 import net.taler.wallet.transactions.Transaction
 import net.taler.wallet.transactions.TransactionMajorState
+import net.taler.wallet.transactions.TransactionPeerPullCredit
 import net.taler.wallet.transactions.TransactionPeerPushDebit
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit.HOURS
@@ -118,6 +119,9 @@ class PeerManager(
     private val _groupPushState = MutableStateFlow<GroupPushState>(GroupPushState.Idle)
     val groupPushState: StateFlow<GroupPushState> = _groupPushState
 
+    private val _groupPullState = MutableStateFlow<GroupPullState>(GroupPullState.Idle)
+    val groupPullState: StateFlow<GroupPullState> = _groupPullState
+
     private val _incomingPullState = MutableStateFlow<IncomingState>(IncomingChecking)
     val incomingPullState: StateFlow<IncomingState> = _incomingPullState
 
@@ -186,25 +190,160 @@ class PeerManager(
     fun initiatePeerPullCredit(amount: Amount, summary: String, expirationHours: Long, exchangeBaseUrl: String) {
         _outgoingPullState.value = OutgoingCreating
         scope.launch(Dispatchers.IO) {
-            val expiry = Timestamp.fromMillis(System.currentTimeMillis() + HOURS.toMillis(expirationHours))
-            api.request("initiatePeerPullCredit", InitiatePeerPullPaymentResponse.serializer()) {
-                put("exchangeBaseUrl", exchangeBaseUrl)
-                put("partialContractTerms", JSONObject().apply {
-                    put("amount", amount.toJSONString())
-                    put("summary", summary)
-                    put("purse_expiration", JSONObject(Json.encodeToString(expiry)))
-                })
-            }.onSuccess {
-                _outgoingPullState.value = OutgoingResponse(it.transactionId)
-            }.onError { error ->
-                Log.e(TAG, "got initiatePeerPullCredit error result $error")
-                _outgoingPullState.value = OutgoingError(error)
-            }
+            requestInitiatePeerPullCredit(amount, summary, expirationHours, exchangeBaseUrl)
+                .onSuccess {
+                    _outgoingPullState.value = OutgoingResponse(it.transactionId)
+                }.onError { error ->
+                    Log.e(TAG, "got initiatePeerPullCredit error result $error")
+                    _outgoingPullState.value = OutgoingError(error)
+                }
         }
     }
 
     fun resetPullPayment() {
         _outgoingPullState.value = OutgoingIntro
+    }
+
+    /**
+     * Reiner Netzwerk-Aufruf ohne Seiteneffekt auf _outgoingPullState - von
+     * initiatePeerPullCredit (Einzel-Anfordern-Pfad, ein Aufruf) UND
+     * initiatePeerPullCreditGroup (Gruppen-Split-Anfordern-Pfad, N parallele
+     * Aufrufe, siehe unten) genutzt, damit die Anfrage-Konstruktion nur an
+     * einer Stelle steht - gleiches Muster wie requestInitiatePeerPushDebit.
+     */
+    private suspend fun requestInitiatePeerPullCredit(
+        amount: Amount,
+        summary: String,
+        expirationHours: Long,
+        exchangeBaseUrl: String,
+    ): WalletResponse<InitiatePeerPullPaymentResponse> {
+        val expiry = Timestamp.fromMillis(System.currentTimeMillis() + HOURS.toMillis(expirationHours))
+        return api.request("initiatePeerPullCredit", InitiatePeerPullPaymentResponse.serializer()) {
+            put("exchangeBaseUrl", exchangeBaseUrl)
+            put("partialContractTerms", JSONObject().apply {
+                put("amount", amount.toJSONString())
+                put("summary", summary)
+                put("purse_expiration", JSONObject(Json.encodeToString(expiry)))
+            })
+        }
+    }
+
+    /**
+     * Pendant zu [initiatePeerPushDebitGroup] fuer den "Anfordern"-Pfad:
+     * erzeugt [count] unabhaengige peer-pull-credit-Invoices parallel (eine
+     * pro Gruppen-Mitglied). Gleiche Retry-/Teilerfolg-Semantik wie beim
+     * Push-Pendant - siehe dortige Kommentare.
+     */
+    suspend fun initiatePeerPullCreditGroup(
+        count: Int,
+        amountPerShare: Amount,
+        summary: String,
+        expirationHours: Long,
+        exchangeBaseUrl: String,
+        maxRetries: Int = 2,
+    ): List<ShareResult> {
+        require(count > 0) { "count must be positive, was $count" }
+        return coroutineScope {
+            (0 until count).map {
+                async(Dispatchers.IO) {
+                    initiatePeerPullCreditShareWithRetry(
+                        amountPerShare, summary, expirationHours, exchangeBaseUrl, maxRetries,
+                    )
+                }
+            }.awaitAll()
+        }
+    }
+
+    /**
+     * UI-Einstiegspunkt fuer den Gruppen-Split-Anfordern-Pfad - Fire-and-
+     * forget-Wrapper um [initiatePeerPullCreditGroup], analog zu
+     * [initiatePeerPushDebitGroupAsync] fuer den Push-Pfad.
+     */
+    fun initiatePeerPullCreditGroupAsync(
+        count: Int,
+        amountPerShare: Amount,
+        summary: String,
+        expirationHours: Long,
+        exchangeBaseUrl: String,
+    ) {
+        _groupPullState.value = GroupPullState.InProgress(count)
+        scope.launch(Dispatchers.IO) {
+            val results = initiatePeerPullCreditGroup(count, amountPerShare, summary, expirationHours, exchangeBaseUrl)
+            _groupPullState.value = GroupPullState.Done(results)
+        }
+    }
+
+    fun resetGroupPullState() {
+        _groupPullState.value = GroupPullState.Idle
+    }
+
+    private suspend fun initiatePeerPullCreditShareWithRetry(
+        amount: Amount,
+        summary: String,
+        expirationHours: Long,
+        exchangeBaseUrl: String,
+        maxRetries: Int,
+    ): ShareResult {
+        var transactionId: String? = null
+        var attempt = 0
+        while (true) {
+            val result: ShareResult = if (transactionId == null) {
+                when (val response = requestInitiatePeerPullCredit(amount, summary, expirationHours, exchangeBaseUrl)) {
+                    is WalletResponse.Success -> {
+                        val id = response.result.transactionId
+                        transactionId = id
+                        waitForPullShareTalerUri(id)
+                    }
+                    is WalletResponse.Error -> ShareResult.Failure(null, response.error)
+                }
+            } else {
+                when (val retryResponse = api.request<Unit>("retryTransaction") {
+                    put("transactionId", transactionId)
+                }) {
+                    is WalletResponse.Success -> waitForPullShareTalerUri(transactionId)
+                    is WalletResponse.Error -> ShareResult.Failure(transactionId, retryResponse.error)
+                }
+            }
+            if (result is ShareResult.Success) return result
+            result as ShareResult.Failure
+            transactionId = result.transactionId ?: transactionId
+            attempt++
+            if (attempt > maxRetries) return ShareResult.Failure(transactionId, result.error)
+        }
+    }
+
+    /** Pendant zu [waitForShareTalerUri] fuer TransactionPeerPullCredit. */
+    private suspend fun waitForPullShareTalerUri(
+        transactionId: String,
+        pollIntervalMs: Long = 2_000L,
+        timeoutMs: Long = 600_000L,
+    ): ShareResult {
+        val deadline = System.currentTimeMillis() + timeoutMs
+        while (System.currentTimeMillis() < deadline) {
+            when (val response = api.request("getTransactionById", Transaction.serializer()) {
+                put("transactionId", transactionId)
+            }) {
+                is WalletResponse.Success -> {
+                    val tx = response.result
+                    val talerUri = (tx as? TransactionPeerPullCredit)?.talerUri
+                    if (talerUri != null) return ShareResult.Success(transactionId, talerUri)
+                    if (tx.txState.major in TERMINAL_FAILURE_STATES) {
+                        return ShareResult.Failure(
+                            transactionId,
+                            tx.error ?: TalerErrorInfo.makeCustomError(
+                                "Transaction ended in terminal state ${tx.txState.major} (group share)",
+                            ),
+                        )
+                    }
+                }
+                is WalletResponse.Error -> return ShareResult.Failure(transactionId, response.error)
+            }
+            delay(pollIntervalMs)
+        }
+        return ShareResult.Failure(
+            transactionId,
+            TalerErrorInfo.makeCustomError("Timed out waiting for payment URI (group share)"),
+        )
     }
 
     suspend fun checkPeerPushFees(

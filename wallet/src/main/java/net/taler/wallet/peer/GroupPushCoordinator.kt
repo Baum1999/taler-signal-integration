@@ -60,3 +60,17 @@ sealed class GroupPushState {
     data class InProgress(val total: Int) : GroupPushState()
     data class Done(val results: List<ShareResult>) : GroupPushState()
 }
+
+/**
+ * Pendant zu [GroupPushState] fuer den "Anfordern"-Pfad (PAY_PULL): eine
+ * Gruppen-Zahlungsanforderung erzeugt N unabhaengige Invoices (eine pro
+ * Mitglied), genau wie der Gruppen-Split-Versand N unabhaengige Purses
+ * erzeugt. Nutzt [ShareResult] mit (transactionId, talerUri) unveraendert
+ * weiter - das Ergebnis einer einzelnen Invoice unterscheidet sich
+ * strukturell nicht vom Ergebnis eines einzelnen Push-Anteils.
+ */
+sealed class GroupPullState {
+    data object Idle : GroupPullState()
+    data class InProgress(val total: Int) : GroupPullState()
+    data class Done(val results: List<ShareResult>) : GroupPullState()
+}
