@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.map
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import kotlinx.coroutines.delay
@@ -41,6 +42,7 @@ import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.balances.BalanceState
 import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
@@ -217,7 +219,36 @@ fun ComposeSendScreen(
     // sichtbar abfangen statt crashen zu lassen - gleiches Prinzip wie die
     // fruehere amount==null-Pruefung: nur Fehler zeigen, Ruecksprung dem
     // onDispose-Hook oben ueberlassen.
-    val scopes = remember { model.balanceManager.getScopes(true) }
+    // Fix (Bug: "You don't have any Taler balance yet" trotz vorhandenem
+    // Guthaben): dieser Screen wird per talerlink://compose-send Deep-Link
+    // direkt aus Signal angesprungen (MainActivity.emitComposeSend) und
+    // liegt im Nav-Graph NICHT unter MainScreen (WalletNavHost.kt) - dessen
+    // LaunchedEffect ist aber die einzige Stelle, die
+    // balanceManager.loadAssets() beim App-Start aufruft. Bei einem
+    // Kaltstart ueber diesen Deep-Link (App vorher nicht offen) wurde die
+    // Balance also NIE geladen: der vorherige einmalige
+    // remember{getScopes(true)}-Snapshot las balances.value in seinem noch
+    // leeren Initialzustand und blieb das fuer die Lebensdauer dieser
+    // Komposition - scopes war dadurch immer leer, unabhaengig vom
+    // tatsaechlichen Guthaben. Jetzt: Ladung selbst anstossen und reaktiv
+    // auf das Ergebnis warten statt einen Snapshot des Anfangszustands zu
+    // nehmen.
+    val balanceState by model.balanceManager.state.observeAsState(BalanceState.None)
+    val scopes by model.balanceManager.balances
+        .map { list -> list.filter { !it.disablePeerPayments }.map { it.scopeInfo } }
+        .observeAsState(emptyList())
+
+    LaunchedEffect(Unit) {
+        if (balanceState is BalanceState.None) {
+            model.balanceManager.loadAssets()
+        }
+    }
+
+    if (balanceState !is BalanceState.Success) {
+        LoadingScreen(Modifier.fillMaxSize())
+        return
+    }
+
     if (scopes.isEmpty()) {
         LaunchedEffect(Unit) {
             onShowError(

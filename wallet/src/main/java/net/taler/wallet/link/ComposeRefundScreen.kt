@@ -39,6 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.map
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import kotlinx.coroutines.delay
@@ -46,6 +47,7 @@ import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.balances.BalanceState
 import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
@@ -193,7 +195,31 @@ fun ComposeRefundScreen(
     // Gleicher Leerer-Kontostand-Guard wie ComposeSendScreen.kt: OutgoingPush-
     // IntroComposable greift bei der ersten Komposition auf scopes[0] zu,
     // falls kein passender Scope aus der Original-Transaktion gefunden wird.
-    val scopes = remember { model.balanceManager.getScopes(true) }
+    // Fix (Bug: "You don't have any Taler balance yet" trotz vorhandenem
+    // Guthaben) - gleiches Problem und gleiche Loesung wie in
+    // ComposeSendScreen.kt: dieser Screen wird per Deep-Link direkt
+    // angesprungen und liegt im Nav-Graph NICHT unter MainScreen, dessen
+    // LaunchedEffect balanceManager.loadAssets() beim App-Start ausloest.
+    // Bei einem Kaltstart war die Balance also nie geladen, und der
+    // vorherige einmalige remember{getScopes(true)}-Snapshot las
+    // balances.value in seinem leeren Initialzustand - scopes war
+    // dadurch immer leer, unabhaengig vom tatsaechlichen Guthaben.
+    val balanceState by model.balanceManager.state.observeAsState(BalanceState.None)
+    val scopes by model.balanceManager.balances
+        .map { list -> list.filter { !it.disablePeerPayments }.map { it.scopeInfo } }
+        .observeAsState(emptyList())
+
+    LaunchedEffect(Unit) {
+        if (balanceState is BalanceState.None) {
+            model.balanceManager.loadAssets()
+        }
+    }
+
+    if (tx != null && balanceState !is BalanceState.Success) {
+        LoadingScreen(Modifier.fillMaxSize())
+        return
+    }
+
     if (tx != null && scopes.isEmpty()) {
         LaunchedEffect(Unit) {
             onShowError(
