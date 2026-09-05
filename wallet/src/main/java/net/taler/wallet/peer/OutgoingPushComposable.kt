@@ -218,19 +218,27 @@ fun OutgoingPushIntroComposable(
     // Gruppe): [count] hier ist die Anzahl der zu erzeugenden Payment-Links,
     // NICHT der Divisor fuer die Betragsaufteilung - die beiden sind
     // verschiedene Groessen und wurden vorher faelschlich gleichgesetzt.
-    // memberCountInput ist die Gesamtgroesse INKLUSIVE Sender
-    // (PrepareSendRequest.memberCount), der Sender bekommt aber nie einen
-    // eigenen Payment-Link - unabhaengig von [includeSelf], das nur
-    // beeinflusst, ob der Sender-Anteil in die Betrags-Division miteinfliesst
-    // (splitDivisor/splitAmountEvenly). Bei includeSelf=true und
-    // memberCount=3 erzeugte splitDivisor() bisher 3 - genau ein Link zu viel
-    // (der ungueltige "eigene" Link an den Sender selbst).
+    //
+    // Fix (UX-Befund 2026-09-05: Toggle aendert nur den Betrag, nicht die
+    // angezeigte Personenzahl): memberCountInput ist nicht mehr die stets
+    // konstante Gesamtgroesse INKLUSIVE Sender, sondern direkt der Divisor -
+    // wie viele Personen sich den Betrag teilen. [onIncludeSelfChanged]
+    // verschiebt die Zahl bereits beim Toggeln um 1 (siehe oben), deshalb
+    // muss recipientCount (Anzahl der zu erzeugenden Payment-Links, der
+    // Sender bekommt nie einen eigenen) hier aus dem *aktuellen* Divisor
+    // zurueckgerechnet werden: enthaelt der Divisor den Sender
+    // (includeSelf=true), ist ein Empfaenger weniger als der Divisor noetig,
+    // sonst (includeSelf=false) steckt der Sender ohnehin nicht im Divisor
+    // und recipientCount entspricht ihm direkt. splitAmountEvenly() selbst
+    // bleibt unveraendert (erwartet weiterhin memberCount inkl. Sender) -
+    // dafuer wird ihr Parameter hier passend rekonstruiert.
     val resolvedSplit = if (splitEnabled) {
         val enteredCount = memberCountInput.toIntOrNull()
         if (enteredCount != null && enteredCount in 1..MAX_SPLIT_MEMBERS && !amount.amount.isZero()) {
-            val recipientCount = enteredCount - 1
+            val recipientCount = if (includeSelf) enteredCount - 1 else enteredCount
             if (recipientCount > 0) {
-                recipientCount to splitAmountEvenly(amount.amount, enteredCount, includeSelf)
+                val memberCountForSplit = if (includeSelf) enteredCount else enteredCount + 1
+                recipientCount to splitAmountEvenly(amount.amount, memberCountForSplit, includeSelf)
             } else null
         } else null
     } else null
@@ -348,7 +356,21 @@ fun OutgoingPushIntroComposable(
                     splitEnabled = splitEnabled,
                     onSplitEnabledChanged = { splitEnabled = it },
                     includeSelf = includeSelf,
-                    onIncludeSelfChanged = { includeSelf = it },
+                    // Fix (UX-Befund 2026-09-05: Toggle wirkt sich erst bei
+                    // der Berechnung aus, nicht auf die angezeigte Zahl):
+                    // "Number of people" ist ab jetzt direkt der Divisor
+                    // (wie viele Personen sich den Betrag teilen). Das
+                    // Toggeln von "Count myself in" muss die sichtbare Zahl
+                    // deshalb sofort um 1 verschieben, statt die Zahl
+                    // unveraendert zu lassen und nur den Betrag im
+                    // Hintergrund neu zu rechnen.
+                    onIncludeSelfChanged = { newIncludeSelf ->
+                        memberCountInput.toIntOrNull()?.let { current ->
+                            val adjusted = if (newIncludeSelf) current + 1 else current - 1
+                            memberCountInput = adjusted.coerceIn(1, MAX_SPLIT_MEMBERS).toString()
+                        }
+                        includeSelf = newIncludeSelf
+                    },
                     memberCountInput = memberCountInput,
                     onMemberCountInputChanged = { memberCountInput = it },
                 )
@@ -485,6 +507,15 @@ fun OutgoingPushIntroComposable(
  * geteilt werden und BigDecimal.divide(scale=8) unnoetig lange rechnen -
  * dieselbe Grenze wie die Datenbasis heutiger Signal-Gruppen ist bewusst
  * NICHT das Kriterium, es geht nur um eine sinnvolle erste Obergrenze.
+ *
+ * Fix (UX-Befund 2026-09-05: Toggle "Count myself in" wirkte sich nur beim
+ * Verarbeiten auf den Betrag aus, nicht sichtbar auf die Personenzahl):
+ * `memberCountInput` ist der Divisor - wie viele Personen sich den Betrag
+ * teilen -, nicht mehr die stets konstante Gesamtgroesse inklusive Sender.
+ * Der Aufrufer (`onIncludeSelfChanged` in [OutgoingPushComposable])
+ * verschiebt die Zahl beim Toggeln direkt um 1, damit das Feld sofort zeigt,
+ * unter wie vielen Personen aufgeteilt wird, statt dass sich nur der
+ * Vorschlagsbetrag im Hintergrund aendert.
  */
 private const val MAX_SPLIT_MEMBERS = 10
 
@@ -530,7 +561,12 @@ private fun GroupSplitHint(
         ) {
             null
         } else try {
-            splitAmountEvenly(total, enteredCount, includeSelf)
+            // memberCountInput ist der Divisor selbst (siehe Fix-Kommentar
+            // bei resolvedSplit in OutgoingPushComposable) - splitAmountEvenly
+            // erwartet weiterhin memberCount inkl. Sender, daher hier bei
+            // includeSelf=false wieder um 1 hochrechnen.
+            val memberCountForSplit = if (includeSelf) enteredCount else enteredCount + 1
+            splitAmountEvenly(total, memberCountForSplit, includeSelf)
         } catch (e: IllegalArgumentException) {
             null
         }
