@@ -28,6 +28,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import net.taler.common.Amount
@@ -35,6 +37,7 @@ import net.taler.common.RelativeTime
 import net.taler.common.Timestamp
 import net.taler.wallet.main.TAG
 import net.taler.wallet.backend.BackendManager
+import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.backend.WalletResponse
@@ -54,6 +57,13 @@ import net.taler.wallet.peer.CheckPeerPushDebitResponse.*
 
 const val MAX_LENGTH_SUBJECT = 100
 val DEFAULT_EXPIRY = ExpirationOption.DAYS_1
+
+/**
+ * Basis-Backoff (mit dem Versuchszaehler multipliziert) fuer Retries nach
+ * einem INSUFFICIENT_BALANCE-Fehlschlag bei einer Gruppen-Split-Share -
+ * siehe initiatePeerPushDebitShareWithRetry.
+ */
+private const val INSUFFICIENT_BALANCE_BACKOFF_MS = 2_000L
 
 sealed class CheckFeeResult {
     abstract val maxDepositAmountEffective: Amount?
@@ -475,11 +485,35 @@ class PeerManager(
         maxRetries: Int = 2,
     ): List<ShareResult> {
         require(count > 0) { "count must be positive, was $count" }
+
+        // Guenstiger Vorab-Check des Gesamtbetrags: echten Geldmangel sofort
+        // erkennen, bevor ueberhaupt eine Purse erzeugt wird - vermeidet, dass
+        // alle N Shares erst ihre Retries verbrauchen, obwohl das Ergebnis von
+        // vornherein feststeht (deckt nur "insgesamt zu wenig Guthaben" ab,
+        // nicht die transiente Race um einzelne Muenzen - dafuer siehe den
+        // Mutex weiter unten).
+        val totalAmount = amountPerShare * count
+        val feeCheck = checkPeerPushFees(totalAmount, restrictScope = restrictScope)
+        if (feeCheck is CheckFeeResult.InsufficientBalance) {
+            val error = TalerErrorInfo.makeCustomError(
+                "Insufficient balance for group split: need $totalAmount, " +
+                    "max effective spend is ${feeCheck.maxAmountEffective}",
+            )
+            return (0 until count).map { ShareResult.Failure(null, error) }
+        }
+
+        // Gemeinsamer Lock nur fuer den Retry-Pfad bei INSUFFICIENT_BALANCE
+        // (siehe initiatePeerPushDebitShareWithRetry): verhindert, dass
+        // mehrere Shares gleichzeitig auf denselben, noch laufenden Refresh
+        // (Melt+Reveal) einer Geschwister-Share warten und sich dabei
+        // gegenseitig unnoetige, aussichtslose Retry-Versuche liefern.
+        val insufficientBalanceMutex = Mutex()
         return coroutineScope {
             (0 until count).map {
                 async(Dispatchers.IO) {
                     initiatePeerPushDebitShareWithRetry(
                         amountPerShare, summary, expirationHours, restrictScope, maxRetries,
+                        insufficientBalanceMutex,
                     )
                 }
             }.awaitAll()
@@ -518,6 +552,7 @@ class PeerManager(
         expirationHours: Long,
         restrictScope: ScopeInfo?,
         maxRetries: Int,
+        insufficientBalanceMutex: Mutex,
     ): ShareResult {
         var transactionId: String? = null
         var attempt = 0
@@ -549,6 +584,22 @@ class PeerManager(
             transactionId = result.transactionId ?: transactionId
             attempt++
             if (attempt > maxRetries) return ShareResult.Failure(transactionId, result.error)
+
+            // INSUFFICIENT_BALANCE ist bei knappem Muenzpuffer erwartbar-
+            // transient: eine Geschwister-Share laesst gerade ihre grosse
+            // Muenze per Refresh (Melt+Reveal) beim Exchange aufteilen,
+            // danach existieren die fuer diese Share noetigen Muenzen.
+            // Sofortiges Retry hat hier praktisch keine Erfolgschance -
+            // stattdessen ueber den gemeinsamen Mutex serialisieren (nur
+            // eine Share "recovert" gleichzeitig) und mit steigendem
+            // Backoff warten, statt alle wartenden Shares parallel gegen
+            // den Exchange retryen zu lassen. Andere Fehlercodes (Netzwerk
+            // etc.) behalten das bisherige Sofort-Retry-Verhalten.
+            if (result.error.code == TalerErrorCode.WALLET_PEER_PUSH_PAYMENT_INSUFFICIENT_BALANCE) {
+                insufficientBalanceMutex.withLock {
+                    delay(INSUFFICIENT_BALANCE_BACKOFF_MS * attempt)
+                }
+            }
         }
     }
 
