@@ -30,6 +30,7 @@ class PendingSendStoreTest {
         disappearingMessagesSeconds = 0,
         correlationId = id,
         returnUri = "signalfuergnu://taler-return",
+        direction = TalerUriKind.PAY_PUSH,
     )
 
     @Test
