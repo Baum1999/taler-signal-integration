@@ -17,7 +17,15 @@
 package net.taler.wallet.backend
 
 import android.app.Application
+import android.util.Log
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * App-weiter, referenzgezaehlter Zugriff auf die eine wallet-core-Instanz
@@ -36,18 +44,78 @@ import java.util.concurrent.CopyOnWriteArrayList
  * kein Aufrufer mehr eine Referenz haelt.
  */
 object WalletCoreSingleton : InitReceiver, NotificationReceiver {
+    private const val TAG = "WalletCoreSingleton"
+
+    /**
+     * Obergrenze fuer das Warten auf ein noch laufendes Herunterfahren in
+     * [acquire], siehe dort. Bewusst deutlich kuerzer als
+     * BackendManager.REQUEST_TIMEOUT_MS (60s) - "shutdown" ist ein lokaler,
+     * synchroner wallet-core-Aufruf ohne Netzwerk-I/O und antwortet unter
+     * normalen Umstaenden sofort. Diese Grenze verhindert, dass ein
+     * hartnaeckig haengender alter Kern den Hauptthread eines neuen
+     * acquire()-Aufrufers (MainViewModel-Init, TalerLinkService.onCreate())
+     * fuer volle 60s blockiert (ANR-Risiko).
+     */
+    private const val TEARDOWN_JOIN_TIMEOUT_MS = 5_000L
+
     private val initReceivers = CopyOnWriteArrayList<InitReceiver>()
     private val notificationReceivers = CopyOnWriteArrayList<NotificationReceiver>()
 
     private var api: WalletBackendApi? = null
     private var refCount = 0
 
+    /**
+     * Fuehrt das asynchrone Herunterfahren (stopWallet(), siehe
+     * WalletBackendApi) der zuletzt freigegebenen Instanz aus. Absichtlich
+     * NICHT ueber den Object-Monitor synchronisiert erreichbar - stopWallet()
+     * ruft nicht in WalletCoreSingleton zurueck, sonst wuerde
+     * runBlocking { teardownJob.join() } unten sich selbst blockieren.
+     */
+    private val teardownScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var teardownJob: Job? = null
+
+    /**
+     * Root cause des Bugs "wallet core did not respond" (siehe
+     * HANDOFF/Statusbericht): [release] unten faehrt die alte Instanz nur
+     * ASYNCHRON herunter (WalletBackendApi.stopWallet() sendet "shutdown" und
+     * wartet auf Antwort, bevor es BackendManager.destroy() aufruft, welches
+     * erst dort das prozessweite coreRunning-Flag zuruecksetzt). TalerLinkService
+     * bindet/entbindet pro Aufruf neu (siehe dortiger Kommentar) und durchlaeuft
+     * release()+acquire() dabei oft binnen Millisekunden - z.B. weil parallel
+     * MainViewModel fuer die vom Deep-Link geoeffnete Taler-UI ebenfalls
+     * acquire() aufruft. Ohne dieses Warten haette ein solches acquire(), das
+     * WAEHREND des noch laufenden Shutdowns eine neue Instanz erzeugt, das noch
+     * nicht zurueckgesetzte coreRunning-Flag gesehen: walletCore.run() der
+     * neuen Instanz waere lautlos verweigert worden (BackendManager: "refusing
+     * to run a second wallet-core in this process"), und jeder Request auf
+     * dieser toten Instanz waere nach 60s mit exakt diesem Fehler getimeoutet.
+     * Deshalb hier zuerst synchron auf ein noch laufendes Herunterfahren
+     * warten, bevor ueberhaupt eine neue Instanz entsteht.
+     */
     @Synchronized
     fun acquire(app: Application, config: WalletRunConfig): WalletBackendApi {
         refCount++
-        api?.let { return it }
+        api?.let {
+            Log.i(TAG, "acquire(): reusing existing instance, refCount=$refCount")
+            return it
+        }
+        teardownJob?.let { job ->
+            teardownJob = null
+            Log.i(TAG, "acquire(): waiting for in-flight teardown to finish first")
+            runBlocking {
+                val finished = withTimeoutOrNull(TEARDOWN_JOIN_TIMEOUT_MS) { job.join() }
+                if (finished == null) {
+                    Log.e(
+                        TAG,
+                        "teardown did not finish within ${TEARDOWN_JOIN_TIMEOUT_MS}ms - " +
+                            "proceeding anyway, a stale wallet-core may briefly refuse to start"
+                    )
+                }
+            }
+        }
         val created = WalletBackendApi(app, config, this, this)
         api = created
+        Log.i(TAG, "acquire(): starting new instance, refCount=$refCount")
         created.startWallet()
         return created
     }
@@ -56,9 +124,14 @@ object WalletCoreSingleton : InitReceiver, NotificationReceiver {
     fun release() {
         if (refCount <= 0) return
         refCount--
+        Log.i(TAG, "release(): refCount=$refCount")
         if (refCount == 0) {
-            api?.stopWallet()
+            val toStop = api
             api = null
+            teardownJob = teardownScope.launch {
+                toStop?.stopWallet()
+                Log.i(TAG, "release(): teardown finished")
+            }
         }
     }
 

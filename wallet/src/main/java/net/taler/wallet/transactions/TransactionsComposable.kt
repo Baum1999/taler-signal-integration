@@ -17,6 +17,7 @@
 package net.taler.wallet.transactions
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -34,6 +36,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.rounded.CheckCircle
@@ -56,6 +59,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -233,7 +237,11 @@ fun TransactionsComposable(
  */
 private sealed class TransactionListEntry {
     data class Single(val tx: Transaction) : TransactionListEntry()
-    data class Group(val groupId: String, val shares: List<Transaction>) : TransactionListEntry()
+    data class Group(
+        val groupId: String,
+        val shares: List<Transaction>,
+        val includeSelf: Boolean?,
+    ) : TransactionListEntry()
 }
 
 /**
@@ -268,7 +276,7 @@ private fun groupTransactions(
 
             else -> {
                 emittedGroups += info.groupId
-                TransactionListEntry.Group(info.groupId, shares)
+                TransactionListEntry.Group(info.groupId, shares, info.includeSelf)
             }
         }
     }
@@ -291,6 +299,11 @@ private fun GroupTransactionRow(
 ) {
     var expanded by rememberSaveable(entry.groupId) { mutableStateOf(false) }
 
+    val title = entry.shares.firstNotNullOfOrNull { it.groupSummary()?.takeIf { s -> s.isNotBlank() } }
+        ?: stringResource(R.string.transactions_group_header)
+    val total = computeGroupTotal(entry.shares, entry.includeSelf)
+    val progress = computeGroupProgress(entry.shares, entry.includeSelf)
+
     Column(Modifier.animateContentSize()) {
         ListItem(
             modifier = Modifier
@@ -305,16 +318,44 @@ private fun GroupTransactionRow(
             },
             headlineContent = {
                 Text(
-                    stringResource(R.string.transactions_group_header),
+                    title,
                     style = MaterialTheme.typography.titleMedium,
                 )
             },
             supportingContent = {
-                Text(
-                    stringResource(R.string.transactions_group_share_count, entry.shares.size),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Column {
+                    Text(
+                        stringResource(R.string.transactions_group_share_count, entry.shares.size),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    if (total != null) {
+                        val totalStr = total.withSpec(spec).toString(showSymbol = false)
+                        Text(
+                            stringResource(
+                                if (entry.includeSelf == true) {
+                                    R.string.transactions_group_total_with_self
+                                } else {
+                                    R.string.transactions_group_total
+                                },
+                                totalStr,
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    GroupProgressBar(progress, Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        stringResource(
+                            R.string.transactions_group_progress,
+                            progress.paid, progress.open, progress.declined,
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             },
         )
 
@@ -341,6 +382,54 @@ private fun GroupTransactionRow(
             }
         } else {
             HorizontalDivider()
+        }
+    }
+}
+
+/**
+ * Dreiteiliger Fortschrittsbalken fuer eine Gruppen-Sammelzeile: bezahlt
+ * (gruen) / offen (neutral, dieselbe Farbe wie das bestehende "pending"-
+ * Badge in [TransactionAmountInfo]) / abgelehnt-fehlgeschlagen (rot, wie
+ * bereits fuer Aborted/Failed in [TransactionExtraInfo] verwendet). Bei
+ * [GroupProgress.total] == 0 (in der Praxis nicht erreichbar, da eine Gruppe
+ * mindestens zwei Anteile hat) wird der gesamte Balken als "offen"
+ * dargestellt, um eine leere Zeile zu vermeiden.
+ */
+@Composable
+private fun GroupProgressBar(progress: GroupProgress, modifier: Modifier = Modifier) {
+    val hasData = progress.total > 0
+    val paidWeight = if (hasData) progress.paid.toFloat() else 0f
+    val openWeight = if (hasData) progress.open.toFloat() else 1f
+    val declinedWeight = if (hasData) progress.declined.toFloat() else 0f
+
+    Row(
+        modifier
+            .height(4.dp)
+            .clip(RoundedCornerShape(2.dp)),
+    ) {
+        if (paidWeight > 0f) {
+            Box(
+                Modifier
+                    .weight(paidWeight)
+                    .fillMaxHeight()
+                    .background(TalerTheme.extraColors.success),
+            )
+        }
+        if (openWeight > 0f) {
+            Box(
+                Modifier
+                    .weight(openWeight)
+                    .fillMaxHeight()
+                    .background(MaterialTheme.colorScheme.secondary),
+            )
+        }
+        if (declinedWeight > 0f) {
+            Box(
+                Modifier
+                    .weight(declinedWeight)
+                    .fillMaxHeight()
+                    .background(MaterialTheme.colorScheme.error),
+            )
         }
     }
 }
@@ -723,6 +812,57 @@ fun TransactionsComposableLoadingPreview() {
             onShowBalancesClicked = {},
             selectionMode = false,
             selectedItems = mutableListOf(),
+            onToggleSelection = {},
+        )
+    }
+}
+
+private fun previewGroupShare(id: String, major: TransactionMajorState) = TransactionPeerPushDebit(
+    transactionId = id,
+    timestamp = Timestamp.fromMillis(System.currentTimeMillis() - 60 * 60 * 1000),
+    txState = TransactionState(major),
+    txActions = listOf(Retry, Suspend, Abort),
+    exchangeBaseUrl = "https://exchange.demo.taler.net/",
+    amountRaw = Amount.fromString("TESTKUDOS", "5.00"),
+    amountEffective = Amount.fromString("TESTKUDOS", "5.00"),
+    scopes = listOf(Exchange(currency = "TESTKUDOS", url = "exchange.test.taler.net")),
+    info = PeerInfoShort(summary = "Pizza Abend"),
+)
+
+@Preview
+@Composable
+private fun GroupTransactionRowMixedWithSelfPreview() {
+    val shares = listOf(
+        previewGroupShare("g1", Done),
+        previewGroupShare("g2", Pending),
+        previewGroupShare("g3", Aborted),
+    )
+    TalerSurface {
+        GroupTransactionRow(
+            entry = TransactionListEntry.Group("group1", shares, includeSelf = true),
+            spec = null,
+            selectionMode = false,
+            selectedItems = mutableListOf(),
+            onTransactionClick = {},
+            onToggleSelection = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun GroupTransactionRowWithoutSelfPreview() {
+    val shares = listOf(
+        previewGroupShare("g1", Done),
+        previewGroupShare("g2", Done),
+    )
+    TalerSurface {
+        GroupTransactionRow(
+            entry = TransactionListEntry.Group("group2", shares, includeSelf = false),
+            spec = null,
+            selectionMode = false,
+            selectedItems = mutableListOf(),
+            onTransactionClick = {},
             onToggleSelection = {},
         )
     }

@@ -42,17 +42,40 @@ class WalletBackendApi(
     private val backendManager = BackendManager(notificationReceiver)
 
     fun startWallet() {
-        backendManager.run()
+        // Verteidigungslinie gegen den Bug "wallet core did not respond":
+        // run() wird durch WalletCoreSingleton eigentlich nie mehr fuer eine
+        // zweite Instanz aufgerufen (siehe dortiger Kommentar in acquire()),
+        // aber falls doch - z.B. durch kuenftigen Code, der WalletBackendApi
+        // ohne den Singleton erzeugt - soll der Aufrufer SOFORT einen Fehler
+        // sehen statt 60s auf eine Antwort zu warten, die nie kommt, weil
+        // backendManager.run() lautlos verweigert wurde und der native Kern
+        // gar nicht erst gestartet ist.
+        if (!backendManager.run()) {
+            initReceiver.onInitErrorReceived(
+                TalerErrorInfo.makeCustomError(
+                    message = "wallet-core already running in this process",
+                )
+            )
+            return
+        }
         GlobalScope.launch(Dispatchers.IO) {
             sendInitMessage()
         }
     }
 
-    fun stopWallet() {
-        GlobalScope.launch(Dispatchers.IO) {
-            sendRequest("shutdown")
-            backendManager.destroy()
-        }
+    /**
+     * Faehrt wallet-core herunter. Bewusst suspend (nicht mehr fire-and-forget
+     * per GlobalScope.launch) - WalletCoreSingleton.acquire() muss den
+     * Abschluss dieses Vorgangs abwarten koennen, bevor es eine neue Instanz
+     * erzeugt und startet. Sonst kann eine neue Instanz walletCore.run()
+     * aufrufen, WAEHREND diese alte Instanz das prozessweite
+     * BackendManager.coreRunning-Flag noch nicht zurueckgesetzt hat - die neue
+     * Instanz wird dann lautlos verweigert (siehe Bug "wallet core did not
+     * respond").
+     */
+    suspend fun stopWallet() {
+        sendRequest("shutdown")
+        backendManager.destroy()
     }
 
     private suspend fun sendInitMessage() {

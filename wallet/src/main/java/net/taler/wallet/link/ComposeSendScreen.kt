@@ -338,7 +338,12 @@ fun ComposeSendScreen(
                     // siehe GroupShareStore.kt.
                     groupShareStore.save(
                         share.transactionId,
-                        GroupShareInfo(request.correlationId, index, successes.size),
+                        GroupShareInfo(
+                            request.correlationId,
+                            index,
+                            successes.size,
+                            currentPaymentData?.includeSelf,
+                        ),
                     )
                 }
                 fireReturn(ReturnStatus.READY, uris.firstOrNull(), finalPaymentData)
@@ -385,7 +390,12 @@ fun ComposeSendScreen(
                     OwnUriTracker(context).track(share.talerUri, share.transactionId)
                     groupShareStore.save(
                         share.transactionId,
-                        GroupShareInfo(request.correlationId, index, successes.size),
+                        GroupShareInfo(
+                            request.correlationId,
+                            index,
+                            successes.size,
+                            currentPaymentData?.includeSelf,
+                        ),
                     )
                 }
                 fireReturn(ReturnStatus.READY, uris.firstOrNull(), finalPaymentData)

@@ -19,7 +19,12 @@ package net.taler.wallet.peer
 import android.content.Context
 import android.content.SharedPreferences
 
-data class GroupShareInfo(val groupId: String, val index: Int, val count: Int)
+data class GroupShareInfo(
+    val groupId: String,
+    val index: Int,
+    val count: Int,
+    val includeSelf: Boolean? = null,
+)
 
 /**
  * Merkt sich dauerhaft, zu welcher Gruppen-Zahlung (siehe
@@ -54,7 +59,10 @@ class GroupShareStore(private val prefs: SharedPreferences) {
 
     fun save(transactionId: String, info: GroupShareInfo) {
         prefs.edit()
-            .putString(shareKey(transactionId), "${info.groupId}|${info.index}|${info.count}")
+            .putString(
+                shareKey(transactionId),
+                "${info.groupId}|${info.index}|${info.count}|${info.includeSelf}",
+            )
             .putString(
                 membersKey(info.groupId),
                 (transactionIdsFor(info.groupId) + transactionId).distinct().joinToString(","),
@@ -62,13 +70,21 @@ class GroupShareStore(private val prefs: SharedPreferences) {
             .apply()
     }
 
+    /**
+     * [limit] = 4 statt 3, damit ein ggf. im Zweck-Text enthaltenes "|" (das
+     * vierte Feld gibt es hier zwar nicht, aber der Zweck-Text lebt ohnehin
+     * nicht in diesem Store) keine Rolle spielt. `parts.size == 3` bleibt
+     * gueltig fuer Eintraege, die vor Einfuehrung von [GroupShareInfo.includeSelf]
+     * gespeichert wurden - `includeSelf` ist dann `null`.
+     */
     fun get(transactionId: String): GroupShareInfo? {
         val stored = prefs.getString(shareKey(transactionId), null) ?: return null
-        val parts = stored.split("|", limit = 3)
-        if (parts.size != 3) return null
+        val parts = stored.split("|", limit = 4)
+        if (parts.size != 3 && parts.size != 4) return null
         val index = parts[1].toIntOrNull() ?: return null
         val count = parts[2].toIntOrNull() ?: return null
-        return GroupShareInfo(groupId = parts[0], index = index, count = count)
+        val includeSelf = parts.getOrNull(3)?.toBooleanStrictOrNull()
+        return GroupShareInfo(groupId = parts[0], index = index, count = count, includeSelf = includeSelf)
     }
 
     fun transactionIdsFor(groupId: String): List<String> {

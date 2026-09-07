@@ -218,6 +218,9 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="transactions_filter_nonfinal">You are viewing pending transactions</string>
     <string name="transactions_group_header">Group payment</string>
     <string name="transactions_group_share_count">%1$d recipients</string>
+    <string name="transactions_group_total">%1$s total</string>
+    <string name="transactions_group_total_with_self">%1$s total (incl. you)</string>
+    <string name="transactions_group_progress">%1$d paid · %2$d open · %3$d declined</string>
     <string name="transactions_receive_funds">Request</string>
     <string name="transactions_resume">Resume</string>
     <string name="transactions_retry">Retry</string>
