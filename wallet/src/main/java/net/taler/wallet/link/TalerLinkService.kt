@@ -211,14 +211,23 @@ class TalerLinkService : Service() {
      * Response-Formen - beides hier bewusst nicht geraten, sondern als
      * offener Punkt zurueckgestellt (siehe Statusbericht/docs/API.md).
      */
-    private suspend fun preview(kind: TalerUriKind, uri: String): PaymentPreviewResult =
-        when (kind) {
+    private suspend fun preview(kind: TalerUriKind, uri: String): PaymentPreviewResult {
+        // Fix "Fehler-Screen beim Start ueber Signal" (siehe WalletBackendApi.
+        // awaitInit): dieser Service kann der Erste sein, der wallet-core in
+        // diesem Prozess startet (WalletCoreSingleton.acquire() in onCreate()),
+        // und previewForUri/statusForUri koennen unmittelbar danach eintreffen,
+        // bevor "init" durch ist. Ohne dieses Warten geht der erste
+        // prepare*-Aufruf unten an ein noch nicht initialisiertes wallet-core.
+        val init = api.awaitInit()
+        if (init is WalletResponse.Error) return errorResult(kind, init.error)
+        return when (kind) {
             TalerUriKind.PAY_PUSH -> previewPeerPushCredit(uri)
             TalerUriKind.PAY_PULL -> previewPeerPullDebit(uri)
             TalerUriKind.PAY -> previewPay(uri)
             TalerUriKind.WITHDRAW -> previewWithdraw(uri)
             TalerUriKind.REFUND -> previewRefund(uri)
         }
+    }
 
     /**
      * preparePeerPushCredit liefert selbst schon exchangeBaseUrl, aber kein
@@ -282,6 +291,12 @@ class TalerLinkService : Service() {
      * den Binder in den Stacktrace des Aufrufers).
      */
     private suspend fun resolveReceivedPeerPushCreditId(uri: String): String {
+        // Siehe Kommentar in preview() zu awaitInit(): prepareRefund kann wie
+        // previewForUri der allererste Aufruf nach dem Binden sein.
+        val init = api.awaitInit()
+        if (init is WalletResponse.Error) {
+            throw IllegalStateException("wallet-core nicht bereit: ${init.error.code}")
+        }
         if (TalerUriParser.classify(uri) != TalerUriKind.PAY_PUSH) {
             throw IllegalStateException("originalUri ist keine pay-push-URI")
         }
