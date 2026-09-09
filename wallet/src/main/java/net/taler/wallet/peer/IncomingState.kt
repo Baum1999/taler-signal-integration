@@ -67,6 +67,7 @@ data class PreparePeerPullDebitResponse(
     val amountRaw: Amount,
     val amountEffective: Amount,
     val transactionId: String,
+    val exchangeBaseUrl: String,
 )
 
 @Serializable

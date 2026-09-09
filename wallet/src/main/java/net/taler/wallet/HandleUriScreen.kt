@@ -117,7 +117,17 @@ fun HandleUriScreen(
                         }
                     }
                     action.startsWith("pay-pull/", ignoreCase = true) -> {
-                        model.peerManager.preparePeerPullDebit(u2)
+                        // docs/API.md 2.10: dasselbe Muster wie beim pay-push-Zweig unten -
+                        // correlationId/returnUri sind angehaengte Query-Parameter, die vor
+                        // dem Aufruf von preparePeerPullDebit (kennt/braucht sie nicht, und
+                        // ihr Format ist von wallet-core's eigenem URI-Parser nicht geprueft)
+                        // gelesen und abgetrennt werden muessen.
+                        val callback = net.taler.wallet.link.ReturnCallbackParams.extract(u2)
+                        model.peerManager.pendingReturnCallback = callback?.let {
+                            net.taler.wallet.link.ReturnCallbackInfo(it.first, it.second)
+                        }
+                        val cleanUri = net.taler.wallet.link.ReturnCallbackParams.stripQuery(u2)
+                        model.peerManager.preparePeerPullDebit(cleanUri)
                         onNavigate(WalletDestination.PromptPullPayment, true)
                     }
                     action.startsWith("pay-push/", ignoreCase = true) -> {

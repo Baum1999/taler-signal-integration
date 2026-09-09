@@ -665,12 +665,36 @@ class PeerManager(
                 transactionId?.let { put("transactionId", transactionId) }
                 this
             }.onSuccess { response ->
-                _incomingPullState.value = IncomingTerms(
-                    amountRaw = response.amountRaw,
-                    amountEffective = response.amountEffective,
-                    contractTerms = response.contractTerms,
-                    id = response.transactionId,
-                )
+                scope.launch(Dispatchers.IO) a@{
+                    val exchange = exchangeManager.findExchangeByUrl(response.exchangeBaseUrl)
+
+                    if (exchange == null) {
+                        Log.d(TAG, "exchange entry for ${response.exchangeBaseUrl} was not found")
+                        _incomingPullState.value = IncomingError(
+                            TalerErrorInfo.makeCustomError( // TODO: localize error
+                                "No provider with URL ${cleanExchange(response.exchangeBaseUrl)} was found in the wallet",
+                            )
+                        )
+                        return@a
+                    }
+
+                    _incomingPullState.value = if (exchange.tosStatus.isAccepted()) {
+                        IncomingTerms(
+                            amountRaw = response.amountRaw,
+                            amountEffective = response.amountEffective,
+                            contractTerms = response.contractTerms,
+                            id = response.transactionId,
+                        )
+                    } else {
+                        IncomingTosReview(
+                            amountRaw = response.amountRaw,
+                            amountEffective = response.amountEffective,
+                            contractTerms = response.contractTerms,
+                            exchangeBaseUrl = response.exchangeBaseUrl,
+                            id = response.transactionId,
+                        )
+                    }
+                }
             }.onError { error ->
                 Log.e(TAG, "got preparePeerPullDebit error result $error")
                 _incomingPullState.value = IncomingError(error)
@@ -689,6 +713,31 @@ class PeerManager(
                 Log.e(TAG, "got confirmPeerPullDebit error result $error")
                 _incomingPullState.value = IncomingError(error)
             }
+        }
+    }
+
+    @UiThread
+    fun refreshPeerPullDebitTos(exchanges: List<ExchangeItem>) = scope.launch {
+        _incomingPullState.update { state ->
+            var newState = state
+            if (state is IncomingTosReview) {
+                exchanges.find { it.exchangeBaseUrl == state.exchangeBaseUrl }?.let { exchange ->
+                    // only an actual acceptance may lift a review we asked for: a list
+                    // fetched before the provider was known still says missing-tos,
+                    // which isAccepted() treats as good enough
+                    if (exchange.tosStatus == ExchangeTosStatus.Accepted) {
+                        newState = IncomingTerms(
+                            amountRaw = state.amountRaw,
+                            amountEffective = state.amountEffective,
+                            contractTerms = state.contractTerms,
+                            id = state.id,
+                        )
+                    }
+                } ?: run {
+                    Log.d(TAG, "could not refresh ToS status, exchange ${state.exchangeBaseUrl} was not found")
+                }
+            }
+            newState
         }
     }
 
