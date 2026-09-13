@@ -101,7 +101,10 @@ fun BankAccountsScreen(
                         modifier = Modifier.navigationBarsPadding(),
                         onClick = { onNavigate(WalletDestination.AddBankAccount(), false) },
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = null)
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = stringResource(R.string.send_deposit_account_add),
+                        )
                     }
                 }
             },

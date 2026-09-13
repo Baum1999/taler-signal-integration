@@ -176,7 +176,10 @@ fun ExchangeItemComposable(
         if (exchange.currency != null) {
             Box {
                 IconButton(onClick = { showMenu = true }) {
-                    Icon(Icons.Default.MoreVert, contentDescription = null)
+                    Icon(
+                        Icons.Default.MoreVert,
+                        contentDescription = "${stringResource(R.string.menu)}: ${exchange.name}",
+                    )
                 }
                 ExchangeDropDownMenu(
                     expanded = showMenu,
