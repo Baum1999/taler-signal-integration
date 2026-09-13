@@ -92,7 +92,9 @@ fun PayTemplateScreen(
                     .intersect(s.supportedCurrencies.toSet())
                     .toList()
                 if (!s.details.isTemplateEditable(usableCurrencies)) {
-                    prepareTemplate(uri, s.details.toTemplateParams())
+                    // Preparing changes payStatus to Loading, cancelling this effect.
+                    // Keep the request in the screen's scope, like a manual submission.
+                    scope.launch { prepareTemplate(uri, s.details.toTemplateParams()) }
                 }
             }
 
