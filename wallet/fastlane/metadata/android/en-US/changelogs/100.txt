@@ -1,0 +1,3 @@
+- Upgraded wallet-core to v1.6.42
+- Fixed issue that prevented templates with fixed amount from being paid.
+- Fixed more issues that could cause infinite loading screens.
