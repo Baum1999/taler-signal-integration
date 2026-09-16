@@ -112,4 +112,78 @@ class TalerUriExtractorTest {
         assertNull(TalerUriExtractor.extract(""))
         assertNull(TalerUriExtractor.extract("   "))
     }
+
+    // --- extractAll(): Regressionstest fuer den Transkript-Kopieren-Bug ---
+    // (Root Cause: startsWithSupportedScheme() im alten extract() behandelte
+    // "beginnt mit dem Schema" als "ist komplett eine URI" - der Signal-Fork
+    // verschickt aber "taler://...\n\n<Begleittext>", siehe TalerReturnActivity.kt.)
+
+    @Test
+    fun extractsUriFollowedByFreeText() {
+        val body = "taler://pay-push/exchange.demo.taler.net/ABC" +
+            "\n\nThis is a GNU Taler link. Update Signal or copy the URI below " +
+            "into the GNU Taler app to make the payment."
+        assertEquals(
+            listOf("taler://pay-push/exchange.demo.taler.net/ABC"),
+            TalerUriExtractor.extractAll(body),
+        )
+        assertEquals(
+            "taler://pay-push/exchange.demo.taler.net/ABC",
+            TalerUriExtractor.extract(body),
+        )
+    }
+
+    @Test
+    fun extractAllFindsEveryUriInGroupSplitTranscript() {
+        val body = "taler://pay-push/exchange.example/AAA" +
+            "\n\ntaler://pay-push/exchange.example/BBB" +
+            "\n\nThis is a GNU Taler link. Update Signal or copy the URI below " +
+            "into the GNU Taler app to make the payment."
+        assertEquals(
+            listOf(
+                "taler://pay-push/exchange.example/AAA",
+                "taler://pay-push/exchange.example/BBB",
+            ),
+            TalerUriExtractor.extractAll(body),
+        )
+    }
+
+    @Test
+    fun extractAllDeduplicates() {
+        val body = "taler://pay-push/exchange.example/AAA taler://pay-push/exchange.example/AAA"
+        assertEquals(
+            listOf("taler://pay-push/exchange.example/AAA"),
+            TalerUriExtractor.extractAll(body),
+        )
+    }
+
+    @Test
+    fun singleUriContainingCommaIsNotTruncated() {
+        // Schuetzt den Zweck des whitespace-freien Sonderfalls in extractAll:
+        // eine allein stehende URI darf Zeichen enthalten, die
+        // EMBEDDED_URI_REGEX sonst als Begleitzeichen ausschliesst (,;)]}"').
+        assertEquals(
+            listOf("payto://iban/DE1234567890?message=a,b"),
+            TalerUriExtractor.extractAll("payto://iban/DE1234567890?message=a,b"),
+        )
+    }
+
+    @Test
+    fun extractAllFindsUrisInJsonArray() {
+        assertEquals(
+            listOf(
+                "taler://pay/merchant.example/ABC",
+                "taler://pay/merchant.example/DEF",
+            ),
+            TalerUriExtractor.extractAll(
+                """{"uri": ["taler://pay/merchant.example/ABC", "taler://pay/merchant.example/DEF"]}""",
+            ),
+        )
+    }
+
+    @Test
+    fun extractAllReturnsEmptyForGarbage() {
+        assertEquals(emptyList<String>(), TalerUriExtractor.extractAll("not a uri at all"))
+        assertEquals(emptyList<String>(), TalerUriExtractor.extractAll(""))
+    }
 }

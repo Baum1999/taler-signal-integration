@@ -21,11 +21,13 @@ import org.json.JSONObject
 import org.json.JSONTokener
 
 /**
- * Findet eine unterstuetzte Taler-URI im manuell eingegebenen Text der
+ * Findet unterstuetzte Taler-URIs im manuell eingegebenen Text der
  * "Link eingeben"-Eingabe (EnterLinkTab in ScanQrScreen.kt), auch wenn dort
  * nicht nur die reine URI steht, sondern z.B. noch Begleittext davor
- * ("Zahlung: taler://...") oder ein JSON-Wrapper ({"uri": "taler://..."}),
- * wie er beim Kopieren aus manchen Quellen mitkommt.
+ * ("Zahlung: taler://...") oder DAHINTER (Signal-Fork-Transkript-Kopie:
+ * "taler://...\n\n<Erklaerungstext>", siehe TalerReturnActivity.kt), oder ein
+ * JSON-Wrapper ({"uri": "taler://..."} bzw. bei einem Gruppen-Split
+ * {"uri": ["taler://...", "taler://..."]}).
  *
  * Bewusst nicht abgedeckt (siehe Ruecksprache): ext+taler://-Schema und
  * einzelne Anfuehrungszeichen um eine sonst blanke URI.
@@ -43,44 +45,66 @@ object TalerUriExtractor {
         RegexOption.IGNORE_CASE,
     )
 
-    fun extract(input: String): String? {
+    /** Erster Treffer aus [extractAll], oder null. */
+    fun extract(input: String): String? = extractAll(input).firstOrNull()
+
+    /**
+     * Liefert ALLE im Text gefundenen URIs (dedupliziert, in Fundreihenfolge).
+     *
+     * Root-Cause-Fix (Bug: "Als Transkript kopieren" -> Einfuegen schlaegt
+     * fehl): der fruehere Code behandelte "Text beginnt mit dem Schema" als
+     * "Text IST komplett eine URI" und gab bei einem Transkript wie
+     * "taler://...\n\n<Erklaerungstext>" den GESAMTEN mehrzeiligen String als
+     * URI zurueck - der landete unveraendert bei wallet-core und scheiterte
+     * dort an isFixedSizeCrock() statt am erwarteten uri_invalid-Fehler hier.
+     * Eine URI enthaelt per RFC 3986 nie rohen Whitespace, das ist die
+     * korrekte Grenze zwischen "Text IST eine URI" und "Text ENTHAELT eine".
+     */
+    fun extractAll(input: String): List<String> {
         val trimmed = input.trim()
-        if (trimmed.isEmpty()) return null
+        if (trimmed.isEmpty()) return emptyList()
 
-        if (startsWithSupportedScheme(trimmed)) return trimmed
+        // Sonderfall "der ganze Text IST die URI": nur dann den getrimmten
+        // Text unveraendert nehmen. Bleibt noetig (statt immer ueber
+        // EMBEDDED_URI_REGEX zu gehen), weil der Regex Zeichen wie , ; ) ] }
+        // " ' ausschliesst, die in einer allein stehenden URI durchaus
+        // zulaessig vorkommen duerfen (z.B. ein payto-Verwendungszweck mit
+        // Komma) - siehe singleUriContainingCommaIsNotTruncated-Test.
+        if (startsWithSupportedScheme(trimmed) && trimmed.none(Char::isWhitespace)) {
+            return listOf(trimmed)
+        }
 
-        extractFromJson(trimmed)?.let { return it }
+        collectUrisFromJson(trimmed).takeIf { it.isNotEmpty() }?.let { return it }
 
-        return EMBEDDED_URI_REGEX.find(trimmed)?.value
+        return EMBEDDED_URI_REGEX.findAll(trimmed).map { it.value }.distinct().toList()
     }
 
     private fun startsWithSupportedScheme(value: String): Boolean =
         SUPPORTED_SCHEMES.any { value.startsWith(it, ignoreCase = true) }
 
-    private fun extractFromJson(value: String): String? {
-        if (!value.startsWith("{") && !value.startsWith("[")) return null
+    private fun collectUrisFromJson(value: String): List<String> {
+        if (!value.startsWith("{") && !value.startsWith("[")) return emptyList()
         return try {
-            findUriInJson(JSONTokener(value).nextValue())
+            val found = mutableListOf<String>()
+            collectUrisFromJsonNode(JSONTokener(value).nextValue(), found)
+            found.distinct()
         } catch (_: Exception) {
-            null
+            emptyList()
         }
     }
 
-    private fun findUriInJson(node: Any?): String? = when (node) {
-        is JSONObject -> node.keys().asSequence().firstNotNullOfOrNull { key ->
-            findUriInJson(node.get(key))
-        }
-        is JSONArray -> (0 until node.length()).asSequence().firstNotNullOfOrNull { i ->
-            findUriInJson(node.get(i))
-        }
-        is String -> {
-            val trimmedValue = node.trim()
-            if (startsWithSupportedScheme(trimmedValue)) {
-                trimmedValue
-            } else {
-                EMBEDDED_URI_REGEX.find(trimmedValue)?.value
+    private fun collectUrisFromJsonNode(node: Any?, out: MutableList<String>) {
+        when (node) {
+            is JSONObject -> node.keys().forEach { key -> collectUrisFromJsonNode(node.get(key), out) }
+            is JSONArray -> (0 until node.length()).forEach { i -> collectUrisFromJsonNode(node.get(i), out) }
+            is String -> {
+                val trimmedValue = node.trim()
+                if (startsWithSupportedScheme(trimmedValue)) {
+                    out.add(trimmedValue)
+                } else {
+                    EMBEDDED_URI_REGEX.find(trimmedValue)?.value?.let { out.add(it) }
+                }
             }
         }
-        else -> null
     }
 }

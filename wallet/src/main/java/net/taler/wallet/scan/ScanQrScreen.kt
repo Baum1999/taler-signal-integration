@@ -47,6 +47,7 @@ import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material.icons.filled.ZoomOut
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
@@ -60,6 +61,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -88,19 +90,27 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
+import androidx.core.net.toUri
 import kotlinx.coroutines.launch
 import net.taler.lib.android.qr.QrCameraAnalyzer
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.compose.GlobalScaffold
+import net.taler.wallet.link.MultiUriAggregate
+import net.taler.wallet.link.OwnUriTracker
+import net.taler.wallet.link.ShareSummary
 import net.taler.wallet.link.TalerUriExtractor
+import net.taler.wallet.link.TalerUriKind
+import net.taler.wallet.link.TalerUriParser
+import net.taler.wallet.link.buildAggregate
 import net.taler.wallet.main.MainViewModel
 
 enum class ScanTab { SCAN_QR, ENTER_LINK }
@@ -158,6 +168,7 @@ fun ScanQrScreen(
                     },
                 )
                 ScanTab.ENTER_LINK -> EnterLinkTab(
+                    model = model,
                     onUriSubmitted = { uri ->
                         onNavigate(WalletDestination.HandleUri(uri), true)
                     },
@@ -518,19 +529,30 @@ private fun ViewfinderOverlay(modifier: Modifier = Modifier) {
 
 @Composable
 private fun EnterLinkTab(
+    model: MainViewModel,
     onUriSubmitted: (String) -> Unit,
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val invalidUriError = stringResource(R.string.uri_invalid)
     val focusRequester = remember { FocusRequester() }
     var uriText by remember { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
+    var loading by remember { mutableStateOf(false) }
+    var aggregate by remember { mutableStateOf<MultiUriAggregate?>(null) }
     val clipboard = context.getSystemService<ClipboardManager>()
 
+    // previewer/ownUriChecker leben nur fuer die Lebensdauer dieses Screens -
+    // die Sammelkarte (bei mehreren gefundenen URIs) braucht keinen
+    // persistenten Zustand darueber hinaus, siehe MultiUriSummary.kt.
+    val previewer = remember { model.newPaymentPreviewer() }
+    val ownUriChecker = remember { OwnUriTracker(context) }
+
     // Erkennt auch eine Taler-URI, die nicht allein im Feld steht - z.B. mit
-    // Begleittext davor ("Zahlung: taler://...") oder als JSON-Wrapper
-    // ({"uri": "taler://..."}), siehe TalerUriExtractor.
-    val isValidTalerUri = { uri: String -> TalerUriExtractor.extract(uri) != null }
+    // Begleittext davor ODER DAHINTER ("Zahlung: taler://..." bzw. der
+    // Signal-Fork-Transkript-Kopie "taler://...\n\n<Erklaerungstext>") oder
+    // als JSON-Wrapper ({"uri": "taler://..."}), siehe TalerUriExtractor.
+    val isValidTalerUri = { uri: String -> TalerUriExtractor.extractAll(uri).isNotEmpty() }
 
     val getClipboardContents = {
         val item = clipboard?.primaryClip?.getItemAt(0)
@@ -577,15 +599,19 @@ private fun EnterLinkTab(
 
         Button(
             onClick = {
-                val extracted = TalerUriExtractor.extract(uriText)
-                if (extracted != null) {
-                    onUriSubmitted(extracted)
-                } else {
-                    error = invalidUriError
+                val found = TalerUriExtractor.extractAll(uriText)
+                when {
+                    found.isEmpty() -> error = invalidUriError
+                    found.size == 1 -> onUriSubmitted(found.single())
+                    else -> scope.launch {
+                        loading = true
+                        aggregate = buildAggregate(found, previewer, ownUriChecker)
+                        loading = false
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            enabled = uriText.isNotBlank(),
+            enabled = uriText.isNotBlank() && !loading,
         ) {
             Text(stringResource(R.string.open))
         }
@@ -599,4 +625,93 @@ private fun EnterLinkTab(
             }
         }
     }
+
+    aggregate?.let { agg ->
+        MultiUriSummaryDialog(
+            aggregate = agg,
+            onAccept = { uri ->
+                aggregate = null
+                onUriSubmitted(uri)
+            },
+            onDismiss = { aggregate = null },
+        )
+    }
+}
+
+/**
+ * Sammelkarte fuer mehrere in einer manuellen Einfuegung gefundene URIs (z.B.
+ * ein per Signal-Transkript kopierter Gruppen-Split). Zeigt bewusst
+ * "nicht mehr verfuegbar" statt eines erfundenen "X von N angenommen" - siehe
+ * Begruendung in MultiUriSummary.kt.
+ */
+@Composable
+private fun MultiUriSummaryDialog(
+    aggregate: MultiUriAggregate,
+    onAccept: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.multi_uri_title, aggregate.total)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                aggregate.totalAmount?.let { total ->
+                    Text(
+                        stringResource(
+                            R.string.multi_uri_total_amount,
+                            total.amountStr,
+                            total.currency,
+                        )
+                    )
+                }
+                if (aggregate.unavailable > 0) {
+                    Text(stringResource(R.string.multi_uri_unavailable, aggregate.unavailable, aggregate.total))
+                }
+                Text(
+                    if (aggregate.acceptedByMe > 0) {
+                        pluralStringResource(
+                            R.plurals.multi_uri_accepted_by_me_some,
+                            aggregate.acceptedByMe,
+                            aggregate.acceptedByMe,
+                        )
+                    } else {
+                        stringResource(R.string.multi_uri_accepted_by_me_none)
+                    }
+                )
+                if (aggregate.acceptedByMe > 0) {
+                    Text(
+                        stringResource(R.string.multi_uri_already_accepted_warning),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+                aggregate.open.forEach { share ->
+                    TextButton(onClick = { onAccept(share.uri) }) {
+                        Text(shareLabel(share))
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        },
+    )
+}
+
+/** Typ/Exchange-Host/ID-Suffix statt der rohen URI - dieselbe Phishing-Schutz-Logik wie Signals Karte (Exchange-Hostname sichtbar). */
+private fun shareLabel(share: ShareSummary): String {
+    val kind = TalerUriParser.classify(share.uri)
+    val kindLabel = when (kind) {
+        TalerUriKind.PAY_PUSH -> "Push"
+        TalerUriKind.PAY_PULL -> "Pull"
+        TalerUriKind.PAY -> "Pay"
+        TalerUriKind.WITHDRAW -> "Withdraw"
+        TalerUriKind.REFUND -> "Refund"
+        null -> "?"
+    }
+    val host = share.preview?.exchangeBaseUrl ?: runCatching { share.uri.toUri().host }.getOrNull()
+    val suffix = share.uri.takeLast(6)
+    return listOfNotNull(kindLabel, host, "…$suffix").joinToString(" · ")
 }

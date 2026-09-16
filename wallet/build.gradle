@@ -45,7 +45,7 @@ android {
         applicationId "de.lenkenhoff.talerfuersignal"
         minSdkVersion 24
         targetSdkVersion 37
-        versionCode 95
+        versionCode 96
         versionName "1.6.6"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

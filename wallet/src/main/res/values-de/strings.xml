@@ -90,6 +90,16 @@
     <string name="paste">Einfügen</string>
     <string name="paste_invalid">Die Zwischenablage enthält einen ungültigen Datentyp</string>
     <string name="uri_invalid">Dies ist kein gültiger Taler-Link</string>
+    <string name="taler_payment_legacy_text">Dies ist ein GNU-Taler-Link. Aktualisieren Sie Signal oder kopieren Sie den unten stehenden URI in die GNU-Taler-App, um die Zahlung durchzuführen.</string>
+    <string name="multi_uri_title">%1$d Anteile gefunden</string>
+    <string name="multi_uri_total_amount">Gesamt (offen + von dir angenommen): %1$s %2$s</string>
+    <string name="multi_uri_unavailable">%1$d von %2$d nicht mehr verfügbar (angenommen, abgebrochen oder abgelaufen)</string>
+    <string name="multi_uri_accepted_by_me_none">Du hast noch keinen davon angenommen.</string>
+    <plurals name="multi_uri_accepted_by_me_some">
+        <item quantity="one">Du hast bereits %1$d davon angenommen.</item>
+        <item quantity="other">Du hast bereits %1$d davon angenommen.</item>
+    </plurals>
+    <string name="multi_uri_already_accepted_warning">Du hast über diese Einfügung bereits einen Anteil angenommen. Einen zweiten anzunehmen ist wahrscheinlich nicht beabsichtigt.</string>
     <string name="ok">OK</string>
     <string name="cancel">Zurück</string>
     <string name="menu">Menü</string>

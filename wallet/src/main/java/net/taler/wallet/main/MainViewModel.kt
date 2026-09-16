@@ -62,6 +62,9 @@ import net.taler.wallet.NetworkManager
 import net.taler.wallet.backend.InitResponse
 import net.taler.wallet.backend.MigrateDatabaseResponse
 import net.taler.wallet.donau.DonauManager
+import net.taler.wallet.link.OwnUriTracker
+import net.taler.wallet.link.PaymentPreviewer
+import net.taler.wallet.link.TalerPaymentPreviewer
 import net.taler.wallet.tokens.TokenManager
 import java.util.UUID
 
@@ -105,6 +108,17 @@ class MainViewModel(
     // lokale Signal-Schnittstelle) wuerde wegen BackendManagers statischem
     // initialized-Flag nie wirklich starten.
     private val api = WalletCoreSingleton.acquire(app, walletConfig)
+
+    /**
+     * Fuer die Sammelkarte, die EnterLinkTab (ScanQrScreen.kt) zeigt, wenn
+     * eine manuell eingefuegte Zwischenablage mehrere Taler-URIs enthaelt
+     * (siehe MultiUriSummary.kt/buildAggregate). Nutzt dieselbe geteilte
+     * [api]-Instanz wie der Rest dieser ViewModel - kein zweiter
+     * WalletCoreSingleton.acquire()-Aufruf noetig, der einen eigenen
+     * release()-Gegenpart brauchen wuerde.
+     */
+    fun newPaymentPreviewer(): PaymentPreviewer =
+        TalerPaymentPreviewer(api, OwnUriTracker(getApplication<Application>()))
 
     init {
         WalletCoreSingleton.addInitReceiver(this)

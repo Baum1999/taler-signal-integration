@@ -20,6 +20,16 @@ import android.content.Context
 import android.content.SharedPreferences
 
 /**
+ * Schmale Schnittstelle, extrahiert damit [buildAggregate] (MultiUriSummary.kt)
+ * ohne SharedPreferences/Android-Kontext mit einem Test-Double testbar ist
+ * (siehe MultiUriSummaryTest.kt) - [OwnUriTracker] ist die einzige echte
+ * Implementierung.
+ */
+interface OwnUriChecker {
+    fun isOwn(uri: String): Boolean
+}
+
+/**
  * Merkt sich dauerhaft taler://-URIs, die diese Wallet-Instanz selbst erzeugt
  * hat (initiatePeerPushDebit -> TransactionPeerPushDebit.talerUri, bereits
  * dort abgegriffen wo die App sie sowieso zum Anzeigen/Teilen/NFC liest -
@@ -58,7 +68,7 @@ import android.content.SharedPreferences
  * Geheimnis: die taler://-URI selbst steht ohnehin im Klartext in der
  * Signal-Nachricht.
  */
-class OwnUriTracker(private val prefs: SharedPreferences) {
+class OwnUriTracker(private val prefs: SharedPreferences) : OwnUriChecker {
 
     constructor(context: Context) : this(
         context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -69,7 +79,7 @@ class OwnUriTracker(private val prefs: SharedPreferences) {
         prefs.edit().putString(uri, transactionId).apply()
     }
 
-    fun isOwn(uri: String): Boolean = prefs.contains(uri)
+    override fun isOwn(uri: String): Boolean = prefs.contains(uri)
 
     /** Liefert die eigene transactionId zu [uri], oder null, wenn nicht (mehr) bekannt. */
     fun transactionIdFor(uri: String): String? = prefs.getString(uri, null)

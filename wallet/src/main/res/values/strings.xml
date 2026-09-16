@@ -92,6 +92,15 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="selection_count">%1$d selected</string>
     <string name="share_payment">Share payment link</string>
     <string name="uri_invalid">Not a valid Taler link</string>
+    <string name="multi_uri_title">%1$d shares found</string>
+    <string name="multi_uri_total_amount">Total (open + accepted by you): %1$s %2$s</string>
+    <string name="multi_uri_unavailable">%1$d of %2$d no longer available (accepted, cancelled, or expired)</string>
+    <string name="multi_uri_accepted_by_me_none">You haven\'t accepted any of these yet.</string>
+    <plurals name="multi_uri_accepted_by_me_some">
+        <item quantity="one">You have already accepted %1$d of these.</item>
+        <item quantity="other">You have already accepted %1$d of these.</item>
+    </plurals>
+    <string name="multi_uri_already_accepted_warning">You already accepted a share from this paste. Accepting a second one is probably not what you want.</string>
     <string name="wallet">Wallet</string>
     <string name="warning">Warning</string>
     <string name="wire_transfer">Wire transfer</string>
