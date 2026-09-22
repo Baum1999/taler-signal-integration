@@ -92,27 +92,6 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="selection_count">%1$d selected</string>
     <string name="share_payment">Share payment link</string>
     <string name="uri_invalid">Not a valid Taler link</string>
-    <string name="contact_add_title">Add Contact</string>
-    <string name="contact_add_intro">Do you want to add this contact to your wallet?</string>
-    <string name="contact_petname">Petname</string>
-    <string name="contact_alias">Alias</string>
-    <string name="contact_mailbox_address">Mailbox Address</string>
-    <string name="contact_mailbox_base_uri">Mailbox Base URI</string>
-    <string name="contact_add_button">Add Contact</string>
-    <string name="contacts_title">Contacts</string>
-    <string name="alias_registration_title">Alias Registration</string>
-    <string name="alias_registration_alias_type">Alias Type</string>
-    <string name="alias_registration_alias">Alias</string>
-    <string name="alias_registration_alias_email">email</string>
-    <string name="alias_registration_alias_phone">phone</string>
-    <string name="alias_registration_alias_hint_email">user@example.com</string>
-    <string name="alias_registration_alias_hint_phone">+1234567890</string>
-    <string name="alias_registration_duration">Duration (months)</string>
-    <string name="alias_registration_button">Register Alias</string>
-    <string name="alias_registration_exists">Registration already exists.</string>
-    <string name="alias_registration_solution">Challenge Solution</string>
-    <string name="alias_registration_success">Registration successful!</string>
-    <string name="alias_registration_error">Registration failed: %1$s</string>
     <string name="wallet">Wallet</string>
     <string name="warning">Warning</string>
     <string name="wire_transfer">Wire transfer</string>
@@ -512,6 +491,29 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="performance_stats_crypto">Cryptographic operations</string>
     <string name="performance_stats_wallet_request">Wallet-Core requests</string>
     <string name="performance_stats_wallet_task">Wallet-Core tasks</string>
+
+    <!-- Contacts/Mailbox -->
+    <string name="alias_registration_alias">Alias</string>
+    <string name="alias_registration_alias_email">email</string>
+    <string name="alias_registration_alias_hint_email">user@example.com</string>
+    <string name="alias_registration_alias_hint_phone">+1234567890</string>
+    <string name="alias_registration_alias_phone">phone</string>
+    <string name="alias_registration_alias_type">Alias Type</string>
+    <string name="alias_registration_button">Register Alias</string>
+    <string name="alias_registration_duration">Duration (months)</string>
+    <string name="alias_registration_error">Registration failed: %1$s</string>
+    <string name="alias_registration_exists">Registration already exists.</string>
+    <string name="alias_registration_solution">Challenge Solution</string>
+    <string name="alias_registration_success">Registration successful!</string>
+    <string name="alias_registration_title">Alias Registration</string>
+    <string name="contact_add_button">Add Contact</string>
+    <string name="contact_add_intro">Do you want to add this contact to your wallet?</string>
+    <string name="contact_add_title">Add Contact</string>
+    <string name="contact_alias">Alias</string>
+    <string name="contact_mailbox_address">Mailbox Address</string>
+    <string name="contact_mailbox_base_uri">Mailbox Base URI</string>
+    <string name="contact_petname">Petname</string>
+    <string name="contacts_title">Contacts</string>
 
     <!-- Settings -->
 
