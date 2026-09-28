@@ -48,7 +48,6 @@ import net.taler.wallet.exchanges.ExchangeShoppingScreen
 import net.taler.wallet.exchanges.ReviewExchangeTosScreen
 import net.taler.wallet.link.ComposeRefundScreen
 import net.taler.wallet.link.ComposeSendScreen
-import net.taler.wallet.link.ConnectedAppsScreen
 import net.taler.wallet.main.MainScreen
 import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.payment.PayTemplateScreen
@@ -228,7 +227,7 @@ fun WalletNavHost(
             val dest = backStackEntry.toRoute<WalletDestination.ComposeSend>()
             ComposeSendScreen(
                 model = model,
-                correlationId = dest.correlationId,
+                destination = dest,
                 onNavigate = onNavigate,
                 onNavigateBack = onNavigateBack,
                 onShowError = { onShowError(it) },
@@ -249,7 +248,7 @@ fun WalletNavHost(
             val dest = backStackEntry.toRoute<WalletDestination.ComposeRefund>()
             ComposeRefundScreen(
                 model = model,
-                correlationId = dest.correlationId,
+                destination = dest,
                 onNavigate = onNavigate,
                 onNavigateBack = onNavigateBack,
                 onShowError = { onShowError(it) },
@@ -410,12 +409,6 @@ fun WalletNavHost(
         }
         composable<WalletDestination.PerformanceStats> {
             PerformanceStatsScreen(
-                model = model,
-                onNavigateBack = onNavigateBack,
-            )
-        }
-        composable<WalletDestination.ConnectedApps> {
-            ConnectedAppsScreen(
                 model = model,
                 onNavigateBack = onNavigateBack,
             )

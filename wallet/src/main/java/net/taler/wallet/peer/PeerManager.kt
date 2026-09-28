@@ -50,6 +50,7 @@ import net.taler.wallet.payment.InsufficientBalanceHint
 import net.taler.wallet.transactions.Transaction
 import net.taler.wallet.transactions.TransactionMajorState
 import net.taler.wallet.transactions.TransactionPeerPullCredit
+import net.taler.wallet.transactions.TransactionPeerPushCredit
 import net.taler.wallet.transactions.TransactionPeerPushDebit
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit.HOURS
@@ -738,6 +739,37 @@ class PeerManager(
                 }
             }
             newState
+        }
+    }
+
+    /**
+     * Loest eine EMPFANGENE pay-push-URI zu ihrer Transaktion auf und gibt
+     * deren transactionId zurueck, oder null, wenn die URI keine auffindbare
+     * PeerPushCredit-Transaktion dieser Wallet bezeichnet.
+     *
+     * Lag frueher im Binder-Service, den Signal vor dem Oeffnen des
+     * Refund-Screens aufrief; seit Signal nur noch die URI im Deep-Link
+     * mitgibt, loest der Screen selbst auf (siehe ComposeRefundScreen).
+     * Anders als [preparePeerPushCredit] veraendert diese Funktion keinen
+     * geteilten UI-Zustand - sie beantwortet nur eine Frage.
+     */
+    suspend fun resolveReceivedPeerPushCreditId(talerUri: String): String? {
+        if (api.awaitInit() is WalletResponse.Error) return null
+
+        val prepared = api.request("preparePeerPushCredit", PreparePeerPushCreditResponse.serializer()) {
+            put("talerUri", talerUri)
+        }
+        val transactionId = when (prepared) {
+            is WalletResponse.Success -> prepared.result.transactionId
+            is WalletResponse.Error -> return null
+        }
+
+        val response = api.request("getTransactionById", Transaction.serializer()) {
+            put("transactionId", transactionId)
+        }
+        return when (response) {
+            is WalletResponse.Success -> transactionId.takeIf { response.result is TransactionPeerPushCredit }
+            is WalletResponse.Error -> null
         }
     }
 

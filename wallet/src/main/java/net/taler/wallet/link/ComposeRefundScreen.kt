@@ -72,13 +72,12 @@ import net.taler.wallet.transactions.TransactionPeerPushDebit
 private const val TALER_URI_TIMEOUT_MS = 600_000L // 10 Minuten
 
 /**
- * Bestaetigungs-Screen fuer eine von Signal ueber prepareRefund vorbereitete
- * Rueckerstattung (docs/API.md 2.4, Meilenstein 6). Eine Rueckerstattung ist
- * eine NEUE ausgehende Zahlung, keine Rueckabwicklung der urspruenglichen.
- * Betrag/Zweck kommen nicht von Signal (Signal hat in [PrepareRefundRequest]
- * bewusst kein Betrag-/Zweck-Feld) - sie werden hier live aus der bereits von
- * TalerLinkService.prepareRefund aufgeloesten Original-Transaktion gelesen
- * (originalTransactionId), damit es fuer diese Zahlen keine zweite,
+ * Bestaetigungs-Screen fuer eine von Signal angestossene Rueckerstattung
+ * (docs/API.md 2.4, Meilenstein 6). Eine Rueckerstattung ist eine NEUE
+ * ausgehende Zahlung, keine Rueckabwicklung der urspruenglichen.
+ * Betrag/Zweck kommen nicht von Signal (der Deep-Link traegt nur die
+ * urspruengliche URI) - sie werden hier live aus der zu dieser URI
+ * aufgeloesten Original-Transaktion gelesen, damit es fuer diese Zahlen keine zweite,
  * potenziell veraltete Quelle gibt (eiserne Regel 4), und dienen NUR als
  * Vorbefuellung (initialAmount/initialSubject) fuer dieselbe
  * OutgoingPushComposable-UI, die auch ComposeSendScreen.kt fuer den
@@ -89,7 +88,7 @@ private const val TALER_URI_TIMEOUT_MS = 600_000L // 10 Minuten
 @Composable
 fun ComposeRefundScreen(
     model: MainViewModel,
-    correlationId: String,
+    destination: WalletDestination.ComposeRefund,
     onNavigate: NavigateCallback,
     onNavigateBack: () -> Unit,
     onShowError: (TalerErrorInfo) -> Unit,
@@ -100,32 +99,29 @@ fun ComposeRefundScreen(
     val context = LocalContext.current
     val sentRefundStore = remember { SentRefundStore(context.applicationContext) }
 
-    // take() ist single-use - genau einmal bei der ersten Komposition lesen,
-    // gleiches Muster wie ComposeSendScreen.kt.
-    val entry = remember { PendingRefundStore.take(correlationId) }
+    // Signal gibt nur die urspruengliche URI mit - welche Transaktion dazu
+    // gehoert, loest diese Wallet selbst auf. Das lief frueher im
+    // Binder-Service vor dem Oeffnen dieses Screens; der einzige Unterschied
+    // ist, dass ein Fehlschlag jetzt hier sichtbar gemacht werden muss statt
+    // als Exception an Signal zurueckzugehen.
+    var originalTransactionId by remember { mutableStateOf<String?>(null) }
 
-    // Dauerhafte "schon erstattet"-Pruefung (SentRefundStore.kt) - unabhaengig
-    // von PendingRefundStore/correlationId, ueberlebt App-/Prozessneustarts.
+    // Dauerhafte "schon erstattet"-Pruefung (SentRefundStore.kt) - ueberlebt
+    // App-/Prozessneustarts. Haengt an der aufgeloesten Transaktion, steht
+    // also erst nach der Aufloesung unten fest.
     // overrideWarning: Nutzer hat explizit "verwerfen & neu erstellen"
     // gewaehlt, der alte Eintrag bleibt bestehen, bis diese neue Rueckerstattung
     // tatsaechlich gesendet wird (record() unten ueberschreibt ihn dann).
-    val alreadySent = remember(entry) {
-        entry?.let { sentRefundStore.entryFor(it.originalTransactionId) }
+    val alreadySent = remember(originalTransactionId) {
+        originalTransactionId?.let { sentRefundStore.entryFor(it) }
     }
     var overrideWarning by remember { mutableStateOf(false) }
 
     var fired by remember { mutableStateOf(false) }
     fun fireReturn(status: ReturnStatus, talerUri: String? = null) {
-        if (fired || entry == null) return
+        if (fired) return
         fired = true
-        ReturnIntentSender.fire(context, entry.request.returnUri, entry.request.correlationId, status, talerUri)
-    }
-
-    if (entry == null) {
-        // Unbekannte/abgelaufene correlationId - kommentarlos abbrechen,
-        // gleiches Prinzip wie ComposeSendScreen.kt/TalerReturnActivity.
-        LaunchedEffect(Unit) { onNavigateBack() }
-        return
+        ReturnIntentSender.fire(context, destination.returnUri, destination.correlationId, status, talerUri)
     }
 
     // Gleicher Reset-bei-Betreten-Grund wie ComposeSendScreen.kt: pushState
@@ -167,18 +163,38 @@ fun ComposeRefundScreen(
     // kopiert ist.
     var originalTx by remember { mutableStateOf<TransactionPeerPushCredit?>(null) }
     var originalTxFailed by remember { mutableStateOf(false) }
-    LaunchedEffect(entry) {
-        val found = transactionManager.selectTransaction(entry.originalTransactionId)
-        val current = transactionManager.selectedTransaction.value
-        if (found && current is TransactionPeerPushCredit && current.transactionId == entry.originalTransactionId) {
-            originalTx = current
-        } else {
+    LaunchedEffect(destination) {
+        fun fail() {
             originalTxFailed = true
             onShowError(
                 TalerErrorInfo.makeCustomError(
                     context.getString(R.string.compose_refund_error_original_not_found),
                 )
             )
+        }
+
+        // Nur eine tatsaechlich EMPFANGENE pay-push-Zahlung laesst sich
+        // erstatten - eine selbst versendete waere "sich selbst erstatten".
+        if (TalerUriParser.classify(destination.originalUri) != TalerUriKind.PAY_PUSH ||
+            OwnUriTracker(context.applicationContext).isOwn(destination.originalUri)
+        ) {
+            fail()
+            return@LaunchedEffect
+        }
+
+        val resolvedId = peerManager.resolveReceivedPeerPushCreditId(destination.originalUri)
+        if (resolvedId == null) {
+            fail()
+            return@LaunchedEffect
+        }
+        originalTransactionId = resolvedId
+
+        val found = transactionManager.selectTransaction(resolvedId)
+        val current = transactionManager.selectedTransaction.value
+        if (found && current is TransactionPeerPushCredit && current.transactionId == resolvedId) {
+            originalTx = current
+        } else {
+            fail()
         }
     }
 
@@ -266,7 +282,7 @@ fun ComposeRefundScreen(
             if (t is TransactionPeerPushDebit && t.transactionId == expectedId) {
                 t.talerUri?.let { uri ->
                     OwnUriTracker(context).track(uri, t.transactionId)
-                    sentRefundStore.record(entry.originalTransactionId, t.transactionId)
+                    originalTransactionId?.let { sentRefundStore.record(it, t.transactionId) }
                     fireReturn(ReturnStatus.READY, uri)
                     // Gleicher Grund wie ComposeSendScreen.kt: NICHT das
                     // geteilte onNavigateBack(), siehe Kommentar am

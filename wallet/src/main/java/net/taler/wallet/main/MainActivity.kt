@@ -85,6 +85,7 @@ import net.taler.wallet.compose.ErrorBottomSheet
 import net.taler.wallet.events.ObservabilityDialog
 import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.link.OwnUriTracker
+import net.taler.wallet.link.TalerUriKind
 import net.taler.wallet.transactions.TransactionPeerPullCredit
 import net.taler.wallet.transactions.TransactionPeerPushDebit
 import net.taler.wallet.ui.theme.TalerTheme
@@ -93,8 +94,8 @@ class MainActivity : FragmentActivity() {
     private val model: MainViewModel by viewModels()
 
     private var pendingLaunchUri: String? = null
-    private var pendingComposeSendId: String? = null
-    private var pendingComposeRefundId: String? = null
+    private var pendingComposeSend: WalletDestination.ComposeSend? = null
+    private var pendingComposeRefund: WalletDestination.ComposeRefund? = null
     private var nav: NavController? = null
     private lateinit var biometricPrompt: BiometricPrompt
     private lateinit var promptInfo: BiometricPrompt.PromptInfo
@@ -152,20 +153,20 @@ class MainActivity : FragmentActivity() {
                     if (walletUnlocked && databaseMigrationState is DatabaseMigrationState.Failed) {
                         errorInfo = model.consumeDatabaseMigrationFailure()
                     }
-                    pendingComposeSendId?.let { id ->
+                    pendingComposeSend?.let { destination ->
                         // Fix round 2 (Task-A6 Review): hoechstens eine
                         // ComposeSend-Instanz gleichzeitig auf dem Back-Stack
                         // zulassen - siehe emitComposeSend() unten fuer die
                         // ausfuehrliche Begruendung (gleicher Mechanismus).
-                        nav?.navigate(WalletDestination.ComposeSend(id)) {
+                        nav?.navigate(destination) {
                             popUpTo<WalletDestination.ComposeSend> { inclusive = true }
                             launchSingleTop = true
                         }
                     }
-                    pendingComposeRefundId?.let { id ->
+                    pendingComposeRefund?.let { destination ->
                         // Meilenstein 6: gleicher Einzelinstanz-Mechanismus wie
-                        // pendingComposeSendId oben, siehe emitComposeRefund().
-                        nav?.navigate(WalletDestination.ComposeRefund(id)) {
+                        // pendingComposeSend oben, siehe emitComposeRefund().
+                        nav?.navigate(destination) {
                             popUpTo<WalletDestination.ComposeRefund> { inclusive = true }
                             launchSingleTop = true
                         }
@@ -377,7 +378,7 @@ class MainActivity : FragmentActivity() {
             navigateOrQueue(trimmed)
         }
 
-        fun emitComposeSend(correlationId: String) {
+        fun emitComposeSend(destination: WalletDestination.ComposeSend) {
             if (nav != null) {
                 // Fix round 2 (Task-A6 Review): hoechstens eine ComposeSend-
                 // Instanz gleichzeitig auf dem Back-Stack zulassen. Ohne
@@ -405,12 +406,12 @@ class MainActivity : FragmentActivity() {
                 // hereinkommt. popUpTo ist scoped auf genau den
                 // ComposeSend-Routentyp und poppt daher keine anderen
                 // Destinationen (z.B. Main) vom Stack.
-                nav?.navigate(WalletDestination.ComposeSend(correlationId)) {
+                nav?.navigate(destination) {
                     popUpTo<WalletDestination.ComposeSend> { inclusive = true }
                     launchSingleTop = true
                 }
             } else {
-                pendingComposeSendId = correlationId
+                pendingComposeSend = destination
             }
         }
 
@@ -419,14 +420,14 @@ class MainActivity : FragmentActivity() {
         // eigener Routentyp/eigenes pending-Feld, damit ein compose-send- und
         // ein compose-refund-Deep-Link einander nicht gegenseitig vom
         // Stack poppen.
-        fun emitComposeRefund(correlationId: String) {
+        fun emitComposeRefund(destination: WalletDestination.ComposeRefund) {
             if (nav != null) {
-                nav?.navigate(WalletDestination.ComposeRefund(correlationId)) {
+                nav?.navigate(destination) {
                     popUpTo<WalletDestination.ComposeRefund> { inclusive = true }
                     launchSingleTop = true
                 }
             } else {
-                pendingComposeRefundId = correlationId
+                pendingComposeRefund = destination
             }
         }
 
@@ -435,9 +436,9 @@ class MainActivity : FragmentActivity() {
         intent.dataString?.let { uri ->
             val parsed = Uri.parse(uri)
             if (parsed.scheme == "talerlink" && parsed.host == "compose-send") {
-                parsed.getQueryParameter("correlationId")?.let { id -> emitComposeSend(id) }
+                composeSendFrom(parsed)?.let { destination -> emitComposeSend(destination) }
             } else if (parsed.scheme == "talerlink" && parsed.host == "compose-refund") {
-                parsed.getQueryParameter("correlationId")?.let { id -> emitComposeRefund(id) }
+                composeRefundFrom(parsed)?.let { destination -> emitComposeRefund(destination) }
             } else {
                 emitUri(uri)
             }
@@ -454,6 +455,46 @@ class MainActivity : FragmentActivity() {
                 extractFirstNdefUri(intent)?.let { emitUri(it.toString()) }
             }
         }
+    }
+
+    /**
+     * Liest den Compose-Kontext aus den Query-Parametern des Deep-Links.
+     * Seit dem Wegfall der App-zu-App-Schnittstelle ist der Link die einzige
+     * Quelle dafuer - frueher stand hier nur eine correlationId, zu der Taler
+     * den Rest aus einem eigenen Zwischenspeicher nachschlug.
+     *
+     * correlationId und returnUri sind Pflicht: ohne sie koennte Taler das
+     * Ergebnis spaeter keinem Signal-Vorgang zuordnen und nirgendwohin
+     * zurueckspringen. Fehlt eines davon, wird der Link verworfen.
+     */
+    private fun composeSendFrom(uri: Uri): WalletDestination.ComposeSend? {
+        val correlationId = uri.getQueryParameter("correlationId") ?: return null
+        val returnUri = uri.getQueryParameter("returnUri") ?: return null
+        val direction = uri.getQueryParameter("direction")
+            ?.takeIf { name -> TalerUriKind.entries.any { it.name == name } }
+            ?: TalerUriKind.PAY_PUSH.name
+
+        return WalletDestination.ComposeSend(
+            correlationId = correlationId,
+            returnUri = returnUri,
+            recipientHint = uri.getQueryParameter("recipientHint"),
+            isGroup = uri.getQueryParameter("isGroup").toBoolean(),
+            memberCount = uri.getQueryParameter("memberCount")?.toIntOrNull() ?: 0,
+            disappearingMessagesSeconds = uri.getQueryParameter("disappearingMessagesSeconds")?.toIntOrNull() ?: 0,
+            direction = direction,
+        )
+    }
+
+    private fun composeRefundFrom(uri: Uri): WalletDestination.ComposeRefund? {
+        val correlationId = uri.getQueryParameter("correlationId") ?: return null
+        val returnUri = uri.getQueryParameter("returnUri") ?: return null
+        val originalUri = uri.getQueryParameter("originalUri") ?: return null
+
+        return WalletDestination.ComposeRefund(
+            correlationId = correlationId,
+            returnUri = returnUri,
+            originalUri = originalUri,
+        )
     }
 
     private fun extractFirstNdefUri(intent: Intent): Uri? {

@@ -17,6 +17,7 @@
 package net.taler.wallet
 
 import kotlinx.serialization.Serializable
+import net.taler.wallet.link.TalerUriKind
 import net.taler.wallet.scan.ScanTab
 
 @Serializable
@@ -69,11 +70,30 @@ sealed interface WalletDestination {
     @Serializable
     data object OutgoingPull : WalletDestination
 
+    // Traegt seit dem Wegfall der App-zu-App-Schnittstelle den vollstaendigen
+    // Kontext, den Signal frueher ueber einen vorgelagerten Binder-Aufruf
+    // uebergab (PendingSendStore). Die Felder kommen 1:1 aus den
+    // Query-Parametern des talerlink://compose-send-Links.
+    // memberCount 0 statt null und direction als Name statt Enum: die
+    // typsicheren Navigationsrouten bilden nur die eingebauten NavTypes ab,
+    // und dort gibt es weder ein nullable Int noch einen Enum-Typ.
     @Serializable
-    data class ComposeSend(val correlationId: String) : WalletDestination
+    data class ComposeSend(
+        val correlationId: String,
+        val returnUri: String,
+        val recipientHint: String? = null,
+        val isGroup: Boolean = false,
+        val memberCount: Int = 0,
+        val disappearingMessagesSeconds: Int = 0,
+        val direction: String = TalerUriKind.PAY_PUSH.name,
+    ) : WalletDestination
 
     @Serializable
-    data class ComposeRefund(val correlationId: String) : WalletDestination
+    data class ComposeRefund(
+        val correlationId: String,
+        val returnUri: String,
+        val originalUri: String,
+    ) : WalletDestination
 
     @Serializable
     data class Deposit(
@@ -109,9 +129,6 @@ sealed interface WalletDestination {
 
     @Serializable
     data object PerformanceStats : WalletDestination
-
-    @Serializable
-    data object ConnectedApps : WalletDestination
 
     // Transaction Details
     @Serializable

@@ -18,12 +18,16 @@ package net.taler.wallet.link
 
 import java.util.Locale
 
+// Diese Datei muss identisch auch im Signal-Repo vorliegen, siehe scripts/sync-aidl.sh.
+
 /**
  * Klassifiziert Taler-URIs anhand ihres Pfad-Praefixes - dieselbe Logik wie
  * `HandleUriScreen.processTalerUri()` (net.taler.wallet.HandleUriScreen.kt),
- * hier nur ohne die dortige HTTP(S)-Redirect-Aufloesung: die Schnittstelle
- * bekommt von Signal ausschliesslich fertige taler:/ext+taler:-URIs, keine
- * http(s)-Merchant-Links.
+ * hier nur ohne die dortige HTTP(S)-Redirect-Aufloesung: klassifiziert werden
+ * ausschliesslich fertige taler:/ext+taler:-URIs, keine http(s)-Merchant-Links.
+ *
+ * Beide Apps klassifizieren lokal mit dieser Datei - Signal seit dem Wegfall
+ * der App-zu-App-Schnittstelle ebenfalls, statt Taler danach zu fragen.
  */
 object TalerUriParser {
 

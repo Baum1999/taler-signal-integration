@@ -101,10 +101,9 @@ object ReturnIntentSender {
     }
 
     /**
-     * Reine Entscheidungslogik, ohne PackageManager/Context - analog zu
-     * CallerVerification.resolveAllowedCaller(), damit sie ohne Mocking-
-     * Framework testbar bleibt (dieses Repo hat keines als Testabhaengigkeit,
-     * siehe CallerVerificationTest.kt fuers etablierte Muster). Gibt
+     * Reine Entscheidungslogik, ohne PackageManager/Context, damit sie ohne
+     * Mocking-Framework testbar bleibt (dieses Repo hat keines als
+     * Testabhaengigkeit, siehe ReturnIntentSenderTest.kt). Gibt
      * (packageName, className) des ersten Kandidaten zurueck, dessen
      * Signing-Cert mit der Allowlist uebereinstimmt, oder null.
      */

@@ -16,55 +16,20 @@
 
 package net.taler.wallet.link
 
-import android.content.Context
 import android.content.pm.PackageManager
-import android.os.Binder
 import android.os.Build
 
 /**
- * Bindet Aufrufer der lokalen Signal<->Taler-Schnittstelle an die Cert-Allowlist
- * (docs/API.md, Abschnitt 2.2). Signaturpruefung ersetzt hier bewusst, was auf
- * Android sonst ueber eine `signature`-Permission liefe - das geht nicht, weil
- * beide Apps absichtlich mit unterschiedlichen Keystores signiert sind.
+ * Signaturpruefung fremder Apps gegen die Cert-Allowlist (docs/API.md,
+ * Abschnitt 2.2). Ersetzt bewusst, was auf Android sonst ueber eine
+ * `signature`-Permission liefe - das geht nicht, weil beide Apps absichtlich
+ * mit unterschiedlichen Keystores signiert sind.
+ *
+ * Frueher auch Zugangskontrolle fuer eingehende Binder-Aufrufe; seit dem
+ * Wegfall der App-zu-App-Schnittstelle nur noch fuer die Pruefung des
+ * Ruecksprung-Ziels (ReturnIntentSender).
  */
 object CallerVerification {
-
-    /**
-     * Wirft [SecurityException], wenn der aktuelle Binder-Aufrufer nicht mit dem
-     * erwarteten Fingerabdruck aus [AllowedCallers] uebereinstimmt. Gibt sonst den
-     * Package-Namen des Aufrufers zurueck. Muss als erste Zeile jeder AIDL-Methode
-     * aufgerufen werden - nicht nur einmalig bei onBind, da Binder.getCallingUid()
-     * ohnehin je Transaktion verfuegbar ist.
-     */
-    fun assertCallerAllowed(context: Context): String {
-        val callingUid = Binder.getCallingUid()
-        val pm = context.packageManager
-        val packages = (pm.getPackagesForUid(callingUid) ?: emptyArray()).toList()
-        return resolveAllowedCaller(packages, AllowedCallers::expectedSha256) { pkg -> signingCertSha256(pm, pkg) }
-            ?: throw SecurityException("Aufrufer (uid=$callingUid) ist nicht in der Allowlist")
-    }
-
-    /**
-     * Reine Entscheidungslogik ohne Android-Framework-Abhaengigkeit (REVIEW.md
-     * P3) - [expectedCertFor]/[actualCertFor] sind injiziert (statt fest
-     * [AllowedCallers]/PackageManager zu befragen), damit der Shared-UID-Fall
-     * (mehrere Packages fuer eine UID, siehe docs/API.md 2.2) mit
-     * keinem/einem/mehreren Treffern durchtestbar ist, unabhaengig davon, wie
-     * viele Eintraege die echte Allowlist gerade hat. Testbarkeit war hier der
-     * einzige Grund fuer den Schnitt, kein neues Verhalten.
-     */
-    internal fun resolveAllowedCaller(
-        packages: List<String>,
-        expectedCertFor: (String) -> String?,
-        actualCertFor: (String) -> String?,
-    ): String? {
-        for (pkg in packages) {
-            val expected = expectedCertFor(pkg) ?: continue
-            val actual = actualCertFor(pkg) ?: continue
-            if (actual.equals(expected, ignoreCase = true)) return pkg
-        }
-        return null
-    }
 
     /** SHA-256-Fingerabdruck (Hex, Grossbuchstaben, ohne Trenner) des Signing-Certs. */
     fun signingCertSha256(pm: PackageManager, packageName: String): String? {

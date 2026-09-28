@@ -104,9 +104,8 @@ class MainViewModel(
     )
 
     // Geteilte wallet-core-Instanz, siehe WalletCoreSingleton - eine zweite
-    // WalletBackendApi im selben Prozess (z.B. im TalerLinkService fuer die
-    // lokale Signal-Schnittstelle) wuerde wegen BackendManagers statischem
-    // initialized-Flag nie wirklich starten.
+    // WalletBackendApi im selben Prozess wuerde wegen BackendManagers
+    // statischem initialized-Flag nie wirklich starten.
     private val api = WalletCoreSingleton.acquire(app, walletConfig)
 
     /**

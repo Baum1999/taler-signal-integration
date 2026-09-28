@@ -114,22 +114,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
-
-        <!-- Lokale Schnittstelle zu Signal fuer GNU, siehe docs/API.md.
-             Bewusst keine android:permission - siehe docs/API.md Abschnitt 2.1,
-             Zugriffskontrolle laeuft ueber die Cert-Allowlist im Code. -->
-        <service
-            android:name=".link.TalerLinkService"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="net.taler.wallet.link.BIND" />
-            </intent-filter>
-        </service>
-
-        <activity
-            android:name=".link.ConsentActivity"
-            android:exported="true"
-            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
     <queries>

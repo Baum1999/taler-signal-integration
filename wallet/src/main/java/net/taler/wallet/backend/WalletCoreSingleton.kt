@@ -34,9 +34,10 @@ import kotlinx.coroutines.withTimeoutOrNull
  * [BackendManager.run] wird durch ein prozessweites (statisches) Flag
  * abgesichert - eine zweite [WalletBackendApi] im selben Prozess wuerde also
  * nie wirklich starten, und jeder Aufruf darauf wuerde ohne Fehlermeldung
- * ewig haengen. MainViewModel (UI) und TalerLinkService (lokale
- * Signal-Schnittstelle, siehe docs/API.md) teilen sich deshalb diese eine
- * Instanz, statt je eine eigene zu erzeugen.
+ * ewig haengen. Alle Nutzer im Prozess teilen sich deshalb diese eine
+ * Instanz, statt je eine eigene zu erzeugen. (Bis zum Wegfall der
+ * App-zu-App-Schnittstelle war das neben MainViewModel auch ein gebundener
+ * Service fuer Signal - daher die unten beschriebenen Race-Faelle.)
  *
  * [acquire] startet wallet-core beim allerersten Aufruf (egal ob von der
  * Activity oder vom Service) und liefert danach fuer weitere Aufrufer

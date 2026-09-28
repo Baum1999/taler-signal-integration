@@ -102,9 +102,10 @@ import net.taler.wallet.transactions.TransactionPeerPushDebit
 private const val TALER_URI_TIMEOUT_MS = 600_000L // 10 Minuten
 
 /**
- * Bestaetigungs-Screen fuer einen von Signal ueber prepareSend vorbereiteten
- * Versand (docs/API.md 2.7). Der Betrag wird NICHT mehr von Signal
- * vorausgefuellt (frueher: PrepareSendRequest.amount/currency) - Signal
+ * Bestaetigungs-Screen fuer einen von Signal angestossenen Versand
+ * (docs/API.md 2.7). Der Kontext steht vollstaendig in den Query-Parametern
+ * des talerlink://compose-send-Links, aus denen die Route gebaut wurde.
+ * Der Betrag wird NICHT von Signal vorausgefuellt - Signal
  * darf keine Betraege kennen/anzeigen, also fragt Taler den Betrag jetzt
  * selbst ab. Deshalb Wiederverwendung von OutgoingPushComposable (derselbe
  * "Betrag eingeben -> Gebuehr live pruefen -> Zweck -> bestaetigen"-Flow wie
@@ -118,7 +119,7 @@ private const val TALER_URI_TIMEOUT_MS = 600_000L // 10 Minuten
 @Composable
 fun ComposeSendScreen(
     model: MainViewModel,
-    correlationId: String,
+    destination: WalletDestination.ComposeSend,
     onNavigate: NavigateCallback,
     onNavigateBack: () -> Unit,
     onShowError: (TalerErrorInfo) -> Unit,
@@ -143,33 +144,20 @@ fun ComposeSendScreen(
     val transactionManager = model.transactionManager
     val context = LocalContext.current
 
-    // take() ist single-use - genau einmal bei der ersten Komposition lesen,
-    // damit eine Recomposition nicht versehentlich ein zweites Mal "nimmt"
-    // (und dabei null bekommt, weil der erste Aufruf den Eintrag schon
-    // entfernt hat). Gleiches Muster wie IncomingPushPaymentScreen.myCallback.
-    val request = remember { PendingSendStore.take(correlationId) }
-
     var fired by remember { mutableStateOf(false) }
     var currentPaymentData by remember { mutableStateOf<TalerPaymentData?>(null) }
     
     fun fireReturn(status: ReturnStatus, talerUri: String? = null, talerPaymentData: TalerPaymentData? = null) {
-        if (fired || request == null) return
+        if (fired) return
         fired = true
-        ReturnIntentSender.fire(context, request.returnUri, request.correlationId, status, talerUri, talerPaymentData)
-    }
-
-    if (request == null) {
-        // Unbekannte/abgelaufene correlationId - kommentarlos abbrechen,
-        // gleiches Prinzip wie TalerReturnActivity auf Signal-Seite.
-        LaunchedEffect(Unit) { onNavigateBack() }
-        return
+        ReturnIntentSender.fire(context, destination.returnUri, destination.correlationId, status, talerUri, talerPaymentData)
     }
 
     // Nutzer-Vorgabe 2026-09-05: Signal hat nur noch EINEN Button
     // ("TALER_SEND") - die Richtung (Senden/Anfordern) waehlt der Nutzer
-    // stattdessen hier per Toggle. request.direction ist nur der
-    // Anfangszustand (immer PAY_PUSH, siehe TalerSendActions.kt).
-    var direction by rememberSaveable { mutableStateOf(request.direction) }
+    // stattdessen hier per Toggle. direction ist nur der Anfangszustand
+    // (immer PAY_PUSH, siehe TalerSendActions.kt).
+    var direction by rememberSaveable { mutableStateOf(TalerUriKind.valueOf(destination.direction)) }
 
     // Fix round 1 (Task-A6 Review, Critical #1): peerManager.pushState ist
     // prozessweiter, geteilter Zustand (genau wie transactionManager.selected-
@@ -339,7 +327,7 @@ fun ComposeSendScreen(
                     groupShareStore.save(
                         share.transactionId,
                         GroupShareInfo(
-                            request.correlationId,
+                            destination.correlationId,
                             index,
                             successes.size,
                             currentPaymentData?.includeSelf,
@@ -391,7 +379,7 @@ fun ComposeSendScreen(
                     groupShareStore.save(
                         share.transactionId,
                         GroupShareInfo(
-                            request.correlationId,
+                            destination.correlationId,
                             index,
                             successes.size,
                             currentPaymentData?.includeSelf,
@@ -608,7 +596,7 @@ fun ComposeSendScreen(
                 // Sicht angreifer-kontrolliert. Eigene Text-Composable,
                 // maxLines=1, Steuerzeichen (inkl. Zeilenumbrueche) vor der
                 // Anzeige entfernt.
-                request.recipientHint
+                destination.recipientHint
                     ?.filter { it.isDefined() && !it.isISOControl() }
                     ?.takeIf { it.isNotBlank() }
                     ?.let {
@@ -680,22 +668,22 @@ fun ComposeSendScreen(
                                 uri = emptyList()
                             )
                         },
-                        initialExpirationHours = request.disappearingMessagesSeconds
+                        initialExpirationHours = destination.disappearingMessagesSeconds
                             .takeIf { it > 0 }
                             ?.let { seconds -> ((seconds + 3599) / 3600).toLong() },
-                        groupSplitMemberCount = request.memberCount.takeIf { request.isGroup },
+                        groupSplitMemberCount = destination.memberCount.takeIf { destination.isGroup && it > 0 },
                         contextContent = {
-                            if (request.isGroup) {
-                                request.memberCount?.let { count ->
+                            if (destination.isGroup) {
+                                destination.memberCount.takeIf { it > 0 }?.let { count ->
                                     Text(stringResource(R.string.compose_receive_group_hint, count))
                                 }
                                 Text(stringResource(R.string.compose_receive_group_warning))
                             }
-                            if (request.disappearingMessagesSeconds > 0) {
+                            if (destination.disappearingMessagesSeconds > 0) {
                                 Text(
                                     stringResource(
                                         R.string.compose_send_disappearing_hint,
-                                        formatDuration(context, request.disappearingMessagesSeconds),
+                                        formatDuration(context, destination.disappearingMessagesSeconds),
                                     )
                                 )
                             }
@@ -772,10 +760,10 @@ fun ComposeSendScreen(
                     // angezeigten) Hinweistext laufen zu lassen. Aufrunden
                     // auf volle Stunden, mindestens 1h (0 Stunden waere ein
                     // sofort abgelaufener Link).
-                    initialExpirationHours = request.disappearingMessagesSeconds
+                    initialExpirationHours = destination.disappearingMessagesSeconds
                         .takeIf { it > 0 }
                         ?.let { seconds -> ((seconds + 3599) / 3600).toLong() },
-                    groupSplitMemberCount = request.memberCount.takeIf { request.isGroup },
+                    groupSplitMemberCount = destination.memberCount.takeIf { destination.isGroup && it > 0 },
                     // Fix (UX-Befund: "Einschieber von oben ist immer noch
                     // da"): Gruppen-Hinweis/-Warnung und der disappearing-
                     // messages-Hinweis sind ebenfalls Teil des frueheren
@@ -787,17 +775,17 @@ fun ComposeSendScreen(
                     // bewusst vor dem Formular - das ist Kontext, den man
                     // braucht, BEVOR man ueberhaupt einen Betrag eintippt.
                     contextContent = {
-                        if (request.isGroup) {
-                            request.memberCount?.let { count ->
+                        if (destination.isGroup) {
+                            destination.memberCount.takeIf { it > 0 }?.let { count ->
                                 Text(stringResource(R.string.compose_send_group_hint, count))
                             }
                             Text(stringResource(R.string.compose_send_group_warning))
                         }
-                        if (request.disappearingMessagesSeconds > 0) {
+                        if (destination.disappearingMessagesSeconds > 0) {
                             Text(
                                 stringResource(
                                     R.string.compose_send_disappearing_hint,
-                                    formatDuration(context, request.disappearingMessagesSeconds),
+                                    formatDuration(context, destination.disappearingMessagesSeconds),
                                 )
                             )
                         }
