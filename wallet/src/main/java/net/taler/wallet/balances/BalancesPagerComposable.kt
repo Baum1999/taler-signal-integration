@@ -510,7 +510,7 @@ fun BalanceHeaderCard(
                 AssistChip(
                     modifier = Modifier
                         .padding(start = 16.dp),
-                    label = { Text(balance.pendingIncoming.toString(showSymbol = false)) },
+                    label = { Text(balance.pendingOutgoing.toString(showSymbol = false)) },
                     leadingIcon = { Icon(Icons.Default.Remove,
                         contentDescription = stringResource(R.string.balances_pending_outgoing)) },
                     colors = AssistChipDefaults.assistChipColors(
