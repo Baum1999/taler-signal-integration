@@ -209,9 +209,13 @@ class TransactionManager(
             Log.e(TAG, "Error: getTransactions error result: $error")
             result = TransactionsResult.Error(error)
         }.onSuccess { res ->
-            result = TransactionsResult.Success(res
-                .transactions
-                .reversed())
+            result = if (limit == null || limit >= 0) {
+                TransactionsResult.Success(res
+                    .transactions
+                    .reversed())
+            } else {
+                TransactionsResult.Success(res.transactions)
+            }
         }
 
         return result
