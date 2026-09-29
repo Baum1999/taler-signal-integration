@@ -195,6 +195,7 @@
     <string name="amount_invalid">Montant invalide</string>
     <string name="amount_invoiced">Montant demandé</string>
     <string name="amount_lost">Montant perdu</string>
+    <string name="all">Tout</string>
     <string name="actions">Actions</string>
     <string name="enter_uri_label">Entrez une URI</string>
     <string name="amount_deposit">Montant du dépôt</string>
@@ -258,6 +259,10 @@
     <string name="balances_inbound_amount">+%1$s entrant</string>
     <string name="balances_legacy_unavailable">Solde hérité indisponible</string>
     <string name="balances_outbound_amount">−%1$s sortant</string>
+    <string name="balances_pending_incoming">Entrée en attente</string>
+    <string name="balances_pending_label">En attente :</string>
+    <string name="balances_pending_outgoing">Sortie en attente</string>
+    <string name="balances_recent_transactions">Transactions récentes</string>
     <string name="exchange_delete_force">Forcer la suppression (purge)</string>
     <string name="payment_template_error">Erreur de création de la commande</string>
     <string name="reload">Recharger</string>

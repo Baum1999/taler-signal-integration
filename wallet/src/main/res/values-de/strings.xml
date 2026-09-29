@@ -247,6 +247,10 @@
     <string name="balances_inbound_amount">+%1$s eingehend</string>
     <string name="balances_legacy_unavailable">Legacy-Guthaben nicht verfügbar</string>
     <string name="balances_outbound_amount">−%1$s abgehend</string>
+    <string name="balances_pending_incoming">Eingehende Zahlung ausstehend</string>
+    <string name="balances_pending_label">Ausstehend:</string>
+    <string name="balances_pending_outgoing">Ausgehende Zahlung ausstehend</string>
+    <string name="balances_recent_transactions">Letzte Transaktionen</string>
     <string name="transaction_deposit_to">Einzahlung an %1$s</string>
     <string name="transaction_peer_push_credit">Erhalten</string>
     <string name="transaction_state_aborted">Die Transaktion wurde abgebrochen</string>
@@ -288,6 +292,7 @@
     <string name="send_deposit_host">Regionalwährung-Bank</string>
     <string name="send_deposit_no_methods_error">Keine unterstützten Überweisungsmethoden</string>
     <string name="send_deposit_taler">x-taler-bank</string>
+    <string name="all">Alle</string>
     <string name="actions">Aktionen</string>
     <string name="withdraw_button_label">Abheben</string>
     <string name="enter_uri_label">Taler-Link</string>

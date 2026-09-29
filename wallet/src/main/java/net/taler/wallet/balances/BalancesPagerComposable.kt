@@ -487,7 +487,7 @@ fun BalanceHeaderCard(
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 Text(
-                    text = "Pending:",
+                    text = stringResource(R.string.balances_pending_label),
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.End,
                     style = MaterialTheme.typography.labelLarge,
@@ -496,7 +496,8 @@ fun BalanceHeaderCard(
                     modifier = Modifier
                         .padding(start = 16.dp),
                     label = { Text(balance.pendingIncoming.toString(showSymbol = false)) },
-                    leadingIcon = { Icon(Icons.Default.Add, contentDescription = "Pending incoming") },
+                    leadingIcon = { Icon(Icons.Default.Add,
+                        contentDescription = stringResource(R.string.balances_pending_incoming)) },
                     colors = AssistChipDefaults.assistChipColors(
                         containerColor = successContainerLight,
                         labelColor = onSuccessContainerLight,
@@ -510,7 +511,8 @@ fun BalanceHeaderCard(
                     modifier = Modifier
                         .padding(start = 16.dp),
                     label = { Text(balance.pendingIncoming.toString(showSymbol = false)) },
-                    leadingIcon = { Icon(Icons.Default.Remove, contentDescription = "Pending outgoing") },
+                    leadingIcon = { Icon(Icons.Default.Remove,
+                        contentDescription = stringResource(R.string.balances_pending_outgoing)) },
                     colors = AssistChipDefaults.assistChipColors(
                         containerColor = errorContainerLight,
                         labelColor = onErrorContainerLight,
