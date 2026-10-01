@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -49,6 +50,7 @@ import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.BalanceState
 import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.LoadingScreen
+import net.taler.wallet.compose.RecipientAvatar
 import net.taler.wallet.compose.SelectionChip
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
@@ -600,11 +602,25 @@ fun ComposeSendScreen(
                     ?.filter { it.isDefined() && !it.isISOControl() }
                     ?.takeIf { it.isNotBlank() }
                     ?.let {
-                        Text(
-                            stringResource(R.string.compose_send_recipient_hint_format, it),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            // avatarUri ist wie recipientHint ungeprueft
+                            // (angreifer-kontrolliert) - RecipientAvatar
+                            // faellt bei fehlendem/kaputtem Bild still auf
+                            // ein Platzhalter-Icon zurueck.
+                            RecipientAvatar(
+                                avatarUri = destination.avatarUri,
+                                isGroup = destination.isGroup,
+                                size = 32.dp,
+                            )
+                            Text(
+                                stringResource(R.string.compose_send_recipient_hint_format, it),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
                     }
                 // OutgoingPushComposable/OutgoingPullComposable decken Intro/
                 // Checked/Error (Formular bzw. ErrorComposable) UND Checking/

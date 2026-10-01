@@ -86,6 +86,7 @@ sealed interface WalletDestination {
         val memberCount: Int = 0,
         val disappearingMessagesSeconds: Int = 0,
         val direction: String = TalerUriKind.PAY_PUSH.name,
+        val avatarUri: String? = null,
     ) : WalletDestination
 
     @Serializable

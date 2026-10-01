@@ -482,6 +482,11 @@ class MainActivity : FragmentActivity() {
             memberCount = uri.getQueryParameter("memberCount")?.toIntOrNull() ?: 0,
             disappearingMessagesSeconds = uri.getQueryParameter("disappearingMessagesSeconds")?.toIntOrNull() ?: 0,
             direction = direction,
+            // Wie recipientHint ein reiner Anzeige-Hinweis (angreifer-
+            // kontrolliert, s. ComposeSendScreen.kt) - Leserecht kam bereits
+            // per FLAG_GRANT_READ_URI_PERMISSION mit diesem Intent mit
+            // (TalerSendActions.kt), das Parsen hier ist nur der String.
+            avatarUri = uri.getQueryParameter("avatarUri"),
         )
     }
 
