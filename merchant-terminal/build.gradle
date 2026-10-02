@@ -13,8 +13,8 @@ android {
         applicationId "net.taler.merchantpos"
         minSdkVersion 23
         targetSdkVersion 36
-        versionCode 26
-        versionName "1.6.3"
+        versionCode 27
+        versionName "1.6.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "BACKEND_API_VERSION", "\"20:0:8\"")
