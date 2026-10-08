@@ -1,89 +1,13 @@
-# GNU Taler Android Code Repository
+# GNU Taler für Signal
 
-This git repository contains code for GNU Taler Android apps and libraries.
-The official location is: 
+Dies ist ein Fork von [GNU Taler Android](https://git.taler.net/taler-android.git) (wallet), nur für eigene Entwicklungszwecke gedacht, nicht offiziell und nicht für die Allgemeinheit.
 
-    https://git.taler.net/taler-android.git
-    
-## Structure
+## Was wurde geändert
 
-* [**cashier**](/cashier) - an Android app that enables you to take cash and give out electronic cash
-* [**merchant-lib**](/merchant-lib) - a library providing communication with a merchant backend
-  to be used by the point of sale app below.
-* [**merchant-terminal**](/merchant-terminal) - a merchant point of sale terminal Android app
-  that allows sellers to
-  process customers’ orders by adding or removing products,
-  calculate the amount owed by the customer
-  and let the customer make a Taler payment via QR code or NFC.
-* [**taler-kotlin-android**](/taler-kotlin-android) - an Android library containing common code
-  needed by more than one Taler Android app.
-* [**wallet**](/wallet) - a GNU Taler wallet Android app
+- **Zahlungen aus Signal**: Senden/Anfordern über `talerlink://`-Deep-Links mit Richtungs-Toggle (Senden/Anfordern), Compose-Bestätigungsscreen, Annehmen/Ablehnen-Rücksprung zu Signal.
+- **Gruppen-Split**: Zahlungsbetrag auf mehrere Empfänger aufteilen, parallele Purse-Erstellung mit Retry/Polling, Transaktionszusammenfassung je Gruppe.
+- **Vertragsdaten für Signal**: Beträge/Zweck als JSON an Signal übergeben, statt nur als Freitext.
 
-## Building
+## Lizenz
 
-You can get a list of possible build tasks like this:
-    
-    $ ./gradlew tasks
-    
-See the [Taler developer manual](https://docs.taler.net/developers-manual.html#build-apps-from-source).
-for more information about building individual apps.
-
-## I18N (Internationalization)
-
-The default source language is **English**. All translatable strings are defined in (one of
-various) locations:
-
-``res/values/strings.xml``
-
-### Folder Structure
-
-Translations follow the standard Android convention:
-
-res/values/          -> English (source / reference)
-res/values-de/       -> German
-res/values-it/       -> Italian
-res/values-fr/       -> French
-
-etc.
-
-### Check for Available Languages and See Translation Status
-
-Use the helper script ``check-translations.py`` to analyze the current
-translation coverage across all modules in the repository.
-
-*Note:
-The script automatically detects the git repo root via the .git folder
-and scans all modules (merchant-terminal, cashier, wallet, etc.), also
-when run from any subfolder of the repository.*
-
-From the git repository's root path:
-
-```bash
-# Overview of all languages
-
-./check-translations.py
-
-# Missing strings for a specific language (per module):
-
-./check-translations.py de     # German
-./check-translations.py it     # Italian
-./check-translations.py fr     # French
-
-# Lint-like checks (format args, extra keys, string-array lengths):
-
-./check-translations.py de --lint
-./check-translations.py fr --lint
-./check-translations.py --lint   # all languages
-```
-
-``--lint`` reports:
-
-* **MissingTranslation** / **ExtraTranslation** (vs English ``values/``)
-* **StringFormatCount** (``%s`` / ``%1$d`` placeholders must match)
-* **StringArrayLength** / **StringArrayPair** (e.g. language values vs labels)
-
-Exit status is non-zero if missing strings (with ``LANG``) or lint issues
-(with ``--lint``) are found.
-
-The overview and per-language output cover **all** app modules in the
-repository (not only PoS).
+Lizenziert unter der GNU GPLv3: https://www.gnu.org/licenses/gpl-3.0.html — siehe [COPYING](COPYING).
