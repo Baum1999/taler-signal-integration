@@ -1,0 +1,3 @@
+Bug fixes:
+- Fixed order creation failing with "Parent job is Completed" after closing and reopening the app.
+- Prevented cancelled requests from appearing as order creation errors.

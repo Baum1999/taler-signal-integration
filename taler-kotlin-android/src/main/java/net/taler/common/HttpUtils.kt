@@ -35,19 +35,21 @@ import java.util.concurrent.TimeUnit
 
 private val clientCache = mutableMapOf<String, HttpClient>()
 
+/** Returns a process-wide shared client. Callers must not close it or install owner-specific callbacks. */
 fun getDefaultHttpClient(
     withJson: Boolean = true,
     followRedirect: Boolean = false,
     logging: Boolean = true,
 ): HttpClient {
     val key = "$withJson-$followRedirect-$logging"
-    return clientCache.getOrPut(key) { createClient(withJson, followRedirect, logging) }
+    return clientCache.getOrPut(key) { createDefaultHttpClient(withJson, followRedirect, logging) }
 }
 
-private fun createClient(
-    withJson: Boolean,
-    followRedirect: Boolean,
-    logging: Boolean,
+/** Creates an independent client that its owner must close when no longer needed. */
+fun createDefaultHttpClient(
+    withJson: Boolean = true,
+    followRedirect: Boolean = false,
+    logging: Boolean = true,
 ): HttpClient = HttpClient(OkHttp) {
     expectSuccess = true
     followRedirects = followRedirect

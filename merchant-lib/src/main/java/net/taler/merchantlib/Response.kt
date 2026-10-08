@@ -23,6 +23,7 @@ import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.nio.channels.UnresolvedAddressException
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -36,6 +37,8 @@ class Response<out T> private constructor(
         suspend fun <T> response(request: suspend () -> T): Response<T> {
             return try {
                 success(request())
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Throwable) {
                 println(e)
                 failure(e)

@@ -21,7 +21,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.ktor.client.statement.*
 import io.ktor.http.HttpStatusCode
-import net.taler.common.getDefaultHttpClient
+import net.taler.common.createDefaultHttpClient
 import net.taler.merchantlib.MerchantApi
 import net.taler.merchantpos.config.ConfigManager
 import net.taler.merchantpos.history.HistoryManager
@@ -31,7 +31,7 @@ import net.taler.merchantpos.refund.RefundManager
 
 class MainViewModel(app: Application) : AndroidViewModel(app) {
 
-    private val httpClient = getDefaultHttpClient(followRedirect = true)
+    private val httpClient = createDefaultHttpClient(followRedirect = true)
     private val api = MerchantApi(httpClient)
 
     val orderManager = OrderManager(app)
