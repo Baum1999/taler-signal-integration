@@ -40,9 +40,7 @@ android {
     compileSdkVersion 37
 
     defaultConfig {
-        // GNU-Fork: eigene applicationId, damit die App neben dem Original
-        // installierbar ist. namespace bleibt net.taler.wallet.
-        applicationId "de.lenkenhoff.talerfuersignal"
+        applicationId "net.taler.wallet"
         minSdkVersion 24
         targetSdkVersion 37
         versionCode 96
