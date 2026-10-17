@@ -281,14 +281,15 @@ internal fun AmountInputFieldBase(
     OutlinedTextField(
         value = amount.toString(showSymbol = showSymbol),
         onValueChange = {},
-        modifier = modifier.onKeyEvent {
-            if (it.type == KeyEventType.KeyDown) return@onKeyEvent false
-            if (it.key == Key.Backspace) {
-                currentOnRemoveDigit()
-            } else {
-                currentOnEnterDigit(it.utf16CodePoint.toChar())
-            }
-        },
+        modifier = modifier
+            .onKeyEvent {
+                if (it.type == KeyEventType.KeyDown) return@onKeyEvent false
+                if (it.key == Key.Backspace) {
+                    currentOnRemoveDigit()
+                } else {
+                    currentOnEnterDigit(it.utf16CodePoint.toChar())
+                }
+            },
         readOnly = true,
         textStyle = LocalTextStyle.current.copy(
             fontSize = MaterialTheme.typography.titleLarge.fontSize,
@@ -297,7 +298,7 @@ internal fun AmountInputFieldBase(
         supportingText = supportingText,
         isError = isError,
         keyboardOptions = KeyboardOptions.Default.copy(
-            keyboardType = KeyboardType.NumberPassword,
+            keyboardType = KeyboardType.Decimal,
         ).merge(keyboardOptions),
         keyboardActions = keyboardActions,
         singleLine = true,
@@ -331,7 +332,7 @@ fun startSession(
             singleLine = false,
             autoCorrect = false,
             capitalization = KeyboardCapitalization.None,
-            keyboardType = KeyboardType.NumberPassword,
+            keyboardType = KeyboardType.Decimal,
             imeAction = imeAction,
         ),
         onEditCommand = onEditCommand,
