@@ -53,6 +53,7 @@ import net.taler.wallet.transactions.TransactionMinorState.CreatePurse
 import net.taler.wallet.transactions.TransactionMinorState.KycRequired
 import net.taler.wallet.transactions.TransactionMinorState.Ready
 import net.taler.wallet.transactions.TransactionPeerComposable
+import net.taler.wallet.link.TalerHttpsLink
 import net.taler.wallet.transactions.TransactionPeerPushDebit
 import net.taler.wallet.transactions.TransactionState
 
@@ -125,6 +126,7 @@ fun ColumnScope.PeerQrCode(
             QrCodeUriComposable(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 qrData = talerUri,
+                shareData = TalerHttpsLink.wrap(talerUri),
                 clipboardLabel = "Push payment",
                 params = QrCodeParams.Taler,
                 buttonText = stringResource(id = R.string.copy),

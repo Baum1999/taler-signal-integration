@@ -90,6 +90,23 @@
     <string name="paste">Einfügen</string>
     <string name="paste_invalid">Die Zwischenablage enthält einen ungültigen Datentyp</string>
     <string name="uri_invalid">Dies ist kein gültiger Taler-Link</string>
+    <string name="compose_return_unknown_hint">Diese Anfrage kommt von einer App, die diese Wallet nicht kennt. Die Zahlung kann nicht automatisch in den Chat übertragen werden. Erstelle sie, kopiere sie und füge sie selbst im Chat ein.</string>
+    <string name="compose_return_copy_button">Erstellen und kopieren</string>
+    <string name="compose_return_copied">Zahlung kopiert. Füge sie im Chat ein.</string>
+    <string name="compose_return_update_searching">Suche nach Wallet-Update …</string>
+    <string name="compose_return_update_found">Update gefunden, wird geladen. Du bekommst gleich eine Benachrichtigung zum Installieren.</string>
+    <string name="compose_return_update_none">Kein Wallet-Update verfügbar.</string>
+    <string name="compose_return_update_failed">Update-Suche fehlgeschlagen.</string>
+    <string name="link_return_unavailable_hint">Diese Wallet kann der App, die sie geöffnet hat, keine Rückmeldung geben.</string>
+    <string name="multi_uri_title">%1$d Anteile gefunden</string>
+    <string name="multi_uri_total_amount">Gesamt (offen + von dir angenommen): %1$s %2$s</string>
+    <string name="multi_uri_unavailable">%1$d von %2$d nicht mehr verfügbar (angenommen, abgebrochen oder abgelaufen)</string>
+    <string name="multi_uri_accepted_by_me_none">Du hast noch keinen davon angenommen.</string>
+    <plurals name="multi_uri_accepted_by_me_some">
+        <item quantity="one">Du hast bereits %1$d davon angenommen.</item>
+        <item quantity="other">Du hast bereits %1$d davon angenommen.</item>
+    </plurals>
+    <string name="multi_uri_already_accepted_warning">Du hast über diese Einfügung bereits einen Anteil angenommen. Einen zweiten anzunehmen ist wahrscheinlich nicht beabsichtigt.</string>
     <string name="ok">OK</string>
     <string name="cancel">Zurück</string>
     <string name="menu">Menü</string>

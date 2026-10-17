@@ -18,6 +18,7 @@ package net.taler.wallet.peer
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -26,6 +27,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -39,11 +41,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.json.JsonPrimitive
@@ -62,6 +66,7 @@ import net.taler.wallet.compose.BottomButtonBox
 import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.link.splitAmountEvenly
 import net.taler.wallet.payment.stringResId
 import net.taler.wallet.peer.CheckFeeResult.InsufficientBalance
 import net.taler.wallet.peer.CheckFeeResult.None
@@ -81,6 +86,51 @@ fun OutgoingPushComposable(
     getFees: suspend (amount: AmountScope) -> CheckFeeResult?,
     onSend: (amount: AmountScope, summary: String, hours: Long) -> Unit,
     modifier: Modifier = Modifier,
+    // Gruppen-Split-Versand (Meilenstein 3, PROMPT_parallel_group_split.md):
+    // wird statt [onSend] aufgerufen, wenn der Split-Rechner aktiv und
+    // gueltig ist - amount ist dabei bereits der Pro-Kopf-Anteil (Gesamt-
+    // betrag / count), count die Anzahl der zu erzeugenden Purses/URIs.
+    // Default no-op aendert nichts an OutgoingPushScreen.kt/ComposeRefund-
+    // Screen.kt, die groupSplitMemberCount nie setzen und diesen Zweig
+    // deshalb nie erreichen.
+    onSendGroup: (amount: AmountScope, count: Int, summary: String, hours: Long) -> Unit = { _, _, _, _ -> },
+    // Optionale Vorbefuellung, Default null aendert das normale Verhalten
+    // (leeres Formular) nicht. Genutzt vom Signal-Fork's ComposeRefundScreen,
+    // um den Rueckerstattungsbetrag/-zweck aus der bereits Taler-seitig
+    // aufgeloesten Original-Transaktion vorzubefuellen, statt Signal
+    // irgendetwas erfinden zu lassen (die Zahl kommt weiterhin aus einem
+    // frueheren Taler-Aufruf, nie aus Signal) - bleibt trotzdem editierbar,
+    // eine Rueckerstattung ist eine neue Zahlung, keine erzwungene Kopie.
+    initialAmount: Amount? = null,
+    initialSubject: String? = null,
+    // Fix (Signal-Fork UX-Befund #3): Chat hat disappearing messages auf X
+    // Stunden stehen - der Zahlungslink darf die sichtbare Nachricht nicht
+    // ueberleben, sonst bleibt eine laengst aus dem Chat verschwundene
+    // Zahlung serverseitig weiter offen. Nur gesetzt, wenn Signal einen
+    // aktiven disappearing-messages-Timer mitgibt (ComposeSendScreen).
+    initialExpirationHours: Long? = null,
+    // Fix (Signal-Fork UX-Befund #1/#2/#4): ersetzt die vormals separate
+    // GroupSplitCalculator-Banner-UI oberhalb dieses Formulars. Nur gesetzt
+    // bei Gruppen-Versand (ComposeSendScreen) - zeigt direkt unter dem
+    // Betragsfeld einen Live-Hinweis, der den bereits eingetippten Betrag
+    // (denselben, der auch gesendet wird - keine zweite Eingabe mehr) durch
+    // die Gruppengroesse teilt. Kein eigenes "Vorschlag uebernehmen" mehr
+    // noetig, der Nutzer tippt den Pro-Kopf-Betrag danach einfach selbst ins
+    // selbe Feld.
+    groupSplitMemberCount: Int? = null,
+    // Callback für Split-Datenänderungen (includeSelf, totalAmount)
+    // Wird aufgerufen, wenn der Nutzer den Split-Rechner verwendet
+    onSplitDataChanged: (includeSelf: Boolean?, totalAmount: Amount?) -> Unit = { _, _ -> },
+    // Fix (UX-Befund: Gruppen-/disappearing-messages-Hinweise sind Teil
+    // desselben frueheren Top-Banners wie der Aufteilungs-Rechner) - vom
+    // Aufrufer (ComposeSendScreen) befuellter Slot, direkt unter dem
+    // Betragsfeld gerendert statt davor. Leer per Default, aendert also
+    // nichts am unveraenderten OutgoingPushScreen.kt/ComposeRefundScreen.kt.
+    contextContent: @Composable () -> Unit = {},
+    // Ruecksprungziel unbekannt (ComposeSendScreen/ComposeRefundScreen, siehe
+    // link/ReturnFallback.kt): normaler Button bleibt sichtbar, aber
+    // deaktiviert; daneben "Erstellen und kopieren" mit derselben Aktion.
+    copyFallback: Boolean = false,
 ) {
     when(state) {
         is OutgoingChecking, is OutgoingCreating, is OutgoingResponse -> LoadingScreen(modifier)
@@ -92,7 +142,15 @@ fun OutgoingPushComposable(
             getCurrencySpec = getCurrencySpec,
             getFees = getFees,
             onSend = onSend,
+            onSendGroup = onSendGroup,
             modifier = modifier,
+            initialAmount = initialAmount,
+            initialSubject = initialSubject,
+            initialExpirationHours = initialExpirationHours,
+            groupSplitMemberCount = groupSplitMemberCount,
+            contextContent = contextContent,
+            onSplitDataChanged = onSplitDataChanged,
+            copyFallback = copyFallback,
         )
     }
 }
@@ -107,11 +165,19 @@ fun OutgoingPushIntroComposable(
     getFees: suspend (amount: AmountScope) -> CheckFeeResult?,
     onSend: (amount: AmountScope, summary: String, hours: Long) -> Unit,
     modifier: Modifier = Modifier,
+    onSendGroup: (amount: AmountScope, count: Int, summary: String, hours: Long) -> Unit = { _, _, _, _ -> },
+    initialAmount: Amount? = null,
+    initialSubject: String? = null,
+    initialExpirationHours: Long? = null,
+    groupSplitMemberCount: Int? = null,
+    contextContent: @Composable () -> Unit = {},
+    onSplitDataChanged: (includeSelf: Boolean?, totalAmount: Amount?) -> Unit = { _, _ -> },
+    copyFallback: Boolean = false,
 ) {
     var amount by remember {
         val scope = defaultScope ?: scopes[0]
         val currency = scope.currency
-        mutableStateOf(AmountScope(Amount.zero(currency), scope))
+        mutableStateOf(AmountScope(initialAmount ?: Amount.zero(currency), scope))
     }
     val selectedSpec by produceState<CurrencySpecification?>(
         initialValue = null,
@@ -120,16 +186,82 @@ fun OutgoingPushIntroComposable(
         value = getCurrencySpec(amount.scope)
     }
     var feeResult by remember { mutableStateOf<CheckFeeResult>(None()) }
-    var subject by rememberSaveable { mutableStateOf("") }
+    var subject by rememberSaveable { mutableStateOf(initialSubject ?: "") }
 
-    var option by rememberSaveable { mutableStateOf(DEFAULT_EXPIRY) }
-    var hours by rememberSaveable { mutableLongStateOf(DEFAULT_EXPIRY.hours) }
+    var option by rememberSaveable {
+        mutableStateOf(if (initialExpirationHours != null) ExpirationOption.CUSTOM else DEFAULT_EXPIRY)
+    }
+    var hours by rememberSaveable { mutableLongStateOf(initialExpirationHours ?: DEFAULT_EXPIRY.hours) }
+
+    // Gruppen-Split-Rechner-Zustand (Meilenstein 3): hierher hochgezogen
+    // (statt in GroupSplitHint selbst zu leben), damit der Send-Button
+    // unten weiss, ob/wie viele parallele Anteile er ueber [onSendGroup]
+    // statt des normalen Einzel-[onSend] anfordern muss.
+    var splitEnabled by rememberSaveable { mutableStateOf(false) }
+    var includeSelf by rememberSaveable { mutableStateOf(true) }
+    var memberCountInput by rememberSaveable {
+        mutableStateOf(groupSplitMemberCount?.toString() ?: "")
+    }
+
+    LaunchedEffect(splitEnabled, includeSelf, memberCountInput, amount.amount) {
+        if (splitEnabled) {
+            val enteredCount = memberCountInput.toIntOrNull()
+            val totalAmount = if (enteredCount != null && enteredCount in 1..MAX_SPLIT_MEMBERS) {
+                amount.amount
+            } else {
+                null
+            }
+            onSplitDataChanged(includeSelf, totalAmount)
+        } else {
+            onSplitDataChanged(null, null)
+        }
+    }
+
+    // Nur gueltig, wenn Split aktiv, die Personenzahl im erlaubten Bereich
+    // liegt UND es mindestens einen Empfaenger AUSSER dem Sender gibt.
+    //
+    // Fix (Bug-Befund 2026-09-02: 3 statt 2 URIs bei einer 3-koepfigen
+    // Gruppe): [count] hier ist die Anzahl der zu erzeugenden Payment-Links,
+    // NICHT der Divisor fuer die Betragsaufteilung - die beiden sind
+    // verschiedene Groessen und wurden vorher faelschlich gleichgesetzt.
+    //
+    // Fix (UX-Befund 2026-09-05: Toggle aendert nur den Betrag, nicht die
+    // angezeigte Personenzahl): memberCountInput ist nicht mehr die stets
+    // konstante Gesamtgroesse INKLUSIVE Sender, sondern direkt der Divisor -
+    // wie viele Personen sich den Betrag teilen. [onIncludeSelfChanged]
+    // verschiebt die Zahl bereits beim Toggeln um 1 (siehe oben), deshalb
+    // muss recipientCount (Anzahl der zu erzeugenden Payment-Links, der
+    // Sender bekommt nie einen eigenen) hier aus dem *aktuellen* Divisor
+    // zurueckgerechnet werden: enthaelt der Divisor den Sender
+    // (includeSelf=true), ist ein Empfaenger weniger als der Divisor noetig,
+    // sonst (includeSelf=false) steckt der Sender ohnehin nicht im Divisor
+    // und recipientCount entspricht ihm direkt. splitAmountEvenly() selbst
+    // bleibt unveraendert (erwartet weiterhin memberCount inkl. Sender) -
+    // dafuer wird ihr Parameter hier passend rekonstruiert.
+    val resolvedSplit = if (splitEnabled) {
+        val enteredCount = memberCountInput.toIntOrNull()
+        if (enteredCount != null && enteredCount in 1..MAX_SPLIT_MEMBERS && !amount.amount.isZero()) {
+            val recipientCount = if (includeSelf) enteredCount - 1 else enteredCount
+            if (recipientCount > 0) {
+                val memberCountForSplit = if (includeSelf) enteredCount else enteredCount + 1
+                recipientCount to splitAmountEvenly(amount.amount, memberCountForSplit, includeSelf)
+            } else null
+        } else null
+    } else null
 
     amount.useDebounce {
         feeResult = getFees(it) ?: None()
-        (feeResult as? Success)?.let { res ->
-            option = ExpirationOption.CUSTOM
-            hours = res.defaultExpiration.toHours()
+        // Fix (Signal-Fork UX-Befund #3): ist die Gueltigkeit bereits durch
+        // den disappearing-messages-Timer des Chats vorgegeben, darf der vom
+        // Exchange vorgeschlagene Standard das nicht mehr stillschweigend
+        // ueberschreiben - sonst zeigt der Screen weiterhin "verschwindet
+        // nach 8h", waehrend die Zahlung tatsaechlich 1 Tag (o.ae.) gueltig
+        // bleibt.
+        if (initialExpirationHours == null) {
+            (feeResult as? Success)?.let { res ->
+                option = ExpirationOption.CUSTOM
+                hours = res.defaultExpiration.toHours()
+            }
         }
     }
 
@@ -221,6 +353,35 @@ fun OutgoingPushIntroComposable(
                 }
             )
 
+            contextContent()
+
+            groupSplitMemberCount?.let {
+                GroupSplitHint(
+                    total = amount.amount,
+                    spec = selectedSpec,
+                    splitEnabled = splitEnabled,
+                    onSplitEnabledChanged = { splitEnabled = it },
+                    includeSelf = includeSelf,
+                    // Fix (UX-Befund 2026-09-05: Toggle wirkt sich erst bei
+                    // der Berechnung aus, nicht auf die angezeigte Zahl):
+                    // "Number of people" ist ab jetzt direkt der Divisor
+                    // (wie viele Personen sich den Betrag teilen). Das
+                    // Toggeln von "Count myself in" muss die sichtbare Zahl
+                    // deshalb sofort um 1 verschieben, statt die Zahl
+                    // unveraendert zu lassen und nur den Betrag im
+                    // Hintergrund neu zu rechnen.
+                    onIncludeSelfChanged = { newIncludeSelf ->
+                        memberCountInput.toIntOrNull()?.let { current ->
+                            val adjusted = if (newIncludeSelf) current + 1 else current - 1
+                            memberCountInput = adjusted.coerceIn(1, MAX_SPLIT_MEMBERS).toString()
+                        }
+                        includeSelf = newIncludeSelf
+                    },
+                    memberCountInput = memberCountInput,
+                    onMemberCountInputChanged = { memberCountInput = it },
+                )
+            }
+
             if (state is OutgoingError) {
                 ErrorComposable(
                     error = state.info,
@@ -299,19 +460,148 @@ fun OutgoingPushIntroComposable(
         }
 
         val defaultSubject = stringResource(R.string.send_peer_default_purpose)
-        BottomButtonBox(Modifier.fillMaxWidth()) {
-            Button(
-                modifier = Modifier.systemBarsPaddingBottom(),
-                enabled = feeResult is Success && !amount.amount.isZero(),
-                onClick = { onSend(
+        // Split-Checkbox aktiv, aber (noch) keine gueltige Personenzahl
+        // eingegeben: Button bleibt deaktiviert statt stillschweigend auf den
+        // normalen Einzel-Pfad zurueckzufallen - sonst wuerde ein Tippfehler
+        // in der Personenzahl den GESAMTEN eingegebenen Betrag an EINE Person
+        // schicken, obwohl der Nutzer sichtbar "Aufteilen" angehakt hat.
+        val canSend = feeResult is Success && !amount.amount.isZero() &&
+            (!splitEnabled || resolvedSplit != null)
+        val send = {
+            val split = resolvedSplit
+            if (split != null) {
+                val (count, perShare) = split
+                onSendGroup(
+                    amount.copy(amount = perShare),
+                    count,
+                    subject.ifBlank { defaultSubject },
+                    hours,
+                )
+            } else {
+                onSend(
                     amount,
                     subject.ifBlank { defaultSubject },
                     hours,
-                ) },
+                )
+            }
+        }
+        val sendButton = @Composable {
+            Button(
+                modifier = Modifier.systemBarsPaddingBottom(),
+                enabled = canSend && !copyFallback,
+                onClick = send,
             ) {
                 Text(text = stringResource(R.string.send_peer_create_button_amount,
                     amount.amount.withSpec(selectedSpec)))
             }
+        }
+        if (copyFallback) {
+            BottomButtonBox(
+                modifier = Modifier.fillMaxWidth(),
+                leading = sendButton,
+                trailing = {
+                    Button(
+                        modifier = Modifier.systemBarsPaddingBottom(),
+                        enabled = canSend,
+                        onClick = send,
+                    ) {
+                        Text(stringResource(R.string.compose_return_copy_button))
+                    }
+                },
+            )
+        } else {
+            BottomButtonBox(Modifier.fillMaxWidth(), trailing = sendButton)
+        }
+    }
+}
+
+/**
+ * Ersetzt die vormalige, separate GroupSplitCalculator-Banner-UI (Signal-Fork
+ * UX-Befund #1/#2/#4): kein eigenes Eingabefeld fuer den Gesamtbetrag mehr
+ * (der bereits eingetippte Betrag oben IST der Gesamtbetrag - eine zweite
+ * Eingabe dafuer war die vom Nutzer gemeldete Dopplung) und kein "Vorschlag
+ * uebernehmen"-Button mehr - der Pro-Kopf-Betrag ist nur eine Live-Anzeige,
+ * der Nutzer traegt ihn bei Bedarf selbst ins Betragsfeld oben ein.
+ *
+ * Fix (UX-Befund: editierbare Personenzahl): `memberCount` (die tatsaechliche
+ * Gruppengroesse von Signal) ist nur noch der Vorbefuellungswert eines
+ * editierbaren Feldes - manche Gruppenzahlungen betreffen nicht alle
+ * Mitglieder. Vorerst hart auf [MAX_SPLIT_MEMBERS] begrenzt: ohne Begrenzung
+ * koennte ein winziger Betrag durch eine riesige, frei eingetippte Zahl
+ * geteilt werden und BigDecimal.divide(scale=8) unnoetig lange rechnen -
+ * dieselbe Grenze wie die Datenbasis heutiger Signal-Gruppen ist bewusst
+ * NICHT das Kriterium, es geht nur um eine sinnvolle erste Obergrenze.
+ *
+ * Fix (UX-Befund 2026-09-05: Toggle "Count myself in" wirkte sich nur beim
+ * Verarbeiten auf den Betrag aus, nicht sichtbar auf die Personenzahl):
+ * `memberCountInput` ist der Divisor - wie viele Personen sich den Betrag
+ * teilen -, nicht mehr die stets konstante Gesamtgroesse inklusive Sender.
+ * Der Aufrufer (`onIncludeSelfChanged` in [OutgoingPushComposable])
+ * verschiebt die Zahl beim Toggeln direkt um 1, damit das Feld sofort zeigt,
+ * unter wie vielen Personen aufgeteilt wird, statt dass sich nur der
+ * Vorschlagsbetrag im Hintergrund aendert.
+ */
+// internal statt private: OutgoingPullComposable.kt (Gruppen-Anfordern-Pfad,
+// gleiches Package) nutzt denselben Rechner/dieselbe UI wieder, statt sie zu
+// duplizieren.
+internal const val MAX_SPLIT_MEMBERS = 10
+
+@Composable
+internal fun GroupSplitHint(
+    total: Amount,
+    spec: CurrencySpecification?,
+    splitEnabled: Boolean,
+    onSplitEnabledChanged: (Boolean) -> Unit,
+    includeSelf: Boolean,
+    onIncludeSelfChanged: (Boolean) -> Unit,
+    memberCountInput: String,
+    onMemberCountInputChanged: (String) -> Unit,
+) {
+    Row(
+        modifier = Modifier.padding(horizontal = 16.dp),
+        verticalAlignment = CenterVertically,
+    ) {
+        Checkbox(checked = splitEnabled, onCheckedChange = onSplitEnabledChanged)
+        Text(stringResource(R.string.compose_send_split_checkbox))
+    }
+    if (splitEnabled) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            verticalAlignment = CenterVertically,
+        ) {
+            Checkbox(checked = includeSelf, onCheckedChange = onIncludeSelfChanged)
+            Text(stringResource(R.string.compose_send_split_include_self_checkbox))
+        }
+        OutlinedTextField(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            value = memberCountInput,
+            onValueChange = { input ->
+                if (input.length <= 2 && input.all { it.isDigit() }) onMemberCountInputChanged(input)
+            },
+            label = { Text(stringResource(R.string.compose_send_split_member_count_label)) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+        )
+        val enteredCount = memberCountInput.toIntOrNull()
+        val perPerson = if (total.isZero() || enteredCount == null ||
+            enteredCount !in 1..MAX_SPLIT_MEMBERS
+        ) {
+            null
+        } else try {
+            // memberCountInput ist der Divisor selbst (siehe Fix-Kommentar
+            // bei resolvedSplit in OutgoingPushComposable) - splitAmountEvenly
+            // erwartet weiterhin memberCount inkl. Sender, daher hier bei
+            // includeSelf=false wieder um 1 hochrechnen.
+            val memberCountForSplit = if (includeSelf) enteredCount else enteredCount + 1
+            splitAmountEvenly(total, memberCountForSplit, includeSelf)
+        } catch (e: IllegalArgumentException) {
+            null
+        }
+        perPerson?.let {
+            Text(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                text = stringResource(R.string.compose_send_split_suggestion, it.withSpec(spec)),
+            )
         }
     }
 }

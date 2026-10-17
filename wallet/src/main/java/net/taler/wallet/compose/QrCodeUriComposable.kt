@@ -83,6 +83,13 @@ fun ColumnScope.QrCodeUriComposable(
     shareAsQrCode: Boolean = false,
     onForward: ((String) -> Unit)? = null,
     devMode: Boolean = false,
+    // Review-Fix: der QR-Code (zum Scannen durch eine Kamera) und der Copy-/
+    // Share-Button (zum Einfuegen in einen Messenger) duerfen unterschiedliche
+    // Inhalte brauchen - z.B. QR weiterhin das rohe taler:// (kleiner, von
+    // jedem Taler-Scanner lesbar), Copy/Share den https-Link nach DD 103
+    // (TalerHttpsLink, anklickbar in Messengern). Default = qrData haelt alle
+    // bestehenden Aufrufer unveraendert.
+    shareData: String = qrData,
     inBetween: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     val context = LocalContext.current
@@ -160,7 +167,7 @@ fun ColumnScope.QrCodeUriComposable(
             if (!shareAsQrCode) {
                 CopyToClipboardButton(
                     label = clipboardLabel,
-                    content = qrData,
+                    content = shareData,
                     buttonText = buttonText,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -170,7 +177,7 @@ fun ColumnScope.QrCodeUriComposable(
             }
 
             ShareButton(
-                content = qrData,
+                content = shareData,
                 shareAsQrCode = shareAsQrCode,
                 qrBitmap = qrState,
                 colors = ButtonDefaults.buttonColors(
