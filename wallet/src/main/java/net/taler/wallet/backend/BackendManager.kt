@@ -72,12 +72,20 @@ class BackendManager(
 
     private fun newScope() = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
+    /**
+     * Startet wallet-core. Liefert false, wenn bereits ein anderer
+     * BackendManager in diesem Prozess laeuft (prozessweites [coreRunning]-
+     * Flag) - der Aufrufer (siehe [WalletBackendApi.startWallet]) MUSS dieses
+     * Ergebnis pruefen: bei false wurde der native Kern dieser Instanz nie
+     * gestartet, jede spaetere [send] darauf haengt bis zum Timeout
+     * (Bug "wallet core did not respond").
+     */
     @Synchronized
-    fun run() {
-        if (running) return
+    fun run(): Boolean {
+        if (running) return true
         if (!coreRunning.compareAndSet(false, true)) {
             Log.e(TAG, "refusing to run a second wallet-core in this process")
-            return
+            return false
         }
         running = true
         if (!scope.isActive) scope = newScope()
@@ -87,6 +95,7 @@ class BackendManager(
             Log.d(TAG_CORE, it)
         }
         walletCore.run()
+        return true
     }
 
     @Synchronized
