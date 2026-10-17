@@ -84,6 +84,26 @@
                     tools:ignore="AppLinkUrlError" />
                 <data android:scheme="payto" />
             </intent-filter>
+            <!-- https-Links nach DD 103 (https://wallet.taler.net/link#<aktion>,
+                 siehe link/TalerHttpsLink.kt), entspricht der
+                 apple-app-site-association fuer taler-ios. Die Verifizierung
+                 greift erst, wenn wallet.taler.net eine assetlinks.json fuer
+                 dieses Paket ausliefert; bis dahin oeffnet der Link den Browser. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="https"
+                    android:host="wallet.taler.net"
+                    android:path="/link" />
+                <data
+                    android:scheme="https"
+                    android:host="wallet.taler.net"
+                    android:path="/link/" />
+            </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -123,6 +143,8 @@
                 android:scheme="payto" />
             <action android:name="android.intent.action.VIEW" />
         </intent>
+        <!-- for the certificate check of the return targets (AllowedCallers) -->
+        <package android:name="org.thoughtcrime.securesms" />
     </queries>
 
 </manifest>

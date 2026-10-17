@@ -40,6 +40,8 @@ import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.InitReceiver
 import net.taler.wallet.backend.WalletBackendApi
+import net.taler.wallet.backend.WalletCoreSingleton
+import net.taler.wallet.backend.WalletCoreVersion
 import net.taler.wallet.backend.WalletDatabaseBackend
 import net.taler.wallet.backend.WalletRunConfig
 import net.taler.wallet.backend.WalletRunConfig.Features
@@ -62,6 +64,9 @@ import net.taler.wallet.backend.MigrateDatabaseResponse
 import net.taler.wallet.contacts.ContactManager
 import net.taler.wallet.donau.DonauManager
 import net.taler.wallet.mailbox.MailboxManager
+import net.taler.wallet.link.OwnUriTracker
+import net.taler.wallet.link.PaymentPreviewer
+import net.taler.wallet.link.TalerPaymentPreviewer
 import net.taler.wallet.tokens.TokenManager
 import java.util.UUID
 
@@ -114,7 +119,32 @@ class MainViewModel(
         logLevel = if (devMode.value == true) "TRACE" else "INFO",
     )
 
-    private val api = WalletBackendApi(app, walletConfig, this, this)
+    // Geteilte wallet-core-Instanz, siehe WalletCoreSingleton - eine zweite
+    // WalletBackendApi im selben Prozess wuerde wegen BackendManagers
+    // statischem initialized-Flag nie wirklich starten.
+    private val api = WalletCoreSingleton.acquire(app, walletConfig)
+
+    /**
+     * Fuer die Sammelkarte, die EnterLinkTab (ScanQrScreen.kt) zeigt, wenn
+     * eine manuell eingefuegte Zwischenablage mehrere Taler-URIs enthaelt
+     * (siehe MultiUriSummary.kt/buildAggregate). Nutzt dieselbe geteilte
+     * [api]-Instanz wie der Rest dieser ViewModel - kein zweiter
+     * WalletCoreSingleton.acquire()-Aufruf noetig, der einen eigenen
+     * release()-Gegenpart brauchen wuerde.
+     */
+    fun newPaymentPreviewer(): PaymentPreviewer =
+        TalerPaymentPreviewer(api, OwnUriTracker(getApplication<Application>()))
+
+    init {
+        WalletCoreSingleton.addInitReceiver(this)
+        WalletCoreSingleton.addNotificationReceiver(this)
+    }
+
+    override fun onCleared() {
+        WalletCoreSingleton.removeInitReceiver(this)
+        WalletCoreSingleton.removeNotificationReceiver(this)
+        super.onCleared()
+    }
 
     val networkManager = NetworkManager(app.applicationContext)
     val exchangeManager: ExchangeManager = ExchangeManager(api, viewModelScope)
@@ -166,11 +196,13 @@ class MainViewModel(
     val databaseMigrationState: StateFlow<DatabaseMigrationState> = mDatabaseMigrationState
 
     fun startWallet() {
-        api.startWallet()
+        // no-op: WalletCoreSingleton.acquire() oben hat wallet-core bereits
+        // gestartet, falls es nicht schon lief. Bleibt als Methode erhalten,
+        // damit MainActivity.onCreate() unveraendert bleibt.
     }
 
     fun stopWallet() {
-        api.stopWallet()
+        WalletCoreSingleton.release()
     }
 
     override fun onInitErrorReceived(error: TalerErrorInfo) {

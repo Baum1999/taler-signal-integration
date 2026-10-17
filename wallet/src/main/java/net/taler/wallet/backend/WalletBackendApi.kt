@@ -17,6 +17,7 @@
 package net.taler.wallet.backend
 
 import android.app.Application
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -41,18 +42,60 @@ class WalletBackendApi(
 
     private val backendManager = BackendManager(notificationReceiver)
 
+    /**
+     * Root cause des Bugs "Fehler-Screen beim Start ueber Signal": startWallet()
+     * feuert sendInitMessage() nur fire-and-forget (GlobalScope.launch) und
+     * kehrt sofort zurueck. TalerLinkService bindet/antwortet aber sofort nach
+     * onCreate() (siehe dortiger Kommentar zu TalerLinkClient), sodass der
+     * allererste previewForUri/statusForUri-Aufruf ueber Signal seinen
+     * preparePeerPushCredit/preparePeerPullDebit-Request an wallet-core schickt,
+     * WAEHREND "init" dort noch nicht verarbeitet ist - das schlaegt fehl bzw.
+     * haengt und zeigt Signal einen Fehler. Beim MainViewModel-Pfad (Wallet-App
+     * zuerst geoeffnet) tritt der Bug nicht auf, weil dort zwischen App-Start
+     * und erster Nutzeraktion genug Zeit vergeht, bis "init" durch ist - reiner
+     * Zufall, kein Fix. [awaitInit] macht diese Abhaengigkeit explizit: wird
+     * einmalig durch [sendInitMessage] abgeschlossen (Erfolg oder Fehler) und
+     * ist danach fuer alle weiteren Aufrufer sofort fertig.
+     */
+    private val initDeferred = CompletableDeferred<WalletResponse<InitResponse>>()
+
+    suspend fun awaitInit(): WalletResponse<InitResponse> = initDeferred.await()
+
     fun startWallet() {
-        backendManager.run()
+        // Verteidigungslinie gegen den Bug "wallet core did not respond":
+        // run() wird durch WalletCoreSingleton eigentlich nie mehr fuer eine
+        // zweite Instanz aufgerufen (siehe dortiger Kommentar in acquire()),
+        // aber falls doch - z.B. durch kuenftigen Code, der WalletBackendApi
+        // ohne den Singleton erzeugt - soll der Aufrufer SOFORT einen Fehler
+        // sehen statt 60s auf eine Antwort zu warten, die nie kommt, weil
+        // backendManager.run() lautlos verweigert wurde und der native Kern
+        // gar nicht erst gestartet ist.
+        if (!backendManager.run()) {
+            val error = TalerErrorInfo.makeCustomError(
+                message = "wallet-core already running in this process",
+            )
+            initReceiver.onInitErrorReceived(error)
+            initDeferred.complete(WalletResponse.Error(error))
+            return
+        }
         GlobalScope.launch(Dispatchers.IO) {
             sendInitMessage()
         }
     }
 
-    fun stopWallet() {
-        GlobalScope.launch(Dispatchers.IO) {
-            sendRequest("shutdown")
-            backendManager.destroy()
-        }
+    /**
+     * Faehrt wallet-core herunter. Bewusst suspend (nicht mehr fire-and-forget
+     * per GlobalScope.launch) - WalletCoreSingleton.acquire() muss den
+     * Abschluss dieses Vorgangs abwarten koennen, bevor es eine neue Instanz
+     * erzeugt und startet. Sonst kann eine neue Instanz walletCore.run()
+     * aufrufen, WAEHREND diese alte Instanz das prozessweite
+     * BackendManager.coreRunning-Flag noch nicht zurueckgesetzt hat - die neue
+     * Instanz wird dann lautlos verweigert (siehe Bug "wallet core did not
+     * respond").
+     */
+    suspend fun stopWallet() {
+        sendRequest("shutdown")
+        backendManager.destroy()
     }
 
     private suspend fun sendInitMessage() {
@@ -69,8 +112,10 @@ class WalletBackendApi(
             put("config", JSONObject(BackendManager.json.encodeToString(initialConfig)))
         }.onSuccess { response ->
             initReceiver.onInitReceived(response)
+            initDeferred.complete(WalletResponse.Success(response))
         }.onError { error ->
             initReceiver.onInitErrorReceived(error)
+            initDeferred.complete(WalletResponse.Error(error))
         }
     }
 

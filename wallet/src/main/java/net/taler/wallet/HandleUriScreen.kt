@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.net.toUri
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -43,6 +44,7 @@ fun HandleUriScreen(
     val networkStatus by model.networkManager.networkStatus.observeAsState()
     val payStatus by model.paymentManager.payStatus.observeAsState(PayStatus.None)
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     fun processTalerUri() {
         if (processing) return
@@ -115,12 +117,52 @@ fun HandleUriScreen(
                         }
                     }
                     action.startsWith("pay-pull/", ignoreCase = true) -> {
-                        model.peerManager.preparePeerPullDebit(u2)
+                        // docs/API.md 2.10: dasselbe Muster wie beim pay-push-Zweig unten -
+                        // correlationId/returnUri sind angehaengte Query-Parameter, die vor
+                        // dem Aufruf von preparePeerPullDebit (kennt/braucht sie nicht, und
+                        // ihr Format ist von wallet-core's eigenem URI-Parser nicht geprueft)
+                        // gelesen und abgetrennt werden muessen.
+                        val callback = net.taler.wallet.link.ReturnCallbackParams.extract(u2)
+                        model.peerManager.pendingReturnCallback = callback?.let {
+                            net.taler.wallet.link.ReturnCallbackInfo(it.first, it.second)
+                        }
+                        val cleanUri = net.taler.wallet.link.ReturnCallbackParams.stripQuery(u2)
+                        model.peerManager.preparePeerPullDebit(cleanUri)
                         onNavigate(WalletDestination.PromptPullPayment, true)
                     }
                     action.startsWith("pay-push/", ignoreCase = true) -> {
-                        model.peerManager.preparePeerPushCredit(u2)
-                        onNavigate(WalletDestination.PromptPushPayment, true)
+                        // docs/API.md 2.10: correlationId/returnUri sind Query-Parameter,
+                        // die Signal an eine bereits vollstaendige URI anhaengt - werden
+                        // hier gelesen und dann ABGETRENNT, bevor der Rest an wallet-core
+                        // geht (preparePeerPushCredit kennt/braucht sie nicht, und ihr
+                        // Format ist von wallet-core's eigenem URI-Parser nicht geprueft).
+                        val callback = net.taler.wallet.link.ReturnCallbackParams.extract(u2)
+                        model.peerManager.pendingReturnCallback = callback?.let {
+                            net.taler.wallet.link.ReturnCallbackInfo(it.first, it.second)
+                        }
+                        val cleanUri = net.taler.wallet.link.ReturnCallbackParams.stripQuery(u2)
+                        // Bug 1 Fix: eine pay-push-URI, die diese Wallet-Instanz selbst
+                        // erzeugt hat (OwnUriTracker, z.B. Signals "Abbrechen"-Button auf
+                        // der eigenen ausgehenden Zahlungskarte), darf NICHT ueber
+                        // preparePeerPushCredit laufen - das ist der Annahme-Aufruf fuer
+                        // die EMPFANGENDE Seite und wuerde die eigene Zahlung an sich
+                        // selbst "annehmen" lassen. Stattdessen direkt zur eigenen,
+                        // bereits bekannten Transaktion (TransactionPeerPushDebit)
+                        // zurueckspringen - dort existiert bereits ein echtes "Abbrechen"
+                        // (TransactionAction.Abort -> abortTransaction), siehe
+                        // TransactionDetailScreen/TransactionPeerComposable.
+                        val ownTransactionId =
+                            net.taler.wallet.link.OwnUriTracker(context).transactionIdFor(cleanUri)
+                        if (ownTransactionId != null) {
+                            if (model.transactionManager.selectTransaction(ownTransactionId)) {
+                                onNavigate(WalletDestination.TransactionPeer, true)
+                            } else {
+                                onNavigateBack()
+                            }
+                        } else {
+                            model.peerManager.preparePeerPushCredit(cleanUri)
+                            onNavigate(WalletDestination.PromptPushPayment, true)
+                        }
                     }
                     action.startsWith("pay-template/", ignoreCase = true) -> {
                         onNavigate(WalletDestination.PromptPayTemplate(u2), true)
@@ -182,6 +224,15 @@ private suspend fun getTalerAction(
     uri: Uri,
     maxRedirects: Int,
 ): String {
+    // https-Links nach DD 103 (TalerHttpsLink) brauchen keinen Netzzugriff -
+    // der taler://-Kern steckt schon im Fragment. Ohne diesen fruehen
+    // Ausstieg wuerde jeder Tap/Scan eines solchen Links einen unnoetigen
+    // HEAD-Request an den Link-Host ausloesen.
+    val unwrapped = net.taler.wallet.link.TalerHttpsLink.unwrap(uri.toString())
+    if (unwrapped != uri.toString()) {
+        return unwrapped
+    }
+
     val scheme = uri.scheme ?: return uri.toString()
     if (scheme != "http" && scheme != "https") return uri.toString()
 
