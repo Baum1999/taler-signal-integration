@@ -81,6 +81,20 @@ class WalletResponseTest {
     }
 
     @Test
+    fun testWalletErrorInfoDetailFallback() {
+        val infoJson = """
+            {
+                "code": 3,
+                "requestUrl": "https://taldir.gnunet.org/config",
+                "httpStatusCode": 200,
+                "detail": "Unsupported protocol version, client supports 1:0:0, server supports 0:0:0"
+            }
+        """.trimIndent()
+        val info = json.decodeFromString(TalerErrorInfo.serializer(), infoJson)
+        assertEquals("Unsupported protocol version, client supports 1:0:0, server supports 0:0:0", info.userFacingMsg)
+    }
+
+    @Test
     fun knownWalletErrorCodeRoundTrips() {
         val info = json.decodeFromString(
             TalerErrorInfo.serializer(),

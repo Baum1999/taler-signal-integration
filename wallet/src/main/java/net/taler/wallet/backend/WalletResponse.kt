@@ -91,7 +91,15 @@ data class TalerErrorInfo(
                 } else {
                     // Otherwise, use the standard ones
                     hint?.let { append(it) }
-                    message?.let { append(" ").append(it) }
+                    message?.let {
+                        if (isNotEmpty()) append(" ")
+                        append(it)
+                    }
+                    if (isEmpty()) {
+                        getStringExtra("detail")?.let {
+                            append(it)
+                        }
+                    }
                 }
             }.toString()
         }
