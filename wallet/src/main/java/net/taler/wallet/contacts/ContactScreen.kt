@@ -82,6 +82,8 @@ fun ContactScreen(
     val contactResult by contactManager.contacts.collectAsState()
     val lookupResult by contactManager.lookupResult.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
+    var showNicknameDialog by remember { mutableStateOf(false) }
+    var pendingContact by remember { mutableStateOf<PendingContact?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     var contactToConfirm by remember { mutableStateOf<ContactEntry?>(null) }
 
@@ -225,7 +227,6 @@ fun ContactScreen(
             initialMailboxBaseUri = initialMailboxBaseUri,
             initialMailboxAddress = initialMailboxAddress,
             initialSource = initialSource,
-            initialPetname = initialPetname,
             onDismiss = {
                 showAddDialog = false
                 contactManager.resetLookup()
@@ -236,9 +237,10 @@ fun ContactScreen(
                 initialSource = ""
                 initialPetname = ""
             },
-            onAdd = { alias, aliasType, mailboxBaseUri, mailboxAddress, source, petname ->
-                contactManager.addContact(alias, aliasType, mailboxBaseUri, mailboxAddress, source, petname)
+            onProceed = { alias, aliasType, mailboxBaseUri, mailboxAddress, source ->
                 showAddDialog = false
+                pendingContact = PendingContact(alias, aliasType, mailboxBaseUri, mailboxAddress, source)
+                showNicknameDialog = true
             },
             onLookup = { alias, aliasType ->
                 contactManager.taldirLookupAlias(alias, aliasType)
@@ -247,7 +249,70 @@ fun ContactScreen(
             existingContacts = (contactResult as? ContactResult.Success)?.contacts ?: emptyList()
         )
     }
+
+    if (showNicknameDialog && pendingContact != null) {
+        val pending = pendingContact!!
+        var nickname by remember { mutableStateOf(initialPetname) }
+
+        AlertDialog(
+            onDismissRequest = {
+                showNicknameDialog = false
+                pendingContact = null
+            },
+            title = { Text(stringResource(R.string.contact_petname)) },
+            text = {
+                OutlinedTextField(
+                    value = nickname,
+                    onValueChange = { nickname = it },
+                    label = { Text(stringResource(R.string.contact_petname)) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        contactManager.addContact(
+                            alias = pending.alias,
+                            aliasType = pending.aliasType,
+                            mailboxBaseUri = pending.mailboxBaseUri,
+                            mailboxAddress = pending.mailboxAddress,
+                            source = pending.source,
+                            petname = nickname,
+                        )
+                        showNicknameDialog = false
+                        pendingContact = null
+                        contactManager.resetLookup()
+                        initialAlias = ""
+                        initialAliasType = "email"
+                        initialMailboxBaseUri = ""
+                        initialMailboxAddress = ""
+                        initialSource = ""
+                        initialPetname = ""
+                    },
+                    enabled = nickname.isNotBlank()
+                ) {
+                    Text(stringResource(R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showNicknameDialog = false
+                    pendingContact = null
+                }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
 }
+
+data class PendingContact(
+    val alias: String,
+    val aliasType: String,
+    val mailboxBaseUri: String,
+    val mailboxAddress: String,
+    val source: String,
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -257,9 +322,8 @@ fun AddContactDialog(
     initialMailboxBaseUri: String = "",
     initialMailboxAddress: String = "",
     initialSource: String = "",
-    initialPetname: String = "",
     onDismiss: () -> Unit,
-    onAdd: (String, String, String, String, String, String) -> Unit,
+    onProceed: (String, String, String, String, String) -> Unit,
     onLookup: (String, String) -> Unit,
     lookupResult: LookupResult,
     existingContacts: List<ContactEntry> = emptyList(),
@@ -271,7 +335,6 @@ fun AddContactDialog(
         mutableStateOf(if (initialMailboxBaseUri.isEmpty()) "" else "$initialMailboxBaseUri$initialMailboxAddress")
     }
     var source by remember { mutableStateOf(initialSource) }
-    var petname by remember { mutableStateOf(initialPetname) }
 
     val aliasTypeOptions = listOf(
         stringResource(R.string.alias_registration_alias_email),
@@ -286,19 +349,12 @@ fun AddContactDialog(
         mailbox = if (initialMailboxBaseUri.isEmpty()) "" else "$initialMailboxBaseUri$initialMailboxAddress"
     }
     LaunchedEffect(initialSource) { source = initialSource }
-    LaunchedEffect(initialPetname) { petname = initialPetname }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Add Contact") },
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                OutlinedTextField(
-                    value = petname,
-                    onValueChange = { petname = it },
-                    label = { Text("Petname") },
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
-                )
                 OutlinedTextField(
                     value = alias,
                     onValueChange = { alias = it },
@@ -403,9 +459,9 @@ fun AddContactDialog(
                     } else ""
                     val addr = mailboxParts.last()
                     val finalSource = source.ifBlank { "local" }
-                    onAdd(alias, aliasType, base, addr, finalSource, petname)
+                    onProceed(alias, aliasType, base, addr, finalSource)
                 },
-                enabled = alias.isNotBlank() && petname.isNotBlank() && mailbox.isNotBlank() && !isDuplicate
+                enabled = alias.isNotBlank() && mailbox.isNotBlank() && !isDuplicate
             ) {
                 Text(stringResource(R.string.ok))
             }
@@ -528,7 +584,7 @@ fun AddContactDialogPreview() {
     TalerSurface {
         AddContactDialog(
             onDismiss = {},
-            onAdd = { _, _, _, _, _, _ -> },
+            onProceed = { _, _, _, _, _ -> },
             onLookup = { _, _ -> },
             lookupResult = LookupResult.Idle
         )
