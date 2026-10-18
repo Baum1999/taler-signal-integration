@@ -511,6 +511,8 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="alias_registration_solution">Challenge Solution</string>
     <string name="alias_registration_success">Registration successful!</string>
     <string name="alias_registration_title">Alias Registration</string>
+    <string name="alias_registration_delete">Delete Alias</string>
+    <string name="alias_registration_out_of_band">I have completed the registration out of band</string>
     <string name="contact_add_button">Add Contact</string>
     <string name="contact_add_intro">Do you want to add this contact to your wallet?</string>
     <string name="contact_add_title">Add Contact</string>

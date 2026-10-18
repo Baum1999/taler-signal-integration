@@ -82,7 +82,7 @@ sealed class RegisterResult {
     data object Idle : RegisterResult()
     data object Loading : RegisterResult()
     data class Error(val error: TalerErrorInfo) : RegisterResult()
-    data class Success(val validFor: RelativeTime?) : RegisterResult()
+    data class Success(val validFor: RelativeTime?, val targetUri: String) : RegisterResult()
     data object CompletionLoading : RegisterResult()
     data object CompletionSuccess : RegisterResult()
 }
@@ -208,7 +208,7 @@ class ContactManager(
                 put("duration", JSONObject(BackendManager.json.encodeToString(RelativeTime.serializer(), RelativeTime(durationUs))))
             }.onSuccess {
                 Log.d(TAG, "Taldir registration initiated for $alias: $it")
-                _registerResult.value = RegisterResult.Success(it.validFor)
+                _registerResult.value = RegisterResult.Success(it.validFor, targetUri)
             }.onError {
                 Log.e(TAG, "Error initiating Taldir registration: $it")
                 _registerResult.value = RegisterResult.Error(it)
@@ -236,6 +236,66 @@ class ContactManager(
                 _registerResult.value = RegisterResult.CompletionSuccess
             }.onError {
                 Log.e(TAG, "Error completing Taldir registration: $it")
+                _registerResult.value = RegisterResult.Error(it)
+            }
+        }
+    }
+
+    fun taldirDeleteAlias(
+        alias: String,
+        aliasType: String,
+        taldirBaseUri: String = "https://taldir.gnunet.org",
+        durationMonths: Int,
+    ) {
+        taldirRegister(
+            alias = alias,
+            aliasType = aliasType,
+            taldirBaseUri = taldirBaseUri,
+            targetUri = "",
+            durationMonths = durationMonths,
+        )
+    }
+
+    fun recoverRegistration(
+        alias: String,
+        aliasType: String,
+        taldirBaseUri: String = "https://taldir.gnunet.org",
+        expectedTargetUri: String,
+    ) {
+        _registerResult.value = RegisterResult.Loading
+        scope.launch {
+            api.request<LookupAliasResponse>("lookupAlias", LookupAliasResponse.serializer()) {
+                put("alias", alias)
+                put("aliasType", aliasType)
+                put("taldirBaseUrl", taldirBaseUri)
+            }.onSuccess { resp ->
+                val targetUri = resp.targetUri ?: ""
+                if (expectedTargetUri.isEmpty()) {
+                    if (targetUri.isBlank()) {
+                        _registerResult.value = RegisterResult.CompletionSuccess
+                    } else {
+                        _registerResult.value = RegisterResult.Error(TalerErrorInfo(
+                            code = TalerErrorCode.UNKNOWN,
+                            message = "Existing registration is not deleted (points to $targetUri)",
+                        ))
+                    }
+                } else {
+                    if (targetUri.isNullOrBlank()) {
+                        _registerResult.value = RegisterResult.Error(TalerErrorInfo(
+                            code = TalerErrorCode.UNKNOWN,
+                            message = "Alias not found",
+                        ))
+                    } else if (targetUri != expectedTargetUri) {
+                        _registerResult.value = RegisterResult.Error(TalerErrorInfo(
+                            code = TalerErrorCode.UNKNOWN,
+                            message = "Existing registration points to a different mailbox URI",
+                        ))
+                    } else {
+                        _registerResult.value = RegisterResult.CompletionSuccess
+                    }
+                }
+            }.onError {
+                Log.e(TAG, "Error recovering registration: $it")
                 _registerResult.value = RegisterResult.Error(it)
             }
         }

@@ -17,8 +17,10 @@
 package net.taler.wallet.contacts
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -79,6 +81,12 @@ fun AliasRegistrationScreen(
         },
         onComplete = { alias, aliasType, taldirBaseUri, targetUri, solution ->
             model.contactManager.completeTaldirRegister(alias, aliasType, taldirBaseUri, targetUri, solution)
+        },
+        onRecover = { alias, aliasType, taldirBaseUri, targetUri ->
+            model.contactManager.recoverRegistration(alias, aliasType, taldirBaseUri, targetUri)
+        },
+        onDelete = { alias, aliasType, taldirBaseUri, durationMonths ->
+            model.contactManager.taldirDeleteAlias(alias, aliasType, taldirBaseUri, durationMonths)
         }
     )
 }
@@ -91,6 +99,8 @@ fun AliasRegistrationContent(
     onNavigateBack: () -> Unit,
     onRegister: (String, String, String, String, Int) -> Unit,
     onComplete: (String, String, String, String, String) -> Unit,
+    onRecover: (String, String, String, String) -> Unit,
+    onDelete: (String, String, String, Int) -> Unit,
 ) {
     var aliasType by remember { mutableStateOf("email") }
     var aliasTypeExpanded by remember { mutableStateOf(false) }
@@ -213,6 +223,23 @@ fun AliasRegistrationContent(
                 ) {
                     Text(stringResource(R.string.alias_registration_button))
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Button(
+                    onClick = {
+                        onDelete(
+                            alias,
+                            aliasType,
+                            taldirBaseUri,
+                            durationMonths.toIntOrNull() ?: 12
+                        )
+                    },
+                    enabled = aliasType.isNotBlank() && alias.isNotBlank() && registerResult !is RegisterResult.Loading,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.alias_registration_delete))
+                }
             }
 
             when (val res = registerResult) {
@@ -257,6 +284,23 @@ fun AliasRegistrationContent(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(stringResource(R.string.ok))
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Button(
+                            onClick = {
+                                onRecover(
+                                    alias,
+                                    aliasType,
+                                    taldirBaseUri,
+                                    res.targetUri
+                                )
+                            },
+                            enabled = alias.isNotBlank(),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.alias_registration_out_of_band))
                         }
                     }
                 }
@@ -308,7 +352,9 @@ fun AliasRegistrationContentPreview() {
             registerResult = RegisterResult.Idle,
             onNavigateBack = {},
             onRegister = { _, _, _, _, _ -> },
-            onComplete = { _, _, _, _, _ -> }
+            onComplete = { _, _, _, _, _ -> },
+            onRecover = { _, _, _, _ -> },
+            onDelete = { _, _, _, _ -> }
         )
     }
 }
@@ -328,10 +374,12 @@ fun AliasRegistrationContentSuccessPreview() {
                 ),
                 emptyList()
             ),
-            registerResult = RegisterResult.Success(validFor = null),
+            registerResult = RegisterResult.Success(validFor = null, targetUri = "https://mailbox.taler.net/alice"),
             onNavigateBack = {},
             onRegister = { _, _, _, _, _ -> },
-            onComplete = { _, _, _, _, _ -> }
+            onComplete = { _, _, _, _, _ -> },
+            onRecover = { _, _, _, _ -> },
+            onDelete = { _, _, _, _ -> }
         )
     }
 }
