@@ -22,6 +22,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.text.DecimalFormatSymbols
+import java.util.Locale
 
 class AmountTest {
 
@@ -186,6 +187,7 @@ class AmountTest {
         currency: String,
         symbol: String,
     ) {
+        val locale = Locale.forLanguageTag("en")
         val symbols = DecimalFormatSymbols.getInstance()
         symbols.decimalSeparator = '.'
         symbols.groupingSeparator = ','
@@ -199,26 +201,31 @@ class AmountTest {
         assertEquals(fraction, amount.fraction)
 
         // The amount without currency spec
-        assertEquals("$noSpecAmount $currency", amount.toString(symbols = symbols))
-        assertEquals(noSpecAmount, amount.toString(symbols = symbols, showSymbol = false))
-        assertEquals("-$noSpecAmount $currency", amount.toString(symbols = symbols, negative = true))
-        assertEquals("-$noSpecAmount", amount.toString(symbols = symbols, showSymbol = false, negative = true))
+        assertEquals("$currency $noSpecAmount", amount.toString(symbols = symbols, locale = locale))
+        assertEquals(noSpecAmount, amount.toString(symbols = symbols, showSymbol = false, locale = locale))
+        assertEquals("$currency -$noSpecAmount", amount.toString(symbols = symbols, negative = true, locale = locale))
+        assertEquals("-$noSpecAmount", amount.toString(symbols = symbols, showSymbol = false, negative = true, locale = locale))
 
         // The amount with currency spec
         val withSpec = amount.withSpec(spec)
-        assertEquals(specAmount, withSpec.toString(symbols = symbols, showSymbol = false))
-        assertEquals(specAmount, withSpec.toString(symbols = symbols, showSymbol = false))
-        assertEquals("-$specAmount", withSpec.toString(symbols = symbols, showSymbol = false, negative = true))
-        assertEquals("-$specAmount", withSpec.toString(symbols = symbols, showSymbol = false, negative = true))
+        assertEquals(specAmount, withSpec.toString(symbols = symbols, showSymbol = false, locale = locale))
+        assertEquals(specAmount, withSpec.toString(symbols = symbols, showSymbol = false, locale = locale))
+        assertEquals("-$specAmount", withSpec.toString(symbols = symbols, showSymbol = false, negative = true, locale = locale))
+        assertEquals("-$specAmount", withSpec.toString(symbols = symbols, showSymbol = false, negative = true, locale = locale))
 
-        // FIXME: this test is locale-dependent
-         if (spec.symbol != null) {
-            assertEquals("${symbol}$specAmount", withSpec.toString(symbols = symbols))
-            assertEquals("-${symbol}$specAmount", withSpec.toString(symbols = symbols, negative = true))
-         } else {
-             assertEquals("$specAmount $currency", withSpec.toString(symbols = symbols))
-             assertEquals("-$specAmount $currency", withSpec.toString(symbols = symbols, negative = true))
-         }
+        // FIXME: unit test always SDK_INT = 0, so this path will never be tested
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (spec.symbol != null) {
+                assertEquals("${symbol}$specAmount", withSpec.toString(symbols = symbols, locale = locale))
+                assertEquals("-${symbol}$specAmount", withSpec.toString(symbols = symbols, negative = true, locale = locale))
+            } else {
+                assertEquals("$specAmount $currency", withSpec.toString(symbols = symbols, locale = locale))
+                assertEquals("-$specAmount $currency", withSpec.toString(symbols = symbols, negative = true, locale = locale))
+            }
+        } else {
+            assertEquals("$currency $specAmount", withSpec.toString(symbols = symbols, locale = locale))
+            assertEquals("$currency -$specAmount", withSpec.toString(symbols = symbols, negative = true, locale = locale))
+        }
     }
 
     @Test

@@ -16,7 +16,13 @@
 
 package net.taler.common
 
+import android.icu.number.NumberFormatter
+import android.icu.number.Precision
+import android.icu.text.DecimalFormatSymbols
+import android.icu.util.Currency
+import android.icu.util.ULocale
 import android.os.Build
+import androidx.annotation.RequiresApi
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -25,8 +31,8 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import java.math.RoundingMode
 import java.text.DecimalFormat
-import java.text.DecimalFormatSymbols
 import java.text.NumberFormat
+import java.util.Locale
 import kotlin.math.floor
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -242,41 +248,46 @@ data class Amount(
     fun toString(
         showSymbol: Boolean = true,
         negative: Boolean = false,
-        symbols: DecimalFormatSymbols = DecimalFormat().decimalFormatSymbols,
+        symbols: java.text.DecimalFormatSymbols = DecimalFormat().decimalFormatSymbols,
+        locale: Locale = Locale.getDefault(),
     ): String {
-        // We clone the object to safely/cleanly modify it
-        val s = symbols.clone() as DecimalFormatSymbols
         val amount = (if (negative) "-$amountStr" else amountStr).toBigDecimal()
-
-        // No currency spec, so we render normally
-        if (spec == null) {
+        val symbol = spec?.symbol ?: currency
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // In newer phones > 2019, do full, locale-based formatting
+            val uLocale = ULocale.forLocale(locale)
+            val blueprintCurrency = Currency.getInstance(uLocale)
+            NumberFormatter.with()
+                .unit(blueprintCurrency)
+                .unitWidth(
+                    if (showSymbol) {
+                        if (symbol.length > 1)
+                            NumberFormatter.UnitWidth.ISO_CODE else
+                            NumberFormatter.UnitWidth.SHORT
+                    } else NumberFormatter.UnitWidth.HIDDEN)
+                .locale(uLocale)
+                .symbols(symbols.toIcu(locale))
+                .precision(Precision.minMaxFraction(
+                    spec?.numFractionalTrailingZeroDigits ?: 2,
+                    MAX_FRACTION_LENGTH))
+                .format(amount)
+                .toString()
+                .replace(blueprintCurrency.currencyCode, symbol)
+                .replace(blueprintCurrency.symbol, symbol)
+        } else {
+            // In older phones <= 2019, always do "$CURRENCY $AMOUNT"
+            val s = symbols.clone() as java.text.DecimalFormatSymbols
             val format = NumberFormat.getInstance()
+            format.minimumFractionDigits = spec?.numFractionalTrailingZeroDigits ?: 2
             format.maximumFractionDigits = MAX_FRACTION_LENGTH
-            format.minimumFractionDigits = 2
-            if (Build.VERSION.SDK_INT >= 34) {
-                s.groupingSeparator = s.monetaryGroupingSeparator
-            }
-            s.decimalSeparator = s.monetaryDecimalSeparator
             (format as DecimalFormat).decimalFormatSymbols = s
 
             val fmt = format.format(amount)
-            return if (showSymbol) "$fmt $currency" else fmt
-        }
-
-        // There is currency spec, so we can do things right
-        val format = NumberFormat.getCurrencyInstance()
-        format.minimumFractionDigits = spec.numFractionalTrailingZeroDigits
-        format.maximumFractionDigits = MAX_FRACTION_LENGTH
-        s.currencySymbol = spec.symbol ?: ""
-        (format as DecimalFormat).decimalFormatSymbols = s
-
-        val fmt = format.format(amount)
-        return if (showSymbol) {
-            // If no symbol, then we use the currency string
-            (if (spec.symbol != null) fmt else "$fmt $currency").trim()
-        } else {
-            // We should do better than manually removing the symbol here
-            fmt.replace(s.currencySymbol, "").trim()
+            if (showSymbol) {
+                "$currency $fmt"
+            } else {
+                fmt
+            }
         }
     }
 
@@ -309,4 +320,28 @@ internal object KotlinXAmountSerializer : KSerializer<Amount> {
     override fun deserialize(decoder: Decoder): Amount {
         return Amount.fromJSONString(decoder.decodeString())
     }
+}
+
+@RequiresApi(Build.VERSION_CODES.N)
+fun java.text.DecimalFormatSymbols.toIcu(targetLocale: Locale? = null): DecimalFormatSymbols {
+    val targetLocale = targetLocale ?: Locale.getDefault()
+    val icuSymbols = DecimalFormatSymbols(targetLocale)
+    icuSymbols.zeroDigit = this.zeroDigit
+    icuSymbols.groupingSeparator = this.groupingSeparator
+    icuSymbols.decimalSeparator = this.decimalSeparator
+    icuSymbols.perMill = this.perMill
+    icuSymbols.percent = this.percent
+    icuSymbols.digit = this.digit
+    icuSymbols.patternSeparator = this.patternSeparator
+    icuSymbols.infinity = this.infinity
+    icuSymbols.naN = this.naN
+    icuSymbols.minusSign = this.minusSign
+    icuSymbols.currencySymbol = this.currencySymbol
+    icuSymbols.internationalCurrencySymbol = this.internationalCurrencySymbol
+    icuSymbols.exponentSeparator = this.exponentSeparator
+    icuSymbols.monetaryDecimalSeparator = this.monetaryDecimalSeparator
+    if (Build.VERSION.SDK_INT >= 34) {
+        icuSymbols.monetaryGroupingSeparator = this.monetaryGroupingSeparator
+    }
+    return icuSymbols
 }
