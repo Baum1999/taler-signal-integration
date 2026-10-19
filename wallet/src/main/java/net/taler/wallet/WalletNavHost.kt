@@ -183,6 +183,7 @@ fun WalletNavHost(
                 model = model,
                 onNavigate = onNavigate,
                 onNavigateBack = onNavigateBack,
+                onShowError = onShowError,
             )
         }
         composable<WalletDestination.BankAccounts> { backStackEntry ->

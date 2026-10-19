@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -31,6 +32,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,6 +42,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -61,6 +66,7 @@ import kotlinx.coroutines.launch
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
+import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletResponse
 import net.taler.wallet.balances.BalanceManager
 import net.taler.wallet.balances.ScopeInfo
@@ -74,24 +80,62 @@ fun ExchangeListScreen(
     model: MainViewModel,
     onNavigate: NavigateCallback,
     onNavigateBack: () -> Unit,
+    onShowError: (TalerErrorInfo) -> Unit,
 ) {
     val exchangeManager = model.exchangeManager
     val balanceManager = model.balanceManager
     val exchanges by exchangeManager.exchanges.observeAsState(emptyList())
     val devMode by model.devMode.observeAsState(false)
+    val addError by exchangeManager.addError.observeAsState()
+    val listError by exchangeManager.listError.observeAsState()
+    val deleteError by exchangeManager.deleteError.observeAsState()
+    val reloadError by exchangeManager.reloadError.observeAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     var showAddDialog by remember { mutableStateOf(false) }
+    var addInProgress by remember { mutableStateOf(false) }
+    var addErrorMessage by remember { mutableStateOf<String?>(null) }
     var exchangeToDelete by remember { mutableStateOf<ExchangeItem?>(null) }
+
+    val addErrorText = stringResource(R.string.exchange_add_error)
+
+    LaunchedEffect(addError) {
+        addError?.getIfNotConsumed()?.let {
+            addInProgress = false
+            if (showAddDialog) {
+                // Keep the dialog open so the user can correct the address.
+                addErrorMessage = addErrorText
+            } else {
+                snackbarHostState.showSnackbar(addErrorText, duration = SnackbarDuration.Long)
+            }
+        }
+    }
+
+    LaunchedEffect(listError) {
+        listError?.getIfNotConsumed()?.let { onShowError(it) }
+    }
+
+    LaunchedEffect(deleteError) {
+        deleteError?.getIfNotConsumed()?.let { onShowError(it) }
+    }
+
+    LaunchedEffect(reloadError) {
+        reloadError?.getIfNotConsumed()?.let { onShowError(it) }
+    }
 
     GlobalScaffold(
         model = model,
         modifier = Modifier.fillMaxSize(),
         onNavigateBack = onNavigateBack,
         title = { Text(stringResource(R.string.exchange_list_title)) },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             FloatingActionButton(
                 modifier = Modifier.navigationBarsPadding(),
-                onClick = { showAddDialog = true },
+                onClick = {
+                    addErrorMessage = null
+                    showAddDialog = true
+                },
             ) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.exchange_list_add))
             }
@@ -131,11 +175,17 @@ fun ExchangeListScreen(
 
     if (showAddDialog) {
         AddExchangeDialog(
-            onDismiss = { showAddDialog = false },
+            onDismiss = { if (!addInProgress) showAddDialog = false },
             onConfirm = { url ->
-                exchangeManager.add(url)
-                showAddDialog = false
-            }
+                addErrorMessage = null
+                addInProgress = true
+                exchangeManager.add(url) {
+                    addInProgress = false
+                    showAddDialog = false
+                }
+            },
+            loading = addInProgress,
+            errorMessage = addErrorMessage,
         )
     }
 
@@ -255,6 +305,8 @@ fun ExchangeDropDownMenu(
 fun AddExchangeDialog(
     onDismiss: () -> Unit,
     onConfirm: (String) -> Unit,
+    loading: Boolean = false,
+    errorMessage: String? = null,
 ) {
     val focusRequester = remember { FocusRequester() }
     var url by remember { mutableStateOf("") }
@@ -264,22 +316,47 @@ fun AddExchangeDialog(
         title = { Text(stringResource(R.string.exchange_list_add)) },
         icon = { Icon(Icons.Default.AccountBalance, contentDescription = null) },
         text = {
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = url,
-                onValueChange = { url = it },
-                label = { Text(stringResource(R.string.exchange_add_url)) },
-                placeholder = { Text("https://") },
-                maxLines = 1,
-            )
+            Column {
+                OutlinedTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    value = url,
+                    onValueChange = { url = it },
+                    label = { Text(stringResource(R.string.exchange_add_url)) },
+                    placeholder = { Text("https://") },
+                    maxLines = 1,
+                    enabled = !loading,
+                    isError = errorMessage != null,
+                )
+                errorMessage?.let { message ->
+                    Text(
+                        modifier = Modifier.padding(top = 8.dp),
+                        text = message,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(url) }) {
-                Text(stringResource(R.string.ok))
+            TextButton(
+                onClick = { onConfirm(url) },
+                enabled = !loading,
+            ) {
+                if (loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                    )
+                } else {
+                    Text(stringResource(R.string.ok))
+                }
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(
+                onClick = onDismiss,
+                enabled = !loading,
+            ) {
                 Text(stringResource(R.string.cancel))
             }
         }
