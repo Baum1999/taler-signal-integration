@@ -40,7 +40,11 @@ data class MailboxConfiguration(
     val hAddress: String,
     val expiration: Timestamp,
     val payUri: String? = null,
-)
+) {
+    override fun toString(): String {
+        return "MailboxConfiguration(mailboxBaseUrl='$mailboxBaseUrl', privateKey='REDACTED', privateEncryptionKey='REDACTED', hAddress='$hAddress', expiration=$expiration, payUri=$payUri)"
+    }
+}
 
 @Serializable
 data class MailboxMessageRecord(
@@ -107,7 +111,7 @@ class MailboxManager(
                 if (null == resp.mailboxConfiguration) {
                     initializeMailbox(baseUrl)
                 } else {
-                    Log.e(TAG, "Got mailbox ${resp.mailboxConfiguration}")
+                    Log.d(TAG, "loaded mailbox at ${resp.mailboxConfiguration.mailboxBaseUrl}")
                     getMessages(resp.mailboxConfiguration)
                 }
             }.onError {
@@ -142,8 +146,7 @@ class MailboxManager(
     }
 
     fun refreshMailbox(config: MailboxConfiguration) {
-
-        Log.e(TAG, "Rereshing mailbox ${config}")
+        Log.d(TAG, "refreshing mailbox at ${config.mailboxBaseUrl}")
         scope.launch {
             api.request("refreshMailbox", MailboxMessagesResponse.serializer()) {
                 JSONObject(BackendManager.json.encodeToString(config))
