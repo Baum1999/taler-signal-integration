@@ -126,10 +126,14 @@ fun HandleUriScreen(
                         onNavigate(WalletDestination.PromptPayTemplate(u2), true)
                     }
                     action.startsWith("dev-experiment/", ignoreCase = true) -> {
-                        model.applyDevExperiment(u2) { error ->
-                            errorInfo = error
-                        }
-                        onNavigateBack()
+                        model.applyDevExperiment(u2,
+                            onSuccess = {
+                                onNavigateBack()
+                            },
+                            onError = { error ->
+                                errorInfo = error
+                            },
+                        )
                     }
                     action.startsWith("add-contact/", ignoreCase = true) -> {
                         onNavigate(WalletDestination.Contacts(addContactUri = u2), true)

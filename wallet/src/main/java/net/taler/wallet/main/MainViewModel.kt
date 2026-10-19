@@ -417,11 +417,17 @@ class MainViewModel(
         }
     }
 
-    fun applyDevExperiment(uri: String, onError: (error: TalerErrorInfo) -> Unit) {
+    fun applyDevExperiment(
+        uri: String,
+        onSuccess: () -> Unit,
+        onError: (error: TalerErrorInfo) -> Unit,
+    ) {
         viewModelScope.launch {
             api.request<Unit>("applyDevExperiment") {
                 put("devExperimentUri", uri)
-            }.onError(onError)
+            }
+                .onSuccess { onSuccess() }
+                .onError(onError)
         }
     }
 
