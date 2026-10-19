@@ -648,7 +648,8 @@ fun BalanceActionRow(
         modifier = Modifier.fillMaxWidth(),
     ) {
         ActionButton(
-            icon = { Icon(Icons.AutoMirrored.Default.ArrowForward, contentDescription = null) },
+            icon = { Icon(Icons.AutoMirrored.Default.ArrowForward,
+                contentDescription = stringResource(R.string.transactions_send_funds)) },
             label = { Text(stringResource(R.string.transactions_send_funds)) },
             shape = CircleShape,
             enabled = !disableActions && !balance.disablePeerPayments,
@@ -659,7 +660,8 @@ fun BalanceActionRow(
         )
 
         ActionButton(
-            icon = { Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = null) },
+            icon = { Icon(Icons.AutoMirrored.Default.ArrowBack,
+                contentDescription = stringResource(R.string.transactions_receive_funds)) },
             label = { Text(stringResource(R.string.transactions_receive_funds)) },
             shape = CircleShape,
             enabled = !disableActions && !balance.disablePeerPayments,
@@ -670,7 +672,8 @@ fun BalanceActionRow(
         )
 
         ActionButton(
-            icon = { Icon(Icons.Default.ArrowDownward, contentDescription = null) },
+            icon = { Icon(Icons.Default.ArrowDownward,
+                contentDescription = stringResource(R.string.withdraw_button_label)) },
             label = { Text(stringResource(R.string.withdraw_button_label)) },
             shape = CircleShape,
             modifier = Modifier.weight(1f),
@@ -681,7 +684,8 @@ fun BalanceActionRow(
         )
 
         ActionButton(
-            icon = { Icon(Icons.Default.ArrowUpward, contentDescription = null) },
+            icon = { Icon(Icons.Default.ArrowUpward,
+                contentDescription = stringResource(R.string.send_deposit_button_label)) },
             label = { Text(stringResource(R.string.send_deposit_button_label)) },
             shape = CircleShape,
             modifier = Modifier.weight(1f),
@@ -703,7 +707,8 @@ fun BalanceAssetsRow(
         modifier = Modifier.fillMaxWidth(),
     ) {
         ActionButton(
-            icon = { Icon(painterResource(R.drawable.ic_discounts), contentDescription = null) },
+            icon = { Icon(painterResource(R.drawable.ic_discounts),
+                contentDescription = stringResource(R.string.discounts_title)) },
             label = { Text(stringResource(R.string.discounts_title)) },
             onClick = onShowDiscounts,
             modifier = Modifier.weight(1f).padding(horizontal = 6.dp),
@@ -712,7 +717,8 @@ fun BalanceAssetsRow(
         )
 
         ActionButton(
-            icon = { Icon(Icons.Default.EventRepeat, contentDescription = null) },
+            icon = { Icon(Icons.Default.EventRepeat,
+                contentDescription = stringResource(R.string.passes_title)) },
             label = { Text(stringResource(R.string.passes_title)) },
             onClick = onShowPasses,
             modifier = Modifier.weight(1f).padding(horizontal = 6.dp),
@@ -721,7 +727,8 @@ fun BalanceAssetsRow(
         )
 
         ActionButton(
-            icon = { Icon(painterResource(R.drawable.ic_donau), contentDescription = null) },
+            icon = { Icon(painterResource(R.drawable.ic_donau),
+                contentDescription = stringResource(R.string.balances_section_statements)) },
             label = { Text(stringResource(R.string.balances_section_statements)) },
             onClick = onShowStatements,
             modifier = Modifier.weight(1f).padding(horizontal = 6.dp),
