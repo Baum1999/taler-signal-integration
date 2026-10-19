@@ -232,12 +232,14 @@ fun ExchangeDropDownMenu(
             if (exchange.scopeInfo is ScopeInfo.Exchange) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.exchange_global_add)) },
-                    onClick = { onAction(ExchangeAction.GlobalAdd) }
+                    onClick = { onAction(ExchangeAction.GlobalAdd) },
+                    enabled = exchange.masterPub != null,
                 )
             } else if (exchange.scopeInfo is ScopeInfo.Global) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.exchange_global_delete)) },
-                    onClick = { onAction(ExchangeAction.GlobalDelete) }
+                    onClick = { onAction(ExchangeAction.GlobalDelete) },
+                    enabled = exchange.masterPub != null,
                 )
             }
         }
@@ -353,18 +355,20 @@ fun handleExchangeAction(
                 }
             }
         }
-        ExchangeAction.GlobalAdd -> {
+        ExchangeAction.GlobalAdd -> if (exchange.masterPub != null) {
             balanceManager.addGlobalCurrencyExchange(
                 currency = exchange.currency ?: return,
                 exchange = exchange,
+                exchangeMasterPub = exchange.masterPub,
                 onSuccess = {},
                 onError = {}
             )
         }
-        ExchangeAction.GlobalDelete -> {
+        ExchangeAction.GlobalDelete -> if (exchange.masterPub != null) {
             balanceManager.removeGlobalCurrencyExchange(
                 currency = exchange.currency ?: return,
                 exchange = exchange,
+                exchangeMasterPub = exchange.masterPub,
                 onSuccess = {},
                 onError = {}
             )

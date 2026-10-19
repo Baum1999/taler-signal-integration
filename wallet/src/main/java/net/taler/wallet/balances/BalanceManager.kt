@@ -131,13 +131,14 @@ class BalanceManager(
     fun addGlobalCurrencyExchange(
         currency: String,
         exchange: ExchangeItem,
+        exchangeMasterPub: String,
         onSuccess: () -> Unit,
         onError: (error: TalerErrorInfo) -> Unit,
     ) = scope.launch {
         api.request<Unit>("addGlobalCurrencyExchange") {
             put("currency", currency)
             put("exchangeBaseUrl", exchange.exchangeBaseUrl)
-            put("exchangeMasterPub", exchange.masterPub)
+            put("exchangeMasterPub", exchangeMasterPub)
         }.onError { error ->
             Log.e(TAG, "got addGlobalCurrencyExchange error: $error")
             onError(error)
@@ -149,13 +150,14 @@ class BalanceManager(
     fun removeGlobalCurrencyExchange(
         currency: String,
         exchange: ExchangeItem,
+        exchangeMasterPub: String,
         onSuccess: () -> Unit,
         onError: (error: TalerErrorInfo) -> Unit,
     ) = scope.launch {
         api.request<Unit>("removeGlobalCurrencyExchange") {
             put("currency", currency)
             put("exchangeBaseUrl", exchange.exchangeBaseUrl)
-            put("exchangeMasterPub", exchange.masterPub)
+            put("exchangeMasterPub", exchangeMasterPub)
         }.onError { error ->
             Log.e(TAG, "got removeGlobalCurrencyExchange error: $error")
             onError(error)
