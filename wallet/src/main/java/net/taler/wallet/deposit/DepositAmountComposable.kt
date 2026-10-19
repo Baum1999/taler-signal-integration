@@ -80,6 +80,24 @@ fun DepositAmountComposable(
         var amount by remember(currencies) {
             mutableStateOf(currencies.firstOrNull()?.let { Amount.zero(it) }) }
 
+        val currentAmount = amount
+
+        val depositFee = (checkResult as? CheckDepositResult.Success)?.let { success ->
+            if (success.totalDepositCost > success.effectiveDepositAmount) {
+                success.totalDepositCost - success.effectiveDepositAmount
+            } else {
+                Amount.zero(success.effectiveDepositAmount.currency)
+            }
+        }
+        val amountBelowFee = currentAmount != null
+                && depositFee != null
+                && currentAmount.currency == depositFee.currency
+                && currentAmount <= depositFee
+        val amountAboveFee = currentAmount != null
+                && depositFee != null
+                && currentAmount.currency == depositFee.currency
+                && currentAmount > depositFee
+
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -112,10 +130,15 @@ fun DepositAmountComposable(
             val spec = remember(amount) { getCurrencySpec(amount!!.currency) }
             val maxDepositable = remember(amount) { state.maxDepositable[amount!!.currency]  }
 
-            amount.useDebounce {
-                loading = true
-                checkResult = checkDeposit(amount!!)
-                loading = false
+            amount.useDebounce { debouncedAmount ->
+                if (debouncedAmount == null || debouncedAmount.isZero()) {
+                    loading = false
+                    checkResult = CheckDepositResult.None
+                } else {
+                    loading = true
+                    checkResult = checkDeposit(debouncedAmount)
+                    loading = false
+                }
             }
 
             AnimatedVisibility(maxDepositable?.rawAmount != null) {
@@ -149,7 +172,7 @@ fun DepositAmountComposable(
                 onAmountChanged = { amount = it },
                 editableCurrency = true,
                 currencies = currencies,
-                isError = checkResult !is CheckDepositResult.Success,
+                isError = !amountAboveFee,
                 label = { Text(stringResource(R.string.amount_deposit)) },
                 supportingText = {
                     val res = checkResult
@@ -158,6 +181,8 @@ fun DepositAmountComposable(
                     } else if (res is CheckDepositResult.ExceedsLimit) {
                         Text(stringResource(R.string.amount_excess,
                             res.maxDepositAmountEffective))
+                    } else if (amountBelowFee) {
+                        Text(stringResource(R.string.amount_invalid))
                     }
                 }
             )
@@ -198,9 +223,7 @@ fun DepositAmountComposable(
             Button(
                 modifier = Modifier
                     .systemBarsPaddingBottom(),
-                enabled = !loading
-                        && amount != null
-                        && checkResult is CheckDepositResult.Success,
+                enabled = !loading && amountAboveFee,
                 onClick = {
                     focusManager.clearFocus()
                     onMakeDeposit(amount!!)
