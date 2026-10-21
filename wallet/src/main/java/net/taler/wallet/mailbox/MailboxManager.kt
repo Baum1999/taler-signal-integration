@@ -149,7 +149,7 @@ class MailboxManager(
         Log.d(TAG, "refreshing mailbox at ${config.mailboxBaseUrl}")
         scope.launch {
             api.request("refreshMailbox", MailboxMessagesResponse.serializer()) {
-                JSONObject(BackendManager.json.encodeToString(config))
+                put("mailboxConf", JSONObject(BackendManager.json.encodeToString(config)))
             }.onSuccess { response ->
                 if (response.messages.isNotEmpty()) {
                     response.messages.forEach { msg ->

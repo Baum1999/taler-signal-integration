@@ -539,7 +539,7 @@ fun ContactItemPreview() {
             contact = ContactEntry(
                 alias = "alice@taler.net",
                 aliasType = "email",
-                mailboxBaseUri = "https://mailbox.taler.net/",
+                mailboxBaseUrl = "https://mailbox.taler.net/",
                 mailboxAddress = "alice",
                 source = "manual",
                 petname = "Alice",
@@ -559,7 +559,7 @@ fun ContactListPreview() {
                 ContactEntry(
                     alias = "alice@taler.net",
                     aliasType = "email",
-                    mailboxBaseUri = "https://mailbox.taler.net/",
+                    mailboxBaseUrl = "https://mailbox.taler.net/",
                     mailboxAddress = "alice",
                     source = "manual",
                     petname = "Alice",
@@ -567,7 +567,7 @@ fun ContactListPreview() {
                 ContactEntry(
                     alias = "bob@taler.net",
                     aliasType = "email",
-                    mailboxBaseUri = "https://mailbox.taler.net/",
+                    mailboxBaseUrl = "https://mailbox.taler.net/",
                     mailboxAddress = "bob",
                     source = "manual",
                     petname = "Bob",
