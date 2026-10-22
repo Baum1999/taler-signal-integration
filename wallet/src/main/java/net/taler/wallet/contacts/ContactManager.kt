@@ -41,10 +41,10 @@ data class ContactEntry(
     val mailboxAddress: String,
     val source: String,
     val petname: String,
-    val self: Boolean = false,
-    val version: Int = 0,
+    val isSelf: Boolean = false,
 ) {
     val mailboxBaseUri: String get() = mailboxBaseUrl
+    val self: Boolean get() = isSelf
 }
 
 @Serializable
@@ -146,8 +146,7 @@ class ContactManager(
         mailboxAddress: String,
         source: String,
         petname: String,
-        self: Boolean = false,
-        version: Int = 0,
+        isSelf: Boolean = false,
     ) {
         val entry = ContactEntry(
             alias = alias,
@@ -156,8 +155,7 @@ class ContactManager(
             mailboxAddress = mailboxAddress,
             source = source,
             petname = petname,
-            self = self,
-            version = version,
+            isSelf = isSelf,
         )
         scope.launch {
             api.request<Unit>("addContact") {

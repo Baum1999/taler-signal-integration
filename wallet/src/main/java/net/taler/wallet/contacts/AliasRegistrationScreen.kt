@@ -237,7 +237,7 @@ fun AliasRegistrationScreen(
                     mailboxAddress = mailboxConfig.hAddress,
                     source = "self",
                     petname = nickname,
-                    self = true,
+                    isSelf = true,
                 )
                 model.contactManager.checkAliasRegistration(
                     alias = alias,
@@ -670,7 +670,7 @@ fun AliasRegistrationContentPreview() {
                     mailboxAddress = "alice",
                     source = "self",
                     petname = "Personal Email",
-                    self = true,
+                    isSelf = true,
                 )
             ),
             mailboxConfig = MailboxConfiguration(
