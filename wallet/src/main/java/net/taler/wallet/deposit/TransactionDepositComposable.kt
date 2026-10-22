@@ -39,7 +39,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
-import net.taler.common.CurrencySpecification
 import net.taler.common.Timestamp
 import net.taler.lib.android.toAbsoluteTime
 import net.taler.wallet.BottomInsetsSpacer
@@ -68,7 +67,6 @@ import net.taler.wallet.withdraw.TransferOptionChooser
 fun TransactionDepositComposable(
     t: TransactionDeposit,
     devMode: Boolean,
-    spec: CurrencySpecification?,
     onSelectOption: (option: TransferOption?) -> Unit,
     onWireTransfer: () -> Unit,
     onShowQrCodes: () -> Unit,
@@ -123,7 +121,7 @@ fun TransactionDepositComposable(
 
         TransactionAmountComposable(
             label = stringResource(id = R.string.amount_chosen),
-            amount = t.amountRaw.withSpec(spec),
+            amount = t.amountRaw,
             amountType = AmountType.Neutral,
         )
 
@@ -131,14 +129,14 @@ fun TransactionDepositComposable(
             val fee = t.amountEffective - t.amountRaw
             TransactionAmountComposable(
                 label = stringResource(id = R.string.amount_fee),
-                amount = fee.withSpec(spec),
+                amount = fee,
                 amountType = AmountType.Negative,
             )
         }
 
         TransactionAmountComposable(
             label = stringResource(id = R.string.amount_sent),
-            amount = t.amountEffective.withSpec(spec),
+            amount = t.amountEffective,
             amountType = AmountType.Negative,
         )
 
@@ -173,7 +171,6 @@ fun TransactionDepositComposablePreview() {
         TransactionDepositComposable(
             t = t,
             devMode = true,
-            spec = null,
             onSelectOption = {},
             onConfirmKyc = {},
             onWireTransfer = {},

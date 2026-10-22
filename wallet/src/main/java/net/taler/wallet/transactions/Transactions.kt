@@ -162,7 +162,7 @@ sealed class AmountType {
 
 @Serializable
 @SerialName("withdrawal")
-class TransactionWithdrawal(
+data class TransactionWithdrawal(
     override val transactionId: String,
     override val timestamp: Timestamp,
     override val txState: TransactionState,
@@ -299,10 +299,16 @@ data class WithdrawalExchangeAccountDetails (
         transferOption: TransferOption,
     ): TransferData? {
         val uri = paytoUri.trim().toUri()
-        val transferAmount = (transferAmount
+        val fallbackAmount = transferAmount
             ?: uri.getQueryParameter("amount")
                 ?.let { Amount.fromJSONString(it) }
-            ?: amountEffective).withSpec(currencySpecification)
+            ?: amountEffective
+        val transferSpec = currencySpecification
+            ?: fallbackAmount.spec
+            ?: amountEffective.spec.takeIf {
+                fallbackAmount.currency == amountEffective.currency
+            }
+        val transferAmount = fallbackAmount.withSpec(transferSpec)
         return if ("bitcoin".equals(uri.authority, true)) {
             val msg = uri.getQueryParameter("message").orEmpty()
             val reg = "\\b([A-Z0-9]{52})\\b".toRegex().find(msg)
@@ -363,8 +369,7 @@ data class WithdrawalExchangeAccountDetails (
                     subject = uri.getQueryParameter("message") ?: return@let null,
                     amountRaw = amountRaw,
                     amountEffective = amountEffective,
-                    transferAmount = transferAmount
-                        .withSpec(currencySpecification),
+                    transferAmount = transferAmount,
                     withdrawalAccount = copy(paytoUri = uri.toString()),
                     transferOption = transferOption,
                 )
@@ -436,7 +441,7 @@ sealed class TransferOption {
 
 @Serializable
 @SerialName("payment")
-class TransactionPayment(
+data class TransactionPayment(
     override val transactionId: String,
     override val timestamp: Timestamp,
     override val txState: TransactionState,
@@ -481,7 +486,7 @@ class TransactionInfo(
 
 @Serializable
 @SerialName("refund")
-class TransactionRefund(
+data class TransactionRefund(
     override val transactionId: String,
     override val timestamp: Timestamp,
     override val txState: TransactionState,
@@ -506,7 +511,7 @@ class TransactionRefund(
 
 @Serializable
 @SerialName("refresh")
-class TransactionRefresh(
+data class TransactionRefresh(
     override val transactionId: String,
     override val timestamp: Timestamp,
     override val txState: TransactionState,
@@ -531,7 +536,7 @@ class TransactionRefresh(
 
 @Serializable
 @SerialName("deposit")
-class TransactionDeposit(
+data class TransactionDeposit(
     override val transactionId: String,
     override val timestamp: Timestamp,
     override val txState: TransactionState,
@@ -580,7 +585,7 @@ data class PeerInfoShort(
  */
 @Serializable
 @SerialName("peer-pull-debit")
-class TransactionPeerPullDebit(
+data class TransactionPeerPullDebit(
     override val transactionId: String,
     override val timestamp: Timestamp,
     override val txState: TransactionState,
@@ -614,7 +619,7 @@ class TransactionPeerPullDebit(
  */
 @Serializable
 @SerialName("peer-pull-credit")
-class TransactionPeerPullCredit(
+data class TransactionPeerPullCredit(
     override val transactionId: String,
     override val timestamp: Timestamp,
     override val txState: TransactionState,
@@ -646,7 +651,7 @@ class TransactionPeerPullCredit(
  */
 @Serializable
 @SerialName("peer-push-debit")
-class TransactionPeerPushDebit(
+data class TransactionPeerPushDebit(
     override val transactionId: String,
     override val timestamp: Timestamp,
     override val txState: TransactionState,
@@ -682,7 +687,7 @@ class TransactionPeerPushDebit(
  */
 @Serializable
 @SerialName("peer-push-credit")
-class TransactionPeerPushCredit(
+data class TransactionPeerPushCredit(
     override val transactionId: String,
     override val timestamp: Timestamp,
     override val txState: TransactionState,
@@ -718,7 +723,7 @@ class TransactionPeerPushCredit(
  */
 @Serializable
 @SerialName("denom-loss")
-class TransactionDenomLoss(
+data class TransactionDenomLoss(
     override val transactionId: String,
     override val timestamp: Timestamp,
     override val txState: TransactionState,

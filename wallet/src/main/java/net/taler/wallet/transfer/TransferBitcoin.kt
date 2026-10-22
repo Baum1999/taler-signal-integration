@@ -57,7 +57,8 @@ fun TransferBitcoin(
         transfer.withdrawalAccount.transferAmount?.let { amount ->
             WithdrawalAmountTransfer(
                 conversionAmountRaw = amount.withSpec(
-                    transfer.withdrawalAccount.currencySpecification,
+                    transfer.withdrawalAccount.currencySpecification
+                        ?: transfer.transferAmount.spec,
                 ),
             )
         }

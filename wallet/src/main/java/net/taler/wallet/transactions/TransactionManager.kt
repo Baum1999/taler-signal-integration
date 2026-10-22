@@ -29,11 +29,13 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonPrimitive
+import net.taler.common.CurrencySpecification
 import net.taler.wallet.main.TAG
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.balances.ScopeInfo
+import net.taler.wallet.exchanges.ExchangeManager
 import net.taler.wallet.transactions.TransactionAction.Delete
 import org.json.JSONObject
 
@@ -58,6 +60,7 @@ enum class TransactionStateFilter {
 class TransactionManager(
     private val api: WalletBackendApi,
     private val scope: CoroutineScope,
+    private val exchangeManager: ExchangeManager,
 ) {
     private companion object {
         /**
@@ -209,13 +212,12 @@ class TransactionManager(
             Log.e(TAG, "Error: getTransactions error result: $error")
             result = TransactionsResult.Error(error)
         }.onSuccess { res ->
-            result = if (limit == null || limit >= 0) {
-                TransactionsResult.Success(res
-                    .transactions
-                    .reversed())
+            val transactions = if (limit == null || limit >= 0) {
+                res.transactions.reversed()
             } else {
-                TransactionsResult.Success(res.transactions)
+                res.transactions
             }
+            result = TransactionsResult.Success(enrichAll(transactions))
         }
 
         return result
@@ -228,10 +230,96 @@ class TransactionManager(
         }.onError {
             Log.e(TAG, "Error getting transaction $it")
         }.onSuccess { result ->
-            transaction = result
+            transaction = enrich(result)
         }
 
         return transaction
+    }
+
+    /**
+     * Resolves the currency spec once per currency/scope combination and attaches
+     * it to the transaction amounts, so composables can render them directly.
+     */
+    private suspend fun enrichAll(transactions: List<Transaction>): List<Transaction> {
+        val specs = mutableMapOf<Pair<String, List<ScopeInfo>>, CurrencySpecification?>()
+        return transactions.map { transaction ->
+            if (transaction is DummyTransaction) return@map transaction
+            val key = transaction.amountRaw.currency to transaction.scopes
+            val spec = if (specs.containsKey(key)) {
+                specs[key]
+            } else {
+                exchangeManager.getSpecForCurrency(
+                    transaction.amountRaw.currency,
+                    transaction.scopes,
+                ).also { specs[key] = it }
+            }
+            transaction.withCurrencySpec(spec)
+        }
+    }
+
+    private suspend fun enrich(transaction: Transaction): Transaction {
+        if (transaction is DummyTransaction) return transaction
+        val spec = exchangeManager.getSpecForCurrency(
+            transaction.amountRaw.currency,
+            transaction.scopes,
+        )
+        return transaction.withCurrencySpec(spec)
+    }
+
+    private fun Transaction.withCurrencySpec(
+        spec: CurrencySpecification?,
+    ): Transaction = when (this) {
+        is TransactionWithdrawal -> copy(
+            amountRaw = amountRaw.withSpec(spec),
+            amountEffective = amountEffective.withSpec(spec),
+        )
+
+        is TransactionPayment -> copy(
+            amountRaw = amountRaw.withSpec(spec),
+            amountEffective = amountEffective.withSpec(spec),
+        )
+
+        is TransactionRefund -> copy(
+            amountRaw = amountRaw.withSpec(spec),
+            amountEffective = amountEffective.withSpec(spec),
+        )
+
+        is TransactionRefresh -> copy(
+            amountRaw = amountRaw.withSpec(spec),
+            amountEffective = amountEffective.withSpec(spec),
+        )
+
+        is TransactionDeposit -> copy(
+            amountRaw = amountRaw.withSpec(spec),
+            amountEffective = amountEffective.withSpec(spec),
+        )
+
+        is TransactionPeerPullDebit -> copy(
+            amountRaw = amountRaw.withSpec(spec),
+            amountEffective = amountEffective.withSpec(spec),
+        )
+
+        is TransactionPeerPullCredit -> copy(
+            amountRaw = amountRaw.withSpec(spec),
+            amountEffective = amountEffective.withSpec(spec),
+        )
+
+        is TransactionPeerPushDebit -> copy(
+            amountRaw = amountRaw.withSpec(spec),
+            amountEffective = amountEffective.withSpec(spec),
+        )
+
+        is TransactionPeerPushCredit -> copy(
+            amountRaw = amountRaw.withSpec(spec),
+            amountEffective = amountEffective.withSpec(spec),
+        )
+
+        is TransactionDenomLoss -> copy(
+            amountRaw = amountRaw.withSpec(spec),
+            amountEffective = amountEffective.withSpec(spec),
+        )
+
+        is DummyTransaction -> this
     }
 
     /**

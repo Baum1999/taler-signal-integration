@@ -33,7 +33,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
-import net.taler.common.CurrencySpecification
 import net.taler.common.Timestamp
 import net.taler.wallet.R
 import net.taler.wallet.balances.ScopeInfo
@@ -59,13 +58,12 @@ import net.taler.wallet.transactions.TransactionState
 @Composable
 fun ColumnScope.TransactionPeerPushDebitComposable(
     t: TransactionPeerPushDebit,
-    spec: CurrencySpecification?,
     devMode: Boolean,
     onForward: ((String) -> Unit)? = null,
 ) {
     if (t.error == null) PeerQrCode(
         state = t.txState,
-        amount = t.amountRaw.withSpec(spec),
+        amount = t.amountRaw,
         talerUri = t.talerUri,
         instructionResId = R.string.send_peer_payment_instruction,
         devMode = devMode,
@@ -74,7 +72,7 @@ fun ColumnScope.TransactionPeerPushDebitComposable(
 
     TransactionAmountComposable(
         label = stringResource(id = R.string.transaction_order_total),
-        amount = t.amountRaw.withSpec(spec),
+        amount = t.amountRaw,
         amountType = AmountType.Neutral,
     )
 
@@ -82,7 +80,7 @@ fun ColumnScope.TransactionPeerPushDebitComposable(
         val fee = t.amountEffective - t.amountRaw
         TransactionAmountComposable(
             label = stringResource(id = R.string.amount_fee),
-            amount = fee.withSpec(spec),
+            amount = fee,
             amountType = AmountType.Negative,
         )
     }
@@ -93,7 +91,7 @@ fun ColumnScope.TransactionPeerPushDebitComposable(
         } else {
             stringResource(R.string.amount_send)
         },
-        amount = t.amountEffective.withSpec(spec),
+        amount = t.amountEffective,
         amountType = AmountType.Negative,
     )
 
@@ -175,7 +173,6 @@ fun TransactionPeerPushDebitPreview(loading: Boolean = false) {
         TransactionPeerComposable(
             t = t,
             devMode = true,
-            spec = null,
             onConfirmKyc = {},
             onForward = {},
             onTransition = {},

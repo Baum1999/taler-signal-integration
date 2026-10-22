@@ -301,3 +301,50 @@ object ContractTermsSerializer : JsonContentPolymorphicSerializer<ContractTerms>
         }
     }
 }
+
+/**
+ * Attaches a currency specification to all amounts contained in these terms.
+ * The resolver is called with each amount's own currency, so multi-currency
+ * V1 choices are handled correctly.
+ */
+fun ContractTerms.withSpec(
+    specForCurrency: (currency: String) -> CurrencySpecification?,
+): ContractTerms = when (this) {
+    is ContractTerms.V0 -> copy(
+        amount = amount.withSpec(specForCurrency(amount.currency)),
+        maxFee = maxFee.withSpec(specForCurrency(maxFee.currency)),
+        products = products?.map { it.withSpec(specForCurrency) },
+    )
+
+    is ContractTerms.V1 -> copy(
+        choices = choices.map { it.withSpec(specForCurrency) },
+        products = products?.map { it.withSpec(specForCurrency) },
+    )
+}
+
+private fun ContractProduct.withSpec(
+    specForCurrency: (currency: String) -> CurrencySpecification?,
+) = copy(
+    price = price?.let { it.withSpec(specForCurrency(it.currency)) },
+    taxes = taxes?.map {
+        it.copy(tax = it.tax.withSpec(specForCurrency(it.tax.currency)))
+    }?.toSet(),
+)
+
+private fun ContractChoice.withSpec(
+    specForCurrency: (currency: String) -> CurrencySpecification?,
+) = copy(
+    amount = amount.withSpec(specForCurrency(amount.currency)),
+    maxFee = maxFee.withSpec(specForCurrency(maxFee.currency)),
+    outputs = outputs.map { output ->
+        if (output is ContractOutput.TaxReceipt) {
+            output.copy(
+                amount = output.amount.withSpec(
+                    specForCurrency(output.amount.currency),
+                ),
+            )
+        } else {
+            output
+        }
+    },
+)

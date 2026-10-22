@@ -173,19 +173,24 @@ data class Amount(
         if (resultValue > MAX_VALUE)
             throw AmountOverflowException()
         val resultFraction = (fraction + other.fraction) % FRACTIONAL_BASE
-        return Amount(currency, resultValue, resultFraction)
+        return Amount(currency, resultValue, resultFraction, spec ?: other.spec)
     }
 
     operator fun times(factor: Int): Amount {
         // TODO consider replacing with a faster implementation
-        if (factor == 0) return zero(currency)
+        if (factor == 0) return zero(currency).withSpec(spec)
         var result = this
         for (i in 1 until factor) result += this
         return result
     }
 
     fun withCurrency(currency: String): Amount {
-        return Amount(checkCurrency(currency), this.value, this.fraction)
+        return Amount(
+            checkCurrency(currency),
+            this.value,
+            this.fraction,
+            if (currency == this.currency) spec else null,
+        )
     }
 
     fun withSpec(spec: CurrencySpecification?) = copy(spec = spec)
@@ -205,7 +210,7 @@ data class Amount(
         if (resultValue < other.value)
             throw AmountOverflowException()
         resultValue -= other.value
-        return Amount(currency, resultValue, resultFraction)
+        return Amount(currency, resultValue, resultFraction, spec ?: other.spec)
     }
 
     fun isZero(): Boolean {

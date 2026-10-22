@@ -43,7 +43,6 @@ import net.taler.wallet.R
 import net.taler.wallet.compose.EmptyComposable
 import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.collectAsStateLifecycleAware
-import net.taler.wallet.compose.rememberCurrencySpec
 import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.transactions.TransactionDeposit
 import net.taler.wallet.transactions.TransactionMajorState.Done
@@ -63,7 +62,6 @@ fun WireTransferDetailsScreen(
     val context = LocalContext.current
     val sharePaymentTitle = stringResource(R.string.share_payment)
     val transactionManager = model.transactionManager
-    val exchangeManager = model.exchangeManager
 
     val selectedTx by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
     val selectedOption by transactionManager.selectedTransferOption.collectAsStateLifecycleAware()
@@ -119,12 +117,6 @@ fun WireTransferDetailsScreen(
     ) { paddingValues ->
         val tx = selectedTx ?: return@GlobalScaffold
 
-        val spec = rememberCurrencySpec(
-            tx.amountRaw.currency,
-            tx.scopes,
-            exchangeManager::getSpecForCurrency,
-        )
-
         val bankAppClick: (TransferData) -> Unit = { transfer ->
             context.openUri(uri = transfer.withdrawalAccount.paytoUri, title = sharePaymentTitle)
         }
@@ -153,7 +145,6 @@ fun WireTransferDetailsScreen(
                     ScreenTransfer(
                         modifier = Modifier.padding(paddingValues),
                         transfer = transferData,
-                        spec = spec,
                         bankAppClick = bankAppClick,
                         shareClick = shareClick,
                         showQrCodes = showQrCodes,
@@ -181,7 +172,6 @@ fun WireTransferDetailsScreen(
                     ScreenTransfer(
                         modifier = Modifier.padding(paddingValues),
                         transfer = transferData,
-                        spec = spec,
                         bankAppClick = bankAppClick,
                         shareClick = shareClick,
                         showQrCodes = showQrCodes,

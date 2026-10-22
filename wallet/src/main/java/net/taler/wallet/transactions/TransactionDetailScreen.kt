@@ -59,7 +59,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import net.taler.common.Amount
-import net.taler.common.CurrencySpecification
 import net.taler.common.Timestamp
 import net.taler.lib.android.copyToClipBoard
 import net.taler.lib.android.toAbsoluteTime
@@ -74,7 +73,6 @@ import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.collectAsStateLifecycleAware
-import net.taler.wallet.compose.rememberCurrencySpec
 import net.taler.wallet.deposit.TransactionDepositComposable
 import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.main.MainViewModel
@@ -98,7 +96,6 @@ fun TransactionDetailScreen(
     onNavigateBack: () -> Unit,
 ) {
     val transactionManager = model.transactionManager
-    val exchangeManager = model.exchangeManager
     val devMode by model.devMode.observeAsState(false)
     val context = LocalContext.current
     var keepSelectedTx: Boolean by remember { mutableStateOf(false) }
@@ -212,7 +209,6 @@ fun TransactionDetailScreen(
                                 .observeAsState(PayStatus.None).value,
                             devMode = devMode,
                             promptMode = destination.promptMode,
-                            spec = rememberCurrencySpec(tx.amountRaw.currency, tx.scopes, exchangeManager::getSpecForCurrency),
                             modifier = modifier,
                             onFulfill = { url ->
                                 launchInAppBrowser(context, url)
@@ -243,7 +239,6 @@ fun TransactionDetailScreen(
                             modifier = modifier,
                             t = tx,
                             devMode = devMode,
-                            spec = rememberCurrencySpec(tx.amountRaw.currency, tx.scopes, exchangeManager::getSpecForCurrency),
                             onSelectOption = { it?.let { transactionManager.selectTransferOption(it) } },
                             onConfirmKyc = { url ->
                                 launchInAppBrowser(context, url)
@@ -276,7 +271,6 @@ fun TransactionDetailScreen(
                             modifier = modifier,
                             t = tx,
                             devMode = devMode,
-                            spec = rememberCurrencySpec(tx.amountRaw.currency, tx.scopes, exchangeManager::getSpecForCurrency),
                             onSelectOption = { it?.let { transactionManager.selectTransferOption(it) } },
                             onConfirmKyc = { url ->
                                 launchInAppBrowser(context, url)
@@ -308,7 +302,6 @@ fun TransactionDetailScreen(
                             modifier = modifier,
                             t = tx,
                             devMode = devMode,
-                            spec = rememberCurrencySpec(tx.amountRaw.currency, tx.scopes, exchangeManager::getSpecForCurrency),
                             onTransition = {
                                 handleTransactionAction(tx, it, model, onNavigateBack)
                             },
@@ -322,7 +315,6 @@ fun TransactionDetailScreen(
                             modifier = modifier,
                             t = tx,
                             devMode = devMode,
-                            spec = rememberCurrencySpec(tx.amountRaw.currency, tx.scopes, exchangeManager::getSpecForCurrency),
                         ) {
                             handleTransactionAction(tx, it, model, onNavigateBack)
                         }
@@ -336,7 +328,6 @@ fun TransactionDetailScreen(
                             modifier = modifier,
                             t = tx,
                             devMode = devMode,
-                            spec = rememberCurrencySpec(tx.amountRaw.currency, tx.scopes, exchangeManager::getSpecForCurrency),
                             onConfirmKyc = { url -> launchInAppBrowser(context, url) },
                             onForward = { uri ->
                                 val scopeJson = tx.scopes.firstOrNull()?.let {
@@ -357,7 +348,6 @@ fun TransactionDetailScreen(
                             modifier = modifier,
                             t = tx,
                             devMode = devMode,
-                            spec = rememberCurrencySpec(tx.amountRaw.currency, tx.scopes, exchangeManager::getSpecForCurrency)
                         ) {
                             handleTransactionAction(tx, it, model, onNavigateBack)
                         }
@@ -383,7 +373,6 @@ fun TransactionDetailScreen(
 fun TransactionRefreshComposable(
     t: TransactionRefresh,
     devMode: Boolean,
-    spec: CurrencySpecification?,
     modifier: Modifier = Modifier,
     onTransition: (t: TransactionAction) -> Unit,
 ) {
@@ -404,7 +393,7 @@ fun TransactionRefreshComposable(
 
         TransactionAmountComposable(
             label = stringResource(id = R.string.amount_fee),
-            amount = t.amountEffective.withSpec(spec),
+            amount = t.amountEffective,
             amountType = AmountType.Negative,
         )
 
@@ -423,7 +412,6 @@ fun TransactionRefreshComposable(
 fun TransactionPeerComposable(
     t: Transaction,
     devMode: Boolean,
-    spec: CurrencySpecification?,
     modifier: Modifier = Modifier,
     onConfirmKyc: (url: String) -> Unit,
     onForward: (uri: String) -> Unit,
@@ -445,10 +433,10 @@ fun TransactionPeerComposable(
         )
 
         when (t) {
-            is TransactionPeerPullCredit -> TransactionPeerPullCreditComposable(t, spec, devMode, onConfirmKyc, onForward)
-            is TransactionPeerPushCredit -> TransactionPeerPushCreditComposable(t, spec, onConfirmKyc)
-            is TransactionPeerPullDebit -> TransactionPeerPullDebitComposable(t, spec)
-            is TransactionPeerPushDebit -> TransactionPeerPushDebitComposable(t, spec, devMode, onForward)
+            is TransactionPeerPullCredit -> TransactionPeerPullCreditComposable(t, devMode, onConfirmKyc, onForward)
+            is TransactionPeerPushCredit -> TransactionPeerPushCreditComposable(t, onConfirmKyc)
+            is TransactionPeerPullDebit -> TransactionPeerPullDebitComposable(t)
+            is TransactionPeerPushDebit -> TransactionPeerPushDebitComposable(t, devMode, onForward)
             else -> {}
         }
 
@@ -468,7 +456,6 @@ fun TransactionPeerComposable(
 fun TransitionLossComposable(
     t: TransactionDenomLoss,
     devMode: Boolean,
-    spec: CurrencySpecification?,
     modifier: Modifier = Modifier,
     onTransition: (t: TransactionAction) -> Unit,
 ) {
@@ -490,7 +477,7 @@ fun TransitionLossComposable(
 
         TransactionAmountComposable(
             label = stringResource(id = R.string.amount_lost),
-            amount = t.amountEffective.withSpec(spec),
+            amount = t.amountEffective,
             amountType = AmountType.Negative,
         )
 
@@ -652,6 +639,6 @@ fun TransactionRefreshComposablePreview() {
         ))
     )
     Surface {
-        TransactionRefreshComposable(t, true, null) {}
+        TransactionRefreshComposable(t, true) {}
     }
 }

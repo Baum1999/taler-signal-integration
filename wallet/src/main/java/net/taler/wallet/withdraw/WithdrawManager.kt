@@ -572,8 +572,8 @@ class WithdrawManager(
             val details = status.amountInfo ?: return@mapNotNull null
             val opt = it.transferOptions.firstOrNull() ?: return@mapNotNull null
             it.getTransferDetails(
-                amountRaw = details.amountRaw,
-                amountEffective = details.amountEffective,
+                amountRaw = details.amountRaw.withSpec(status.selectedSpec),
+                amountEffective = details.amountEffective.withSpec(status.selectedSpec),
                 transferOption = opt,
             )
         },

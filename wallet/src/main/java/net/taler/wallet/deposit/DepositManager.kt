@@ -27,6 +27,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.taler.common.Amount
+import net.taler.common.CurrencySpecification
 import net.taler.wallet.main.TAG
 import net.taler.wallet.accounts.KnownBankAccountInfo
 import net.taler.wallet.accounts.PaytoUriBitcoin
@@ -38,6 +39,7 @@ import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.backend.WalletResponse
 import net.taler.wallet.balances.BalanceManager
 import net.taler.wallet.balances.ScopeInfo
+import net.taler.wallet.exchanges.ExchangeManager
 import org.json.JSONObject
 import androidx.core.net.toUri
 
@@ -45,10 +47,15 @@ class DepositManager(
     private val api: WalletBackendApi,
     private val scope: CoroutineScope,
     private val balanceManager: BalanceManager,
+    private val exchangeManager: ExchangeManager,
 ) {
 
     private val mDepositState = MutableStateFlow<DepositState>(DepositState.Start)
     internal val depositState = mDepositState.asStateFlow()
+
+    private suspend fun getCurrencySpec(currency: String): CurrencySpecification? =
+        exchangeManager.getCachedSpecForCurrency(currency)
+            ?: exchangeManager.getSpecForScopeInfo(ScopeInfo.Global(currency))
 
     fun isSupportedPayToUri(uriString: String): Boolean {
         if (!uriString.startsWith("payto://")) return false
@@ -65,6 +72,7 @@ class DepositManager(
     }
 
     suspend fun checkDepositFees(paytoUri: String, amount: Amount): CheckDepositResult {
+        val spec = getCurrencySpec(amount.currency)
         var response: CheckDepositResult = CheckDepositResult.None
         when (val res = api.request("checkDeposit", CheckDepositResponse.serializer()) {
             put("depositPaytoUri", paytoUri)
@@ -76,11 +84,11 @@ class DepositManager(
                     res.error.extra["insufficientBalanceDetails"]?.let { details ->
                         val maxAmountRaw = details.jsonObject["balanceAvailable"]?.let { amount ->
                             Amount.fromJSONString(amount.jsonPrimitive.content)
-                        }
+                        }?.withSpec(spec)
 
                         val maxAmountEffective = details.jsonObject["maxEffectiveSpendAmount"]?.let { amount ->
                             Amount.fromJSONString(amount.jsonPrimitive.content)
-                        } ?: maxAmountRaw
+                        }?.withSpec(spec) ?: maxAmountRaw
 
                         response = CheckDepositResult.InsufficientBalance(
                             maxAmountEffective = maxAmountEffective,
@@ -99,10 +107,10 @@ class DepositManager(
                     )
                 } else {
                     CheckDepositResult.Success(
-                        totalDepositCost = res.result.totalDepositCost,
-                        effectiveDepositAmount = res.result.effectiveDepositAmount,
-                        kycSoftLimit = res.result.kycSoftLimit,
-                        kycHardLimit = res.result.kycHardLimit,
+                        totalDepositCost = res.result.totalDepositCost.withSpec(spec),
+                        effectiveDepositAmount = res.result.effectiveDepositAmount.withSpec(spec),
+                        kycSoftLimit = res.result.kycSoftLimit?.withSpec(spec),
+                        kycHardLimit = res.result.kycHardLimit?.withSpec(spec),
                         kycExchanges = res.result.kycExchanges,
                     )
                 }
@@ -123,7 +131,11 @@ class DepositManager(
         }.onError { error ->
             Log.e(TAG, "Error getMaxDepositAmount $error")
         }.onSuccess {
-            response = it
+            val spec = getCurrencySpec(currency)
+            response = it.copy(
+                effectiveAmount = it.effectiveAmount.withSpec(spec),
+                rawAmount = it.rawAmount.withSpec(spec),
+            )
         }
 
         return response

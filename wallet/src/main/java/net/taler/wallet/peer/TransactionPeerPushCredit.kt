@@ -22,7 +22,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import net.taler.common.Amount
-import net.taler.common.CurrencySpecification
 import net.taler.common.Timestamp
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode.EXCHANGE_GENERIC_KYC_REQUIRED
@@ -44,14 +43,13 @@ import net.taler.wallet.transactions.TransactionState
 @Composable
 fun ColumnScope.TransactionPeerPushCreditComposable(
     t: TransactionPeerPushCredit,
-    spec: CurrencySpecification?,
     onConfirmKyc: (url: String) -> Unit,
 ) {
     PeerActions(t, onConfirmKyc)
 
     TransactionAmountComposable(
         label = stringResource(id = R.string.amount_sent),
-        amount = t.amountRaw.withSpec(spec),
+        amount = t.amountRaw,
         amountType = AmountType.Neutral,
     )
 
@@ -59,14 +57,14 @@ fun ColumnScope.TransactionPeerPushCreditComposable(
         val fee = t.amountRaw - t.amountEffective
         TransactionAmountComposable(
             label = stringResource(id = R.string.amount_fee),
-            amount = fee.withSpec(spec),
+            amount = fee,
             amountType = AmountType.Negative,
         )
     }
 
     TransactionAmountComposable(
         label = stringResource(id = R.string.amount_received),
-        amount = t.amountEffective.withSpec(spec),
+        amount = t.amountEffective,
         amountType = AmountType.Positive,
     )
 
@@ -101,7 +99,6 @@ fun TransactionPeerPushCreditPreview() {
         TransactionPeerComposable(
             t = t,
             devMode = true,
-            spec = null,
             onConfirmKyc = {},
             onForward = {},
             onTransition = {},

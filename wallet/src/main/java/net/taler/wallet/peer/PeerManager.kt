@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import net.taler.common.Amount
+import net.taler.common.CurrencySpecification
 import net.taler.common.RelativeTime
 import net.taler.common.Timestamp
 import net.taler.wallet.main.TAG
@@ -97,6 +98,10 @@ class PeerManager(
 
     private val _incomingPushState = MutableStateFlow<IncomingState>(IncomingChecking)
     val incomingPushState: StateFlow<IncomingState> = _incomingPushState
+
+    private suspend fun getSpecForCurrency(currency: String): CurrencySpecification? =
+        exchangeManager.getCachedSpecForCurrency(currency)
+            ?: exchangeManager.getSpecForScopeInfo(ScopeInfo.Global(currency))
 
     suspend fun checkPeerPullCredit(
         amount: Amount,
@@ -272,10 +277,13 @@ class PeerManager(
                 transactionId?.let { put("transactionId", transactionId) }
                 this
             }.onSuccess { response ->
+                val spec = getSpecForCurrency(response.amountRaw.currency)
                 _incomingPullState.value = IncomingTerms(
-                    amountRaw = response.amountRaw,
-                    amountEffective = response.amountEffective,
-                    contractTerms = response.contractTerms,
+                    amountRaw = response.amountRaw.withSpec(spec),
+                    amountEffective = response.amountEffective.withSpec(spec),
+                    contractTerms = response.contractTerms.copy(
+                        amount = response.contractTerms.amount.withSpec(spec),
+                    ),
                     id = response.transactionId,
                 )
             }.onError { error ->
@@ -323,18 +331,30 @@ class PeerManager(
                         return@b
                     }
 
+                    val spec = exchangeManager.getSpecForScopeInfo(
+                        exchange.scopeInfo ?: ScopeInfo.Exchange(
+                            response.amountRaw.currency,
+                            response.exchangeBaseUrl,
+                        ),
+                    )
+                    val amountRaw = response.amountRaw.withSpec(spec)
+                    val amountEffective = response.amountEffective.withSpec(spec)
+                    val contractTerms = response.contractTerms.copy(
+                        amount = response.contractTerms.amount.withSpec(spec),
+                    )
+
                     _incomingPushState.value = if (exchange.tosStatus.isAccepted()) {
                         IncomingTerms(
-                            amountRaw = response.amountRaw,
-                            amountEffective = response.amountEffective,
-                            contractTerms = response.contractTerms,
+                            amountRaw = amountRaw,
+                            amountEffective = amountEffective,
+                            contractTerms = contractTerms,
                             id = response.transactionId,
                         )
                     } else {
                         IncomingTosReview(
-                            amountRaw = response.amountRaw,
-                            amountEffective = response.amountEffective,
-                            contractTerms = response.contractTerms,
+                            amountRaw = amountRaw,
+                            amountEffective = amountEffective,
+                            contractTerms = contractTerms,
                             exchangeBaseUrl = response.exchangeBaseUrl,
                             id = response.transactionId,
                         )

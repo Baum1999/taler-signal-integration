@@ -152,12 +152,12 @@ fun DepositAmountComposable(
                         text = if (maxDepositable.effectiveAmount == it) {
                             stringResource(
                                 R.string.amount_available_transfer,
-                                it.withSpec(spec),
+                                it.withSpec(it.spec ?: spec),
                             )
                         } else {
                             stringResource(
                                 R.string.amount_available_transfer_fees,
-                                it.withSpec(spec),
+                                it.withSpec(it.spec ?: spec),
                             )
                         },
                     )
@@ -201,13 +201,13 @@ fun DepositAmountComposable(
 
                         TransactionAmountComposable(
                             label = stringResource(R.string.amount_fee),
-                            amount = fee.withSpec(amount?.spec),
+                            amount = fee.withSpec(fee.spec ?: amount?.spec),
                             amountType = Negative,
                         )
 
                         TransactionAmountComposable(
                             label = stringResource(R.string.amount_send),
-                            amount = effectiveAmount.withSpec(amount?.spec),
+                            amount = effectiveAmount.withSpec(effectiveAmount.spec ?: amount?.spec),
                             amountType = Positive,
                         )
                     }

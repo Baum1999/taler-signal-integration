@@ -81,7 +81,6 @@ fun TransferOption.subjectLabelResId(): Int = when (this) {
 fun ScreenTransfer(
     modifier: Modifier = Modifier,
     transfer: TransferData,
-    spec: CurrencySpecification?,
     showQrCodes: Boolean,
     bankAppClick: ((transfer: TransferData) -> Unit)?,
     shareClick: ((transfer: TransferData) -> Unit)?,
@@ -133,19 +132,19 @@ fun ScreenTransfer(
         when (transfer) {
             is TransferData.Taler -> TransferTaler(
                 transfer = transfer,
-                transactionAmountEffective = transfer.amountEffective.withSpec(spec),
+                transactionAmountEffective = transfer.amountEffective,
                 transferContext = transferContext,
             )
 
             is TransferData.IBAN -> TransferIBAN(
                 transfer = transfer,
-                transactionAmountEffective = transfer.amountEffective.withSpec(spec),
+                transactionAmountEffective = transfer.amountEffective,
                 transferContext = transferContext,
             )
 
             is TransferData.Cyclos -> TransferCyclos(
                 transfer = transfer,
-                transactionAmountEffective = transfer.amountEffective.withSpec(spec),
+                transactionAmountEffective = transfer.amountEffective,
             )
 
             is TransferData.Bitcoin -> TransferBitcoin(
@@ -334,7 +333,6 @@ fun ScreenTransferIBANPreview(
                     )
                 ),
             ),
-            spec = null,
             bankAppClick = {},
             shareClick = {},
             showQrCodes = showQrCodes,
@@ -367,7 +365,6 @@ fun ScreenTransferCyclosPreview(
                     status = Ok,
                 ),
             ),
-            spec = null,
             bankAppClick = {},
             shareClick = {},
             showQrCodes = showQrCodes,
@@ -409,7 +406,6 @@ fun ScreenTransferBitcoinPreview(
                     ),
                 ),
             ),
-            spec = null,
             bankAppClick = {},
             shareClick = {},
             showQrCodes = showQrCodes,

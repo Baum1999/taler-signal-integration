@@ -41,7 +41,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import net.taler.common.Amount
-import net.taler.common.CurrencySpecification
 import net.taler.common.Merchant
 import net.taler.common.Timestamp
 import net.taler.lib.android.toAbsoluteTime
@@ -76,7 +75,6 @@ fun TransactionPaymentComposable(
     t: TransactionPayment,
     payStatus: PayStatus,
     devMode: Boolean,
-    spec: CurrencySpecification?,
     promptMode: Boolean = false,
     modifier: Modifier = Modifier,
     onFulfill: (url: String) -> Unit,
@@ -121,7 +119,7 @@ fun TransactionPaymentComposable(
 
         TransactionAmountComposable(
             label = stringResource(id = R.string.transaction_order_total),
-            amount = t.amountRaw.withSpec(spec),
+            amount = t.amountRaw,
             amountType = AmountType.Neutral,
         )
 
@@ -129,14 +127,14 @@ fun TransactionPaymentComposable(
             val fee = t.amountEffective - t.amountRaw
             TransactionAmountComposable(
                 label = stringResource(id = R.string.amount_fee),
-                amount = fee.withSpec(spec),
+                amount = fee,
                 amountType = AmountType.Negative,
             )
         }
 
         TransactionAmountComposable(
             label = stringResource(id = R.string.transaction_paid),
-            amount = t.amountEffective.withSpec(spec),
+            amount = t.amountEffective,
             amountType = AmountType.Negative,
         )
 
@@ -293,7 +291,6 @@ fun TransactionPaymentComposablePreview() {
             t = t,
             payStatus = PayStatus.None,
             devMode = true,
-            spec = null,
             onFulfill = {},
             onTransition = {},
             onConfirmPay = { _, _ ->},

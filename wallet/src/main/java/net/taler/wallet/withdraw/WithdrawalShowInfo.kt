@@ -218,7 +218,8 @@ fun WithdrawalShowInfo(
                     isError = selectedAmount.amount.isZero() || insufficientBalance,
                     supportingText = {
                         if (insufficientBalance && maxAmount != null) {
-                            Text(stringResource(R.string.amount_excess, maxAmount))
+                            Text(stringResource(R.string.amount_excess,
+                                maxAmount.withSpec(maxAmount.spec ?: status.selectedSpec)))
                         }
                     },
                     showShortcuts = true,

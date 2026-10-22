@@ -23,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import net.taler.common.Amount
-import net.taler.common.CurrencySpecification
 import net.taler.common.Timestamp
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode.EXCHANGE_GENERIC_KYC_REQUIRED
@@ -48,7 +47,6 @@ import net.taler.wallet.transactions.TransactionState
 @Composable
 fun ColumnScope.TransactionPeerPullCreditComposable(
     t: TransactionPeerPullCredit,
-    spec: CurrencySpecification?,
     devMode: Boolean,
     onConfirmKyc: (url: String) -> Unit,
     onForward: (uri: String) -> Unit,
@@ -57,7 +55,7 @@ fun ColumnScope.TransactionPeerPullCreditComposable(
 
     if (t.error == null) PeerQrCode(
         state = t.txState,
-        amount = t.amountRaw.withSpec(spec),
+        amount = t.amountRaw,
         talerUri = t.talerUri,
         instructionResId = R.string.receive_peer_payment_instruction,
         devMode = devMode,
@@ -66,7 +64,7 @@ fun ColumnScope.TransactionPeerPullCreditComposable(
     
     TransactionAmountComposable(
         label = stringResource(id = R.string.amount_invoiced),
-        amount = t.amountRaw.withSpec(spec),
+        amount = t.amountRaw,
         amountType = AmountType.Neutral,
     )
 
@@ -74,7 +72,7 @@ fun ColumnScope.TransactionPeerPullCreditComposable(
         val fee = t.amountRaw - t.amountEffective
         TransactionAmountComposable(
             label = stringResource(id = R.string.amount_fee),
-            amount = fee.withSpec(spec),
+            amount = fee,
             amountType = AmountType.Negative,
         )
     }
@@ -85,7 +83,7 @@ fun ColumnScope.TransactionPeerPullCreditComposable(
         } else {
             stringResource(id = R.string.amount_receive)
         },
-        amount = t.amountEffective.withSpec(spec),
+        amount = t.amountEffective,
         amountType = AmountType.Positive,
     )
 
@@ -121,7 +119,6 @@ fun TransactionPeerPullCreditPreview(loading: Boolean = false) {
         TransactionPeerComposable(
             t = t,
             devMode = true,
-            spec = null,
             onConfirmKyc = {},
             onForward = {},
             onTransition = {},

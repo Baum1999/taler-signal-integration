@@ -31,7 +31,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
-import net.taler.common.CurrencySpecification
 import net.taler.common.Timestamp
 import net.taler.lib.android.toAbsoluteTime
 import net.taler.wallet.BottomInsetsSpacer
@@ -58,7 +57,6 @@ import net.taler.wallet.transactions.TransitionsComposable
 fun TransactionRefundComposable(
     t: TransactionRefund,
     devMode: Boolean,
-    spec: CurrencySpecification?,
     onTransition: (t: TransactionAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -79,13 +77,13 @@ fun TransactionRefundComposable(
 
         TransactionAmountComposable(
             label = stringResource(id = R.string.transaction_refund),
-            amount = t.amountEffective.withSpec(spec),
+            amount = t.amountEffective,
             amountType = AmountType.Positive,
         )
 
         TransactionAmountComposable(
             label = stringResource(id = R.string.transaction_order_total),
-            amount = t.amountRaw.withSpec(spec),
+            amount = t.amountRaw,
             amountType = AmountType.Neutral,
         )
 
@@ -93,7 +91,7 @@ fun TransactionRefundComposable(
             val fee = t.amountRaw - t.amountEffective
             TransactionAmountComposable(
                 label = stringResource(id = R.string.amount_fee),
-                amount = fee.withSpec(spec),
+                amount = fee,
                 amountType = AmountType.Negative,
             )
         }
@@ -135,6 +133,6 @@ fun TransactionRefundComposablePreview() {
         ))
     )
     TalerSurface {
-        TransactionRefundComposable(t = t, devMode = true, spec = null, onTransition = {})
+        TransactionRefundComposable(t = t, devMode = true, onTransition = {})
     }
 }

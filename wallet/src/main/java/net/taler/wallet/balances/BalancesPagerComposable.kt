@@ -609,7 +609,6 @@ fun BalanceRecentTransactions(
                     } else res.transactions.forEach { tx ->
                         TransactionRow(
                             tx = tx,
-                            spec = balance.available.spec,
                             isSelected = false,
                             selectionMode = false,
                             onTransactionClick = { onTransactionClicked(tx) },

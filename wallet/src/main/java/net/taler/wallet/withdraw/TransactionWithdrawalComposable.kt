@@ -93,7 +93,6 @@ fun transferOptionAt(
 fun TransactionWithdrawalComposable(
     t: TransactionWithdrawal,
     devMode: Boolean,
-    spec: CurrencySpecification?,
     onSelectOption: (option: TransferOption?) -> Unit,
     onConfirmKyc: (url: String) -> Unit,
     onConfirmBank: () -> Unit,
@@ -163,7 +162,7 @@ fun TransactionWithdrawalComposable(
         if (t.amountRaw != t.amountEffective) {
             TransactionAmountComposable(
                 label = stringResource(R.string.amount_chosen),
-                amount = t.amountRaw.withSpec(spec),
+                amount = t.amountRaw,
                 amountType = AmountType.Neutral,
             )
         }
@@ -172,14 +171,14 @@ fun TransactionWithdrawalComposable(
             val fee = t.amountRaw - t.amountEffective
             TransactionAmountComposable(
                 label = stringResource(id = R.string.amount_fee),
-                amount = fee.withSpec(spec),
+                amount = fee,
                 amountType = AmountType.Negative,
             )
         }
 
         TransactionAmountComposable(
             label = stringResource(id = R.string.amount_total),
-            amount = t.amountEffective.withSpec(spec),
+            amount = t.amountEffective,
             amountType = AmountType.Positive,
         )
 
@@ -321,7 +320,6 @@ fun TransactionWithdrawalComposableSingleQrPreview() {
         TransactionWithdrawalComposable(
             t = previewWithdrawalTx,
             devMode = true,
-            spec = null,
             onSelectOption = {},
             onConfirmKyc = {},
             onConfirmBank = {},
@@ -339,7 +337,6 @@ fun TransactionWithdrawalComposableMultiQrPreview() {
         TransactionWithdrawalComposable(
             t = previewWithdrawalTx,
             devMode = true,
-            spec = null,
             onSelectOption = {},
             onConfirmKyc = {},
             onConfirmBank = {},

@@ -16,13 +16,11 @@
 
 package net.taler.wallet.main
 
-import net.taler.common.CurrencySpecification
 import net.taler.wallet.PrefsViewMode2
 import net.taler.wallet.balances.ScopeInfo
 
 data class ViewMode(
     val selectedScope: ScopeInfo? = null,
-    val selectedSpec: CurrencySpecification? = null,
 ) {
     fun toPrefs(): PrefsViewMode2 = PrefsViewMode2
         .newBuilder()

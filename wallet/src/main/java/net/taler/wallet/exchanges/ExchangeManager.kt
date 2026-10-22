@@ -292,6 +292,11 @@ class ExchangeManager(
 
     @Deprecated("Please find spec via scopeInfo instead", ReplaceWith("getSpecForScopeInfo"))
     fun getSpecForCurrency(currency: String): CurrencySpecification? {
+        return getCachedSpecForCurrency(currency)
+    }
+
+    /** Returns a spec for [currency] if one is already cached, without fetching. */
+    fun getCachedSpecForCurrency(currency: String): CurrencySpecification? {
         return currencySpecs.keys.firstOrNull {
             it.currency == currency
         }?.let { currencySpecs[it] }

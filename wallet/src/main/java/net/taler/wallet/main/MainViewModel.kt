@@ -120,13 +120,13 @@ class MainViewModel(
     val exchangeManager: ExchangeManager = ExchangeManager(api, viewModelScope)
     val balanceManager = BalanceManager(api, viewModelScope, exchangeManager)
     val paymentManager = PaymentManager(api, viewModelScope, exchangeManager)
-    val transactionManager: TransactionManager = TransactionManager(api, viewModelScope)
+    val transactionManager: TransactionManager = TransactionManager(api, viewModelScope, exchangeManager)
     val refundManager = RefundManager(api, viewModelScope)
     val withdrawManager = WithdrawManager(api, viewModelScope, exchangeManager, transactionManager)
     val peerManager: PeerManager = PeerManager(api, exchangeManager, viewModelScope)
     val settingsManager: SettingsManager = SettingsManager(app.applicationContext, api, viewModelScope, balanceManager)
     val accountManager: AccountManager = AccountManager(api, viewModelScope)
-    val depositManager: DepositManager = DepositManager(api, viewModelScope, balanceManager)
+    val depositManager: DepositManager = DepositManager(api, viewModelScope, balanceManager, exchangeManager)
     val tokenManager: TokenManager = TokenManager(api)
     val donauManager: DonauManager = DonauManager(api, viewModelScope, exchangeManager)
     val contactManager: ContactManager = ContactManager(api, viewModelScope)
@@ -254,18 +254,6 @@ class MainViewModel(
         // change is persisted immediately.
         if (current.selectedScope == newMode.selectedScope) return
         mViewMode.value = newMode
-        if (newMode.selectedScope != null) {
-            viewModelScope.launch {
-                val spec = exchangeManager.getCurrencySpecification(newMode.selectedScope)
-                mViewMode.getAndUpdate { vm ->
-                    if (vm.selectedScope == newMode.selectedScope) {
-                        vm.copy(selectedSpec = spec)
-                    } else {
-                        vm
-                    }
-                }
-            }
-        }
         settingsManager.saveViewMode(newMode)
     }
 

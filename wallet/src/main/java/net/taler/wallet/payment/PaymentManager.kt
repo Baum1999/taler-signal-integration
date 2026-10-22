@@ -28,7 +28,9 @@ import net.taler.common.Amount
 import net.taler.common.ContractInput
 import net.taler.common.ContractOutput
 import net.taler.common.ContractTerms
+import net.taler.common.CurrencySpecification
 import net.taler.common.TalerUtils.getLocalizedString
+import net.taler.common.withSpec
 import net.taler.wallet.main.TAG
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.NotificationPayload
@@ -211,21 +213,20 @@ class PaymentManager(
                         return@startNewAttempt
                     }
 
+                    val contractSpecs = mutableMapOf<String, CurrencySpecification?>()
+                    for (currency in res.contractTerms.amountCurrencies()) {
+                        contractSpecs[currency] = res.contractTerms.specFor(currency)
+                    }
+                    val contractTerms = res.contractTerms.withSpec { currency ->
+                        contractSpecs[currency]
+                    }
                     mPayStatus.value = PayStatus.Choices(
                         transactionId = transactionId,
-                        contractTerms = res.contractTerms,
+                        contractTerms = contractTerms,
                         defaultChoiceIndex = res.defaultChoiceIndex,
                         choices = res.choices.map { choice ->
-                            val spec = exchangeManager.getSpecForCurrency(
-                                choice.amountRaw.currency,
-                                res.contractTerms.exchanges.map {
-                                    ScopeInfo.Exchange(choice.amountRaw.currency, it.url)
-                                },
-                            ) ?: res.contractTerms.exchanges.firstOrNull()?.let {
-                                exchangeManager.getSpecForScopeInfo(
-                                    ScopeInfo.Exchange(choice.amountRaw.currency, it.url)
-                                )
-                            }
+                            val spec = contractSpecs[choice.amountRaw.currency]
+                                ?: contractTerms.specFor(choice.amountRaw.currency)
 
                             when (choice) {
                                 is PaymentPossible -> {
@@ -245,9 +246,9 @@ class PaymentManager(
                                 description = choice.description,
                                 descriptionI18n = choice.descriptionI18n,
                                 amountRaw = choice.amountRaw,
-                                inputs = (res.contractTerms as? ContractTerms.V1)
+                                inputs = (contractTerms as? ContractTerms.V1)
                                     ?.choices?.get(i)?.inputs ?: listOf(),
-                                outputs = (res.contractTerms as? ContractTerms.V1)
+                                outputs = (contractTerms as? ContractTerms.V1)
                                     ?.choices?.get(i)?.outputs ?: listOf(),
                                 details = choice,
                             )
@@ -397,6 +398,37 @@ class PaymentManager(
         )
         Log.e(TAG, "prepared transaction $transactionId deleted by wallet-core: $errorInfo")
         mPayStatus.postValue(PayStatus.Error(error = errorInfo, transactionId = transactionId))
+    }
+
+    private suspend fun ContractTerms.specFor(currency: String): CurrencySpecification? {
+        val scopes = exchanges.map { ScopeInfo.Exchange(currency, it.url) }
+        return exchangeManager.getSpecForCurrency(currency, scopes)
+            ?: exchangeManager.getSpecForScopeInfo(ScopeInfo.Global(currency))
+    }
+
+    private fun ContractTerms.amountCurrencies(): Set<String> = buildSet {
+        when (this@amountCurrencies) {
+            is ContractTerms.V0 -> {
+                add(amount.currency)
+                add(maxFee.currency)
+            }
+
+            is ContractTerms.V1 -> choices.forEach {
+                add(it.amount.currency)
+                add(it.maxFee.currency)
+            }
+        }
+
+        products?.forEach { product ->
+            product.price?.let { add(it.currency) }
+            product.taxes?.forEach { add(it.tax.currency) }
+        }
+
+        if (this@amountCurrencies is ContractTerms.V1) {
+            choices.flatMap { it.outputs }
+                .filterIsInstance<ContractOutput.TaxReceipt>()
+                .forEach { add(it.amount.currency) }
+        }
     }
 
     private fun handleError(operation: String, error: TalerErrorInfo, transactionId: String? = null) {

@@ -146,7 +146,7 @@ fun TransactionsComposable(
                         val isSelected = selectedItems.contains(tx.transactionId)
 
                         TransactionRow(
-                            tx, balance.available.spec,
+                            tx,
                             isSelected = isSelected,
                             selectionMode = selectionMode,
                             onTransactionClick = {
@@ -266,7 +266,6 @@ fun TransactionsHeader(
 @Composable
 fun TransactionRow(
     tx: Transaction,
-    spec: CurrencySpecification?,
     isSelected: Boolean,
     selectionMode: Boolean,
     onTransactionClick: () -> Unit,
@@ -293,7 +292,7 @@ fun TransactionRow(
                         .padding(8.dp),
                     contentAlignment = Center,
                 ) {
-                    TransactionAmountInfo(tx, spec)
+                    TransactionAmountInfo(tx)
                 }
             },
             leadingContent = {
@@ -357,11 +356,10 @@ fun TransactionRow(
 @Composable
 fun TransactionAmountInfo(
     tx: Transaction,
-    spec: CurrencySpecification?,
 ) {
     Column(horizontalAlignment = Alignment.End) {
         ProvideTextStyle(MaterialTheme.typography.titleLarge) {
-            val amountStr = tx.amountEffective.withSpec(spec).toString(showSymbol = false)
+            val amountStr = tx.amountEffective.toString(showSymbol = false)
             if (tx.amountEffective.isZero()) {
                 Text(amountStr)
             } else when (tx.amountType) {
