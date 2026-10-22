@@ -131,7 +131,11 @@ class PeerManager(
             )
         }
 
-        api.request("checkPeerPullCredit", CheckPeerPullCreditResponse.serializer()) {
+        api.request(
+            "checkPeerPullCredit",
+            CheckPeerPullCreditResponse.serializer(),
+            progressToken = "checkPeerPullCredit",
+        ) {
             put("restrictScope", JSONObject(BackendManager.json.encodeToString(scopeInfo)))
             put("amount", amount.toJSONString())
         }.onSuccess {
@@ -187,7 +191,11 @@ class PeerManager(
             maxDepositAmountRaw = max?.rawAmount,
         )
 
-        api.request("checkPeerPushDebitV2", CheckPeerPushDebitResponse.serializer()) {
+        api.request(
+            "checkPeerPushDebitV2",
+            CheckPeerPushDebitResponse.serializer(),
+            progressToken = "checkPeerPushDebitV2",
+        ) {
             exchangeBaseUrl?.let { put("exchangeBaseUrl", it) }
             restrictScope?.let { put("restrictScope", JSONObject(BackendManager.json.encodeToString(it))) }
             put("amount", amount.toJSONString())
@@ -272,7 +280,11 @@ class PeerManager(
     ) {
         _incomingPullState.value = IncomingChecking
         scope.launch(Dispatchers.IO) {
-            api.request("preparePeerPullDebit", PreparePeerPullDebitResponse.serializer()) {
+            api.request(
+                "preparePeerPullDebit",
+                PreparePeerPullDebitResponse.serializer(),
+                progressToken = talerUri ?: transactionId ?: "preparePeerPullDebit",
+            ) {
                 talerUri?.let { put("talerUri", talerUri) }
                 transactionId?.let { put("transactionId", transactionId) }
                 this
@@ -313,7 +325,11 @@ class PeerManager(
     ) {
         _incomingPushState.value = IncomingChecking
         scope.launch(Dispatchers.IO) a@ {
-            api.request("preparePeerPushCredit", PreparePeerPushCreditResponse.serializer()) {
+            api.request(
+                "preparePeerPushCredit",
+                PreparePeerPushCreditResponse.serializer(),
+                progressToken = talerUri ?: transactionId ?: "preparePeerPushCredit",
+            ) {
                 talerUri?.let { put("talerUri", talerUri) }
                 transactionId?.let { put("transactionId", transactionId) }
                 this

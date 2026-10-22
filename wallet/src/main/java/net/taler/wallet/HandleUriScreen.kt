@@ -4,6 +4,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -19,12 +20,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.RetryScreen
 import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.main.TAG
 import net.taler.wallet.payment.PayStatus
 import net.taler.wallet.refund.RefundStatus
+import net.taler.wallet.transactions.TransactionMajorState
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -81,6 +84,10 @@ fun HandleUriScreen(
                 when {
                     action.startsWith("pay/", ignoreCase = true) -> {
                         model.paymentManager.preparePay(u2)?.let { transactionId ->
+                            model.paymentManager.waitForTransaction(
+                                transactionId,
+                                TransactionMajorState.Dialog,
+                            )
                             if (model.transactionManager.selectTransaction(transactionId)) {
                                 onNavigate(WalletDestination.TransactionPayment(promptMode = true), true)
                             }
@@ -170,12 +177,22 @@ fun HandleUriScreen(
         }
     }
 
-    Box(Modifier.fillMaxSize()) {
-        if (networkStatus == true) {
-            LoadingScreen()
-        } else {
-            RetryScreen {
-                processTalerUri()
+    GlobalScaffold(
+        model = model,
+        modifier = Modifier.fillMaxSize(),
+        onNavigateBack = onNavigateBack,
+    ) { paddingValues ->
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+        ) {
+            if (networkStatus == true) {
+                LoadingScreen()
+            } else {
+                RetryScreen {
+                    processTalerUri()
+                }
             }
         }
     }

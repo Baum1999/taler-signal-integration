@@ -97,6 +97,12 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="warning">Warning</string>
     <string name="wire_transfer">Wire transfer</string>
 
+    <!-- Request progress -->
+
+    <string name="request_progress_retrying">Retrying…</string>
+    <string name="request_progress_slow">Network is slow…</string>
+    <string name="request_progress_waiting">Waiting for response…</string>
+
     <!-- Biometric lock -->
     <string name="biometric_auth_error">Authentication error: %1$s</string>
     <string name="biometric_auth_failed">Authentication failed</string>

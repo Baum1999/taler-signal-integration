@@ -16,7 +16,11 @@
 
 package net.taler.wallet.compose
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -25,9 +29,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -35,10 +38,8 @@ import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
@@ -48,8 +49,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import net.taler.wallet.R
 import net.taler.wallet.main.MainViewModel
 
@@ -77,13 +76,19 @@ fun GlobalScaffold(
 
     val devMode = model?.devMode?.observeAsState(false)
     val online = model?.networkManager?.networkStatus?.observeAsState(true)
+    val progressState = model?.requestProgress?.collectAsStateLifecycleAware()
+    val requestProgress = progressState?.value
+    val offline = online?.value == false
+    val showStatusBanner = offline || (online?.value != false && requestProgress != null)
 
     Scaffold(
         modifier = modifier
             .fillMaxSize()
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            Column {
+            Column(
+                modifier = if (title == null) Modifier.statusBarsPadding() else Modifier,
+            ) {
                 if (title != null) {
                     TopAppBar(
                         title = title,
@@ -121,15 +126,16 @@ fun GlobalScaffold(
 
                 tabs()
 
-                if (online != null && !online.value) Text(
-                    text = stringResource(R.string.offline_banner),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .background(MaterialTheme.colorScheme.errorContainer)
-                        .padding(8.dp)
-                        .fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                )
+                AnimatedVisibility(
+                    visible = showStatusBanner,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically(),
+                ) {
+                    NetworkStatusBanner(
+                        offline = offline,
+                        progress = if (offline) null else requestProgress,
+                    )
+                }
             }
         },
         floatingActionButton = floatingActionButton,

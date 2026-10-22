@@ -26,6 +26,7 @@ import net.taler.common.ContractTerms
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.donau.DonauInfo
+import net.taler.wallet.transactions.TransactionState
 import net.taler.wallet.payment.InsufficientBalanceHint.AgeRestricted
 import net.taler.wallet.payment.InsufficientBalanceHint.ExchangeMissingGlobalFees
 import net.taler.wallet.payment.InsufficientBalanceHint.FeesNotCovered
@@ -349,3 +350,9 @@ sealed class ConfirmPayResult {
         val lastError: TalerErrorInfo? = null,
     ) : ConfirmPayResult()
 }
+
+@Serializable
+data class WaitTransactionStateResponse(
+    val matched: String? = null,
+    val txState: TransactionState? = null,
+)

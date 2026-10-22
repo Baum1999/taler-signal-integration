@@ -54,6 +54,9 @@ GNU Taler es inmune a muchos tipos de fraude, como el robo de datos de tarjetas 
     <string name="millisecond">%1$d ms</string>
     <string name="offline">Esta operación requiere acceso a internet. Asegurate de que tu conexión funcione e intentá de nuevo.</string>
     <string name="offline_banner">Sin acceso a internet</string>
+    <string name="request_progress_retrying">Volviendo a intentarlo…</string>
+    <string name="request_progress_slow">La red va lenta…</string>
+    <string name="request_progress_waiting">A la espera de una respuesta…</string>
     <string name="ok">Aceptar</string>
     <string name="open">Abrir</string>
     <string name="paste">Pegar</string>

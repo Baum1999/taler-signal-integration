@@ -91,8 +91,12 @@ class WalletBackendApi(
     }
 
     suspend fun cancelDatabaseMigration(progressToken: String): WalletResponse<Unit> {
+        return cancelProgressToken("migrateDatabase", progressToken)
+    }
+
+    suspend fun cancelProgressToken(operation: String, progressToken: String): WalletResponse<Unit> {
         return request("cancelProgressToken") {
-            put("operation", "migrateDatabase")
+            put("operation", operation)
             put("progressToken", progressToken)
         }
     }
@@ -109,11 +113,18 @@ class WalletBackendApi(
         operation: String,
         serializer: KSerializer<T>? = null,
         timeoutMs: Long? = BackendManager.REQUEST_TIMEOUT_MS,
+        progressToken: String? = null,
         noinline args: (JSONObject.() -> JSONObject)? = null,
     ): WalletResponse<T> = withContext(Dispatchers.Default) {
         val json = BackendManager.json
         try {
-            when (val response = sendRequest(operation, args?.invoke(JSONObject()), timeoutMs)) {
+            val requestArgs = if (args != null || progressToken != null) {
+                JSONObject().apply {
+                    args?.invoke(this)
+                    progressToken?.let { put("progressToken", it) }
+                }
+            } else null
+            when (val response = sendRequest(operation, requestArgs, timeoutMs)) {
                 is ApiResponse.Response -> {
                     val t: T = serializer?.let {
                         json.decodeFromJsonElement(serializer, response.result)

@@ -196,7 +196,11 @@ class ExchangeManager(
     suspend fun getExchangeTos(
         exchangeBaseUrl: String,
         language: String? = null,
-    ): WalletResponse<TosResponse> = api.request("getExchangeTos", TosResponse.serializer()) {
+    ): WalletResponse<TosResponse> = api.request(
+        "getExchangeTos",
+        TosResponse.serializer(),
+        progressToken = exchangeBaseUrl,
+    ) {
         language?.let { put("acceptLanguage", it) }
         put("exchangeBaseUrl", exchangeBaseUrl)
     }.onError { error ->

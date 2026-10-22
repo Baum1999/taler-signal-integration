@@ -152,6 +152,9 @@
     <string name="error_no_uri">Erreur : Aucune URI Taler n’a été trouvée</string>
     <string name="send_peer_expiration_days">Jours</string>
     <string name="offline_banner">Aucune connexion internet</string>
+    <string name="request_progress_retrying">Nouvelle tentative…</string>
+    <string name="request_progress_slow">Le réseau est lent…</string>
+    <string name="request_progress_waiting">En attente d\'une réponse…</string>
     <string name="transaction_state_pending_bank">Attente de l\'autorisation de la banque</string>
     <string name="transactions_abort_dialog_message">Êtes-vous sûr de vouloir annuler cette transaction ? Les fonds encore en transit pourraient être perdus.</string>
     <string name="button_scan_qr_code_label">Scanner le code QR</string>

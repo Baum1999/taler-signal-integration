@@ -306,6 +306,7 @@ class WithdrawManager(
         api.request(
             "prepareBankIntegratedWithdrawal",
             PrepareBankIntegratedWithdrawalResponse.serializer(),
+            progressToken = uri,
         ) {
             put("talerWithdrawUri", uri)
         }.onError { error ->
@@ -417,7 +418,11 @@ class WithdrawManager(
             status.copy(status = if (loading) Loading else Updating)
         }
 
-        api.request("getWithdrawalDetailsForAmount", WithdrawalDetailsForAmount.serializer()) {
+        api.request(
+            "getWithdrawalDetailsForAmount",
+            WithdrawalDetailsForAmount.serializer(),
+            progressToken = exchange.exchangeBaseUrl,
+        ) {
             put("exchangeBaseUrl", exchange.exchangeBaseUrl)
             put("amount", amount.toJSONString())
         }.onError { error ->
@@ -463,7 +468,11 @@ class WithdrawManager(
     @UiThread
     fun prepareManualWithdrawal(uri: String) = scope.launch {
         _withdrawStatus.value = WithdrawStatus(status = Loading)
-        api.request("prepareWithdrawExchange", WithdrawExchangeResponse.serializer()) {
+        api.request(
+            "prepareWithdrawExchange",
+            WithdrawExchangeResponse.serializer(),
+            progressToken = uri,
+        ) {
             put("talerUri", uri)
         }.onError {
             handleError("prepareWithdrawExchange", it)
@@ -517,7 +526,11 @@ class WithdrawManager(
         val talerWithdrawUri = status.talerWithdrawUri ?: error("no talerWithdrawUri")
         val amountInfo = status.amountInfo
 
-        api.request("acceptBankIntegratedWithdrawal", AcceptWithdrawalResponse.serializer()) {
+        api.request(
+            "acceptBankIntegratedWithdrawal",
+            AcceptWithdrawalResponse.serializer(),
+            progressToken = talerWithdrawUri,
+        ) {
             restrictAge?.let { put("restrictAge", it) }
             amountInfo?.let { put("amount", it.amountRaw.toJSONString()) }
             put("exchangeBaseUrl", exchangeBaseUrl)

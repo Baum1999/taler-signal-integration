@@ -147,6 +147,9 @@
     <string name="send_peer_expiration_hours">Stunden</string>
     <string name="share_payment">Zahlungs-Link teilen</string>
     <string name="offline_banner">Kein Internetzugang</string>
+    <string name="request_progress_retrying">Erneuter Versuch…</string>
+    <string name="request_progress_slow">Das Netzwerk ist langsam…</string>
+    <string name="request_progress_waiting">Warte auf Antwort…</string>
     <string name="transactions_fail_dialog_title">Transaktion verwerfen</string>
     <string name="transaction_dummy_title">Unbekannte Transaktion</string>
     <string name="receive_peer_title">Geld anfordern</string>

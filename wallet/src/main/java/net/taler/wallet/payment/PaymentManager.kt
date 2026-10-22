@@ -47,6 +47,7 @@ import net.taler.wallet.payment.GetChoicesForPaymentResponse.ChoiceSelectionDeta
 import net.taler.wallet.payment.GetChoicesForPaymentResponse.ChoiceSelectionDetail.PaymentPossible
 import net.taler.wallet.transactions.TransactionMajorState
 import net.taler.wallet.transactions.TransactionMinorState
+import net.taler.wallet.transactions.TransactionState
 
 sealed class PayStatus(
     open val transactionId: String? = null,
@@ -169,7 +170,11 @@ class PaymentManager(
         currentTransactionId = null
         mPayStatus.value = PayStatus.Loading
         var transactionId: String? = null
-        api.request("preparePayForUriV2", PreparePayV2Response.serializer()) {
+        api.request(
+            "preparePayForUriV2",
+            PreparePayV2Response.serializer(),
+            progressToken = url,
+        ) {
             put("talerPayUri", url)
         }.onError {
             handleError("preparePayForUriV2", it)
@@ -178,6 +183,29 @@ class PaymentManager(
             transactionId = response.transactionId
         }
         return transactionId
+    }
+
+    fun waitForTransaction(transactionId: String, major: TransactionMajorState) {
+        scope.launch {
+            api.request(
+                "waitTransactionState",
+                WaitTransactionStateResponse.serializer(),
+                timeoutMs = null,
+                progressToken = transactionId,
+            ) {
+                put("transactionId", transactionId)
+                put("txState", JSONObject(BackendManager.json.encodeToString(TransactionState(major))))
+                put("bailStates", "final")
+            }.onError {
+                Log.d(TAG, "waitTransactionState failed: $it")
+            }
+        }
+    }
+
+    fun cancelWaitForTransaction(transactionId: String) {
+        scope.launch {
+            api.cancelProgressToken("waitTransactionState", transactionId)
+        }
     }
 
     @UiThread
@@ -189,7 +217,10 @@ class PaymentManager(
         startNewAttempt {
             // Fresh payments start at a loading prompt.
             mPayStatus.value = PayStatus.Loading
-            when (val response = api.request("getChoicesForPayment", GetChoicesForPaymentResponse.serializer()) {
+            when (val response = api.request(
+                "getChoicesForPayment",
+                GetChoicesForPaymentResponse.serializer(),
+            ) {
                 put("transactionId", transactionId)
             }) {
                 is WalletResponse.Error -> {
@@ -198,6 +229,7 @@ class PaymentManager(
                         // The proposal is not downloaded yet; keep loading until it is.
                         Log.d(TAG, "getChoicesForPayment not ready yet: $error")
                     } else {
+                        cancelWaitForTransaction(transactionId)
                         handleError("getChoicesForPayment", error, transactionId)
                     }
                 }
@@ -266,6 +298,7 @@ class PaymentManager(
                         ),
                     )
 
+                    cancelWaitForTransaction(transactionId)
                     onSuccess()
                 }
             }
@@ -281,13 +314,21 @@ class PaymentManager(
         currentTransactionId = transactionId
         startNewAttempt {
             mPayStatus.postValue(PayStatus.Loading)
-            api.request("confirmPay", ConfirmPayResult.serializer()) {
+            api.request(
+                "confirmPay",
+                ConfirmPayResult.serializer(),
+            ) {
                 choiceIndex?.let { put("choiceIndex", it) }
                 put("transactionId", transactionId)
                 put("useDonau", useDonau)
             }.onError {
                 handleError("confirmPay", it, transactionId)
             }.onSuccess { response ->
+                val id = when (response) {
+                    is ConfirmPayResult.Done -> response.transactionId
+                    is ConfirmPayResult.Pending -> response.transactionId
+                }
+                waitForTransaction(id, TransactionMajorState.Done)
                 mPayStatus.postValue(when (response) {
                     is ConfirmPayResult.Done -> {
                         currentTransactionId = null
@@ -336,7 +377,11 @@ class PaymentManager(
         currentTransactionId = null
         mPayStatus.value = PayStatus.Loading
         startNewAttempt {
-            when (val response = api.request("checkPayForTemplate", CheckPayTemplateResponse.serializer()) {
+            when (val response = api.request(
+                "checkPayForTemplate",
+                CheckPayTemplateResponse.serializer(),
+                progressToken = url,
+            ) {
                 put("talerPayTemplateUri", url)
             }) {
                 is WalletResponse.Error -> handleError("checkPayForTemplate", response.error)
@@ -368,7 +413,11 @@ class PaymentManager(
         // attempt before a form can be submitted.
         mPayStatus.value = PayStatus.Loading
         var transactionId: String? = null
-        api.request("preparePayForTemplateV2", PreparePayV2Response.serializer()) {
+        api.request(
+            "preparePayForTemplateV2",
+            PreparePayV2Response.serializer(),
+            progressToken = url,
+        ) {
             put("talerPayTemplateUri", url)
             put("templateParams", JSONObject(BackendManager.json.encodeToString(params)))
         }.onError {
@@ -376,6 +425,7 @@ class PaymentManager(
         }.onSuccess { response ->
             currentTransactionId = response.transactionId
             transactionId = response.transactionId
+            waitForTransaction(response.transactionId, TransactionMajorState.Dialog)
         }
         return transactionId
     }

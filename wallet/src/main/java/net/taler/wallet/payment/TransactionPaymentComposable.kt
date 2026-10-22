@@ -171,9 +171,10 @@ fun TransactionPaymentPrompt(
         is PayStatus.None,
         is PayStatus.Loading,
         is PayStatus.Prepared,
-        is PayStatus.Checked -> LoadingScreen()
+        is PayStatus.Checked -> LoadingScreen(modifier)
         is PayStatus.Choices -> PromptPaymentComposable(
             status = status,
+            modifier = modifier,
             onConfirm = { index, useDonau ->
                 onConfirmPay(index, useDonau)
             },

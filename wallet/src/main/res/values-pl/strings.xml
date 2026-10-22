@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cancel">Anuluj</string>
+    <string name="request_progress_retrying">Ponowna próba…</string>
+    <string name="request_progress_slow">Sieć działa wolno…</string>
+    <string name="request_progress_waiting">Czekam na odpowiedź…</string>
+</resources>

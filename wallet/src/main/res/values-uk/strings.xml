@@ -40,6 +40,9 @@
     <string name="menu">Меню</string>
     <string name="offline">Операція потребує доступу до Інтернету. Переконайтеся, що ваше інтернет-з\'єднання працює, і спробуйте ще раз.</string>
     <string name="offline_banner">Немає доступу до Інтернету</string>
+    <string name="request_progress_retrying">Повторюю спробу…</string>
+    <string name="request_progress_slow">Мережа повільна…</string>
+    <string name="request_progress_waiting">Чекаю на відповідь…</string>
     <string name="ok">ОК</string>
     <string name="open">Відкрити</string>
     <string name="paste">Вставити</string>

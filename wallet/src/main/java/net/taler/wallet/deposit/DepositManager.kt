@@ -74,7 +74,11 @@ class DepositManager(
     suspend fun checkDepositFees(paytoUri: String, amount: Amount): CheckDepositResult {
         val spec = getCurrencySpec(amount.currency)
         var response: CheckDepositResult = CheckDepositResult.None
-        when (val res = api.request("checkDeposit", CheckDepositResponse.serializer()) {
+        when (val res = api.request(
+            "checkDeposit",
+            CheckDepositResponse.serializer(),
+            progressToken = paytoUri,
+        ) {
             put("depositPaytoUri", paytoUri)
             put("amount", amount.toJSONString())
         }) {
@@ -145,7 +149,11 @@ class DepositManager(
         mDepositState.value = DepositState.MakingDeposit
 
         scope.launch {
-            api.request("createDepositGroup", CreateDepositGroupResponse.serializer()) {
+            api.request(
+                "createDepositGroup",
+                CreateDepositGroupResponse.serializer(),
+                progressToken = paytoUri,
+            ) {
                 put("depositPaytoUri", paytoUri)
                 put("amount", amount.toJSONString())
             }.onError {

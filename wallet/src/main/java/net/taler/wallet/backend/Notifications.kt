@@ -31,6 +31,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import net.taler.common.RelativeTime
 import net.taler.wallet.events.ObservabilityEvent
 import net.taler.wallet.transactions.TransactionState
 
@@ -82,11 +83,41 @@ sealed class NotificationPayload {
         val error: TalerErrorInfo? = null,
     ) : NotificationPayload()
 
+    @Serializable
+    @SerialName("request-progress-phase")
+    data class RequestProgressPhase(
+        val operation: String,
+        val progressToken: String,
+        val phase: ProgressPhase,
+    ) : NotificationPayload()
+
+    @Serializable
+    @SerialName("request-progress-error")
+    data class RequestProgressError(
+        val operation: String,
+        val progressToken: String,
+        val error: TalerErrorInfo,
+        val nextRetryDelay: RelativeTime? = null,
+        val retryCounter: Int? = null,
+    ) : NotificationPayload()
+
     @Serializable(with = UnknownPayloadSerializer::class)
     data class Unknown(
         val type: String? = null,
         val raw: JsonObject,
     ) : NotificationPayload()
+}
+
+@Serializable
+enum class ProgressPhase {
+    @SerialName("delayed")
+    Delayed,
+
+    @SerialName("stalled")
+    Stalled,
+
+    @SerialName("done")
+    Done,
 }
 
 object NotificationPayloadSerializer :
@@ -101,6 +132,8 @@ object NotificationPayloadSerializer :
             "task-observability-event" -> NotificationPayload.TaskObservabilityEvent.serializer()
             "request-observability-event" -> NotificationPayload.RequestObservabilityEvent.serializer()
             "database-maintenance-progress" -> NotificationPayload.DatabaseMaintenanceProgress.serializer()
+            "request-progress-phase" -> NotificationPayload.RequestProgressPhase.serializer()
+            "request-progress-error" -> NotificationPayload.RequestProgressError.serializer()
             else -> NotificationPayload.Unknown.serializer()
         }
 

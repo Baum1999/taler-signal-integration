@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.taler.common.Amount
 import net.taler.common.AmountParserException
@@ -158,6 +159,9 @@ class MainViewModel(
     private val mViewMode = MutableStateFlow(ViewMode())
     val viewMode: StateFlow<ViewMode> = mViewMode
 
+    private val mRequestProgress = MutableStateFlow<RequestProgress?>(null)
+    val requestProgress: StateFlow<RequestProgress?> = mRequestProgress
+
     private val mInitError = MutableStateFlow<TalerErrorInfo?>(null)
     val initError: StateFlow<TalerErrorInfo?> = mInitError
 
@@ -230,6 +234,14 @@ class MainViewModel(
 
             is NotificationPayload.DatabaseMaintenanceProgress -> {
                 updateDatabaseMigrationProgress(payload)
+            }
+
+            is NotificationPayload.RequestProgressPhase -> {
+                mRequestProgress.update { it.withPhase(payload) }
+            }
+
+            is NotificationPayload.RequestProgressError -> {
+                mRequestProgress.update { it.withError(payload) }
             }
 
             else -> {}
