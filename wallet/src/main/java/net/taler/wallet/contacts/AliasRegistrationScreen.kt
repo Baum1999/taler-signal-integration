@@ -16,6 +16,8 @@
 
 package net.taler.wallet.contacts
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -66,6 +68,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -81,10 +84,12 @@ fun AliasRegistrationScreen(
     model: MainViewModel,
     onNavigateBack: () -> Unit,
 ) {
+    val context = LocalContext.current
     val mailboxState by model.mailboxManager.mailbox.collectAsState()
     val registerResult by model.contactManager.registerResult.collectAsState()
     val contactsResult by model.contactManager.contacts.collectAsState()
     val aliasStatuses by model.contactManager.aliasStatuses.collectAsState()
+    val supportedAliasTypes by model.contactManager.supportedAliasTypes.collectAsState()
 
     var showAddAliasDialog by remember { mutableStateOf(false) }
     var activeRegistrationAlias by remember { mutableStateOf<ContactEntry?>(null) }
@@ -92,13 +97,14 @@ fun AliasRegistrationScreen(
 
     LaunchedEffect(Unit) {
         model.contactManager.loadContacts()
+        model.contactManager.loadSupportedAliasTypes()
     }
 
     val mailboxConfig = (mailboxState as? MailboxResult.Success)?.config
 
     LaunchedEffect(contactsResult, mailboxConfig) {
         if (contactsResult is ContactResult.Success && mailboxConfig != null) {
-            val userAliases = (contactsResult as ContactResult.Success).contacts.filter { it.self }
+            val userAliases = (contactsResult as ContactResult.Success).contacts.filter { it.isSelf || it.source == "self" }
             userAliases.forEach { contact ->
                 model.contactManager.checkAliasRegistration(
                     alias = contact.alias,
@@ -116,7 +122,7 @@ fun AliasRegistrationScreen(
         }
     }
 
-    val userAliases = (contactsResult as? ContactResult.Success)?.contacts?.filter { it.self } ?: emptyList()
+    val userAliases = (contactsResult as? ContactResult.Success)?.contacts?.filter { it.isSelf || it.source == "self" } ?: emptyList()
 
     AliasRegistrationContent(
         userAliases = userAliases,
@@ -131,14 +137,25 @@ fun AliasRegistrationScreen(
             activeRegistrationAlias = contact
             isUnlinking = false
             if (mailboxConfig != null) {
-                model.contactManager.taldirRegister(
-                    alias = contact.alias,
-                    aliasType = contact.aliasType,
-                    taldirBaseUri = "https://taldir.gnunet.org",
-                    mailboxBaseUrl = mailboxConfig.mailboxBaseUrl,
-                    mailboxAddress = mailboxConfig.hAddress,
-                    durationMonths = 12,
-                )
+                val type = contact.aliasType.lowercase()
+                val taldirBaseUrl = "https://taldir.gnunet.org"
+                if (type == "email" || type == "phone") {
+                    model.contactManager.taldirRegister(
+                        alias = contact.alias,
+                        aliasType = contact.aliasType,
+                        taldirBaseUri = taldirBaseUrl,
+                        mailboxBaseUrl = mailboxConfig.mailboxBaseUrl,
+                        mailboxAddress = mailboxConfig.hAddress,
+                        durationMonths = 12,
+                    )
+                } else {
+                    val targetUri = "${mailboxConfig.mailboxBaseUrl.trimEnd('/')}/${mailboxConfig.hAddress}"
+                    val encodedAlias = Uri.encode(contact.alias)
+                    val encodedTargetUri = Uri.encode(targetUri)
+                    val browserUrl = "$taldirBaseUrl/lookup/${contact.aliasType}?alias=$encodedAlias&targetUri=$encodedTargetUri"
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(browserUrl))
+                    context.startActivity(intent)
+                }
             }
         },
         onCompleteRegister = { solution ->
@@ -228,6 +245,7 @@ fun AliasRegistrationScreen(
 
     if (showAddAliasDialog && mailboxConfig != null) {
         AddAliasDialog(
+            supportedAliasTypes = supportedAliasTypes,
             onDismiss = { showAddAliasDialog = false },
             onConfirm = { alias, aliasType, nickname ->
                 model.contactManager.addContact(
@@ -481,15 +499,23 @@ fun UserAliasCard(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddAliasDialog(
+    supportedAliasTypes: List<TaldirAliasType>,
     onDismiss: () -> Unit,
     onConfirm: (alias: String, aliasType: String, nickname: String) -> Unit,
 ) {
-    var aliasType by remember { mutableStateOf("email") }
+    val options = if (supportedAliasTypes.isNotEmpty()) {
+        supportedAliasTypes
+    } else {
+        listOf(
+            TaldirAliasType(name = "email", display = "email"),
+            TaldirAliasType(name = "phone", display = "phone")
+        )
+    }
+
+    var selectedType by remember(options) { mutableStateOf(options.first()) }
     var aliasTypeExpanded by remember { mutableStateOf(false) }
     var alias by remember { mutableStateOf("") }
     var nickname by remember { mutableStateOf("") }
-
-    val aliasTypeOptions = listOf("email", "phone")
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -502,7 +528,7 @@ fun AddAliasDialog(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
                 ) {
                     OutlinedTextField(
-                        value = aliasType,
+                        value = selectedType.display,
                         onValueChange = {},
                         readOnly = true,
                         label = { Text(stringResource(R.string.alias_registration_alias_type)) },
@@ -514,11 +540,11 @@ fun AddAliasDialog(
                         expanded = aliasTypeExpanded,
                         onDismissRequest = { aliasTypeExpanded = false }
                     ) {
-                        aliasTypeOptions.forEach { option ->
+                        options.forEach { type ->
                             DropdownMenuItem(
-                                text = { Text(option) },
+                                text = { Text(type.display) },
                                 onClick = {
-                                    aliasType = option
+                                    selectedType = type
                                     aliasTypeExpanded = false
                                 }
                             )
@@ -531,7 +557,7 @@ fun AddAliasDialog(
                     onValueChange = { alias = it },
                     label = { Text(stringResource(R.string.alias_registration_alias)) },
                     placeholder = {
-                        Text(if (aliasType == "email") "user@example.com" else "+1234567890")
+                        Text(if (selectedType.name == "email") "user@example.com" else "+1234567890")
                     },
                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
                 )
@@ -546,7 +572,7 @@ fun AddAliasDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(alias.trim(), aliasType, nickname.trim()) },
+                onClick = { onConfirm(alias.trim(), selectedType.name, nickname.trim()) },
                 enabled = alias.isNotBlank()
             ) {
                 Text(stringResource(R.string.ok))

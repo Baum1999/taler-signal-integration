@@ -101,6 +101,19 @@ sealed class AliasRegistrationStatus {
     data class Mismatched(val targetUri: String) : AliasRegistrationStatus()
 }
 
+@Serializable
+data class TaldirAliasType(
+    val name: String,
+    val display: String = name,
+    @SerialName("challenge_fee")
+    val challengeFee: String? = null,
+)
+
+@Serializable
+data class TaldirSupportedAliasesResponse(
+    val supportedAliases: List<TaldirAliasType>,
+)
+
 class ContactManager(
     private val api: WalletBackendApi,
     private val scope: CoroutineScope,
@@ -117,12 +130,27 @@ class ContactManager(
     private val _aliasStatuses = MutableStateFlow<Map<String, AliasRegistrationStatus>>(emptyMap())
     val aliasStatuses = _aliasStatuses.asStateFlow()
 
+    private val _supportedAliasTypes = MutableStateFlow<List<TaldirAliasType>>(emptyList())
+    val supportedAliasTypes = _supportedAliasTypes.asStateFlow()
+
     fun resetLookup() {
         _lookupResult.value = LookupResult.Idle
     }
 
     fun resetRegistration() {
         _registerResult.value = RegisterResult.Idle
+    }
+
+    fun loadSupportedAliasTypes(taldirBaseUri: String = "https://taldir.gnunet.org") {
+        scope.launch {
+            api.request("getSupportedAliasTypes", TaldirSupportedAliasesResponse.serializer()) {
+                put("taldirBaseUrl", taldirBaseUri)
+            }.onSuccess { resp ->
+                _supportedAliasTypes.value = resp.supportedAliases
+            }.onError {
+                Log.e(TAG, "Error getting supported alias types: $it")
+            }
+        }
     }
 
     fun loadContacts() {
@@ -345,12 +373,12 @@ class ContactManager(
                         ))
                     }
                 } else {
-                    if (targetUri.isNullOrBlank()) {
+                    if (targetUri.isBlank()) {
                         _registerResult.value = RegisterResult.Error(TalerErrorInfo(
                             code = TalerErrorCode.UNKNOWN,
                             message = "Alias not found",
                         ))
-                    } else if (targetUri != expectedTargetUri) {
+                    } else if (targetUri.trimEnd('/') != expectedTargetUri.trimEnd('/') && !targetUri.endsWith(expectedTargetUri.substringAfterLast('/'))) {
                         _registerResult.value = RegisterResult.Error(TalerErrorInfo(
                             code = TalerErrorCode.UNKNOWN,
                             message = "Existing registration points to a different mailbox URI",
