@@ -239,7 +239,9 @@ fun TransactionDetailScreen(
                             modifier = modifier,
                             t = tx,
                             devMode = devMode,
-                            onSelectOption = { it?.let { transactionManager.selectTransferOption(it) } },
+                            onSelectOption = { account, option ->
+                                transactionManager.selectTransferOption(option, account)
+                            },
                             onConfirmKyc = { url ->
                                 launchInAppBrowser(context, url)
                             },

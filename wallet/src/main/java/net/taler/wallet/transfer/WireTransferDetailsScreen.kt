@@ -52,6 +52,7 @@ import net.taler.wallet.transactions.TransactionWithdrawal
 import net.taler.wallet.transactions.TransferOption
 import net.taler.wallet.transactions.WithdrawalExchangeAccountDetails
 import net.taler.wallet.withdraw.TransferData
+import net.taler.wallet.withdraw.transferAccounts
 
 @Composable
 fun WireTransferDetailsScreen(
@@ -65,6 +66,7 @@ fun WireTransferDetailsScreen(
 
     val selectedTx by transactionManager.selectedTransaction.collectAsStateLifecycleAware()
     val selectedOption by transactionManager.selectedTransferOption.collectAsStateLifecycleAware()
+    val selectedTransferAccount by transactionManager.selectedTransferAccount.collectAsStateLifecycleAware()
     val devMode by model.devMode.observeAsState(false)
     val paytoUri = when (val option = selectedOption) {
         is TransferOption.Payto -> option.paytoUri
@@ -130,11 +132,19 @@ fun WireTransferDetailsScreen(
 
         when (tx) {
             is TransactionWithdrawal -> {
-                val transferData = remember(option, tx) {
-                    WithdrawalExchangeAccountDetails(
-                        paytoUri = paytoUri,
-                        status = WithdrawalExchangeAccountDetails.Status.Ok,
-                    ).getTransferDetails(
+                val transferData = remember(option, tx, selectedTransferAccount) {
+                    val account = tx.transferAccounts()
+                        ?.firstOrNull { it.transferOptions.contains(option) }
+                        ?: selectedTransferAccount
+                        ?: WithdrawalExchangeAccountDetails(
+                            paytoUri = paytoUri,
+                            status = WithdrawalExchangeAccountDetails.Status.Ok,
+                        )
+                    // The account may offer several transfer options with different
+                    // wire methods. Use the selected option's payto URI for the
+                    // instructions, but keep the account's transfer amount and
+                    // currency specification.
+                    account.copy(paytoUri = paytoUri).getTransferDetails(
                         amountRaw = tx.amountRaw,
                         amountEffective = tx.amountEffective,
                         transferOption = option,

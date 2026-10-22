@@ -93,7 +93,7 @@ fun transferOptionAt(
 fun TransactionWithdrawalComposable(
     t: TransactionWithdrawal,
     devMode: Boolean,
-    onSelectOption: (option: TransferOption?) -> Unit,
+    onSelectOption: (account: WithdrawalExchangeAccountDetails?, option: TransferOption?) -> Unit,
     onConfirmKyc: (url: String) -> Unit,
     onConfirmBank: () -> Unit,
     onConfirmManual: (option: TransferOption?) -> Unit,
@@ -120,8 +120,8 @@ fun TransactionWithdrawalComposable(
         val selectedOption =
             transferOptionAt(accounts, selectedAccountIndex, selectedOptionIndex)
 
-        LaunchedEffect(selectedOption) {
-            selectedOption?.let { onSelectOption(it) }
+        LaunchedEffect(selectedAccount, selectedOption) {
+            onSelectOption(selectedAccount, selectedOption)
         }
 
         val showAccountChooser = accounts != null
@@ -320,7 +320,7 @@ fun TransactionWithdrawalComposableSingleQrPreview() {
         TransactionWithdrawalComposable(
             t = previewWithdrawalTx,
             devMode = true,
-            onSelectOption = {},
+            onSelectOption = { _, _ -> },
             onConfirmKyc = {},
             onConfirmBank = {},
             onConfirmManual = {},
@@ -337,7 +337,7 @@ fun TransactionWithdrawalComposableMultiQrPreview() {
         TransactionWithdrawalComposable(
             t = previewWithdrawalTx,
             devMode = true,
-            onSelectOption = {},
+            onSelectOption = { _, _ -> },
             onConfirmKyc = {},
             onConfirmBank = {},
             onConfirmManual = {},

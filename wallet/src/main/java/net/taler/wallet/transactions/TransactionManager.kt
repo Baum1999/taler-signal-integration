@@ -92,9 +92,11 @@ class TransactionManager(
     private val mSelectedTransactionId = MutableStateFlow<String?>(null)
     private val selectionMutex = Mutex()
     private val mSelectedTransferOption = MutableStateFlow<TransferOption?>(null)
+    private val mSelectedTransferAccount = MutableStateFlow<WithdrawalExchangeAccountDetails?>(null)
 
     val selectedTransaction = mSelectedTransaction.asStateFlow()
     val selectedTransferOption = mSelectedTransferOption.asStateFlow()
+    val selectedTransferAccount = mSelectedTransferAccount.asStateFlow()
 
     /**
      * Streams the [RECENT_LIMIT] most recent transactions for [scopeInfo], as
@@ -331,6 +333,8 @@ class TransactionManager(
      * [selectionMutex] so that an older snapshot cannot overwrite a newer one.
      */
     suspend fun selectTransaction(transactionId: String): Boolean {
+        mSelectedTransferOption.value = null
+        mSelectedTransferAccount.value = null
         mSelectedTransactionId.value = transactionId
         return refreshSelectedTransaction()
     }
@@ -354,11 +358,17 @@ class TransactionManager(
         }
     }
 
-    fun selectTransferOption(option: TransferOption) {
+    fun selectTransferOption(
+        option: TransferOption?,
+        account: WithdrawalExchangeAccountDetails? = null,
+    ) {
+        mSelectedTransferAccount.value = account
         mSelectedTransferOption.value = option
     }
 
     fun selectTransaction(tx: Transaction?) = scope.launch {
+        mSelectedTransferOption.value = null
+        mSelectedTransferAccount.value = null
         if (tx == null) {
             mSelectedTransactionId.value = null
             mSelectedTransaction.value = null
