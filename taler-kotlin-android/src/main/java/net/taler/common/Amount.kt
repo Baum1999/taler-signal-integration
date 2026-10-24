@@ -256,7 +256,9 @@ data class Amount(
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // In newer phones > 2019, do full, locale-based formatting
             val uLocale = ULocale.forLocale(locale)
-            val blueprintCurrency = Currency.getInstance(uLocale)
+            // Language-only app locales (e.g. "en") have no regional currency.
+            // Use a neutral template; the actual Taler currency symbol replaces it below.
+            val blueprintCurrency = Currency.getInstance(uLocale) ?: Currency.getInstance("XXX")
             NumberFormatter.with()
                 .unit(blueprintCurrency)
                 .unitWidth(

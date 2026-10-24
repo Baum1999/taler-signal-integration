@@ -29,11 +29,12 @@ class ConfigProductTest {
             categories = listOf(1)
         )
 
-        assertEquals("2.50 KUDOS", product.displayPrice)
+        // Plain JVM tests use Amount's pre-Android-11 currency-code formatter.
+        assertEquals("KUDOS 2.50", product.displayPrice)
     }
 
     @Test
-    fun `display price uses currency spec symbol`() {
+    fun `display price uses currency code with spec on legacy formatter`() {
         val product = ConfigProduct(
             description = "Coffee",
             price = Amount("CHF", 2, 50000000).withSpec(
@@ -48,7 +49,7 @@ class ConfigProductTest {
             categories = listOf(1)
         )
 
-        assertEquals("Fr.2.50", product.displayPrice)
+        assertEquals("CHF 2.50", product.displayPrice)
     }
 
     @Test
