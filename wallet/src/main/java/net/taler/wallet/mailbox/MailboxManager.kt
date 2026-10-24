@@ -27,6 +27,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import net.taler.common.Timestamp
 import net.taler.wallet.backend.BackendManager
+import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.main.TAG
@@ -59,7 +60,13 @@ data class MailboxMessagesResponse(
 )
 
 @Serializable
-data class GetMailboxResponse(
+data class MailboxRefreshResponse(
+    val messages: List<MailboxMessageRecord>,
+    val mailboxExpiration: Timestamp? = null,
+)
+
+@Serializable
+data class MailboxResponse(
     val mailboxConfiguration: MailboxConfiguration? = null,
 )
 
@@ -105,7 +112,7 @@ class MailboxManager(
         _mailbox.value = MailboxResult.Loading
         scope.launch {
             Log.e(TAG, "Loading mailbox")
-            api.request("getMailbox", GetMailboxResponse.serializer()) {
+            api.request("getMailbox", MailboxResponse.serializer()) {
                 put("mailboxBaseUrl", baseUrl)
             }.onSuccess { resp ->
                 if (null == resp.mailboxConfiguration) {
@@ -122,10 +129,16 @@ class MailboxManager(
 
     private fun initializeMailbox(baseUrl: String) {
         scope.launch {
-            api.request("initializeMailbox", MailboxConfiguration.serializer()) {
+            api.request("initializeMailbox", MailboxResponse.serializer()) {
                 put("mailboxBaseUrl", baseUrl)
-            }.onSuccess { config ->
-                getMessages(config)
+            }.onSuccess { resp ->
+                val config = resp.mailboxConfiguration
+                if (config != null) {
+                    getMessages(config)
+                } else {
+                    Log.e(TAG, "Error initializing mailbox: missing configuration")
+                    _mailbox.value = MailboxResult.Error(TalerErrorInfo(code = TalerErrorCode.UNKNOWN, message = "Missing mailbox configuration"))
+                }
             }.onError {
                 Log.e(TAG, "Error initializing mailbox: $it")
                 _mailbox.value = MailboxResult.Error(it)
@@ -148,9 +161,12 @@ class MailboxManager(
     fun refreshMailbox(config: MailboxConfiguration) {
         Log.d(TAG, "refreshing mailbox at ${config.mailboxBaseUrl}")
         scope.launch {
-            api.request("refreshMailbox", MailboxMessagesResponse.serializer()) {
+            api.request("refreshMailbox", MailboxRefreshResponse.serializer()) {
                 put("mailboxConf", JSONObject(BackendManager.json.encodeToString(config)))
             }.onSuccess { response ->
+                val updatedConfig = response.mailboxExpiration?.let { exp ->
+                    config.copy(expiration = exp)
+                } ?: config
                 if (response.messages.isNotEmpty()) {
                     response.messages.forEach { msg ->
                         addMessage(msg)
@@ -159,7 +175,7 @@ class MailboxManager(
                         // The UI should handle navigation when this is called
                     }
                 }
-                getMessages(config)
+                getMessages(updatedConfig)
             }.onError {
                 Log.e(TAG, "Error refreshing mailbox: $it")
             }
