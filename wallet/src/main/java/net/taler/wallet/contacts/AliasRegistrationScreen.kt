@@ -37,7 +37,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -93,6 +95,9 @@ fun AliasRegistrationScreen(
 
     var showAddAliasDialog by remember { mutableStateOf(false) }
     var activeRegistrationAlias by remember { mutableStateOf<ContactEntry?>(null) }
+    var contactForQr by remember { mutableStateOf<ContactEntry?>(null) }
+    var aliasToDelete by remember { mutableStateOf<ContactEntry?>(null) }
+    var contactToEdit by remember { mutableStateOf<ContactEntry?>(null) }
     var isUnlinking by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -208,21 +213,10 @@ fun AliasRegistrationScreen(
             isUnlinking = false
             model.contactManager.resetRegistration()
         },
+        onEditNickname = { contact -> contactToEdit = contact },
+        onShowQr = { contact -> contactForQr = contact },
         onDeleteAlias = { contact ->
-            val key = "${contact.aliasType}:${contact.alias}"
-            val isRegistered = aliasStatuses[key] is AliasRegistrationStatus.Registered
-            if (isRegistered) {
-                activeRegistrationAlias = contact
-                isUnlinking = true
-                model.contactManager.taldirDeleteAlias(
-                    alias = contact.alias,
-                    aliasType = contact.aliasType,
-                    taldirBaseUri = "https://taldir.gnunet.org",
-                    durationMonths = 12,
-                )
-            } else {
-                model.contactManager.deleteContact(contact)
-            }
+            aliasToDelete = contact
         },
         onRegistrationCompleted = {
             activeRegistrationAlias?.let { contact ->
@@ -242,6 +236,69 @@ fun AliasRegistrationScreen(
             model.contactManager.resetRegistration()
         }
     )
+
+    aliasToDelete?.let { contact ->
+        AlertDialog(
+            onDismissRequest = { aliasToDelete = null },
+            title = { Text(stringResource(R.string.alias_registration_delete)) },
+            text = { Text("Are you sure you want to delete alias ${contact.alias}?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    val key = "${contact.aliasType}:${contact.alias}"
+                    val isRegistered = aliasStatuses[key] is AliasRegistrationStatus.Registered
+                    if (isRegistered) {
+                        activeRegistrationAlias = contact
+                        isUnlinking = true
+                        model.contactManager.taldirDeleteAlias(
+                            alias = contact.alias,
+                            aliasType = contact.aliasType,
+                            taldirBaseUri = "https://taldir.gnunet.org",
+                            durationMonths = 12,
+                        )
+                    } else {
+                        model.contactManager.deleteContact(contact)
+                    }
+                    aliasToDelete = null
+                }) {
+                    Text(
+                        text = stringResource(R.string.transactions_delete),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { aliasToDelete = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    contactToEdit?.let { contact ->
+        EditNicknameDialog(
+            contact = contact,
+            onDismiss = { contactToEdit = null },
+            onSave = { newNickname ->
+                model.contactManager.addContact(
+                    alias = contact.alias,
+                    aliasType = contact.aliasType,
+                    mailboxBaseUri = contact.mailboxBaseUrl,
+                    mailboxAddress = contact.mailboxAddress,
+                    source = contact.source,
+                    petname = newNickname,
+                    isSelf = true,
+                )
+                contactToEdit = null
+            }
+        )
+    }
+
+    contactForQr?.let { contact ->
+        ShowContactQrDialog(
+            contact = contact,
+            onDismiss = { contactForQr = null }
+        )
+    }
 
     if (showAddAliasDialog && mailboxConfig != null) {
         AddAliasDialog(
@@ -284,6 +341,8 @@ fun AliasRegistrationContent(
     onCompleteRegister: (solution: String) -> Unit,
     onRecoverRegister: () -> Unit,
     onCancelRegister: () -> Unit,
+    onEditNickname: (ContactEntry) -> Unit,
+    onShowQr: (ContactEntry) -> Unit,
     onDeleteAlias: (ContactEntry) -> Unit,
     onRegistrationCompleted: () -> Unit,
 ) {
@@ -297,11 +356,6 @@ fun AliasRegistrationContent(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = null,
                         )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onAddAliasClick, enabled = mailboxConfig != null) {
-                        Icon(Icons.Default.Add, contentDescription = "Add Alias")
                     }
                 }
             )
@@ -353,6 +407,8 @@ fun AliasRegistrationContent(
                             status = status,
                             isRegistering = activeRegistrationAlias?.alias == contact.alias && activeRegistrationAlias?.aliasType == contact.aliasType,
                             onRegister = { onStartRegister(contact) },
+                            onEditNickname = { onEditNickname(contact) },
+                            onShowQr = { onShowQr(contact) },
                             onDelete = { onDeleteAlias(contact) }
                         )
                     }
@@ -381,6 +437,8 @@ fun UserAliasCard(
     status: AliasRegistrationStatus,
     isRegistering: Boolean,
     onRegister: () -> Unit,
+    onEditNickname: () -> Unit,
+    onShowQr: () -> Unit,
     onDelete: () -> Unit,
 ) {
     Card(
@@ -412,8 +470,16 @@ fun UserAliasCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete Alias")
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onEditNickname) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit Nickname")
+                    }
+                    IconButton(onClick = onShowQr) {
+                        Icon(Icons.Default.QrCode, contentDescription = "Show QR Code")
+                    }
+                    IconButton(onClick = onDelete) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete Alias")
+                    }
                 }
             }
 
@@ -716,6 +782,8 @@ fun AliasRegistrationContentPreview() {
             onCompleteRegister = {},
             onRecoverRegister = {},
             onCancelRegister = {},
+            onEditNickname = {},
+            onShowQr = {},
             onDeleteAlias = {},
             onRegistrationCompleted = {},
         )

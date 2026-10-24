@@ -87,6 +87,7 @@ fun MailboxScreen(
     val clipboardManager = LocalClipboardManager.current
     var showUrlDialog by remember { mutableStateOf(false) }
     var showAddressDialog by remember { mutableStateOf(false) }
+    var messageToDelete by remember { mutableStateOf<MailboxMessageRecord?>(null) }
 
     LaunchedEffect(showMessageEvent) {
         showMessageEvent?.getIfNotConsumed()?.let { notify ->
@@ -150,11 +151,38 @@ fun MailboxScreen(
                 is MailboxResult.Error -> Text("Error: ${res.error}", modifier = Modifier.padding(16.dp))
                 is MailboxResult.Success -> {
                     MessageList(res.messages, onNavigate) { message ->
-                        mailboxManager.deleteMessage(res.config, message)
+                        messageToDelete = message
                     }
                 }
             }
         }
+    }
+
+    messageToDelete?.let { message ->
+        AlertDialog(
+            onDismissRequest = { messageToDelete = null },
+            title = { Text("Delete Message") },
+            text = { Text("Are you sure you want to delete this mailbox message?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    val state = mailboxState
+                    if (state is MailboxResult.Success) {
+                        mailboxManager.deleteMessage(state.config, message)
+                    }
+                    messageToDelete = null
+                }) {
+                    Text(
+                        text = stringResource(R.string.transactions_delete),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { messageToDelete = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 
     if (showAddressDialog) {

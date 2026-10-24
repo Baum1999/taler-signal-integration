@@ -16,23 +16,35 @@
 
 package net.taler.wallet.contacts
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -57,7 +69,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -65,6 +79,8 @@ import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
 import net.taler.wallet.balances.ScopeInfo
+import net.taler.wallet.compose.QrCodeParams
+import net.taler.wallet.compose.QrCodeUriComposable
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.main.MainViewModel
 
@@ -86,6 +102,9 @@ fun ContactScreen(
     var pendingContact by remember { mutableStateOf<PendingContact?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     var contactToConfirm by remember { mutableStateOf<ContactEntry?>(null) }
+    var contactForQr by remember { mutableStateOf<ContactEntry?>(null) }
+    var contactToDelete by remember { mutableStateOf<ContactEntry?>(null) }
+    var contactToEdit by remember { mutableStateOf<ContactEntry?>(null) }
 
     var initialAlias by remember { mutableStateOf("") }
     var initialAliasType by remember { mutableStateOf("email") }
@@ -185,7 +204,9 @@ fun ContactScreen(
                     }
                     ContactList(
                         contacts = filteredContacts,
-                        onDelete = { contact -> contactManager.deleteContact(contact) },
+                        onDelete = { contact -> contactToDelete = contact },
+                        onEditNickname = { contact -> contactToEdit = contact },
+                        onShowQr = { contact -> contactForQr = contact },
                         onSelect = if (sendUri != null) { contact ->
                             contactToConfirm = contact
                         } else null
@@ -193,6 +214,49 @@ fun ContactScreen(
                 }
             }
         }
+    }
+
+    contactToDelete?.let { contact ->
+        AlertDialog(
+            onDismissRequest = { contactToDelete = null },
+            title = { Text("Delete Contact") },
+            text = { Text("Are you sure you want to delete ${contact.petname.ifBlank { contact.alias }}?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    contactManager.deleteContact(contact)
+                    contactToDelete = null
+                }) {
+                    Text(
+                        text = stringResource(R.string.transactions_delete),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { contactToDelete = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    contactToEdit?.let { contact ->
+        EditNicknameDialog(
+            contact = contact,
+            onDismiss = { contactToEdit = null },
+            onSave = { newNickname ->
+                contactManager.addContact(
+                    alias = contact.alias,
+                    aliasType = contact.aliasType,
+                    mailboxBaseUri = contact.mailboxBaseUrl,
+                    mailboxAddress = contact.mailboxAddress,
+                    source = contact.source,
+                    petname = newNickname,
+                    isSelf = contact.isSelf,
+                )
+                contactToEdit = null
+            }
+        )
     }
 
     contactToConfirm?.let { contact ->
@@ -217,6 +281,13 @@ fun ContactScreen(
                     Text(stringResource(R.string.cancel))
                 }
             }
+        )
+    }
+
+    contactForQr?.let { contact ->
+        ShowContactQrDialog(
+            contact = contact,
+            onDismiss = { contactForQr = null }
         )
     }
 
@@ -313,6 +384,82 @@ data class PendingContact(
     val mailboxAddress: String,
     val source: String,
 )
+
+@Composable
+fun EditNicknameDialog(
+    contact: ContactEntry,
+    onDismiss: () -> Unit,
+    onSave: (newNickname: String) -> Unit,
+) {
+    var nickname by remember { mutableStateOf(contact.petname) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit Nickname") },
+        text = {
+            Column {
+                Text(
+                    text = "Alias: ${contact.alias}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                OutlinedTextField(
+                    value = nickname,
+                    onValueChange = { nickname = it },
+                    label = { Text(stringResource(R.string.contact_petname)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onSave(nickname.trim()) },
+                enabled = nickname.isNotBlank()
+            ) {
+                Text(stringResource(R.string.ok))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
+}
+
+@Composable
+fun ShowContactQrDialog(
+    contact: ContactEntry,
+    onDismiss: () -> Unit,
+) {
+    val qrUri = contact.toAddContactUri()
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(contact.petname.ifBlank { contact.alias }) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                QrCodeUriComposable(
+                    qrData = qrUri,
+                    clipboardLabel = "Contact QR Code",
+                    params = QrCodeParams.Taler,
+                    shareAsQrCode = true,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.close))
+            }
+        }
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -475,18 +622,190 @@ fun AddContactDialog(
 }
 
 @Composable
+fun SelfBadge(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .padding(horizontal = 6.dp, vertical = 2.dp)
+    ) {
+        Text(
+            text = "You",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            fontWeight = FontWeight.Bold,
+        )
+    }
+}
+
+@Composable
+fun ContactGroupCard(
+    targetUriKey: String,
+    contactsInGroup: List<ContactEntry>,
+    onDelete: (ContactEntry) -> Unit,
+    onEditNickname: (ContactEntry) -> Unit,
+    onShowQr: (ContactEntry) -> Unit,
+    onSelect: ((ContactEntry) -> Unit)? = null,
+) {
+    val isSelfGroup = contactsInGroup.any { it.isSelf || it.source == "self" }
+
+    val distinctPetnames = contactsInGroup
+        .map { it.petname.trim() }
+        .filter { it.isNotBlank() }
+        .distinct()
+
+    val primaryPetname = distinctPetnames.firstOrNull()
+        ?: contactsInGroup.firstOrNull()?.alias
+        ?: targetUriKey
+
+    val otherPetnames = distinctPetnames.drop(1)
+
+    val firstContact = contactsInGroup.firstOrNull()
+    val displayTargetUri = if (firstContact != null && firstContact.mailboxBaseUrl.isNotBlank()) {
+        val cleanBase = firstContact.mailboxBaseUrl.trimEnd('/')
+        val addr = firstContact.mailboxAddress
+        val shortAddr = if (addr.length > 5) "${addr.take(5)}…" else addr
+        "$cleanBase/$shortAddr"
+    } else {
+        targetUriKey
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = primaryPetname,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    if (isSelfGroup) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        SelfBadge()
+                    }
+                }
+            }
+
+            if (otherPetnames.isNotEmpty()) {
+                Text(
+                    text = "Also: ${otherPetnames.joinToString(", ")}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
+
+            Text(
+                text = displayTargetUri,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider()
+
+            contactsInGroup.forEach { contact ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(enabled = onSelect != null) { onSelect?.invoke(contact) }
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(contact.alias, style = MaterialTheme.typography.bodyMedium)
+                            if (contact.isSelf || contact.source == "self") {
+                                Spacer(modifier = Modifier.width(6.dp))
+                                SelfBadge()
+                            }
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Type: ${contact.aliasType}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            if (contact.petname.isNotBlank() && contact.petname.trim() != primaryPetname) {
+                                Text(
+                                    text = " • ${contact.petname}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                    if (onSelect != null) {
+                        IconButton(onClick = { onSelect(contact) }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Send,
+                                contentDescription = "Send Message to Contact",
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    } else {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(onClick = { onEditNickname(contact) }) {
+                                Icon(Icons.Default.Edit, contentDescription = "Edit Nickname")
+                            }
+                            IconButton(onClick = { onShowQr(contact) }) {
+                                Icon(Icons.Default.QrCode, contentDescription = "Show QR Code")
+                            }
+                            IconButton(onClick = { onDelete(contact) }) {
+                                Icon(Icons.Default.Delete, contentDescription = "Delete")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun ContactList(
     contacts: List<ContactEntry>,
     onDelete: (ContactEntry) -> Unit,
+    onEditNickname: (ContactEntry) -> Unit,
+    onShowQr: (ContactEntry) -> Unit,
     onSelect: ((ContactEntry) -> Unit)? = null,
 ) {
     if (contacts.isEmpty()) {
         Text("No contacts yet.", modifier = Modifier.padding(16.dp))
     } else {
-        LazyColumn {
-            items(contacts) { contact ->
-                ContactItem(contact, onDelete, onSelect)
-                HorizontalDivider()
+        val grouped = contacts.groupBy {
+            val base = it.mailboxBaseUrl.trimEnd('/')
+            if (base.isNotBlank() && it.mailboxAddress.isNotBlank()) {
+                "$base/${it.mailboxAddress}"
+            } else {
+                it.alias
+            }
+        }
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(grouped.entries.toList()) { (targetUriKey, contactsInGroup) ->
+                ContactGroupCard(
+                    targetUriKey = targetUriKey,
+                    contactsInGroup = contactsInGroup,
+                    onDelete = onDelete,
+                    onEditNickname = onEditNickname,
+                    onShowQr = onShowQr,
+                    onSelect = onSelect
+                )
             }
         }
     }
@@ -511,6 +830,7 @@ private fun String.fuzzyMatches(query: String): Boolean {
 fun ContactItem(
     contact: ContactEntry,
     onDelete: (ContactEntry) -> Unit,
+    onShowQr: (ContactEntry) -> Unit,
     onSelect: ((ContactEntry) -> Unit)? = null,
 ) {
     Row(
@@ -521,12 +841,33 @@ fun ContactItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(contact.petname, style = MaterialTheme.typography.titleMedium)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(contact.petname, style = MaterialTheme.typography.titleMedium)
+                if (contact.isSelf || contact.source == "self") {
+                    Spacer(modifier = Modifier.width(6.dp))
+                    SelfBadge()
+                }
+            }
             Text(contact.alias, style = MaterialTheme.typography.bodyMedium)
             Text(contact.mailboxBaseUri, style = MaterialTheme.typography.bodySmall)
         }
-        IconButton(onClick = { onDelete(contact) }) {
-            Icon(Icons.Default.Delete, contentDescription = "Delete")
+        if (onSelect != null) {
+            IconButton(onClick = { onSelect(contact) }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Send,
+                    contentDescription = "Send Message to Contact",
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+        } else {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { onShowQr(contact) }) {
+                    Icon(Icons.Default.QrCode, contentDescription = "Show QR Code")
+                }
+                IconButton(onClick = { onDelete(contact) }) {
+                    Icon(Icons.Default.Delete, contentDescription = "Delete")
+                }
+            }
         }
     }
 }
@@ -543,8 +884,10 @@ fun ContactItemPreview() {
                 mailboxAddress = "alice",
                 source = "manual",
                 petname = "Alice",
+                isSelf = true,
             ),
             onDelete = {},
+            onShowQr = {},
             onSelect = null
         )
     }
@@ -563,6 +906,7 @@ fun ContactListPreview() {
                     mailboxAddress = "alice",
                     source = "manual",
                     petname = "Alice",
+                    isSelf = true,
                 ),
                 ContactEntry(
                     alias = "bob@taler.net",
@@ -573,7 +917,9 @@ fun ContactListPreview() {
                     petname = "Bob",
                 ),
             ),
-            onDelete = {}
+            onDelete = {},
+            onEditNickname = {},
+            onShowQr = {},
         )
     }
 }

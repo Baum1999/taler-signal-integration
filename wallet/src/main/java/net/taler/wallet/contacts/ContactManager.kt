@@ -399,3 +399,12 @@ class ContactManager(
         }
     }
 }
+
+fun ContactEntry.toAddContactUri(): String {
+    val cleanBase = mailboxBaseUrl
+        .removePrefix("https://")
+        .removePrefix("http://")
+        .trimEnd('/')
+    val cleanBaseWithSlash = if (cleanBase.isNotBlank()) "$cleanBase/" else ""
+    return "taler://add-contact/$aliasType/$alias/$cleanBaseWithSlash$mailboxAddress"
+}
