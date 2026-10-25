@@ -148,7 +148,7 @@ class MailboxManager(
 
     private fun getMessages(config: MailboxConfiguration) {
         scope.launch {
-            api.request("getMailboxMessage", MailboxMessagesResponse.serializer())
+            api.request("getMailboxMessages", MailboxMessagesResponse.serializer())
                 .onSuccess { response ->
                     _mailbox.value = MailboxResult.Success(config, response.messages)
                 }.onError {

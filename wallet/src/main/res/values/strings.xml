@@ -528,6 +528,8 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="contact_mailbox_base_uri">Mailbox Base URI</string>
     <string name="contact_petname">Nickname</string>
     <string name="contacts_title">Contacts</string>
+    <string name="mailbox_incoming_payment">Incoming payment</string>
+    <string name="mailbox_payment_request">Payment request</string>
 
     <!-- Settings -->
 

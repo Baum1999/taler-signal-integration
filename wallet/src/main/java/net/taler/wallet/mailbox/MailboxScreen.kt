@@ -25,6 +25,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
@@ -32,6 +34,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -57,6 +60,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -271,7 +275,10 @@ fun MessageItem(
 ) {
     val context = LocalContext.current
     val isPayPush = message.talerUri.startsWith("taler://pay-push")
-    val isPayPull = message.talerUri.startsWith("taler://pay-pull")
+    val isPayPull = message.talerUri.startsWith("taler://pay-pull") ||
+            message.talerUri.startsWith("taler://pay/") ||
+            message.talerUri.startsWith("taler://pay-template")
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -279,22 +286,54 @@ fun MessageItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            if (isPayPush || isPayPull) {
+            if (isPayPush) {
                 Button(
-                    onClick = { onNavigate(WalletDestination.HandleUri(message.talerUri), false) }
+                    onClick = { onNavigate(WalletDestination.HandleUri(message.talerUri), false) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF2E7D32),
+                        contentColor = Color.White,
+                    ),
+                    modifier = Modifier.padding(bottom = 6.dp)
                 ) {
-                    Text(if (isPayPush) "Accept payment" else "Pay invoice")
+                    Icon(
+                        imageVector = Icons.Default.ArrowDownward,
+                        contentDescription = null,
+                        modifier = Modifier.padding(end = 6.dp)
+                    )
+                    Text(stringResource(R.string.mailbox_incoming_payment))
+                }
+            } else if (isPayPull) {
+                Button(
+                    onClick = { onNavigate(WalletDestination.HandleUri(message.talerUri), false) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFE65100),
+                        contentColor = Color.White,
+                    ),
+                    modifier = Modifier.padding(bottom = 6.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowUpward,
+                        contentDescription = null,
+                        modifier = Modifier.padding(end = 6.dp)
+                    )
+                    Text(stringResource(R.string.mailbox_payment_request))
                 }
             } else {
-                Text(message.talerUri, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = message.talerUri,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 6.dp)
+                )
             }
             Text(
                 "From: ${message.originMailboxBaseUrl}",
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 "Received: ${message.downloadedAt.ms.toAbsoluteTime(context)}",
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         IconButton(onClick = { onDelete(message) }) {
