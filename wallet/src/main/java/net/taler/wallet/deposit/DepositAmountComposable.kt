@@ -253,6 +253,19 @@ fun DepositAmountComposable(
     }
 }
 
+private fun previewMaxDeposit(amount: String): GetMaxDepositAmountResponse {
+    val parsed = Amount.fromJSONString(amount)
+    val maximum = DepositMaximum(
+        instructedAmount = parsed,
+        effectiveAmount = parsed,
+        rawAmount = parsed,
+    )
+    return GetMaxDepositAmountResponse(
+        material = maximum,
+        available = maximum,
+    )
+}
+
 @Preview
 @Composable
 fun DepositAmountComposablePreview() {
@@ -266,22 +279,10 @@ fun DepositAmountComposablePreview() {
                 label = "Test accoul "
             ),
             maxDepositable = mapOf(
-                "CHF" to GetMaxDepositAmountResponse(
-                    effectiveAmount = Amount.fromJSONString("CHF:100"),
-                    rawAmount = Amount.fromJSONString("CHF:100"),
-                ),
-                "EUR" to GetMaxDepositAmountResponse(
-                    effectiveAmount = Amount.fromJSONString("EUR:0"),
-                    rawAmount = Amount.fromJSONString("EUR:0"),
-                ),
-                "MXN" to GetMaxDepositAmountResponse(
-                    effectiveAmount = Amount.fromJSONString("MXN:1000"),
-                    rawAmount = Amount.fromJSONString("MXN:1000"),
-                ),
-                "USD" to GetMaxDepositAmountResponse(
-                    effectiveAmount = Amount.fromJSONString("USD:0"),
-                    rawAmount = Amount.fromJSONString("USD:0"),
-                ),
+                "CHF" to previewMaxDeposit("CHF:100"),
+                "EUR" to previewMaxDeposit("EUR:0"),
+                "MXN" to previewMaxDeposit("MXN:1000"),
+                "USD" to previewMaxDeposit("USD:0"),
             ),
         )
         DepositAmountComposable(

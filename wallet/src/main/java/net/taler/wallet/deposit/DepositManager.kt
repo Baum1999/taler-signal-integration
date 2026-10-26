@@ -138,11 +138,7 @@ class DepositManager(
             depositPaytoUri?.let { put("depositPaytoUri", it) }
             put("currency", currency)
         }.onSuccess {
-            val spec = getCurrencySpec(currency)
-            response = it.copy(
-                effectiveAmount = it.effectiveAmount.withSpec(spec),
-                rawAmount = it.rawAmount.withSpec(spec),
-            )
+            response = it.withSpec(getCurrencySpec(currency))
         }.onError { error ->
             Log.e(TAG, "Error getMaxDepositAmount $error")
             onError(error)
@@ -286,10 +282,34 @@ sealed class CheckDepositResult {
 }
 
 @Serializable
-data class GetMaxDepositAmountResponse(
+data class DepositMaximum(
+    val instructedAmount: Amount,
     val effectiveAmount: Amount,
     val rawAmount: Amount,
-)
+) {
+    fun withSpec(spec: CurrencySpecification?) = copy(
+        instructedAmount = instructedAmount.withSpec(spec),
+        effectiveAmount = effectiveAmount.withSpec(spec),
+        rawAmount = rawAmount.withSpec(spec),
+    )
+}
+
+@Serializable
+data class GetMaxDepositAmountResponse(
+    val material: DepositMaximum,
+    val available: DepositMaximum,
+) {
+    val effectiveAmount: Amount
+        get() = available.effectiveAmount
+
+    val rawAmount: Amount
+        get() = available.rawAmount
+
+    fun withSpec(spec: CurrencySpecification?) = copy(
+        material = material.withSpec(spec),
+        available = available.withSpec(spec),
+    )
+}
 
 @Serializable
 data class CreateDepositGroupResponse(
