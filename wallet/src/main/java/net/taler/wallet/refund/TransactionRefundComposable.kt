@@ -39,6 +39,7 @@ import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.transactions.feeIsMeaningful
 import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.ErrorTransactionButton
 import net.taler.wallet.transactions.TransactionAction
@@ -87,7 +88,7 @@ fun TransactionRefundComposable(
             amountType = AmountType.Neutral,
         )
 
-        if (t.amountRaw > t.amountEffective) {
+        if (t.amountRaw > t.amountEffective && t.feeIsMeaningful) {
             val fee = t.amountRaw - t.amountEffective
             TransactionAmountComposable(
                 label = stringResource(id = R.string.amount_fee),

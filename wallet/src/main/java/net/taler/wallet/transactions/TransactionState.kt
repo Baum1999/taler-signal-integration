@@ -185,3 +185,20 @@ object TransactionStateSerializer : KSerializer<TransactionState> {
         })
     }
 }
+
+/**
+ * Whether the difference between a credit's raw and effective amounts is a
+ * fee. For transactions that never completed, wallet-core zeroes the
+ * effective amount, which would otherwise make the whole amount look like a
+ * fee.
+ */
+val Transaction.feeIsMeaningful: Boolean
+    get() = when (txState.major) {
+        TransactionMajorState.Aborted,
+        TransactionMajorState.Aborting,
+        TransactionMajorState.SuspendedAborting,
+        TransactionMajorState.Failed,
+        TransactionMajorState.Expired,
+        TransactionMajorState.Deleted -> false
+        else -> true
+    }

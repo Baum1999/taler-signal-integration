@@ -27,6 +27,7 @@ import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode.EXCHANGE_GENERIC_KYC_REQUIRED
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.balances.ScopeInfo
+import net.taler.wallet.transactions.feeIsMeaningful
 import net.taler.wallet.transactions.AmountType
 import net.taler.wallet.transactions.PeerActions
 import net.taler.wallet.transactions.PeerInfoShort
@@ -53,7 +54,7 @@ fun ColumnScope.TransactionPeerPushCreditComposable(
         amountType = AmountType.Neutral,
     )
 
-    if (t.amountRaw > t.amountEffective) {
+    if (t.amountRaw > t.amountEffective && t.feeIsMeaningful) {
         val fee = t.amountRaw - t.amountEffective
         TransactionAmountComposable(
             label = stringResource(id = R.string.amount_fee),
