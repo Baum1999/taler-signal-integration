@@ -338,6 +338,6 @@ enum class WireType {
 
 @Serializable
 data class WireTypeDetails(
-    val paymentTargetType: WireType,
+    val paymentTargetType: WireType = WireType.Unknown,
     val talerBankHostnames: List<String>? = null,
 )

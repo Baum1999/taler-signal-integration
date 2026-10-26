@@ -74,7 +74,9 @@ fun AddAccountComposable(
     onClose: () -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
-    val supportedWireTypes = remember(depositWireTypes) { depositWireTypes.wireTypes }
+    val supportedWireTypes = remember(depositWireTypes) {
+        depositWireTypes.wireTypes.filterNot { it == WireType.Unknown }
+    }
     val talerBankHostnames = remember(depositWireTypes) { depositWireTypes.hostNames }
     val presetPaytoUri = remember(presetAccount) { presetAccount?.let { PaytoUri.parse(it.paytoUri) } }
 

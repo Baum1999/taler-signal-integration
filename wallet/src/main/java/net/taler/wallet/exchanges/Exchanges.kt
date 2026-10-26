@@ -35,7 +35,7 @@ data class ExchangeItem(
     val currency: String? = null,
     val paytoUris: List<String>,
     val scopeInfo: ScopeInfo? = null,
-    val tosStatus: ExchangeTosStatus,
+    val tosStatus: ExchangeTosStatus = ExchangeTosStatus.Unknown,
 ) {
     val name: String get() = cleanExchange(exchangeBaseUrl)
 }

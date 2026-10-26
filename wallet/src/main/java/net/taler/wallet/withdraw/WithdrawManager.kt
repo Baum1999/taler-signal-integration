@@ -181,7 +181,7 @@ data class WithdrawalDetailsForUri(
     val wireFee: Amount? = null,
     val defaultExchangeBaseUrl: String? = null,
     val possibleExchanges: List<ExchangeItem> = emptyList(),
-    val status: WithdrawalOperationStatusFlag,
+    val status: WithdrawalOperationStatusFlag = WithdrawalOperationStatusFlag.Unknown,
 )
 
 internal fun WithdrawalDetailsForUri.initialExchangeBaseUrl(): String? =
