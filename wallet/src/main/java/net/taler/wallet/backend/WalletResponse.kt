@@ -101,7 +101,7 @@ data class TalerErrorInfo(
                         }
                     }
                 }
-            }.toString()
+            }.toString().trim()
         }
 
     fun getStringExtra(key: String): String? =

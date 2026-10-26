@@ -116,7 +116,9 @@ fun ErrorComposable(
             }
         } else {
             Text(
-                text = error.userFacingMsg,
+                text = error.userFacingMsg.ifEmpty {
+                    stringResource(R.string.error_code_only, error.rawCode)
+                },
                 fontFamily = FontFamily.Default,
                 textAlign = TextAlign.Center,
             )
