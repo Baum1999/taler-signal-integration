@@ -16,6 +16,8 @@
 
 package net.taler.wallet.main
 
+import android.app.KeyguardManager
+import android.content.Context
 import android.content.Intent
 import android.content.Intent.ACTION_SEND
 import android.content.Intent.EXTRA_TEXT
@@ -32,6 +34,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts.CreateDocument
 import androidx.activity.viewModels
+import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
 import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import androidx.biometric.BiometricPrompt
@@ -75,6 +78,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import net.taler.lib.android.TalerNfcService
 import net.taler.wallet.R
@@ -124,8 +128,15 @@ class MainActivity : FragmentActivity() {
                 val errorSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = !devMode)
                 val authenticated by model.authenticated.collectAsState()
                 val biometricEnabled by model.settingsManager.getBiometricLockEnabled(this).collectAsState(false)
+                val biometricAvailable = remember { isDeviceAuthAvailable() }
+                LaunchedEffect(biometricEnabled, biometricAvailable) {
+                    if (biometricEnabled && !biometricAvailable) {
+                        model.settingsManager.setBiometricLockEnabled(this@MainActivity, false)
+                        model.unlockWallet()
+                    }
+                }
                 val databaseMigrationState by model.databaseMigrationState.collectAsState()
-                val walletUnlocked = !biometricEnabled || authenticated
+                val walletUnlocked = !biometricEnabled || authenticated || !biometricAvailable
 
                 val logExportLauncher = rememberLauncherForActivityResult(CreateDocument("text/plain")) { uri ->
                     uri?.let { model.settingsManager.exportLogcat(it) }
@@ -169,7 +180,7 @@ class MainActivity : FragmentActivity() {
                         )
                     }
 
-                    if (!authenticated && biometricEnabled) {
+                    if (!walletUnlocked) {
                         BiometricOverlay(
                             onUnlock = { biometricPrompt.authenticate(promptInfo) }
                         )
@@ -273,6 +284,16 @@ class MainActivity : FragmentActivity() {
         }
     }
 
+    private fun isDeviceAuthAvailable(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            BiometricManager.from(this).canAuthenticate(
+                BIOMETRIC_STRONG or DEVICE_CREDENTIAL,
+            ) == BiometricManager.BIOMETRIC_SUCCESS
+        } else {
+            (getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager).isDeviceSecure
+        }
+    }
+
     private fun setupBiometrics() {
         biometricPrompt = BiometricPrompt(
             this,
@@ -281,7 +302,9 @@ class MainActivity : FragmentActivity() {
                 override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                     super.onAuthenticationError(errorCode, errString)
                     if (errorCode == ERROR_NO_BIOMETRICS || errorCode == ERROR_NO_DEVICE_CREDENTIAL) {
+                        model.settingsManager.setBiometricLockEnabled(this@MainActivity, false)
                         model.unlockWallet()
+                        return
                     }
                     Toast.makeText(this@MainActivity, getString(R.string.biometric_auth_error, errString), LENGTH_SHORT).show()
                 }
@@ -394,6 +417,14 @@ class MainActivity : FragmentActivity() {
     override fun onResume() {
         super.onResume()
         TalerNfcService.setDefaultHandler(this)
+        if (!isDeviceAuthAvailable()) {
+            lifecycleScope.launch {
+                if (model.settingsManager.getBiometricLockEnabled(this@MainActivity).first()) {
+                    model.settingsManager.setBiometricLockEnabled(this@MainActivity, false)
+                }
+                model.unlockWallet()
+            }
+        }
     }
 
     override fun onPause() {
