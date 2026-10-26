@@ -72,6 +72,12 @@ sealed class CheckFeeResult {
         override val maxDepositAmountEffective: Amount? = null,
         override val maxDepositAmountRaw: Amount? = null,
     ): CheckFeeResult()
+
+    data class Error(
+        val error: TalerErrorInfo,
+        override val maxDepositAmountEffective: Amount? = null,
+        override val maxDepositAmountRaw: Amount? = null,
+    ): CheckFeeResult()
 }
 
 @Serializable
@@ -185,10 +191,23 @@ class PeerManager(
         exchangeBaseUrl: String? = null,
         restrictScope: ScopeInfo? = null,
     ): CheckFeeResult {
-        val max = getMaxPeerPushDebitAmount(amount.currency, exchangeBaseUrl, restrictScope = restrictScope)
+        var max: GetMaxPeerPushDebitAmountResponse? = null
+        var maxError: TalerErrorInfo? = null
+        getMaxPeerPushDebitAmount(
+            amount.currency,
+            exchangeBaseUrl,
+            restrictScope = restrictScope,
+            onSuccess = { max = it },
+            onError = { maxError = it },
+        )
+        maxError?.let { return CheckFeeResult.Error(it) }
+        val maxAmount = max ?: return CheckFeeResult.Error(
+            TalerErrorInfo.makeCustomError("Could not determine the maximum send amount."),
+        )
+
         var response: CheckFeeResult = CheckFeeResult.None(
-            maxDepositAmountEffective = max?.effectiveAmount,
-            maxDepositAmountRaw = max?.rawAmount,
+            maxDepositAmountEffective = maxAmount.effectiveAmount,
+            maxDepositAmountRaw = maxAmount.rawAmount,
         )
 
         api.request(
@@ -204,8 +223,8 @@ class PeerManager(
                 is CheckPeerPushDebitOkResponse -> CheckFeeResult.Success(
                     amountRaw = r.amountRaw,
                     amountEffective = r.amountEffective,
-                    maxDepositAmountEffective = max?.effectiveAmount,
-                    maxDepositAmountRaw = max?.rawAmount,
+                    maxDepositAmountEffective = maxAmount.effectiveAmount,
+                    maxDepositAmountRaw = maxAmount.rawAmount,
                     exchangeBaseUrl = r.exchangeBaseUrl,
                     defaultExpiration = r.defaultExpiration,
                 )
@@ -213,13 +232,14 @@ class PeerManager(
                 is CheckPeerPushDebitInsufficientBalanceResponse -> CheckFeeResult.InsufficientBalance(
                     maxAmountEffective = r.insufficientBalanceDetails.maxEffectiveSpendAmount,
                     maxAmountRaw = r.insufficientBalanceDetails.balanceAvailable,
-                    maxDepositAmountEffective = max?.effectiveAmount,
-                    maxDepositAmountRaw = max?.rawAmount,
+                    maxDepositAmountEffective = maxAmount.effectiveAmount,
+                    maxDepositAmountRaw = maxAmount.rawAmount,
                     causeHint = r.insufficientBalanceDetails.causeHint,
                 )
             }
         }.onError { error ->
             Log.e(TAG, "got checkPeerPushDebit error result $error")
+            response = CheckFeeResult.Error(error)
         }
 
         return response
@@ -229,19 +249,22 @@ class PeerManager(
         currency: String,
         exchangeBaseUrl: String? = null,
         restrictScope: ScopeInfo? = null,
-    ): GetMaxPeerPushDebitAmountResponse? {
-        var response: GetMaxPeerPushDebitAmountResponse? = null
-        api.request("getMaxPeerPushDebitAmount", GetMaxPeerPushDebitAmountResponse.serializer()) {
+        onSuccess: (GetMaxPeerPushDebitAmountResponse) -> Unit,
+        onError: (TalerErrorInfo) -> Unit,
+    ) {
+        api.request(
+            "getMaxPeerPushDebitAmount",
+            GetMaxPeerPushDebitAmountResponse.serializer(),
+        ) {
             exchangeBaseUrl?.let { put("exchangeBaseUrl", it) }
             restrictScope?.let { put("restrictScope", JSONObject(BackendManager.json.encodeToString(it))) }
             put("currency", currency)
+        }.onSuccess {
+            onSuccess(it)
         }.onError { error ->
             Log.e(TAG, "got getMaxPeerPushDebitAmount error result $error")
-        }.onSuccess {
-            response = it
+            onError(error)
         }
-
-        return response
     }
 
     fun initiatePeerPushDebit(

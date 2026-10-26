@@ -82,8 +82,11 @@ class BalanceManager(
                 Log.e(TAG, "Error retrieving balances: $it")
                 mState.postValue(BalanceState.Error(it))
             }.onSuccess { res ->
+                var currencySpecError: TalerErrorInfo? = null
                 val balances = res.balances.map { balance ->
-                    val spec = exchangeManager.getCurrencySpecification(balance.scopeInfo)
+                    val spec = exchangeManager.getCurrencySpecification(balance.scopeInfo) {
+                        currencySpecError = it
+                    }
                     balance.copy(
                         available = balance.available.withSpec(spec),
                         pendingIncoming = balance.pendingIncoming.withSpec(spec),
@@ -99,6 +102,11 @@ class BalanceManager(
                         amountStatement = item.amountStatement?.withSpec(spec),
                     )
                 } ?: emptyList()
+
+                currencySpecError?.let { error ->
+                    mState.postValue(BalanceState.Error(error))
+                    return@onSuccess
+                }
 
                 mBalances.postValue(balances)
                 mState.postValue(BalanceState.Success(

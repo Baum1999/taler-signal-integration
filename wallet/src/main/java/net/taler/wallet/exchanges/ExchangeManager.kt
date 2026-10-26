@@ -60,6 +60,9 @@ class ExchangeManager(
     private val mListError = MutableLiveData<Event<TalerErrorInfo>>()
     val listError: LiveData<Event<TalerErrorInfo>> = mListError
 
+    private val mListErrorState = MutableLiveData<TalerErrorInfo?>(null)
+    val listErrorState: LiveData<TalerErrorInfo?> = mListErrorState
+
     private val mDeleteError = MutableLiveData<Event<TalerErrorInfo>>()
     val deleteError: LiveData<Event<TalerErrorInfo>> = mDeleteError
 
@@ -76,10 +79,12 @@ class ExchangeManager(
             val response = api.request("listExchanges", ExchangeListResponse.serializer())
             response.onError {
                 mProgress.value = false
+                mListErrorState.value = it
                 mListError.value = it.toEvent()
             }.onSuccess {
                 Log.d(TAG, "Exchange list: ${it.exchanges}")
                 mProgress.value = false
+                mListErrorState.value = null
                 mExchanges.value = it.exchanges
                 scope.launch {
                     // load and cache all currency specs
@@ -92,6 +97,10 @@ class ExchangeManager(
             }
         }
         return mExchanges
+    }
+
+    fun reloadList() {
+        list()
     }
 
     fun add(exchangeUrl: String, onSuccess: (() -> Unit)? = null) = scope.launch {
@@ -275,7 +284,10 @@ class ExchangeManager(
         }
     }
 
-    suspend fun getCurrencySpecification(scopeInfo: ScopeInfo): CurrencySpecification? {
+    suspend fun getCurrencySpecification(
+        scopeInfo: ScopeInfo,
+        onError: ((TalerErrorInfo) -> Unit)? = null,
+    ): CurrencySpecification? {
         if (currencySpecs.containsKey(scopeInfo)) {
             return currencySpecs[scopeInfo]
         }
@@ -290,6 +302,7 @@ class ExchangeManager(
             spec = it.currencySpecification
         }.onError {
             Log.e(TAG, "Error getting currency spec for scope $scopeInfo: $it")
+            onError?.invoke(it)
         }
         return spec
     }

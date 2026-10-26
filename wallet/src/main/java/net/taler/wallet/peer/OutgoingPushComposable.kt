@@ -221,6 +221,15 @@ fun OutgoingPushIntroComposable(
                 }
             )
 
+            if (feeResult is CheckFeeResult.Error) {
+                ErrorComposable(
+                    error = (feeResult as CheckFeeResult.Error).error,
+                    modifier = Modifier.fillMaxWidth(),
+                    devMode = devMode,
+                    scrollable = false,
+                )
+            }
+
             if (state is OutgoingError) {
                 ErrorComposable(
                     error = state.info,

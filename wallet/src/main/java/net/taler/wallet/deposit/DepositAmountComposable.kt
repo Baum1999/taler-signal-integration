@@ -66,6 +66,7 @@ fun DepositAmountComposable(
     checkDeposit: suspend (amount: Amount) -> CheckDepositResult,
     onMakeDeposit: (amount: Amount) -> Unit,
     onClose: () -> Unit,
+    devMode: Boolean = false,
 ) {
     Column(
         modifier
@@ -128,7 +129,20 @@ fun DepositAmountComposable(
             }
 
             val spec = remember(amount) { getCurrencySpec(amount!!.currency) }
-            val maxDepositable = remember(amount) { state.maxDepositable[amount!!.currency]  }
+            val maxDepositable = remember(amount) { state.maxDepositable[amount!!.currency] }
+
+            state.maxDepositError?.let { error ->
+                if (maxDepositable == null) {
+                    ErrorComposable(
+                        error = error,
+                        modifier = Modifier.fillMaxWidth(),
+                        devMode = devMode,
+                        scrollable = false,
+                        onClose = onClose,
+                    )
+                    return
+                }
+            }
 
             amount.useDebounce { debouncedAmount ->
                 if (debouncedAmount == null || debouncedAmount.isZero()) {

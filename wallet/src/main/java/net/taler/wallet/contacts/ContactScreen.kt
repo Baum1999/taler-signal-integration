@@ -64,6 +64,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -79,6 +80,7 @@ import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
 import net.taler.wallet.balances.ScopeInfo
+import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.QrCodeParams
 import net.taler.wallet.compose.QrCodeUriComposable
 import net.taler.wallet.compose.TalerSurface
@@ -97,6 +99,7 @@ fun ContactScreen(
     val contactManager = model.contactManager
     val contactResult by contactManager.contacts.collectAsState()
     val lookupResult by contactManager.lookupResult.collectAsState()
+    val devMode by model.devMode.observeAsState(false)
     var showAddDialog by remember { mutableStateOf(false) }
     var showNicknameDialog by remember { mutableStateOf(false) }
     var pendingContact by remember { mutableStateOf<PendingContact?>(null) }
@@ -195,7 +198,13 @@ fun ContactScreen(
 
             when (val res = contactResult) {
                 is ContactResult.Loading -> Text("Loading...", modifier = Modifier.padding(16.dp))
-                is ContactResult.Error -> Text("Error: ${res.error}", modifier = Modifier.padding(16.dp))
+                is ContactResult.Error -> ErrorComposable(
+                    error = res.error,
+                    devMode = devMode,
+                    modifier = Modifier.weight(1f),
+                    scrollable = true,
+                    onRetry = { contactManager.loadContacts() },
+                )
                 is ContactResult.Success -> {
                     val filteredContacts = res.contacts.filter { contact ->
                         contact.petname.fuzzyMatches(searchQuery) ||

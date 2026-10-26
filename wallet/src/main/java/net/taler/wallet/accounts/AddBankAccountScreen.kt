@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -31,6 +32,7 @@ import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.launch
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
@@ -50,18 +52,25 @@ fun AddBankAccountScreen(
 
     var depositWireTypes by remember { mutableStateOf<GetDepositWireTypesResponse?>(null) }
     var bankAccount by remember { mutableStateOf<KnownBankAccountInfo?>(null) }
+    var loadError by remember { mutableStateOf<TalerErrorInfo?>(null) }
+    var reload by remember { mutableStateOf(0) }
 
-    LaunchedEffect(bankAccountId) {
+    LaunchedEffect(bankAccountId, reload) {
+        depositWireTypes = null
+        bankAccount = null
+        loadError = null
         if (bankAccountId != null) {
             bankAccount = accountManager.getBankAccountById(bankAccountId) { error ->
-                onShowError(error)
+                loadError = error
             }
         }
+        depositManager.getDepositWireTypes(
+            onSuccess = { depositWireTypes = it },
+            onError = { loadError = it },
+        )
     }
 
-    LaunchedEffect(Unit) {
-        depositWireTypes = depositManager.getDepositWireTypes()
-    }
+    val devMode by model.devMode.observeAsState(false)
 
     TalerSurface {
         GlobalScaffold(
@@ -76,13 +85,25 @@ fun AddBankAccountScreen(
                 }
             },
         ) { paddingValues ->
-            if (depositWireTypes == null || (bankAccountId != null && bankAccount == null)) {
-                LoadingScreen(Modifier.padding(paddingValues))
-            } else {
-                AddAccountComposable(
+            val error = loadError
+            val currentWireTypes = depositWireTypes
+            when {
+                error != null -> ErrorComposable(
+                    error = error,
+                    devMode = devMode,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    scrollable = true,
+                    onRetry = { reload += 1 },
+                    onClose = onNavigateBack,
+                )
+
+                currentWireTypes != null &&
+                    (bankAccountId == null || bankAccount != null) -> AddAccountComposable(
                     modifier = Modifier.padding(paddingValues),
                     presetAccount = bankAccount,
-                    depositWireTypes = depositWireTypes!!,
+                    depositWireTypes = currentWireTypes,
                     validateIban = depositManager::validateIban,
                     onSubmit = { paytoUri, label ->
                         coroutineScope.launch {
@@ -98,6 +119,8 @@ fun AddBankAccountScreen(
                     },
                     onClose = onNavigateBack,
                 )
+
+                else -> LoadingScreen(Modifier.padding(paddingValues))
             }
         }
     }

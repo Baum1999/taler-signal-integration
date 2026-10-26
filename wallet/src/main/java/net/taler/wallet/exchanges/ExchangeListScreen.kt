@@ -71,6 +71,7 @@ import net.taler.wallet.backend.WalletResponse
 import net.taler.wallet.balances.BalanceManager
 import net.taler.wallet.balances.ScopeInfo
 import net.taler.wallet.compose.EmptyComposable
+import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.main.MainViewModel
 
@@ -88,6 +89,7 @@ fun ExchangeListScreen(
     val devMode by model.devMode.observeAsState(false)
     val addError by exchangeManager.addError.observeAsState()
     val listError by exchangeManager.listError.observeAsState()
+    val listErrorState by exchangeManager.listErrorState.observeAsState()
     val deleteError by exchangeManager.deleteError.observeAsState()
     val reloadError by exchangeManager.reloadError.observeAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -111,8 +113,10 @@ fun ExchangeListScreen(
         }
     }
 
-    LaunchedEffect(listError) {
-        listError?.getIfNotConsumed()?.let { onShowError(it) }
+    LaunchedEffect(listError, exchanges) {
+        listError?.getIfNotConsumed()?.let {
+            if (exchanges.isNotEmpty()) onShowError(it)
+        }
     }
 
     LaunchedEffect(deleteError) {
@@ -142,7 +146,16 @@ fun ExchangeListScreen(
         }
     ) { padding ->
         if (exchanges.isEmpty()) {
-            EmptyComposable(
+            listErrorState?.let { error ->
+                ErrorComposable(
+                    error = error,
+                    devMode = devMode,
+                    modifier = Modifier.fillMaxSize().padding(padding),
+                    scrollable = true,
+                    onRetry = { exchangeManager.reloadList() },
+                    onClose = onNavigateBack,
+                )
+            } ?: EmptyComposable(
                 modifier = Modifier.fillMaxSize().padding(padding),
                 message = stringResource(R.string.exchange_list_empty),
             )

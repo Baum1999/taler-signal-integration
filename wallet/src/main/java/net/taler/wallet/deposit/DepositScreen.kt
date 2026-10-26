@@ -111,12 +111,10 @@ fun DepositScreen(
                 onClose = onNavigateBack,
             )
 
-            is DepositState.Start -> {
-                MakeDepositComposable(
+            is DepositState.Start -> when (val accounts = knownBankAccounts) {
+                is ListBankAccountsResult.Success -> MakeDepositComposable(
                     modifier = Modifier.padding(paddingValues),
-                    knownBankAccounts = (knownBankAccounts as? ListBankAccountsResult.Success)
-                        ?.accounts
-                        ?: emptyList(),
+                    knownBankAccounts = accounts.accounts,
                     onAccountSelected = { account ->
                         depositManager.selectAccount(account)
                     },
@@ -124,6 +122,19 @@ fun DepositScreen(
                         onNavigate(WalletDestination.BankAccounts(), false)
                     }
                 )
+
+                is ListBankAccountsResult.Error -> ErrorComposable(
+                    error = accounts.error,
+                    devMode = devMode,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    scrollable = true,
+                    onRetry = { accountManager.listBankAccounts() },
+                    onClose = onNavigateBack,
+                )
+
+                ListBankAccountsResult.None -> LoadingScreen(Modifier.padding(paddingValues))
             }
 
             is DepositState.AccountSelected -> {
@@ -140,7 +151,8 @@ fun DepositScreen(
                     },
                     onClose = {
                         depositManager.resetDepositState()
-                    }
+                    },
+                    devMode = devMode,
                 )
             }
         }

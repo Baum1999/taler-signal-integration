@@ -29,6 +29,7 @@ import net.taler.common.Amount
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
 import net.taler.wallet.compose.AmountScope
+import net.taler.wallet.compose.ErrorComposable
 import net.taler.wallet.compose.GlobalScaffold
 import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.collectAsStateLifecycleAware
@@ -135,7 +136,19 @@ fun PromptWithdrawScreen(
         },
         onNavigateBack = onNavigateBack,
     ) { paddingValues ->
-        if (status.selectedAmount == null && status.selectedScope == null) {
+        val withdrawError = status.error
+        if (status.status == WithdrawStatus.Status.Error && withdrawError != null) {
+            ErrorComposable(
+                error = withdrawError,
+                devMode = devMode,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                scrollable = true,
+                onRetry = { withdrawManager.resetWithdrawal() },
+                onClose = onNavigateBack,
+            )
+        } else if (status.selectedAmount == null && status.selectedScope == null) {
             LoadingScreen(Modifier.padding(paddingValues))
         } else {
             WithdrawalShowInfo(

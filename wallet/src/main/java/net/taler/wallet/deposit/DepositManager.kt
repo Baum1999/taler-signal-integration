@@ -35,6 +35,7 @@ import net.taler.wallet.accounts.PaytoUriIban
 import net.taler.wallet.accounts.PaytoUriTalerBank
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorCode.WALLET_DEPOSIT_GROUP_INSUFFICIENT_BALANCE
+import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.backend.WalletResponse
 import net.taler.wallet.balances.BalanceManager
@@ -66,9 +67,12 @@ class DepositManager(
 
     @UiThread
     fun selectAccount(account: KnownBankAccountInfo) = scope.launch {
-        getMaxDepositableForPayto(account.paytoUri).let { response ->
-            mDepositState.value = DepositState.AccountSelected(account, response)
-        }
+        val (maxDepositable, error) = getMaxDepositableForPayto(account.paytoUri)
+        mDepositState.value = DepositState.AccountSelected(
+            account = account,
+            maxDepositable = maxDepositable,
+            maxDepositError = error,
+        )
     }
 
     suspend fun checkDepositFees(paytoUri: String, amount: Amount): CheckDepositResult {
@@ -127,21 +131,22 @@ class DepositManager(
     private suspend fun getMaxDepositAmount(
         currency: String,
         depositPaytoUri: String?,
+        onError: (TalerErrorInfo) -> Unit = {},
     ): GetMaxDepositAmountResponse? {
         var response: GetMaxDepositAmountResponse? = null
         api.request("getMaxDepositAmount", GetMaxDepositAmountResponse.serializer()) {
             depositPaytoUri?.let { put("depositPaytoUri", it) }
             put("currency", currency)
-        }.onError { error ->
-            Log.e(TAG, "Error getMaxDepositAmount $error")
         }.onSuccess {
             val spec = getCurrencySpec(currency)
             response = it.copy(
                 effectiveAmount = it.effectiveAmount.withSpec(spec),
                 rawAmount = it.rawAmount.withSpec(spec),
             )
+        }.onError { error ->
+            Log.e(TAG, "Error getMaxDepositAmount $error")
+            onError(error)
         }
-
         return response
     }
 
@@ -186,26 +191,31 @@ class DepositManager(
     suspend fun getDepositWireTypes(
         currency: String? = null,
         scopeInfo: ScopeInfo? = null,
-    ): GetDepositWireTypesResponse? {
-        var result: GetDepositWireTypesResponse? = null
+        onSuccess: (GetDepositWireTypesResponse) -> Unit,
+        onError: (TalerErrorInfo) -> Unit,
+    ) {
         api.request("getDepositWireTypes", GetDepositWireTypesResponse.serializer()) {
             scopeInfo?.let { put("scopeInfo", JSONObject(BackendManager.json.encodeToString(it))) }
             currency?.let { put("currency", it) }
             this
+        }.onSuccess {
+            onSuccess(it)
         }.onError {
             Log.e(TAG, "Error getDepositWireTypes $it")
-        }.onSuccess {
-            result = it
+            onError(it)
         }
-        return result
     }
 
     private suspend fun getMaxDepositableForPayto(
         paytoUri: String,
-    ): Map<String, GetMaxDepositAmountResponse?> {
-        return balanceManager.getCurrencies().associateWith { currency ->
-            getMaxDepositAmount(currency, paytoUri)
+    ): Pair<Map<String, GetMaxDepositAmountResponse?>, TalerErrorInfo?> {
+        var error: TalerErrorInfo? = null
+        val maxDepositable = balanceManager.getCurrencies().associateWith { currency ->
+            getMaxDepositAmount(currency, paytoUri) {
+                if (error == null) error = it
+            }
         }
+        return maxDepositable to error
     }
 }
 

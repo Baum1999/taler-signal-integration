@@ -25,6 +25,7 @@ sealed class DepositState {
     data class AccountSelected(
         val account: KnownBankAccountInfo,
         val maxDepositable: Map<String, GetMaxDepositAmountResponse?>,
+        val maxDepositError: TalerErrorInfo? = null,
     ) : DepositState()
 
     data object MakingDeposit : DepositState()
