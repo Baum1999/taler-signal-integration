@@ -80,7 +80,7 @@ fun BitcoinSegwitAddresses(amount: Amount, address: String, segwitAddresses: Lis
                     )
                     Text(
                         text = if (segwitAddress == address)
-                            amount.withCurrency("BTC").toString()
+                            amount.toString()
                         else SEGWIT_MIN.toString(),
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Bold,
@@ -105,5 +105,5 @@ private fun getCopyText(amount: Amount, addr: String, segwitAddresses: List<Stri
     val sr = segwitAddresses.joinToString(separator = "\n") { s ->
         "\n$s $SEGWIT_MIN\n"
     }
-    return "$addr ${amount.withCurrency("BTC")}\n$sr"
+    return "$addr $amount\n$sr"
 }
