@@ -85,8 +85,12 @@ import net.taler.wallet.transactions.TransactionMajorState.Aborted
 import net.taler.wallet.transactions.TransactionMajorState.Aborting
 import net.taler.wallet.transactions.TransactionMajorState.Dialog
 import net.taler.wallet.transactions.TransactionMajorState.Done
+import net.taler.wallet.transactions.TransactionMajorState.Expired
 import net.taler.wallet.transactions.TransactionMajorState.Failed
 import net.taler.wallet.transactions.TransactionMajorState.Pending
+import net.taler.wallet.transactions.TransactionMajorState.Suspended
+import net.taler.wallet.transactions.TransactionMajorState.SuspendedAborting
+import net.taler.wallet.transactions.TransactionMajorState.SuspendedFinalizing
 import net.taler.wallet.transactions.TransactionMinorState.BalanceKycRequired
 import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
 import net.taler.wallet.transactions.TransactionMinorState.KycAuthRequired
@@ -420,6 +424,18 @@ fun TransactionExtraInfo(tx: Transaction) {
         }
 
         tx.txState.major == Dialog -> {}
+
+        tx.txState.major == Suspended ||
+            tx.txState.major == SuspendedFinalizing ||
+            tx.txState.major == SuspendedAborting -> Text(
+            stringResource(R.string.transaction_state_suspended),
+            color = MaterialTheme.colorScheme.error,
+        )
+
+        tx.txState.major == Expired -> Text(
+            stringResource(R.string.transaction_state_expired),
+            color = MaterialTheme.colorScheme.error,
+        )
 
         tx is TransactionWithdrawal && !tx.confirmed -> Text(stringResource(R.string.withdraw_waiting_confirm))
         tx is TransactionPeerPushCredit && tx.info.summary != null -> Text(tx.info.summary)
