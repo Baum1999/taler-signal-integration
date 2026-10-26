@@ -205,10 +205,13 @@ class PeerManager(
             TalerErrorInfo.makeCustomError("Could not determine the maximum send amount."),
         )
 
-        var response: CheckFeeResult = CheckFeeResult.None(
+        val none = CheckFeeResult.None(
             maxDepositAmountEffective = maxAmount.effectiveAmount,
             maxDepositAmountRaw = maxAmount.rawAmount,
         )
+        if (amount.isZero()) return none
+
+        var response: CheckFeeResult = none
 
         api.request(
             "checkPeerPushDebitV2",
