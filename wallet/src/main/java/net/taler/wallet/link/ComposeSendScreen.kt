@@ -683,7 +683,7 @@ fun ComposeSendScreen(
                         devMode = devMode,
                         getCurrencySpec = model.exchangeManager::getSpecForScopeInfo,
                         checkPeerPullCredit = { amountScope, loading ->
-                            model.selectScope(amountScope.scope)
+                            model.displayScope(amountScope.scope)
                             peerManager.checkPeerPullCredit(
                                 amountScope.amount,
                                 scopeInfo = amountScope.scope,
@@ -753,7 +753,7 @@ fun ComposeSendScreen(
                     devMode = devMode,
                     getCurrencySpec = model.exchangeManager::getSpecForScopeInfo,
                     getFees = {
-                        model.selectScope(it.scope)
+                        model.displayScope(it.scope)
                         peerManager.checkPeerPushFees(it.amount, restrictScope = it.scope)
                     },
                     onSend = { amountScope, summary, hours ->

@@ -377,7 +377,7 @@ fun ComposeRefundScreen(
                     devMode = devMode,
                     getCurrencySpec = model.exchangeManager::getSpecForScopeInfo,
                     getFees = {
-                        model.selectScope(it.scope)
+                        model.displayScope(it.scope)
                         peerManager.checkPeerPushFees(it.amount, restrictScope = it.scope)
                     },
                     onSend = { amountScope, summary, hours ->
