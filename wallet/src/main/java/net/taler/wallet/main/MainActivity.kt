@@ -138,6 +138,18 @@ class MainActivity : FragmentActivity() {
                 val databaseMigrationState by model.databaseMigrationState.collectAsState()
                 val walletUnlocked = !biometricEnabled || authenticated || !biometricAvailable
 
+                var nfcTagIntentBlocked by remember { mutableStateOf(false) }
+                LaunchedEffect(Unit) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
+                        val adapter = NfcAdapter.getDefaultAdapter(this@MainActivity)
+                        if (adapter?.isTagIntentAppPreferenceSupported == true &&
+                            !adapter.isTagIntentAllowed
+                        ) {
+                            nfcTagIntentBlocked = true
+                        }
+                    }
+                }
+
                 val logExportLauncher = rememberLauncherForActivityResult(CreateDocument("text/plain")) { uri ->
                     uri?.let { model.settingsManager.exportLogcat(it) }
                 }
@@ -200,6 +212,27 @@ class MainActivity : FragmentActivity() {
                         devMode = devMode,
                         sheetState = errorSheetState,
                         onDismiss = { errorInfo = null }
+                    )
+                }
+
+                if (nfcTagIntentBlocked) {
+                    AlertDialog(
+                        onDismissRequest = { nfcTagIntentBlocked = false },
+                        title = { Text(stringResource(R.string.nfc_tag_intent_disabled_title)) },
+                        text = { Text(stringResource(R.string.nfc_tag_intent_disabled_message)) },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                nfcTagIntentBlocked = false
+                                startActivity(Intent(NfcAdapter.ACTION_CHANGE_TAG_INTENT_PREFERENCE))
+                            }) {
+                                Text(stringResource(R.string.nfc_tag_intent_open_settings))
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { nfcTagIntentBlocked = false }) {
+                                Text(stringResource(R.string.cancel))
+                            }
+                        }
                     )
                 }
 

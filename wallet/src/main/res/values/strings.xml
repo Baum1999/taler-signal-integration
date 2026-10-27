@@ -83,6 +83,9 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="nfc_not_available">NFC not available</string>
     <string name="nfc_scanning">Tap NFC tag to write confirmation codes</string>
     <string name="nfc_write_success">Confirmation codes written</string>
+    <string name="nfc_tag_intent_disabled_title">NFC tag scanning is disabled</string>
+    <string name="nfc_tag_intent_disabled_message">Android is currently blocking this app from opening when an NFC tag is scanned. Enable \"Launch via NFC\" for the Taler wallet to open NFC links automatically.</string>
+    <string name="nfc_tag_intent_open_settings">Open settings</string>
     <string name="ok">OK</string>
     <string name="open">Open</string>
     <string name="paste">Paste</string>

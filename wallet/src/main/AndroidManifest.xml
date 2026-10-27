@@ -59,7 +59,7 @@
         <activity
             android:name=".main.MainActivity"
             android:exported="true"
-            android:launchMode="singleInstance"
+            android:launchMode="singleTask"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="adjustResize"
             android:configChanges="keyboardHidden|orientation|screenSize|uiMode">
@@ -69,7 +69,6 @@
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-                <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -90,6 +89,34 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
+
+        <!--
+            Dedicated NFC entry point. Keeping it as an alias leaves the
+            launcher activity above free to change independently.
+            If the app targets SDK 37 again, this alias must additionally be
+            protected by android.permission.DISPATCH_NFC_MESSAGE.
+        -->
+        <activity-alias
+            android:name=".main.NfcEntryActivity"
+            android:targetActivity=".main.MainActivity"
+            android:exported="true"
+            android:permission="android.permission.DISPATCH_NFC_MESSAGE">
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:scheme="taler" />
+                <data
+                    android:scheme="TALER"
+                    tools:ignore="AppLinkUrlError" />
+                <data android:scheme="ext+taler" />
+                <data
+                    android:scheme="EXT+TALER"
+                    tools:ignore="AppLinkUrlError" />
+                <data android:scheme="payto" />
+            </intent-filter>
+        </activity-alias>
 
         <service
             android:name="net.taler.lib.android.TalerNfcService"
