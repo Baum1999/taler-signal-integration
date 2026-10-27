@@ -417,6 +417,23 @@ class TransactionManager(
             }
         }
 
+    /**
+     * Wie [abortTransaction], wartet aber auf das Ergebnis: null bei Erfolg,
+     * sonst der Fehler. Fuer Aufrufer, die mehrere Abbrueche nacheinander
+     * auswerten muessen (link/ComposeAbortScreen.kt).
+     */
+    suspend fun abortTransactionAwait(transactionId: String): TalerErrorInfo? {
+        var error: TalerErrorInfo? = null
+        api.request<Unit>("abortTransaction") {
+            put("transactionId", transactionId)
+        }.onError {
+            error = it
+        }.onSuccess {
+            refreshAllTransactions()
+        }
+        return error
+    }
+
     fun failTransaction(transactionId: String, onError: (it: TalerErrorInfo) -> Unit) =
         scope.launch {
             api.request<Unit>("failTransaction") {

@@ -667,6 +667,22 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="compose_refund_error_original_not_found">Could not find the original payment to refund</string>
     <string name="compose_refund_already_sent_warning">A refund for this payment was already sent on %1$s.</string>
     <string name="compose_refund_already_sent_override">Discard old refund &amp; create new one</string>
+    <string name="compose_abort_title">Cancel payment</string>
+    <string name="compose_abort_title_one">Cancel payment?</string>
+    <string name="compose_abort_title_many">Cancel %1$d payments?</string>
+    <string name="compose_abort_reason_menu">Cancelling was requested in the messenger.</string>
+    <string name="compose_abort_reason_delete">The message was deleted for everyone in the messenger.</string>
+    <string name="compose_abort_chat_hint">Chat: %1$s</string>
+    <string name="compose_abort_group_hint">Group: %1$s</string>
+    <string name="compose_abort_not_own">This payment was not sent from this wallet. Only the wallet that sent it can cancel it, for example on your other device.</string>
+    <string name="compose_abort_some_not_own">%1$d of the payments were not sent from this wallet and stay unchanged.</string>
+    <string name="compose_abort_settled_info">Payments that were already accepted or have expired can no longer be cancelled.</string>
+    <string name="compose_abort_amount_unknown">Amount unknown</string>
+    <string name="compose_abort_state_done">Already accepted</string>
+    <string name="compose_abort_state_expired">Expired</string>
+    <string name="compose_abort_state_aborted">Already cancelled</string>
+    <string name="compose_abort_confirm">Cancel now</string>
+    <string name="compose_abort_keep">Don\'t cancel</string>
 
     <!-- Refunds -->
 

@@ -51,6 +51,7 @@ import net.taler.wallet.donau.SetDonauScreen
 import net.taler.wallet.exchanges.ExchangeListScreen
 import net.taler.wallet.exchanges.ExchangeShoppingScreen
 import net.taler.wallet.exchanges.ReviewExchangeTosScreen
+import net.taler.wallet.link.ComposeAbortScreen
 import net.taler.wallet.link.ComposeRefundScreen
 import net.taler.wallet.link.ComposeSendScreen
 import net.taler.wallet.main.MainScreen
@@ -283,6 +284,20 @@ fun WalletNavHost(
                 // Erfolgs-Pfad statt des geteilten onNavigateBack() verwendet,
                 // um den waehrend des Commit-Fensters swallowenden
                 // BackHandler auf dem OnBackPressedDispatcher zu umgehen.
+                navController = navController,
+            )
+        }
+        composable<WalletDestination.ComposeAbort>(
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
+        ) { backStackEntry ->
+            val dest = backStackEntry.toRoute<WalletDestination.ComposeAbort>()
+            ComposeAbortScreen(
+                model = model,
+                destination = dest,
+                onNavigateBack = onNavigateBack,
                 navController = navController,
             )
         }

@@ -88,6 +88,7 @@ import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.compose.ErrorBottomSheet
 import net.taler.wallet.events.ObservabilityDialog
 import net.taler.wallet.launchInAppBrowser
+import net.taler.wallet.link.ComposeAbortRequest
 import net.taler.wallet.link.OwnUriTracker
 import net.taler.wallet.link.TalerUriKind
 import net.taler.wallet.transactions.TransactionPeerPullCredit
@@ -100,6 +101,7 @@ class MainActivity : FragmentActivity() {
     private var pendingLaunchUri: String? = null
     private var pendingComposeSend: WalletDestination.ComposeSend? = null
     private var pendingComposeRefund: WalletDestination.ComposeRefund? = null
+    private var pendingComposeAbort: WalletDestination.ComposeAbort? = null
     private var nav: NavController? = null
     private lateinit var biometricPrompt: BiometricPrompt
     private lateinit var promptInfo: BiometricPrompt.PromptInfo
@@ -191,6 +193,12 @@ class MainActivity : FragmentActivity() {
                         // pendingComposeSend oben, siehe emitComposeRefund().
                         nav?.navigate(destination) {
                             popUpTo<WalletDestination.ComposeRefund> { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
+                    pendingComposeAbort?.let { destination ->
+                        nav?.navigate(destination) {
+                            popUpTo<WalletDestination.ComposeAbort> { inclusive = true }
                             launchSingleTop = true
                         }
                     }
@@ -487,6 +495,18 @@ class MainActivity : FragmentActivity() {
             }
         }
 
+        // Gleicher Einzelinstanz-Mechanismus fuer compose-abort.
+        fun emitComposeAbort(destination: WalletDestination.ComposeAbort) {
+            if (nav != null) {
+                nav?.navigate(destination) {
+                    popUpTo<WalletDestination.ComposeAbort> { inclusive = true }
+                    launchSingleTop = true
+                }
+            } else {
+                pendingComposeAbort = destination
+            }
+        }
+
         // For VIEW intents (taler://, payto://, ...) the system sets intent.data;
         // for NDEF_DISCOVERED it is the URI of the first NDEF record on the tag.
         intent.dataString?.let { uri ->
@@ -495,6 +515,10 @@ class MainActivity : FragmentActivity() {
                 composeSendFrom(parsed)?.let { destination -> emitComposeSend(destination) }
             } else if (parsed.scheme == "talerlink" && parsed.host == "compose-refund") {
                 composeRefundFrom(parsed)?.let { destination -> emitComposeRefund(destination) }
+            } else if (parsed.scheme == "talerlink" && parsed.host == "compose-abort") {
+                // Nie an emitUri weiterreichen: der Link traegt Zahlungs-URIs,
+                // die HandleUriScreen sonst als "Annehmen" deuten koennte.
+                composeAbortFrom(parsed)?.let { destination -> emitComposeAbort(destination) }
             } else {
                 emitUri(uri)
             }
@@ -558,6 +582,29 @@ class MainActivity : FragmentActivity() {
             correlationId = correlationId,
             returnUri = returnUri,
             originalUri = originalUri,
+        )
+    }
+
+    /**
+     * talerlink://compose-abort (docs/cross-platform/link-protokoll.md
+     * Abschnitt 5): wiederholtes `uri`, dazu reine Anzeige-Metadaten.
+     * correlationId und returnUri sind Pflicht wie bei compose-send; bleibt
+     * keine bearbeitbare URI uebrig, wird der Link ohne Ruecksprung
+     * verworfen. Unbekannte Metadaten werden ignoriert.
+     */
+    private fun composeAbortFrom(uri: Uri): WalletDestination.ComposeAbort? {
+        val correlationId = uri.getQueryParameter("correlationId")?.takeIf { it.isNotBlank() } ?: return null
+        val returnUri = uri.getQueryParameter("returnUri")?.takeIf { it.isNotBlank() } ?: return null
+        val uris = ComposeAbortRequest.distinctUris(uri.getQueryParameters("uri"))
+        if (!ComposeAbortRequest.hasProcessable(uris)) return null
+
+        return WalletDestination.ComposeAbort(
+            correlationId = correlationId,
+            returnUri = returnUri,
+            uris = uris,
+            reason = uri.getQueryParameter("reason"),
+            recipientHint = uri.getQueryParameter("recipientHint"),
+            isGroup = uri.getQueryParameter("isGroup").toBoolean(),
         )
     }
 

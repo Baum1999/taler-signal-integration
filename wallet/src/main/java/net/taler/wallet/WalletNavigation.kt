@@ -110,6 +110,20 @@ sealed interface WalletDestination {
         val originalUri: String,
     ) : WalletDestination
 
+    // talerlink://compose-abort (link-protokoll.md Abschnitt 5): Signal bittet,
+    // eigene offene Zahlungen abzubrechen. uris schon zusammengefasst
+    // (ComposeAbortRequest.distinctUris), reason/recipientHint reine
+    // Anzeigehilfe.
+    @Serializable
+    data class ComposeAbort(
+        val correlationId: String,
+        val returnUri: String,
+        val uris: List<String>,
+        val reason: String? = null,
+        val recipientHint: String? = null,
+        val isGroup: Boolean = false,
+    ) : WalletDestination
+
     @Serializable
     data class Deposit(
         val amount: String? = null,

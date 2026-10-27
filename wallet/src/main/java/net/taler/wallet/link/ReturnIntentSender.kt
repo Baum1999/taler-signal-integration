@@ -82,6 +82,40 @@ object ReturnIntentSender {
     }
 
     /**
+     * Ruecksprung fuer compose-abort (link-protokoll.md Abschnitt 9): kein
+     * `status`, dafuer je Eingangs-URI ein `result=<uri>|<ergebnis>` in
+     * Eingangs-Reihenfolge. Gleiche Zielpruefung und neu gebaute Query wie
+     * [fire]; appendQueryParameter kodiert auch das `|` als %7C.
+     */
+    fun fireAbort(
+        context: Context,
+        returnUri: String,
+        correlationId: String,
+        results: List<Pair<String, AbortOutcome>>,
+    ): Boolean {
+        val target = verifiedTarget(context, returnUri) ?: return false
+        val targetUri = Uri.Builder()
+            .scheme(target.scheme)
+            .authority(RETURN_HOST)
+            .appendQueryParameter("correlationId", correlationId)
+            .apply {
+                results.forEach { (uri, outcome) ->
+                    appendQueryParameter("result", ComposeAbortRequest.resultValue(uri, outcome))
+                }
+            }
+            .build()
+        val explicitIntent = Intent(Intent.ACTION_VIEW, targetUri).apply {
+            setPackage(target.packageName)
+        }
+        return try {
+            context.startActivity(explicitIntent)
+            true
+        } catch (e: ActivityNotFoundException) {
+            false
+        }
+    }
+
+    /**
      * Ob ein Ruecksprung an `returnUri` moeglich ist: Ziel steht in der
      * Allowlist, ist installiert und mit dem erwarteten Cert signiert. Die
      * Compose-Screens fragen das schon beim Oeffnen ab, damit eine Zahlung
