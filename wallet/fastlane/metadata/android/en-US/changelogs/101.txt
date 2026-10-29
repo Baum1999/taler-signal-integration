@@ -1,0 +1,8 @@
+- Upgraded wallet-core to v1.6.49.
+- Added experimental contacts, aliases and P2P mailbox.
+- Added a new experimental balances screen.
+- Show progress for slow, stalled or retrying requests.
+- Fixed NFC payments for Android 17 devices.
+- Fixed rendering of amounts, errors, and transfer options.
+- Improved deposit fee/limit checks and keyboard handling.
+- Fixed crashes, missing payment prompts and P2P fees.
