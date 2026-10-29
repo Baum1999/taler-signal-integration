@@ -71,11 +71,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import net.taler.common.Timestamp
+import net.taler.lib.android.toAbsoluteTime
 import net.taler.wallet.NavigateCallback
 import net.taler.wallet.R
 import net.taler.wallet.WalletDestination
@@ -115,12 +118,14 @@ fun ContactScreen(
     var initialMailboxAddress by remember { mutableStateOf("") }
     var initialSource by remember { mutableStateOf("") }
     var initialPetname by remember { mutableStateOf("") }
+    var initialExpiration by remember { mutableStateOf(Timestamp.fromMillis(0)) }
 
-    fun fillFromUri(uriString: String, overriddenSource: String? = null) {
+    fun fillFromUri(uriString: String, overriddenSource: String? = null, expiration: Timestamp = Timestamp.fromMillis(0)) {
+        if (!uriString.startsWith("taler://add-contact/", ignoreCase = true)) return
         val uri = uriString.toUri()
         val segments = uri.pathSegments
         var mailboxAddressTmp = uriString
-        val aliasType = segments.getOrNull(0) ?: ""
+        val aliasType = segments.getOrNull(0) ?: "email"
         mailboxAddressTmp = mailboxAddressTmp.removePrefix("taler://add-contact/")
         mailboxAddressTmp = mailboxAddressTmp.removePrefix("""$aliasType/""")
         val alias = segments.getOrNull(1) ?: ""
@@ -137,14 +142,20 @@ fun ContactScreen(
         }
         val petname = uri.getQueryParameter("petname") ?: ""
         val source = overriddenSource ?: uri.getQueryParameter("source") ?: "QR"
+        val sourceBaseUrl = uri.getQueryParameter("sourceBaseUrl")
 
         initialAlias = alias
-        initialAliasType = aliasType
+        initialAliasType = aliasType.ifBlank { "email" }
         initialMailboxBaseUri = mailboxBaseUri
         initialMailboxAddress = mailboxAddress
         initialSource = source
         initialPetname = petname
+        initialExpiration = expiration
         showAddDialog = true
+
+        if (!sourceBaseUrl.isNullOrBlank() && expiration.ms == 0L) {
+            contactManager.taldirLookupAlias(alias, aliasType, sourceBaseUrl)
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -155,8 +166,7 @@ fun ContactScreen(
     LaunchedEffect(lookupResult) {
         if (lookupResult is LookupResult.Success) {
             val res = lookupResult as LookupResult.Success
-            contactManager.resetLookup()
-            fillFromUri(res.targetUri, res.source)
+            initialExpiration = res.validFor?.toExpirationTimestamp() ?: Timestamp.fromMillis(0)
         }
     }
 
@@ -262,6 +272,7 @@ fun ContactScreen(
                     source = contact.source,
                     petname = newNickname,
                     isSelf = contact.isSelf,
+                    expiration = contact.expiration,
                 )
                 contactToEdit = null
             }
@@ -316,10 +327,11 @@ fun ContactScreen(
                 initialMailboxAddress = ""
                 initialSource = ""
                 initialPetname = ""
+                initialExpiration = Timestamp.fromMillis(0)
             },
             onProceed = { alias, aliasType, mailboxBaseUri, mailboxAddress, source ->
                 showAddDialog = false
-                pendingContact = PendingContact(alias, aliasType, mailboxBaseUri, mailboxAddress, source)
+                pendingContact = PendingContact(alias, aliasType, mailboxBaseUri, mailboxAddress, source, initialExpiration)
                 showNicknameDialog = true
             },
             onLookup = { alias, aliasType ->
@@ -358,6 +370,7 @@ fun ContactScreen(
                             mailboxAddress = pending.mailboxAddress,
                             source = pending.source,
                             petname = nickname,
+                            expiration = pending.expiration,
                         )
                         showNicknameDialog = false
                         pendingContact = null
@@ -368,6 +381,7 @@ fun ContactScreen(
                         initialMailboxAddress = ""
                         initialSource = ""
                         initialPetname = ""
+                        initialExpiration = Timestamp.fromMillis(0)
                     },
                     enabled = nickname.isNotBlank()
                 ) {
@@ -392,6 +406,7 @@ data class PendingContact(
     val mailboxBaseUri: String,
     val mailboxAddress: String,
     val source: String,
+    val expiration: Timestamp = Timestamp.fromMillis(0),
 )
 
 @Composable
@@ -505,6 +520,15 @@ fun AddContactDialog(
         mailbox = if (initialMailboxBaseUri.isEmpty()) "" else "$initialMailboxBaseUri$initialMailboxAddress"
     }
     LaunchedEffect(initialSource) { source = initialSource }
+
+    LaunchedEffect(lookupResult) {
+        if (lookupResult is LookupResult.Success) {
+            mailbox = lookupResult.targetUri
+            if (lookupResult.source.isNotBlank()) {
+                source = lookupResult.source
+            }
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -656,6 +680,7 @@ fun ContactGroupCard(
     onShowQr: (ContactEntry) -> Unit,
     onSelect: ((ContactEntry) -> Unit)? = null,
 ) {
+    val context = LocalContext.current
     val isSelfGroup = contactsInGroup.any { it.isSelf || it.source == "self" }
 
     val distinctPetnames = contactsInGroup
@@ -757,6 +782,13 @@ fun ContactGroupCard(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
+                        }
+                        if (contact.expiration.ms > 0) {
+                            Text(
+                                text = "Valid until: ${contact.expiration.ms.toAbsoluteTime(context)}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                     if (onSelect != null) {

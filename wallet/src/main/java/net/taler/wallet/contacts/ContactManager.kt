@@ -25,12 +25,21 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import net.taler.common.RelativeTime
+import net.taler.common.Timestamp
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.main.TAG
 import org.json.JSONObject
+
+fun RelativeTime.toExpirationTimestamp(): Timestamp {
+    return if (this.ms > 0) {
+        Timestamp.fromMillis(System.currentTimeMillis() + this.ms)
+    } else {
+        Timestamp.fromMillis(0)
+    }
+}
 
 @Serializable
 data class ContactEntry(
@@ -42,6 +51,7 @@ data class ContactEntry(
     val source: String,
     val petname: String,
     val isSelf: Boolean = false,
+    val expiration: Timestamp = Timestamp.fromMillis(0),
 ) {
     val mailboxBaseUri: String get() = mailboxBaseUrl
     val self: Boolean get() = isSelf
@@ -54,7 +64,14 @@ data class ContactListResponse(
 
 @Serializable
 data class LookupAliasResponse(
-    val targetUri: String?,
+    val targetUri: String? = null,
+    val validFor: RelativeTime? = null,
+)
+
+@Serializable
+data class CompleteRegisterAliasResponse(
+    @SerialName("valid_for")
+    val validFor: RelativeTime? = null,
 )
 
 @Serializable
@@ -69,7 +86,7 @@ data class TaldirRegisterRequest(
 
 @Serializable
 data class TaldirRegisterResponse(
-    val validFor: RelativeTime? = null,
+    val challenge: String? = null,
 )
 
 sealed class ContactResult {
@@ -82,14 +99,18 @@ sealed class LookupResult {
     data object Idle : LookupResult()
     data object Loading : LookupResult()
     data class Error(val error: TalerErrorInfo) : LookupResult()
-    data class Success(val targetUri: String, val source: String) : LookupResult()
+    data class Success(
+        val targetUri: String,
+        val source: String,
+        val validFor: RelativeTime? = null,
+    ) : LookupResult()
 }
 
 sealed class RegisterResult {
     data object Idle : RegisterResult()
     data object Loading : RegisterResult()
     data class Error(val error: TalerErrorInfo) : RegisterResult()
-    data class Success(val validFor: RelativeTime?, val targetUri: String) : RegisterResult()
+    data class Success(val targetUri: String) : RegisterResult()
     data object CompletionLoading : RegisterResult()
     data object CompletionSuccess : RegisterResult()
 }
@@ -175,6 +196,7 @@ class ContactManager(
         source: String,
         petname: String,
         isSelf: Boolean = false,
+        expiration: Timestamp = Timestamp.fromMillis(0),
     ) {
         val entry = ContactEntry(
             alias = alias,
@@ -184,6 +206,7 @@ class ContactManager(
             source = source,
             petname = petname,
             isSelf = isSelf,
+            expiration = expiration,
         )
         scope.launch {
             api.request<Unit>("addContact") {
@@ -222,6 +245,20 @@ class ContactManager(
                     map[key] = AliasRegistrationStatus.NotRegistered
                 } else if (targetUri.trimEnd('/') == expectedPath || targetUri.endsWith(currentMailboxAddress)) {
                     map[key] = AliasRegistrationStatus.Registered(targetUri)
+                    val exp = resp.validFor?.toExpirationTimestamp() ?: Timestamp.fromMillis(0)
+                    val existingPetname = (_contacts.value as? ContactResult.Success)
+                        ?.contacts?.find { it.alias == alias && it.aliasType == aliasType }
+                        ?.petname?.ifBlank { null } ?: alias
+                    addContact(
+                        alias = alias,
+                        aliasType = aliasType,
+                        mailboxBaseUri = currentMailboxBaseUrl,
+                        mailboxAddress = currentMailboxAddress,
+                        source = "self",
+                        petname = existingPetname,
+                        isSelf = true,
+                        expiration = exp,
+                    )
                 } else {
                     map[key] = AliasRegistrationStatus.Mismatched(targetUri)
                 }
@@ -246,7 +283,7 @@ class ContactManager(
                 put("aliasType", aliasType)
                 put("taldirBaseUrl", taldirBaseUri)
             }.onSuccess { resp ->
-                Log.d(TAG, "Got Taldir target URI for $alias: ${resp.targetUri}")
+                Log.d(TAG, "Got Taldir target URI for $alias: ${resp.targetUri}, validFor: ${resp.validFor}")
                 val targetUri = resp.targetUri
                 if (targetUri.isNullOrBlank()) {
                     _lookupResult.value = LookupResult.Error(TalerErrorInfo(
@@ -254,7 +291,11 @@ class ContactManager(
                         message = "Alias not found",
                     ))
                 } else {
-                    _lookupResult.value = LookupResult.Success(targetUri, taldirBaseUri)
+                    _lookupResult.value = LookupResult.Success(
+                        targetUri = targetUri,
+                        source = taldirBaseUri,
+                        validFor = resp.validFor,
+                    )
                 }
             }.onError {
                 Log.e(TAG, "Error looking up contact: $it")
@@ -296,7 +337,7 @@ class ContactManager(
             }.onSuccess {
                 Log.d(TAG, "Taldir registration initiated for $alias: $it")
                 val targetUri = if (mailboxBaseUrl.isBlank() || mailboxAddress.isBlank()) "" else "$mailboxBaseUrl/$mailboxAddress"
-                _registerResult.value = RegisterResult.Success(it.validFor, targetUri)
+                _registerResult.value = RegisterResult.Success(targetUri)
             }.onError {
                 Log.e(TAG, "Error initiating Taldir registration: $it")
                 _registerResult.value = RegisterResult.Error(it)
@@ -314,19 +355,35 @@ class ContactManager(
     ) {
         _registerResult.value = RegisterResult.CompletionLoading
         scope.launch {
-            api.request<Unit>("completeRegisterAlias") {
+            api.request("completeRegisterAlias", CompleteRegisterAliasResponse.serializer()) {
                 put("alias", alias)
                 put("aliasType", aliasType)
                 put("taldirBaseUrl", taldirBaseUri)
                 put("mailboxBaseUrl", mailboxBaseUrl)
                 put("mailboxAddress", mailboxAddress)
                 put("challenge", solution)
-            }.onSuccess {
-                Log.d(TAG, "Taldir registration completed for $alias")
+            }.onSuccess { resp ->
+                Log.d(TAG, "Taldir registration completed for $alias, validFor=${resp.validFor}")
+                val exp = resp.validFor?.toExpirationTimestamp() ?: Timestamp.fromMillis(0)
+                val existingPetname = (_contacts.value as? ContactResult.Success)
+                    ?.contacts?.find { it.alias == alias && it.aliasType == aliasType }
+                    ?.petname?.ifBlank { null } ?: alias
+                if (mailboxBaseUrl.isNotBlank() && mailboxAddress.isNotBlank()) {
+                    addContact(
+                        alias = alias,
+                        aliasType = aliasType,
+                        mailboxBaseUri = mailboxBaseUrl,
+                        mailboxAddress = mailboxAddress,
+                        source = "self",
+                        petname = existingPetname,
+                        isSelf = true,
+                        expiration = exp,
+                    )
+                }
                 _registerResult.value = RegisterResult.CompletionSuccess
-            }.onError {
-                Log.e(TAG, "Error completing Taldir registration: $it")
-                _registerResult.value = RegisterResult.Error(it)
+            }.onError { error ->
+                Log.e(TAG, "Error completing Taldir registration: $error")
+                _registerResult.value = RegisterResult.Error(error)
             }
         }
     }

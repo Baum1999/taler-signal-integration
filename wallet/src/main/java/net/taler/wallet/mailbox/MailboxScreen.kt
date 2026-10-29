@@ -25,13 +25,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -65,6 +63,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -132,9 +131,6 @@ fun MailboxScreen(
                             Icon(Icons.Default.Info, contentDescription = "Show Mailbox Address")
                         }
                     }
-                    IconButton(onClick = { showUrlDialog = true }) {
-                        Icon(Icons.Default.Settings, contentDescription = "Configure Mailbox")
-                    }
                     if (state is MailboxResult.Success) {
                         IconButton(onClick = { mailboxManager.refreshMailbox(state.config) }) {
                             Icon(Icons.Default.Refresh, contentDescription = "Refresh")
@@ -154,7 +150,7 @@ fun MailboxScreen(
                 is MailboxResult.Loading -> Text("Loading...", modifier = Modifier.padding(16.dp))
                 is MailboxResult.Error -> Text("Error: ${res.error}", modifier = Modifier.padding(16.dp))
                 is MailboxResult.Success -> {
-                    MessageList(res.messages, onNavigate) { message ->
+                    MessageList(res.messages, mailboxManager, onNavigate) { message ->
                         messageToDelete = message
                     }
                 }
@@ -252,6 +248,7 @@ fun MailboxScreen(
 @Composable
 fun MessageList(
     messages: List<MailboxMessageRecord>,
+    mailboxManager: MailboxManager? = null,
     onNavigate: NavigateCallback,
     onDelete: (MailboxMessageRecord) -> Unit,
 ) {
@@ -260,7 +257,7 @@ fun MessageList(
     } else {
         LazyColumn {
             items(messages) { message ->
-                MessageItem(message, onNavigate, onDelete)
+                MessageItem(message, mailboxManager, onNavigate, onDelete)
                 HorizontalDivider()
             }
         }
@@ -270,6 +267,7 @@ fun MessageList(
 @Composable
 fun MessageItem(
     message: MailboxMessageRecord,
+    mailboxManager: MailboxManager? = null,
     onNavigate: NavigateCallback,
     onDelete: (MailboxMessageRecord) -> Unit,
 ) {
@@ -279,6 +277,13 @@ fun MessageItem(
             message.talerUri.startsWith("taler://pay/") ||
             message.talerUri.startsWith("taler://pay-template")
 
+    val messageDetailsState = mailboxManager?.messageDetails?.collectAsState()
+    val details = messageDetailsState?.value?.get(message.talerUri)
+
+    LaunchedEffect(message.talerUri) {
+        mailboxManager?.fetchDetailsForMessage(message)
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -286,6 +291,24 @@ fun MessageItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
+            if (details?.summary != null) {
+                Text(
+                    text = details.summary,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 2.dp)
+                )
+            }
+            if (details?.amount != null) {
+                Text(
+                    text = details.amount.toString(),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (isPayPush) Color(0xFF2E7D32) else Color(0xFFE65100),
+                    modifier = Modifier.padding(bottom = 6.dp)
+                )
+            }
+
             if (isPayPush) {
                 Button(
                     onClick = { onNavigate(WalletDestination.HandleUri(message.talerUri), false) },
@@ -296,7 +319,7 @@ fun MessageItem(
                     modifier = Modifier.padding(bottom = 6.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ArrowDownward,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = null,
                         modifier = Modifier.padding(end = 6.dp)
                     )
@@ -312,7 +335,7 @@ fun MessageItem(
                     modifier = Modifier.padding(bottom = 6.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ArrowUpward,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null,
                         modifier = Modifier.padding(end = 6.dp)
                     )

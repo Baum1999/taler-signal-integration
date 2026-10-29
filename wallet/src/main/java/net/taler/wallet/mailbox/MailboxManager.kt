@@ -22,15 +22,19 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
+import net.taler.common.Amount
 import net.taler.common.Timestamp
 import net.taler.wallet.backend.BackendManager
 import net.taler.wallet.backend.TalerErrorCode
 import net.taler.wallet.backend.TalerErrorInfo
 import net.taler.wallet.backend.WalletBackendApi
 import net.taler.wallet.main.TAG
+import net.taler.wallet.peer.PreparePeerPullDebitResponse
+import net.taler.wallet.peer.PreparePeerPushCreditResponse
 import org.json.JSONObject
 
 @Serializable
@@ -70,6 +74,12 @@ data class MailboxResponse(
     val mailboxConfiguration: MailboxConfiguration? = null,
 )
 
+@Serializable
+data class MailboxMessageDetails(
+    val summary: String? = null,
+    val amount: Amount? = null,
+)
+
 sealed class MailboxResult {
     data object Loading : MailboxResult()
     data class Error(val error: TalerErrorInfo) : MailboxResult()
@@ -88,6 +98,9 @@ class MailboxManager(
     private val _mailbox = MutableStateFlow<MailboxResult>(MailboxResult.Loading)
     val mailbox = _mailbox.asStateFlow()
 
+    private val _messageDetails = MutableStateFlow<Map<String, MailboxMessageDetails>>(emptyMap())
+    val messageDetails = _messageDetails.asStateFlow()
+
     private var started = false
 
     fun start() {
@@ -104,6 +117,41 @@ class MailboxManager(
                         refreshMailbox(currentState.config)
                     }
                 }
+            }
+        }
+    }
+
+    fun fetchDetailsForMessage(message: MailboxMessageRecord) {
+        val uri = message.talerUri
+        if (_messageDetails.value.containsKey(uri)) return
+
+        scope.launch {
+            try {
+                if (uri.startsWith("taler://pay-push")) {
+                    api.request("preparePeerPushCredit", PreparePeerPushCreditResponse.serializer()) {
+                        put("talerUri", uri)
+                    }.onSuccess { res ->
+                        _messageDetails.update {
+                            it + (uri to MailboxMessageDetails(
+                                summary = res.contractTerms.summary.ifBlank { null },
+                                amount = res.amountRaw
+                            ))
+                        }
+                    }
+                } else if (uri.startsWith("taler://pay-pull")) {
+                    api.request("preparePeerPullDebit", PreparePeerPullDebitResponse.serializer()) {
+                        put("talerUri", uri)
+                    }.onSuccess { res ->
+                        _messageDetails.update {
+                            it + (uri to MailboxMessageDetails(
+                                summary = res.contractTerms.summary.ifBlank { null },
+                                amount = res.amountRaw
+                            ))
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error fetching details for message URI: $uri", e)
             }
         }
     }
@@ -151,6 +199,9 @@ class MailboxManager(
             api.request("getMailboxMessages", MailboxMessagesResponse.serializer())
                 .onSuccess { response ->
                     _mailbox.value = MailboxResult.Success(config, response.messages)
+                    response.messages.forEach { msg ->
+                        fetchDetailsForMessage(msg)
+                    }
                 }.onError {
                     Log.e(TAG, "Error getting mailbox messages: $it")
                     _mailbox.value = MailboxResult.Error(it)
