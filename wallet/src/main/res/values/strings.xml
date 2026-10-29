@@ -558,6 +558,8 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="settings_db_migrate_complete">SQLite database migration complete</string>
     <string name="settings_dev_mode">Developer mode</string>
     <string name="settings_dev_mode_summary">Shows more information intended for debugging</string>
+    <string name="settings_new_main_screen">New main screen</string>
+    <string name="settings_new_main_screen_summary">Use the experimental paginated balances main screen (temporary)</string>
     <string name="settings_dialog_import_message">This operation will overwrite your existing database. Do you want to continue?</string>
     <string name="settings_dialog_reset_message">Do you really want to reset the wallet and lose all coins and purchases?</string>
     <string name="settings_donau">Tax-deductible donations</string>

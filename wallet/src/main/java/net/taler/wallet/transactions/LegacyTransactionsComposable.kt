@@ -1,0 +1,589 @@
+/*
+ * This file is part of GNU Taler
+ * (C) 2024 Taler Systems S.A.
+ *
+ * GNU Taler is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software
+ * Foundation; either version 3, or (at your option) any later version.
+ *
+ * GNU Taler is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ * A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * GNU Taler; see the file COPYING.  If not, see <http://www.gnu.org/licenses/>
+ */
+
+package net.taler.wallet.transactions
+
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.RadioButtonUnchecked
+import androidx.compose.material3.Badge
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.Center
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import net.taler.common.Amount
+import net.taler.common.CurrencySpecification
+import net.taler.common.Timestamp
+import net.taler.lib.android.toRelativeTime
+import net.taler.wallet.R
+import net.taler.wallet.backend.TalerErrorCode
+import net.taler.wallet.backend.TalerErrorInfo
+import net.taler.wallet.balances.BalanceItem
+import net.taler.wallet.balances.LegacyWarningTooltip
+import net.taler.wallet.balances.ScopeInfo.Exchange
+import net.taler.wallet.balances.ScopeInfo.ExchangeLegacyKeys
+import net.taler.wallet.cleanExchange
+import net.taler.wallet.compose.Banner
+import net.taler.wallet.compose.LoadingScreen
+import net.taler.wallet.compose.TalerSurface
+import net.taler.wallet.compose.cardPaddings
+import net.taler.wallet.transactions.AmountType.Negative
+import net.taler.wallet.transactions.AmountType.Neutral
+import net.taler.wallet.transactions.AmountType.Positive
+import net.taler.wallet.transactions.TransactionAction.Abort
+import net.taler.wallet.transactions.TransactionAction.Retry
+import net.taler.wallet.transactions.TransactionAction.Suspend
+import net.taler.wallet.transactions.TransactionMajorState.Aborted
+import net.taler.wallet.transactions.TransactionMajorState.Aborting
+import net.taler.wallet.transactions.TransactionMajorState.Dialog
+import net.taler.wallet.transactions.TransactionMajorState.Done
+import net.taler.wallet.transactions.TransactionMajorState.Failed
+import net.taler.wallet.transactions.TransactionMajorState.Pending
+import net.taler.wallet.transactions.TransactionMinorState.BalanceKycRequired
+import net.taler.wallet.transactions.TransactionMinorState.BankConfirmTransfer
+import net.taler.wallet.transactions.TransactionMinorState.KycAuthRequired
+import net.taler.wallet.transactions.TransactionMinorState.KycInit
+import net.taler.wallet.transactions.TransactionMinorState.KycRequired
+import net.taler.wallet.transactions.TransactionMinorState.Repurchase
+import net.taler.wallet.transactions.TransactionStateFilter.Nonfinal
+import net.taler.wallet.transactions.TransactionsResult.Error
+import net.taler.wallet.transactions.TransactionsResult.None
+import net.taler.wallet.transactions.TransactionsResult.Success
+import net.taler.wallet.ui.theme.TalerTheme
+
+@Composable
+fun LegacyTransactionsComposable(
+    innerPadding: PaddingValues,
+    stateFilter: TransactionStateFilter?,
+    balance: BalanceItem,
+    txResult: TransactionsResult,
+    onTransactionClick: (tx: Transaction) -> Unit,
+    onShowBalancesClicked: () -> Unit,
+    selectionMode: Boolean,
+    selectedItems: MutableList<String>,
+    onToggleSelection: (String) -> Unit,
+) {
+    Column(Modifier.fillMaxSize()) {
+        LazyColumn(
+            Modifier
+                .weight(1f)
+                .consumeWindowInsets(innerPadding),
+            contentPadding = innerPadding,
+        ) {
+            item {
+                LegacyTransactionsHeader(
+                    balance = balance,
+                    onShowBalancesClicked = onShowBalancesClicked,
+                )
+            }
+
+            when (stateFilter) {
+                Nonfinal -> item {
+                    Banner(Modifier.padding(bottom = 6.dp)) {
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            text = stringResource(R.string.transactions_filter_nonfinal),
+                            style = MaterialTheme.typography.labelLarge,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                }
+                else -> {}
+            }
+
+            val placeholderPadding = PaddingValues(vertical = 50.dp)
+            when (txResult) {
+                is Success -> if (txResult.transactions.isEmpty()) item {
+                    Box(Modifier.padding(placeholderPadding)) {
+                        LegacyEmptyTransactionsComposable()
+                    }
+                } else {
+                    items(txResult.transactions, key = { it.transactionId }) { tx ->
+                        val isSelected = selectedItems.contains(tx.transactionId)
+
+                        LegacyTransactionRow(
+                            tx, balance.available.spec,
+                            isSelected = isSelected,
+                            selectionMode = selectionMode,
+                            onTransactionClick = {
+                                if (selectionMode) {
+                                    onToggleSelection(tx.transactionId)
+                                } else {
+                                    onTransactionClick(tx)
+                                }
+                            },
+                            onTransactionSelect = {
+                                onToggleSelection(tx.transactionId)
+                            },
+                        )
+                    }
+                }
+
+                is None -> item {
+                    Box(Modifier.padding(placeholderPadding)) {
+                        LoadingScreen()
+                    }
+                }
+                is Error -> item {
+                    Box(Modifier.padding(placeholderPadding)) {
+                        LegacyErrorTransactionsComposable(txResult.error)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun LegacyEmptyTransactionsComposable() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Center,
+    ) {
+        Text(
+            stringResource(R.string.transactions_empty),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+    }
+}
+
+@Composable
+fun LegacyErrorTransactionsComposable(error: TalerErrorInfo) {
+    Text(
+        text = stringResource(R.string.transactions_error, error.userFacingMsg),
+        style = MaterialTheme.typography.titleLarge,
+        color = MaterialTheme.colorScheme.error,
+    )
+}
+
+@Composable
+fun LegacyTransactionsHeader(
+    balance: BalanceItem,
+    onShowBalancesClicked: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        OutlinedCard(
+            Modifier
+                .weight(1f)
+                .cardPaddings()
+                .clickable { onShowBalancesClicked() },
+        ) {
+            ListItem(
+                modifier = Modifier.animateContentSize(),
+                headlineContent = {
+                    Text(
+                        getHeaderCurrency(balance, balance.available.spec),
+                        modifier = Modifier.weight(1f, fill = false),
+                        style = MaterialTheme.typography.titleMedium,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                    )
+                },
+                supportingContent = {
+                    if (balance.scopeInfo is Exchange) {
+                        Text(
+                            cleanExchange(balance.scopeInfo.url),
+                            modifier = Modifier
+                                .padding(top = 3.dp)
+                                .basicMarquee(),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    } else if (balance.scopeInfo is ExchangeLegacyKeys) {
+                        Text(
+                            cleanExchange(balance.scopeInfo.url),
+                            modifier = Modifier
+                                .padding(top = 3.dp)
+                                .basicMarquee(),
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                },
+                trailingContent = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (balance.scopeInfo is ExchangeLegacyKeys) {
+                            LegacyWarningTooltip()
+                        }
+                        Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                    }
+                }
+            )
+        }
+
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.End,
+        ) {
+            Text(
+                stringResource(R.string.transactions_balance),
+                modifier = Modifier.padding(bottom = 6.dp),
+                style = MaterialTheme.typography.bodySmall,
+            )
+
+            Text(
+                balance.available.toString(showSymbol = false),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                textDecoration = if (balance.scopeInfo is ExchangeLegacyKeys) {
+                    TextDecoration.LineThrough
+                } else {
+                    TextDecoration.None
+                },
+            )
+        }
+    }
+}
+
+@Composable
+fun LegacyTransactionRow(
+    tx: Transaction,
+    spec: CurrencySpecification?,
+    isSelected: Boolean,
+    selectionMode: Boolean,
+    onTransactionClick: () -> Unit,
+    onTransactionSelect: () -> Unit,
+) {
+    val haptic = LocalHapticFeedback.current
+
+    Column {
+        ListItem(
+            modifier = Modifier
+                .height(IntrinsicSize.Min)
+                .defaultMinSize(minHeight = 80.dp)
+                .combinedClickable(
+                    onClick = onTransactionClick,
+                    onLongClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onTransactionSelect()
+                    },
+                ),
+            trailingContent = {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(8.dp),
+                    contentAlignment = Center,
+                ) {
+                    LegacyTransactionAmountInfo(tx, spec)
+                }
+            },
+            leadingContent = {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(8.dp),
+                    contentAlignment = Center,
+                ) {
+                    if (!selectionMode) {
+                        Icon(painterResource(tx.icon), contentDescription = null)
+                    } else if (isSelected) {
+                        Icon(
+                            Icons.Rounded.CheckCircle,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    } else {
+                        Icon(
+                            Icons.Rounded.RadioButtonUnchecked,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.outline,
+                        )
+                    }
+                }
+            },
+            headlineContent = {
+                Column(Modifier.padding(vertical = 8.dp)) {
+                    Text(
+                        text = tx.timestamp.ms.toRelativeTime(LocalContext.current).toString(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(
+                        tx.getTitle(),
+                        modifier = Modifier.padding(vertical = 3.dp),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    ProvideTextStyle(
+                        MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    ) {
+                        LegacyTransactionExtraInfo(tx)
+                    }
+                }
+            },
+            colors = ListItemDefaults.colors(
+                containerColor = if (isSelected) {
+                    MaterialTheme.colorScheme.secondaryContainer
+                } else {
+                    ListItemDefaults.containerColor
+                }
+            )
+        )
+
+        HorizontalDivider()
+    }
+}
+
+@Composable
+fun LegacyTransactionAmountInfo(
+    tx: Transaction,
+    spec: CurrencySpecification?,
+) {
+    Column(horizontalAlignment = Alignment.End) {
+        ProvideTextStyle(MaterialTheme.typography.titleLarge) {
+            val amountStr = tx.amountEffective.withSpec(spec).toString(showSymbol = false)
+            if (tx.amountEffective.isZero()) {
+                Text(amountStr)
+            } else when (tx.amountType) {
+                Positive -> Text(
+                    stringResource(R.string.amount_positive, amountStr),
+                    color = if (tx.txState.major == Pending || tx.txState.major == Dialog)
+                        Color.Unspecified else TalerTheme.extraColors.success,
+                )
+                Negative -> Text(
+                    stringResource(R.string.amount_negative, amountStr),
+                    color = if (tx.txState.major == Pending || tx.txState.major == Dialog)
+                        Color.Unspecified else MaterialTheme.colorScheme.error,
+                )
+                Neutral -> Text(amountStr)
+            }
+        }
+
+        if (tx.txState.major == Pending || tx.txState.major == Dialog) {
+            Badge(
+                Modifier.padding(top = 3.dp),
+                containerColor = MaterialTheme.colorScheme.secondary,
+            ) {
+                Text(stringResource(R.string.transaction_pending))
+            }
+        }
+    }
+}
+
+@Composable
+fun LegacyTransactionExtraInfo(tx: Transaction) {
+    when {
+        tx.txState.major == Aborted -> Text(
+            stringResource(R.string.payment_aborted),
+            color = MaterialTheme.colorScheme.error,
+        )
+
+        tx.txState.minor == Repurchase -> Text(
+            stringResource(R.string.payment_repurchase),
+        )
+
+        tx.txState.major == Failed -> Text(
+            stringResource(R.string.payment_failed),
+            color = MaterialTheme.colorScheme.error,
+        )
+
+        tx.txState.major == Aborting -> Text(
+            stringResource(R.string.payment_aborting),
+            color = MaterialTheme.colorScheme.error,
+        )
+
+        tx.txState.major == Pending -> when(tx.txState.minor) {
+            BankConfirmTransfer -> Text(stringResource(R.string.withdraw_waiting_confirm))
+            KycInit -> Text(stringResource(R.string.transaction_preparing_kyc))
+            KycRequired,
+            KycAuthRequired,
+            BalanceKycRequired  -> Text(stringResource(R.string.transactions_required_kyc))
+            else -> {}
+        }
+
+        tx.txState.major == Dialog -> {}
+
+        tx is TransactionWithdrawal && !tx.confirmed -> Text(stringResource(R.string.withdraw_waiting_confirm))
+        tx is TransactionPeerPushCredit && tx.info.summary != null -> Text(tx.info.summary)
+        tx is TransactionPeerPushDebit && tx.info.summary != null -> Text(tx.info.summary)
+        tx is TransactionPeerPullCredit && tx.info.summary != null -> Text(tx.info.summary)
+        tx is TransactionPeerPullDebit && tx.info.summary != null -> Text(tx.info.summary)
+    }
+}
+
+@Composable
+private fun getHeaderCurrency(
+    balance: BalanceItem,
+    spec: CurrencySpecification?,
+) = if (spec != null) {
+    if (spec.symbol != null && spec.name != spec.symbol) {
+        // Name (symbol)
+        stringResource(R.string.transactions_currency, spec.name, spec.symbol!!)
+    } else if (spec.name != balance.currency) {
+        // Name (currency string)
+        stringResource(R.string.transactions_currency, spec.name, balance.currency)
+    } else balance.currency
+} else balance.currency
+
+private val previewBalance = BalanceItem(
+    scopeInfo = Exchange("MXN", "https://exchange.taler.banxico.org.mx"),
+    available = Amount.fromJSONString("MXN:5.50"),
+    pendingIncoming = Amount.fromJSONString("MXN:1.40"),
+    pendingOutgoing = Amount.fromJSONString("MXN:0"),
+    disablePeerPayments = false,
+)
+
+@Preview
+@Composable
+fun LegacyTransactionsComposableDonePreview() {
+    val t = TransactionWithdrawal(
+        transactionId = "transactionId",
+        timestamp = Timestamp.fromMillis(System.currentTimeMillis() - 360 * 60 * 1000),
+        txState = TransactionState(Done),
+        txActions = listOf(Retry, Suspend, Abort),
+        exchangeBaseUrl = "https://exchange.demo.taler.net/",
+        withdrawalDetails = WithdrawalDetails.TalerBankIntegrationApi(false),
+        amountRaw = Amount.fromString("TESTKUDOS", "42.23"),
+        amountEffective = Amount.fromString("TESTKUDOS", "42.1337"),
+        error = TalerErrorInfo(code = TalerErrorCode.WALLET_WITHDRAWAL_KYC_REQUIRED),
+        scopes = listOf(Exchange(
+            currency = "TESTKUDOS",
+            url = "exchange.test.taler.net",
+        ))
+    )
+
+    val transactions = listOf(t)
+
+    TalerSurface {
+        LegacyTransactionsComposable(
+            innerPadding = PaddingValues(0.dp),
+            balance = previewBalance,
+            stateFilter = null,
+            txResult = Success(transactions),
+            onTransactionClick = {},
+            onShowBalancesClicked = {},
+            selectionMode = false,
+            selectedItems = mutableListOf(),
+            onToggleSelection = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+fun LegacyTransactionsComposablePendingPreview() {
+    val t = TransactionWithdrawal(
+        transactionId = "transactionId",
+        timestamp = Timestamp.fromMillis(System.currentTimeMillis() - 360 * 60 * 1000),
+        txState = TransactionState(Pending),
+        txActions = listOf(Retry, Suspend, Abort),
+        exchangeBaseUrl = "https://exchange.demo.taler.net/",
+        withdrawalDetails = WithdrawalDetails.TalerBankIntegrationApi(false),
+        amountRaw = Amount.fromString("TESTKUDOS", "42.23"),
+        amountEffective = Amount.fromString("TESTKUDOS", "42.1337"),
+        error = TalerErrorInfo(code = TalerErrorCode.WALLET_WITHDRAWAL_KYC_REQUIRED),
+        scopes = listOf(Exchange(
+            currency = "TESTKUDOS",
+            url = "exchange.test.taler.net",
+        ))
+    )
+
+    val transactions = listOf(t)
+
+    TalerSurface {
+        LegacyTransactionsComposable(
+            innerPadding = PaddingValues(0.dp),
+            balance = previewBalance,
+            stateFilter = Nonfinal,
+            txResult = Success(transactions),
+            onTransactionClick = {},
+            onShowBalancesClicked = {},
+            selectionMode = false,
+            selectedItems = mutableListOf(),
+            onToggleSelection = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+fun LegacyTransactionsComposableEmptyPreview() {
+    TalerSurface {
+        LegacyTransactionsComposable(
+            innerPadding = PaddingValues(0.dp),
+            balance = previewBalance,
+            stateFilter = null,
+            txResult = Success(listOf()),
+            onTransactionClick = {},
+            onShowBalancesClicked = {},
+            selectionMode = false,
+            selectedItems = mutableListOf(),
+            onToggleSelection = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+fun LegacyTransactionsComposableLoadingPreview() {
+    TalerSurface {
+        LegacyTransactionsComposable(
+            innerPadding = PaddingValues(0.dp),
+            balance = previewBalance,
+            stateFilter = null,
+            txResult = None,
+            onTransactionClick = {},
+            onShowBalancesClicked = {},
+            selectionMode = false,
+            selectedItems = mutableListOf(),
+            onToggleSelection = {},
+        )
+    }
+}

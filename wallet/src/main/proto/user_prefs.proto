@@ -51,4 +51,6 @@ message UserPreferences {
   optional bool biometricLockEnabled = 4;
   optional PrefsViewMode viewMode = 5;
   optional PrefsViewMode2 viewMode2 = 6;
+  // Temporary developer switch between the legacy and the new main screen.
+  optional bool newMainScreenEnabled = 7;
 }

@@ -75,6 +75,14 @@ class SettingsManager(
         }
     }
 
+    fun getActionButtonUsed(c: Context) = c.userPreferencesDataStore.data.map { prefs ->
+        if (prefs.hasActionButtonUsed()) {
+            prefs.actionButtonUsed
+        } else {
+            false
+        }
+    }
+
     fun saveActionButtonUsed(c: Context) = scope.launch {
         c.userPreferencesDataStore.updateData { current ->
             current.toBuilder()
@@ -95,6 +103,22 @@ class SettingsManager(
         c.userPreferencesDataStore.updateData { current ->
             current.toBuilder()
                 .setDevModeEnabled(enabled)
+                .build()
+        }
+    }
+
+    fun getNewMainScreenEnabled(c: Context) = c.userPreferencesDataStore.data.map { prefs ->
+        if (prefs.hasNewMainScreenEnabled()) {
+            prefs.newMainScreenEnabled
+        } else {
+            false
+        }
+    }
+
+    fun setNewMainScreenEnabled(c: Context, enabled: Boolean) = scope.launch {
+        c.userPreferencesDataStore.updateData { current ->
+            current.toBuilder()
+                .setNewMainScreenEnabled(enabled)
                 .build()
         }
     }
