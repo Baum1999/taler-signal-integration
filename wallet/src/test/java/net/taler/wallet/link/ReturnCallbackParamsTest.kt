@@ -48,6 +48,26 @@ class ReturnCallbackParamsTest {
     }
 
     @Test
+    fun `returns null when a param is empty`() {
+        val uri = "taler://pay-push/exchange.demo.taler.net/ABC123" +
+            "?correlationId=&returnUri=sgnl%3A%2F%2Ftaler-return"
+
+        assertNull(ReturnCallbackParams.extract(uri))
+    }
+
+    @Test
+    fun `the first of duplicate params wins`() {
+        val uri = "taler://pay-push/exchange.demo.taler.net/ABC123" +
+            "?correlationId=corr-1&returnUri=sgnl%3A%2F%2Ftaler-return" +
+            "&correlationId=corr-2&returnUri=evil%3A%2F%2Ftaler-return"
+
+        val result = ReturnCallbackParams.extract(uri)
+
+        assertEquals("corr-1", result?.first)
+        assertEquals("sgnl://taler-return", result?.second)
+    }
+
+    @Test
     fun `stripQuery removes everything from the question mark onward`() {
         val uri = "taler://pay-push/exchange.demo.taler.net/ABC123?correlationId=corr-1&returnUri=x"
 

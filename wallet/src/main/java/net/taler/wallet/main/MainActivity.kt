@@ -89,8 +89,8 @@ import net.taler.wallet.compose.ErrorBottomSheet
 import net.taler.wallet.events.ObservabilityDialog
 import net.taler.wallet.launchInAppBrowser
 import net.taler.wallet.link.ComposeAbortRequest
+import net.taler.wallet.link.MessengerLinkParams
 import net.taler.wallet.link.OwnUriTracker
-import net.taler.wallet.link.TalerUriKind
 import net.taler.wallet.transactions.TransactionPeerPullCredit
 import net.taler.wallet.transactions.TransactionPeerPushDebit
 import net.taler.wallet.ui.theme.TalerTheme
@@ -511,6 +511,7 @@ class MainActivity : FragmentActivity() {
         // for NDEF_DISCOVERED it is the URI of the first NDEF record on the tag.
         intent.dataString?.let { uri ->
             val parsed = Uri.parse(uri)
+            val peerActionUri = MessengerLinkParams.peerActionTalerUri(uri)
             if (parsed.scheme == "talerlink" && parsed.host == "compose-send") {
                 composeSendFrom(parsed)?.let { destination -> emitComposeSend(destination) }
             } else if (parsed.scheme == "talerlink" && parsed.host == "compose-refund") {
@@ -519,6 +520,11 @@ class MainActivity : FragmentActivity() {
                 // Nie an emitUri weiterreichen: der Link traegt Zahlungs-URIs,
                 // die HandleUriScreen sonst als "Annehmen" deuten koennte.
                 composeAbortFrom(parsed)?.let { destination -> emitComposeAbort(destination) }
+            } else if (peerActionUri != null) {
+                // Annehmen/Abbrechen-Aktionslink eines Messengers
+                // (talerlink://pay-push|pay-pull/...): wie die taler://-URI
+                // behandeln, correlationId und returnUri reisen in der Query mit.
+                emitUri(peerActionUri)
             } else {
                 emitUri(uri)
             }
@@ -545,14 +551,13 @@ class MainActivity : FragmentActivity() {
      *
      * correlationId und returnUri sind Pflicht: ohne sie koennte Taler das
      * Ergebnis spaeter keinem Signal-Vorgang zuordnen und nirgendwohin
-     * zurueckspringen. Fehlt eines davon, wird der Link verworfen.
+     * zurueckspringen. Fehlt eines davon oder ist es leer, wird der Link
+     * verworfen.
      */
     private fun composeSendFrom(uri: Uri): WalletDestination.ComposeSend? {
-        val correlationId = uri.getQueryParameter("correlationId") ?: return null
-        val returnUri = uri.getQueryParameter("returnUri") ?: return null
-        val direction = uri.getQueryParameter("direction")
-            ?.takeIf { name -> TalerUriKind.entries.any { it.name == name } }
-            ?: TalerUriKind.PAY_PUSH.name
+        val correlationId = MessengerLinkParams.required(uri.getQueryParameter("correlationId")) ?: return null
+        val returnUri = MessengerLinkParams.required(uri.getQueryParameter("returnUri")) ?: return null
+        val direction = MessengerLinkParams.composeDirection(uri.getQueryParameter("direction"))
 
         return WalletDestination.ComposeSend(
             correlationId = correlationId,
@@ -574,9 +579,9 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun composeRefundFrom(uri: Uri): WalletDestination.ComposeRefund? {
-        val correlationId = uri.getQueryParameter("correlationId") ?: return null
-        val returnUri = uri.getQueryParameter("returnUri") ?: return null
-        val originalUri = uri.getQueryParameter("originalUri") ?: return null
+        val correlationId = MessengerLinkParams.required(uri.getQueryParameter("correlationId")) ?: return null
+        val returnUri = MessengerLinkParams.required(uri.getQueryParameter("returnUri")) ?: return null
+        val originalUri = MessengerLinkParams.required(uri.getQueryParameter("originalUri")) ?: return null
 
         return WalletDestination.ComposeRefund(
             correlationId = correlationId,
@@ -593,8 +598,8 @@ class MainActivity : FragmentActivity() {
      * verworfen. Unbekannte Metadaten werden ignoriert.
      */
     private fun composeAbortFrom(uri: Uri): WalletDestination.ComposeAbort? {
-        val correlationId = uri.getQueryParameter("correlationId")?.takeIf { it.isNotBlank() } ?: return null
-        val returnUri = uri.getQueryParameter("returnUri")?.takeIf { it.isNotBlank() } ?: return null
+        val correlationId = MessengerLinkParams.required(uri.getQueryParameter("correlationId")) ?: return null
+        val returnUri = MessengerLinkParams.required(uri.getQueryParameter("returnUri")) ?: return null
         val uris = ComposeAbortRequest.distinctUris(uri.getQueryParameters("uri"))
         if (!ComposeAbortRequest.hasProcessable(uris)) return null
 

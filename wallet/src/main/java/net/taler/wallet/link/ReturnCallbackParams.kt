@@ -30,13 +30,17 @@ object ReturnCallbackParams {
         val queryString = uri.substringAfter('?', missingDelimiterValue = "")
         if (queryString.isEmpty()) return null
 
-        val params = queryString.split('&').mapNotNull { pair ->
+        // Bei doppeltem Parameter gewinnt der erste, wie bei
+        // Uri.getQueryParameter an allen anderen Lesestellen
+        // (link-protokoll.md 2.3).
+        val params = mutableMapOf<String, String>()
+        queryString.split('&').forEach { pair ->
             val idx = pair.indexOf('=')
-            if (idx < 0) return@mapNotNull null
+            if (idx < 0) return@forEach
             val key = pair.substring(0, idx)
             val value = URLDecoder.decode(pair.substring(idx + 1), "UTF-8")
-            key to value
-        }.toMap()
+            params.putIfAbsent(key, value)
+        }
 
         val correlationId = params["correlationId"]?.takeIf { it.isNotBlank() }
         val returnUri = params["returnUri"]?.takeIf { it.isNotBlank() }

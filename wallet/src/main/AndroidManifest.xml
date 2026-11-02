@@ -83,6 +83,23 @@
                     tools:ignore="AppLinkUrlError" />
                 <data android:scheme="payto" />
             </intent-filter>
+            <!-- Annehmen/Abbrechen-Aktionslinks eines Messengers
+                 (talerlink://pay-push/... und pay-pull/..., link-protokoll.md 6),
+                 MainActivity setzt das Scheme auf taler zurueck. Eigener Filter,
+                 damit die Host-Einschraenkung nicht auch fuer taler:// gilt.
+                 compose-send/-refund/-abort kommen weiter nur explizit adressiert. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data
+                    android:scheme="talerlink"
+                    android:host="pay-push" />
+                <data
+                    android:scheme="talerlink"
+                    android:host="pay-pull" />
+            </intent-filter>
             <!-- https-Links nach DD 103 (https://wallet.taler.net/link#<aktion>,
                  siehe link/TalerHttpsLink.kt), entspricht der
                  apple-app-site-association fuer taler-ios. Die Verifizierung
