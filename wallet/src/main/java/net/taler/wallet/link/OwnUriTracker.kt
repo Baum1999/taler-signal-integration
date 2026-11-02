@@ -18,6 +18,7 @@ package net.taler.wallet.link
 
 import android.content.Context
 import android.content.SharedPreferences
+import java.security.MessageDigest
 
 /**
  * Schmale Schnittstelle, extrahiert damit [buildAggregate] (MultiUriSummary.kt)
@@ -64,9 +65,14 @@ interface OwnUriChecker {
  * TalerLinkService.kt) und der naechste Poll kippt eine zuvor korrekt
  * erkannte eigene Zahlung stillschweigend auf "fremd" um. SharedPreferences
  * ueberleben einen Prozessneustart - gleiches Muster wie
- * SentRefundStore/ConsentStore in diesem Paket. Kein neu exponiertes
- * Geheimnis: die taler://-URI selbst steht ohnehin im Klartext in der
- * Signal-Nachricht.
+ * SentRefundStore/ConsentStore in diesem Paket.
+ *
+ * Schluessel ist SHA-256(URI) als Hex, nie die URI selbst: eine
+ * pay-push-URI ist ein Inhaberpapier und gehoert nicht im Klartext in eine
+ * App-Datei (Backups, Geraeteabbilder). Gleiches Verfahren wie OwnUriStore
+ * in taler-ios (android-nachzieh-liste.md N15). Fruehere Versionen haben die
+ * URI als Schluessel gespeichert; [migrateLegacyKeys] stellt diese Eintraege
+ * beim ersten Zugriff um.
  */
 class OwnUriTracker(private val prefs: SharedPreferences) : OwnUriChecker {
 
@@ -74,17 +80,41 @@ class OwnUriTracker(private val prefs: SharedPreferences) : OwnUriChecker {
         context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     )
 
-    fun track(uri: String?, transactionId: String) {
-        if (uri.isNullOrBlank()) return
-        prefs.edit().putString(uri, transactionId).apply()
+    init {
+        migrateLegacyKeys()
     }
 
-    override fun isOwn(uri: String): Boolean = prefs.contains(uri)
+    fun track(uri: String?, transactionId: String) {
+        if (uri.isNullOrBlank()) return
+        prefs.edit().putString(keyFor(uri), transactionId).apply()
+    }
+
+    override fun isOwn(uri: String): Boolean = prefs.contains(keyFor(uri))
 
     /** Liefert die eigene transactionId zu [uri], oder null, wenn nicht (mehr) bekannt. */
-    fun transactionIdFor(uri: String): String? = prefs.getString(uri, null)
+    fun transactionIdFor(uri: String): String? = prefs.getString(keyFor(uri), null)
+
+    private fun migrateLegacyKeys() {
+        val legacy = prefs.all.filterKeys { !isHashKey(it) }
+        if (legacy.isEmpty()) return
+        val editor = prefs.edit()
+        legacy.forEach { (uri, transactionId) ->
+            if (transactionId is String) editor.putString(keyFor(uri), transactionId)
+            editor.remove(uri)
+        }
+        editor.apply()
+    }
 
     companion object {
         private const val PREFS_NAME = "taler_link_own_uris"
+
+        private val HASH_KEY = Regex("[0-9a-f]{64}")
+
+        internal fun keyFor(uri: String): String =
+            MessageDigest.getInstance("SHA-256")
+                .digest(uri.toByteArray(Charsets.UTF_8))
+                .joinToString("") { "%02x".format(it) }
+
+        internal fun isHashKey(key: String): Boolean = HASH_KEY.matches(key)
     }
 }
