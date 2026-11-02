@@ -88,6 +88,7 @@ import net.taler.wallet.compose.LoadingScreen
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.cardPaddings
 import net.taler.wallet.peer.GroupShareStore
+import net.taler.wallet.peer.TransactionContactLine
 import net.taler.wallet.transactions.AmountType.Negative
 import net.taler.wallet.transactions.AmountType.Neutral
 import net.taler.wallet.transactions.AmountType.Positive
@@ -591,6 +592,7 @@ fun TransactionRow(
                     ) {
                         TransactionExtraInfo(tx)
                     }
+                    TransactionContactLine(tx.transactionId, Modifier.padding(top = 4.dp))
                 }
             },
             colors = ListItemDefaults.colors(

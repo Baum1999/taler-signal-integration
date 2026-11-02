@@ -55,6 +55,7 @@ import net.taler.wallet.compose.SelectionChip
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.collectAsStateLifecycleAware
 import net.taler.wallet.main.MainViewModel
+import net.taler.wallet.peer.ContactStore
 import net.taler.wallet.peer.GroupPullState
 import net.taler.wallet.peer.GroupPushState
 import net.taler.wallet.peer.GroupShareInfo
@@ -303,6 +304,20 @@ fun ComposeSendScreen(
         } ?: stringResource(R.string.compose_send_subject_prefill, appName)
     }
 
+    // Merkt Kontakt (Name/Avatar) zur neuen Transaktion fuer die
+    // Transaktionsliste (ContactStore) - suspend, damit das Avatar-Bild
+    // sicher kopiert ist, bevor zu Signal zurueckgesprungen wird.
+    suspend fun saveContact(transactionId: String) {
+        ContactStore(context).save(
+            context = context,
+            transactionId = transactionId,
+            displayName = sanitizedRecipientHint,
+            isGroup = destination.isGroup,
+            senderAppName = sanitizedSenderAppName,
+            avatarUri = destination.avatarUri,
+        )
+    }
+
     val devMode by model.devMode.observeAsState(false)
     val pushState by peerManager.pushState.collectAsStateLifecycleAware()
     val groupPushState by peerManager.groupPushState.collectAsStateLifecycleAware()
@@ -357,6 +372,7 @@ fun ComposeSendScreen(
                 val groupShareStore = GroupShareStore(context)
                 successes.forEachIndexed { index, share ->
                     OwnUriTracker(context).track(share.talerUri, share.transactionId)
+                    saveContact(share.transactionId)
                     // Reine lokale UI-Zusatzinfo fuer die Transaktionsliste
                     // (Sammelzeile "Gruppenzahlung"), bewusst getrennt vom
                     // Contract-Term-`summary` - Nutzer-Vorgabe 2026-09-02,
@@ -413,6 +429,7 @@ fun ComposeSendScreen(
                 val groupShareStore = GroupShareStore(context)
                 successes.forEachIndexed { index, share ->
                     OwnUriTracker(context).track(share.talerUri, share.transactionId)
+                    saveContact(share.transactionId)
                     groupShareStore.save(
                         share.transactionId,
                         GroupShareInfo(
@@ -537,6 +554,7 @@ fun ComposeSendScreen(
                     // - per Final-Review C1 behoben (MainActivity.kt loggt
                     // jetzt nur noch die transactionId).
                     OwnUriTracker(context).track(uri, tx.transactionId)
+                    saveContact(tx.transactionId)
                     // Wenn currentPaymentData existiert (z.B. von Gruppen-Split),
                     // füge die URI hinzu und sende es als JSON-Objekt
                     val finalPaymentData = currentPaymentData?.copy(uri = listOf(uri))
@@ -567,6 +585,7 @@ fun ComposeSendScreen(
                 // kann bei der ersten Momentaufnahme noch fehlen.
                 tx.talerUri?.let { uri ->
                     OwnUriTracker(context).track(uri, tx.transactionId)
+                    saveContact(tx.transactionId)
                     val finalPaymentData = currentPaymentData?.copy(uri = listOf(uri))
                     deliver(listOf(uri), finalPaymentData)
                     navController.popBackStack()

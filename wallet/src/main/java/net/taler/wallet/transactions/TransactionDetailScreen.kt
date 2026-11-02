@@ -81,6 +81,7 @@ import net.taler.wallet.main.MainViewModel
 import net.taler.wallet.main.TAG
 import net.taler.wallet.payment.PayStatus
 import net.taler.wallet.payment.TransactionPaymentComposable
+import net.taler.wallet.peer.TransactionContactLine
 import net.taler.wallet.peer.TransactionPeerPullCreditComposable
 import net.taler.wallet.peer.TransactionPeerPullDebitComposable
 import net.taler.wallet.peer.TransactionPeerPushCreditComposable
@@ -464,6 +465,8 @@ fun TransactionPeerComposable(
             text = t.timestamp.ms.toAbsoluteTime(LocalContext.current).toString(),
             style = MaterialTheme.typography.bodyLarge,
         )
+
+        TransactionContactLine(t.transactionId, Modifier.padding(bottom = 16.dp))
 
         when (t) {
             is TransactionPeerPullCredit -> TransactionPeerPullCreditComposable(t, devMode, onConfirmKyc, onForward)
