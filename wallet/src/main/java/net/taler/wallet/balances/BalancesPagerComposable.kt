@@ -68,6 +68,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -76,6 +78,7 @@ import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -104,10 +107,14 @@ import net.taler.wallet.compose.Material3MenuItemData
 import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.cardPaddings
 import net.taler.wallet.donau.DonauSummaryItem
+import net.taler.wallet.peer.GroupShareStore
 import net.taler.wallet.transactions.DummyTransaction
+import net.taler.wallet.transactions.GroupTransactionRow
 import net.taler.wallet.transactions.Transaction
+import net.taler.wallet.transactions.TransactionListEntry
 import net.taler.wallet.transactions.TransactionRow
 import net.taler.wallet.transactions.TransactionsResult
+import net.taler.wallet.transactions.recentTransactionEntries
 import net.taler.wallet.ui.theme.errorContainerLight
 import net.taler.wallet.ui.theme.onErrorContainerLight
 import net.taler.wallet.ui.theme.onSuccessContainerLight
@@ -606,14 +613,32 @@ fun BalanceRecentTransactions(
                             message = stringResource(R.string.transactions_empty),
                             modifier = Modifier.height(placeholderHeight),
                         )
-                    } else res.transactions.forEach { tx ->
-                        TransactionRow(
-                            tx = tx,
-                            isSelected = false,
-                            selectionMode = false,
-                            onTransactionClick = { onTransactionClicked(tx) },
-                            onTransactionSelect = {},
-                        )
+                    } else {
+                        val context = LocalContext.current
+                        val entries = remember(res.transactions) {
+                            recentTransactionEntries(res.transactions, GroupShareStore(context))
+                        }
+                        entries.forEach { entry ->
+                            when (entry) {
+                                is TransactionListEntry.Single -> TransactionRow(
+                                    tx = entry.tx,
+                                    isSelected = false,
+                                    selectionMode = false,
+                                    onTransactionClick = { onTransactionClicked(entry.tx) },
+                                    onTransactionSelect = {},
+                                )
+
+                                is TransactionListEntry.Group -> key(entry.groupId) {
+                                    GroupTransactionRow(
+                                        entry = entry,
+                                        selectionMode = false,
+                                        selectedItems = emptyList(),
+                                        onTransactionClick = onTransactionClicked,
+                                        onToggleSelection = {},
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 

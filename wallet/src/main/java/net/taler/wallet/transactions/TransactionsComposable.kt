@@ -238,7 +238,7 @@ fun TransactionsComposable(
  * wallet-core kennt den Gruppenbegriff nicht, das ist reine Praesentation
  * der bereits vorhandenen Einzeltransaktionen.
  */
-private sealed class TransactionListEntry {
+sealed class TransactionListEntry {
     data class Single(val tx: Transaction) : TransactionListEntry()
     data class Group(
         val groupId: String,
@@ -285,6 +285,19 @@ private fun groupTransactions(
     }
 }
 
+/** Anzahl Zeilen der Karte "Letzte Transaktionen" auf dem Balances-Screen. */
+private const val RECENT_ROWS = 4
+
+/**
+ * Zeilen der Karte "Letzte Transaktionen": gruppiert wie die volle Liste und
+ * erst danach auf [RECENT_ROWS] begrenzt, damit eine Sammelzeile unabhaengig
+ * von der Anzahl ihrer Anteile nur eine Zeile belegt.
+ */
+fun recentTransactionEntries(
+    transactions: List<Transaction>,
+    groupShareStore: GroupShareStore,
+): List<TransactionListEntry> = groupTransactions(transactions, groupShareStore).take(RECENT_ROWS)
+
 /**
  * Auf-/zuklappbare Sammelzeile fuer einen Gruppen-Split-Versand. Jeder
  * Anteil bleibt darunter eine ganz normale, einzeln anklickbare/
@@ -292,10 +305,10 @@ private fun groupTransactions(
  * Mehrfachauswahl funktionieren identisch zu einer einzelnen Transaktion.
  */
 @Composable
-private fun GroupTransactionRow(
+fun GroupTransactionRow(
     entry: TransactionListEntry.Group,
     selectionMode: Boolean,
-    selectedItems: MutableList<String>,
+    selectedItems: List<String>,
     onTransactionClick: (tx: Transaction) -> Unit,
     onToggleSelection: (String) -> Unit,
 ) {

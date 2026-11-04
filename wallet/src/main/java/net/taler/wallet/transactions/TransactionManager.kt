@@ -64,10 +64,12 @@ class TransactionManager(
 ) {
     private companion object {
         /**
-         * Number of most recent transactions shown on the balances screen.
+         * Number of most recent transactions loaded for the balances screen.
+         * More than it shows (see recentTransactionEntries), so that all shares
+         * of a group payment are present when they get collapsed into one row.
          * Negative values mean "the last N transactions" in wallet-core.
          */
-        const val RECENT_LIMIT = -4
+        const val RECENT_LIMIT = -50
     }
 
     private data class FullListParams(
