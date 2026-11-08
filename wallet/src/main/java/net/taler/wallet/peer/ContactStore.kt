@@ -23,6 +23,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import net.taler.wallet.link.ReturnIntentSender
 import java.io.File
 
 data class ContactInfo(
@@ -30,6 +31,8 @@ data class ContactInfo(
     val isGroup: Boolean,
     val senderAppName: String?,
     val avatarFile: File?,
+    /** Ruecksprungziel des Messengers (`<scheme>://taler-return`), siehe [ReturnIntentSender.openInMessenger]. */
+    val returnUri: String? = null,
 )
 
 /**
@@ -61,6 +64,7 @@ class ContactStore(
         isGroup: Boolean,
         senderAppName: String?,
         avatarUri: String?,
+        returnUri: String? = null,
     ) {
         if (displayName.isNullOrBlank()) return
         val copied = avatarUri?.let { copyAvatar(context, transactionId, it) } ?: false
@@ -69,6 +73,7 @@ class ContactStore(
             .putBoolean(groupKey(transactionId), isGroup)
             .putString(appKey(transactionId), senderAppName)
             .putBoolean(avatarKey(transactionId), copied)
+            .putString(returnKey(transactionId), returnUri?.takeIf { ReturnIntentSender.targetFor(it) != null })
             .apply()
     }
 
@@ -82,6 +87,7 @@ class ContactStore(
             isGroup = prefs.getBoolean(groupKey(transactionId), false),
             senderAppName = prefs.getString(appKey(transactionId), null),
             avatarFile = avatar,
+            returnUri = prefs.getString(returnKey(transactionId), null),
         )
     }
 
@@ -112,6 +118,7 @@ class ContactStore(
     private fun groupKey(transactionId: String) = "group_$transactionId"
     private fun appKey(transactionId: String) = "app_$transactionId"
     private fun avatarKey(transactionId: String) = "avatar_$transactionId"
+    private fun returnKey(transactionId: String) = "return_$transactionId"
 
     companion object {
         private const val PREFS_NAME = "taler_peer_contacts"

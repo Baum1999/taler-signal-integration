@@ -315,6 +315,7 @@ fun ComposeSendScreen(
             isGroup = destination.isGroup,
             senderAppName = sanitizedSenderAppName,
             avatarUri = destination.avatarUri,
+            returnUri = destination.returnUri,
         )
     }
 

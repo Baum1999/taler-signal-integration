@@ -88,6 +88,7 @@ import net.taler.wallet.compose.TalerSurface
 import net.taler.wallet.compose.cardPaddings
 import net.taler.wallet.peer.GroupShareStore
 import net.taler.wallet.peer.TransactionContactLine
+import net.taler.wallet.peer.messengerTalerUri
 import net.taler.wallet.transactions.AmountType.Negative
 import net.taler.wallet.transactions.AmountType.Neutral
 import net.taler.wallet.transactions.AmountType.Positive
@@ -371,7 +372,12 @@ fun GroupTransactionRow(
                     )
                     val first = entry.shares.firstOrNull()
                     if (first != null) {
-                        TransactionContactLine(first.transactionId, Modifier.padding(top = 4.dp))
+                        TransactionContactLine(
+                            first.transactionId,
+                            Modifier.padding(top = 4.dp),
+                            talerUri = entry.shares.firstNotNullOfOrNull { messengerTalerUri(it) },
+                            enabled = !selectionMode,
+                        )
                         // Die Zeitzeile zeigt die frueheste Ablaufzeit der noch offenen Anteile.
                         TransactionTimeLine(
                             first.timestamp.ms,
@@ -609,7 +615,12 @@ fun TransactionRow(
                     ) {
                         TransactionExtraInfo(tx)
                     }
-                    TransactionContactLine(tx.transactionId, Modifier.padding(top = 4.dp))
+                    TransactionContactLine(
+                        tx.transactionId,
+                        Modifier.padding(top = 4.dp),
+                        talerUri = messengerTalerUri(tx),
+                        enabled = !selectionMode,
+                    )
                     TransactionTimeLine(tx, Modifier.padding(top = 4.dp))
                 }
             },

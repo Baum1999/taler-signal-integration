@@ -40,6 +40,7 @@ enum class ReturnStatus(val wireValue: String) {
 object ReturnIntentSender {
 
     const val RETURN_HOST = "taler-return"
+    const val OPEN_PARAM = "open"
 
     fun fire(
         context: Context,
@@ -114,6 +115,44 @@ object ReturnIntentSender {
             false
         }
     }
+
+    /**
+     * Oeffnet im Messenger den Chat mit der Nachricht zu [talerUri]
+     * (link-protokoll.md Abschnitt 12): `<scheme>://taler-return?open=<talerUri>`,
+     * ohne correlationId. Der Messenger fragt den Status der Zahlung dabei
+     * sofort neu ab. Gleiche Zielpruefung wie [fire]. Ist [returnUri] nicht
+     * bekannt (Transaktion aus einer aelteren Version), wird der erste
+     * installierte und korrekt signierte Messenger aus [AllowedCallers]
+     * genommen. Die URI ist ein Inhaberpapier, geht aber nur explizit an das
+     * gepruefte Package, das sie selbst verschickt hat.
+     */
+    fun openInMessenger(context: Context, returnUri: String?, talerUri: String): Boolean {
+        val target = openTarget(context, returnUri) ?: return false
+        val explicitIntent = Intent(Intent.ACTION_VIEW, openUri(target.scheme, talerUri)).apply {
+            setPackage(target.packageName)
+        }
+        return try {
+            context.startActivity(explicitIntent)
+            true
+        } catch (e: ActivityNotFoundException) {
+            false
+        }
+    }
+
+    /** Ob [openInMessenger] ein gepruefter Messenger zur Verfuegung steht. */
+    fun canOpenInMessenger(context: Context, returnUri: String?): Boolean =
+        openTarget(context, returnUri) != null
+
+    private fun openTarget(context: Context, returnUri: String?): ReturnTarget? {
+        val candidates = listOfNotNull(returnUri) + AllowedCallers.targets.map { "${it.scheme}://$RETURN_HOST" }
+        return candidates.firstNotNullOfOrNull { verifiedTarget(context, it) }
+    }
+
+    internal fun openUri(scheme: String, talerUri: String): Uri = Uri.Builder()
+        .scheme(scheme)
+        .authority(RETURN_HOST)
+        .appendQueryParameter(OPEN_PARAM, talerUri)
+        .build()
 
     /**
      * Ob ein Ruecksprung an `returnUri` moeglich ist: Ziel steht in der

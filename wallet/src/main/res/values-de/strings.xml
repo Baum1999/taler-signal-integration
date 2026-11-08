@@ -484,4 +484,5 @@
         <item quantity="one">noch %1$d Minute gültig</item>
         <item quantity="other">noch %1$d Minuten gültig</item>
     </plurals>
+    <string name="transaction_contact_open_chat">Chat in %1$s öffnen</string>
 </resources>
