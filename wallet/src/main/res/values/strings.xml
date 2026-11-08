@@ -246,6 +246,18 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
     <string name="transactions_group_total">%1$s total</string>
     <string name="transactions_group_total_with_self">%1$s total (incl. you)</string>
     <string name="transactions_group_progress">%1$d paid · %2$d open · %3$d declined</string>
+    <plurals name="transaction_valid_days">
+        <item quantity="one">valid for %1$d more day</item>
+        <item quantity="other">valid for %1$d more days</item>
+    </plurals>
+    <plurals name="transaction_valid_hours">
+        <item quantity="one">valid for %1$d more hour</item>
+        <item quantity="other">valid for %1$d more hours</item>
+    </plurals>
+    <plurals name="transaction_valid_minutes">
+        <item quantity="one">valid for %1$d more minute</item>
+        <item quantity="other">valid for %1$d more minutes</item>
+    </plurals>
     <string name="transactions_receive_funds">Request</string>
     <string name="transactions_resume">Resume</string>
     <string name="transactions_retry">Retry</string>

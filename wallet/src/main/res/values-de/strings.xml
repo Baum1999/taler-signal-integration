@@ -472,4 +472,16 @@
     <string name="token_valid_from">Gültig ab %1$s</string>
     <string name="tokens_filter_available">Gültig</string>
     <string name="tokens_filter_expired">Abgelaufen</string>
+    <plurals name="transaction_valid_days">
+        <item quantity="one">noch %1$d Tag gültig</item>
+        <item quantity="other">noch %1$d Tage gültig</item>
+    </plurals>
+    <plurals name="transaction_valid_hours">
+        <item quantity="one">noch %1$d Stunde gültig</item>
+        <item quantity="other">noch %1$d Stunden gültig</item>
+    </plurals>
+    <plurals name="transaction_valid_minutes">
+        <item quantity="one">noch %1$d Minute gültig</item>
+        <item quantity="other">noch %1$d Minuten gültig</item>
+    </plurals>
 </resources>

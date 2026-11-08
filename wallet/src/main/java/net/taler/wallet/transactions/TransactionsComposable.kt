@@ -75,7 +75,6 @@ import androidx.compose.ui.unit.dp
 import net.taler.common.Amount
 import net.taler.common.CurrencySpecification
 import net.taler.common.Timestamp
-import net.taler.lib.android.toRelativeTime
 import net.taler.wallet.BottomInsetsSpacer
 import net.taler.wallet.R
 import net.taler.wallet.backend.TalerErrorCode
@@ -370,6 +369,16 @@ fun GroupTransactionRow(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    val first = entry.shares.firstOrNull()
+                    if (first != null) {
+                        TransactionContactLine(first.transactionId, Modifier.padding(top = 4.dp))
+                        // Die Zeitzeile zeigt die frueheste Ablaufzeit der noch offenen Anteile.
+                        TransactionTimeLine(
+                            first.timestamp.ms,
+                            entry.shares.mapNotNull { PeerExpiry.expirationMs(it) }.minOrNull(),
+                            Modifier.padding(top = 4.dp),
+                        )
+                    }
                 }
             },
         )
@@ -589,13 +598,8 @@ fun TransactionRow(
             headlineContent = {
                 Column(Modifier.padding(vertical = 8.dp)) {
                     Text(
-                        text = tx.timestamp.ms.toRelativeTime(LocalContext.current).toString(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
                         tx.getTitle(),
-                        modifier = Modifier.padding(vertical = 3.dp),
+                        modifier = Modifier.padding(bottom = 3.dp),
                         style = MaterialTheme.typography.titleMedium,
                     )
                     ProvideTextStyle(
@@ -606,6 +610,7 @@ fun TransactionRow(
                         TransactionExtraInfo(tx)
                     }
                     TransactionContactLine(tx.transactionId, Modifier.padding(top = 4.dp))
+                    TransactionTimeLine(tx, Modifier.padding(top = 4.dp))
                 }
             },
             colors = ListItemDefaults.colors(
