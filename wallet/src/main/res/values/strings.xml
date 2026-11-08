@@ -259,6 +259,7 @@ GNU Taler is immune to many types of fraud such as credit card data theft, phish
         <item quantity="other">valid for %1$d more minutes</item>
     </plurals>
     <string name="transaction_contact_open_chat">Open chat in %1$s</string>
+    <string name="transaction_contact_messenger">Messenger</string>
     <string name="transactions_receive_funds">Request</string>
     <string name="transactions_resume">Resume</string>
     <string name="transactions_retry">Retry</string>

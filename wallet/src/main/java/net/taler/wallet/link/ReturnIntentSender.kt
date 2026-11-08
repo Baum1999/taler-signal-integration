@@ -139,6 +139,15 @@ object ReturnIntentSender {
         }
     }
 
+    /**
+     * Package des Messengers, an den [returnUri] zurueckspringt: nur wenn er in
+     * [AllowedCallers] steht, installiert und mit dem erwarteten Cert signiert
+     * ist. Anders als [openInMessenger] ohne Ersatz-Messenger, denn es dient der
+     * Anzeige (Logo, Name) genau dieses Messengers.
+     */
+    fun verifiedMessengerPackage(context: Context, returnUri: String?): String? =
+        returnUri?.let { verifiedTarget(context, it)?.packageName }
+
     /** Ob [openInMessenger] ein gepruefter Messenger zur Verfuegung steht. */
     fun canOpenInMessenger(context: Context, returnUri: String?): Boolean =
         openTarget(context, returnUri) != null
