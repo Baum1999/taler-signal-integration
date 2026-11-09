@@ -149,7 +149,15 @@ fun ComposeSendScreen(
 
     var fired by remember { mutableStateOf(false) }
     var currentPaymentData by remember { mutableStateOf<TalerPaymentData?>(null) }
-    
+    // Split-Angaben (includeSelf/totalAmount), eingefroren beim Tipp auf
+    // Senden/Anfordern im Gruppen-Split. Waehrend der Gruppen-Pfad laeuft,
+    // ersetzt ein LoadingScreen das Formular (siehe unten). Danach kommt das
+    // Formular mit frischem Zustand zurueck (Split aus) und meldet
+    // onSplitDataChanged(null, null) - currentPaymentData ist dann nicht mehr
+    // verlaesslich. Folge war includeSelf = null im GroupShareStore, die
+    // Sammelzeile zaehlte den Eigenanteil nicht ("0 paid" statt "1 paid").
+    var groupPaymentData by remember { mutableStateOf<TalerPaymentData?>(null) }
+
     fun fireReturn(status: ReturnStatus, talerUri: String? = null, talerPaymentData: TalerPaymentData? = null) {
         if (fired) return
         fired = true
@@ -364,7 +372,7 @@ fun ComposeSendScreen(
             val results = s.results
             if (results.allSucceeded()) {
                 val uris = results.successfulUris()
-                val finalPaymentData = currentPaymentData?.copy(uri = uris)
+                val finalPaymentData = groupPaymentData?.copy(uri = uris)
                 // Jede der N URIs ist eine eigenstaendige ausgehende Zahlung
                 // (Regel 3 PROMPT.md: die URI ist ein Inhaberpapier) - alle
                 // einzeln nachverfolgen, nicht nur die erste, sonst wuerden
@@ -384,7 +392,7 @@ fun ComposeSendScreen(
                             destination.correlationId,
                             index,
                             successes.size,
-                            currentPaymentData?.includeSelf,
+                            groupPaymentData?.includeSelf,
                         ),
                     )
                 }
@@ -425,7 +433,7 @@ fun ComposeSendScreen(
             val results = s.results
             if (results.allSucceeded()) {
                 val uris = results.successfulUris()
-                val finalPaymentData = currentPaymentData?.copy(uri = uris)
+                val finalPaymentData = groupPaymentData?.copy(uri = uris)
                 val successes = results.filterIsInstance<ShareResult.Success>()
                 val groupShareStore = GroupShareStore(context)
                 successes.forEachIndexed { index, share ->
@@ -437,7 +445,7 @@ fun ComposeSendScreen(
                             destination.correlationId,
                             index,
                             successes.size,
-                            currentPaymentData?.includeSelf,
+                            groupPaymentData?.includeSelf,
                         ),
                     )
                 }
@@ -720,6 +728,7 @@ fun ComposeSendScreen(
                             )
                         },
                         onCreateInvoiceGroup = { amountScope, count, summary, hours, exchangeBaseUrl ->
+                            groupPaymentData = currentPaymentData
                             initiated = true
                             peerManager.initiatePeerPullCreditGroupAsync(
                                 count = count,
@@ -786,6 +795,7 @@ fun ComposeSendScreen(
                         )
                     },
                     onSendGroup = { amountScope, count, summary, hours ->
+                        groupPaymentData = currentPaymentData
                         initiated = true
                         peerManager.initiatePeerPushDebitGroupAsync(
                             count = count,
