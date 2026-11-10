@@ -130,8 +130,14 @@ fun HandleUriScreen(
                         // ihr Format ist von wallet-core's eigenem URI-Parser nicht geprueft)
                         // gelesen und abgetrennt werden muessen.
                         val callback = net.taler.wallet.link.ReturnCallbackParams.extract(u2)
+                        // Mit dem Chat-Kontext des Messengers: Incoming*PaymentScreen merkt
+                        // ihn nach dem Annehmen dauerhaft (ContactStore.saveAccepted).
                         model.peerManager.pendingReturnCallback = callback?.let {
-                            net.taler.wallet.link.ReturnCallbackInfo(it.first, it.second)
+                            net.taler.wallet.link.ReturnCallbackInfo(
+                                it.first,
+                                it.second,
+                                net.taler.wallet.link.ReturnCallbackParams.contact(u2),
+                            )
                         }
                         val cleanUri = net.taler.wallet.link.ReturnCallbackParams.stripQuery(u2)
                         model.peerManager.preparePeerPullDebit(cleanUri)
@@ -144,8 +150,14 @@ fun HandleUriScreen(
                         // geht (preparePeerPushCredit kennt/braucht sie nicht, und ihr
                         // Format ist von wallet-core's eigenem URI-Parser nicht geprueft).
                         val callback = net.taler.wallet.link.ReturnCallbackParams.extract(u2)
+                        // Mit dem Chat-Kontext des Messengers: Incoming*PaymentScreen merkt
+                        // ihn nach dem Annehmen dauerhaft (ContactStore.saveAccepted).
                         model.peerManager.pendingReturnCallback = callback?.let {
-                            net.taler.wallet.link.ReturnCallbackInfo(it.first, it.second)
+                            net.taler.wallet.link.ReturnCallbackInfo(
+                                it.first,
+                                it.second,
+                                net.taler.wallet.link.ReturnCallbackParams.contact(u2),
+                            )
                         }
                         val cleanUri = net.taler.wallet.link.ReturnCallbackParams.stripQuery(u2)
                         // Bug 1 Fix: eine pay-push-URI, die diese Wallet-Instanz selbst

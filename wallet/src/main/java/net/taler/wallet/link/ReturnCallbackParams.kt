@@ -27,8 +27,35 @@ import java.net.URLDecoder
 object ReturnCallbackParams {
 
     fun extract(uri: String): Pair<String, String>? {
+        val params = queryParams(uri)
+        val correlationId = params["correlationId"]?.takeIf { it.isNotBlank() }
+        val returnUri = params["returnUri"]?.takeIf { it.isNotBlank() }
+        if (correlationId == null || returnUri == null) return null
+        return Pair(correlationId, returnUri)
+    }
+
+    /**
+     * Anzeige-Kontext des Chats, aus dem der Messenger die Zahlung annehmen
+     * laesst (Aktionslink, link-protokoll.md Abschnitt 6): dieselben
+     * Hinweise wie bei compose-send. Ohne Chat-Namen null.
+     */
+    fun contact(uri: String): MessengerContact? {
+        val params = queryParams(uri)
+        val displayName = displayHint(params["recipientHint"]) ?: return null
+        return MessengerContact(
+            displayName = displayName,
+            isGroup = params["isGroup"].equals("true", ignoreCase = true),
+            senderAppName = displayHint(params["senderAppName"]),
+            avatarUri = params["avatarUri"]?.takeIf { it.isNotBlank() },
+            uriHash = OwnUriTracker.keyFor(stripQuery(uri)),
+        )
+    }
+
+    fun stripQuery(uri: String): String = uri.substringBefore('?')
+
+    private fun queryParams(uri: String): Map<String, String> {
         val queryString = uri.substringAfter('?', missingDelimiterValue = "")
-        if (queryString.isEmpty()) return null
+        if (queryString.isEmpty()) return emptyMap()
 
         // Bei doppeltem Parameter gewinnt der erste, wie bei
         // Uri.getQueryParameter an allen anderen Lesestellen
@@ -41,14 +68,33 @@ object ReturnCallbackParams {
             val value = URLDecoder.decode(pair.substring(idx + 1), "UTF-8")
             params.putIfAbsent(key, value)
         }
-
-        val correlationId = params["correlationId"]?.takeIf { it.isNotBlank() }
-        val returnUri = params["returnUri"]?.takeIf { it.isNotBlank() }
-        if (correlationId == null || returnUri == null) return null
-        return Pair(correlationId, returnUri)
+        return params
     }
 
-    fun stripQuery(uri: String): String = uri.substringBefore('?')
+    // Gleiche Bereinigung wie fuer die compose-send-Hinweise (ComposeSendScreen):
+    // Steuerzeichen raus, leer -> null.
+    private fun displayHint(value: String?): String? =
+        value?.filter { it.isDefined() && !it.isISOControl() }?.takeIf { it.isNotBlank() }
 }
 
-data class ReturnCallbackInfo(val correlationId: String, val returnUri: String)
+/**
+ * Chat, aus dem eine eingehende Zahlung angenommen wurde. Name, Gruppe,
+ * App-Name und Avatar sind wie bei compose-send reine, angreifer-
+ * kontrollierte Anzeige-Hinweise (link-protokoll.md 2.6). [uriHash] ist der
+ * SHA-256 der angenommenen URI ohne Query: ueber ihn findet der Messenger
+ * die Nachricht spaeter wieder (link-protokoll.md Abschnitt 12).
+ */
+data class MessengerContact(
+    val displayName: String,
+    val isGroup: Boolean,
+    val senderAppName: String?,
+    val avatarUri: String?,
+    val uriHash: String,
+)
+
+data class ReturnCallbackInfo(
+    val correlationId: String,
+    val returnUri: String,
+    /** Chat des Annehmen-Links, fuer die Kontaktzeile der angenommenen Zahlung ([MessengerContact]). */
+    val contact: MessengerContact? = null,
+)

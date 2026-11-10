@@ -83,4 +83,49 @@ class ReturnCallbackParamsTest {
 
         assertEquals(uri, ReturnCallbackParams.stripQuery(uri))
     }
+
+    @Test
+    fun `contact of the chat the payment is accepted from`() {
+        val uri = "taler://pay-push/exchange.demo.taler.net/ABC123" +
+            "?correlationId=corr-1&returnUri=sgnl%3A%2F%2Ftaler-return" +
+            "&recipientHint=Alice%20M%C3%BCller&senderAppName=Signal&isGroup=true" +
+            "&avatarUri=content%3A%2F%2Forg.example.avatar%2F42"
+
+        val contact = ReturnCallbackParams.contact(uri)
+
+        assertEquals("Alice Müller", contact?.displayName)
+        assertEquals(true, contact?.isGroup)
+        assertEquals("Signal", contact?.senderAppName)
+        assertEquals("content://org.example.avatar/42", contact?.avatarUri)
+        // printf '%s' 'taler://pay-push/exchange.demo.taler.net/ABC123' | shasum -a 256
+        assertEquals("1d8a7666225294e584de35bd8bdef6abe97e291092efd7be201d5583a3b9feae", contact?.uriHash)
+    }
+
+    @Test
+    fun `contact hash is the one of the uri without query`() {
+        val uri = "taler://pay-push/exchange.demo.taler.net/ABC123?recipientHint=Alice"
+
+        assertEquals(
+            OwnUriTracker.keyFor("taler://pay-push/exchange.demo.taler.net/ABC123"),
+            ReturnCallbackParams.contact(uri)?.uriHash,
+        )
+    }
+
+    @Test
+    fun `no contact without a chat name`() {
+        assertNull(ReturnCallbackParams.contact("taler://pay-push/exchange.demo.taler.net/ABC123"))
+        assertNull(ReturnCallbackParams.contact("taler://pay-push/exchange.demo.taler.net/ABC123?recipientHint=%20"))
+    }
+
+    @Test
+    fun `control characters are removed from the hints`() {
+        val uri = "taler://pay-push/exchange.demo.taler.net/ABC123?recipientHint=Al%0Aice&senderAppName=%07"
+
+        val contact = ReturnCallbackParams.contact(uri)
+
+        assertEquals("Alice", contact?.displayName)
+        assertEquals(false, contact?.isGroup)
+        assertNull(contact?.senderAppName)
+        assertNull(contact?.avatarUri)
+    }
 }

@@ -42,6 +42,8 @@ import net.taler.wallet.compose.WarningLabel
 import net.taler.wallet.link.ReturnIntentSender
 import net.taler.wallet.link.ReturnStatus
 import net.taler.wallet.main.MainViewModel
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 
 @Composable
 fun IncomingPushPaymentScreen(
@@ -101,6 +103,12 @@ fun IncomingPushPaymentScreen(
     LaunchedEffect(state.value) {
         val s = state.value
         if (s is IncomingAccepted) {
+            // Chat des Annehmen-Links dauerhaft an die Transaktion haengen
+            // (Kontaktzeile mit Sprung zur Nachricht), wie bei compose-send vor
+            // dem Ruecksprung, damit das Avatar-Bild sicher kopiert ist.
+            myCallback?.let { callback ->
+                withContext(NonCancellable) { ContactStore(context).saveAccepted(context, s.transactionId, callback) }
+            }
             // docs/API.md 2.10: Ruecksprung feuern, BEVOR der Zustand geloescht
             // wird - der Cancel-Fallback unten (DisposableEffect.onDispose)
             // prueft auf einen noch gesetzten pendingReturnCallback und wuerde

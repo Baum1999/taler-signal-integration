@@ -23,6 +23,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import net.taler.wallet.link.ReturnCallbackInfo
 import net.taler.wallet.link.ReturnIntentSender
 import java.io.File
 
@@ -37,7 +38,8 @@ data class ContactInfo(
 
 /**
  * Merkt sich dauerhaft, an welchen Messenger-Kontakt (Signal) eine
- * Transaktion gegangen ist, damit die Transaktionsliste und die
+ * Transaktion gegangen ist (compose-send) bzw. aus welchem Chat eine
+ * eingehende Zahlung angenommen wurde ([saveAccepted]), damit die Transaktionsliste und die
  * Detailansicht "Signal-Logo + Avatar + Name" zeigen koennen. Reine lokale
  * UI-Zusatzinfo wie [GroupShareStore], gleiches SharedPreferences-Muster.
  *
@@ -65,6 +67,7 @@ class ContactStore(
         senderAppName: String?,
         avatarUri: String?,
         returnUri: String? = null,
+        uriHash: String? = null,
     ) {
         if (displayName.isNullOrBlank()) return
         val copied = avatarUri?.let { copyAvatar(context, transactionId, it) } ?: false
@@ -74,8 +77,34 @@ class ContactStore(
             .putString(appKey(transactionId), senderAppName)
             .putBoolean(avatarKey(transactionId), copied)
             .putString(returnKey(transactionId), returnUri?.takeIf { ReturnIntentSender.targetFor(it) != null })
+            .putString(hashKey(transactionId), uriHash)
             .apply()
     }
+
+    /**
+     * Merkt den Chat, aus dem eine eingehende Zahlung [transactionId] per
+     * Aktionslink angenommen wurde ([ReturnCallbackInfo.contact]), dauerhaft
+     * wie bei compose-send, dazu den Hash der URI fuer den Sprung zur
+     * Nachricht ([uriHash]). Eigene Zahlungen haben ihren Hash im
+     * OwnUriTracker; dort darf eine eingehende URI nicht stehen, sonst gaelte
+     * sie als eigene. Ohne Chat-Kontext (QR-Code, eingefuegter Link) nichts.
+     */
+    suspend fun saveAccepted(context: Context, transactionId: String, callback: ReturnCallbackInfo) {
+        val contact = callback.contact ?: return
+        save(
+            context = context,
+            transactionId = transactionId,
+            displayName = contact.displayName,
+            isGroup = contact.isGroup,
+            senderAppName = contact.senderAppName,
+            avatarUri = contact.avatarUri,
+            returnUri = callback.returnUri,
+            uriHash = contact.uriHash,
+        )
+    }
+
+    /** Hash der angenommenen URI zu [transactionId] (nur eingehende Zahlungen, siehe [saveAccepted]). */
+    fun uriHash(transactionId: String): String? = prefs.getString(hashKey(transactionId), null)
 
     fun get(transactionId: String): ContactInfo? {
         val name = prefs.getString(nameKey(transactionId), null) ?: return null
@@ -119,6 +148,7 @@ class ContactStore(
     private fun appKey(transactionId: String) = "app_$transactionId"
     private fun avatarKey(transactionId: String) = "avatar_$transactionId"
     private fun returnKey(transactionId: String) = "return_$transactionId"
+    private fun hashKey(transactionId: String) = "hash_$transactionId"
 
     companion object {
         private const val PREFS_NAME = "taler_peer_contacts"
