@@ -82,7 +82,7 @@ import net.taler.wallet.main.TAG
 import net.taler.wallet.payment.PayStatus
 import net.taler.wallet.payment.TransactionPaymentComposable
 import net.taler.wallet.peer.TransactionContactLine
-import net.taler.wallet.peer.messengerTalerUri
+import net.taler.wallet.peer.rememberMessengerUriHashes
 import net.taler.wallet.peer.TransactionPeerPullCreditComposable
 import net.taler.wallet.peer.TransactionPeerPullDebitComposable
 import net.taler.wallet.peer.TransactionPeerPushCreditComposable
@@ -467,7 +467,7 @@ fun TransactionPeerComposable(
             style = MaterialTheme.typography.bodyLarge,
         )
 
-        TransactionContactLine(t.transactionId, Modifier.padding(bottom = 16.dp), talerUri = messengerTalerUri(t))
+        TransactionContactLine(t.transactionId, Modifier.padding(bottom = 16.dp), uriHashes = rememberMessengerUriHashes(listOf(t)))
 
         when (t) {
             is TransactionPeerPullCredit -> TransactionPeerPullCreditComposable(t, devMode, onConfirmKyc, onForward)

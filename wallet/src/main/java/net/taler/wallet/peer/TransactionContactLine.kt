@@ -46,22 +46,60 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import net.taler.wallet.R
 import net.taler.wallet.compose.RecipientAvatar
+import net.taler.wallet.link.OwnUriTracker
 import net.taler.wallet.link.ReturnIntentSender
 import net.taler.wallet.transactions.Transaction
 import net.taler.wallet.transactions.TransactionPeerPullCredit
+import net.taler.wallet.transactions.TransactionPeerPullDebit
+import net.taler.wallet.transactions.TransactionPeerPushCredit
 import net.taler.wallet.transactions.TransactionPeerPushDebit
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Die URI, ueber die der Messenger die Nachricht zu [tx] wiederfindet: nur
- * fuer selbst erstellte Peer-Zahlungen, die per compose-send verschickt
- * wurden.
+ * Peer-Zahlung, die ueber einen Messenger-Chat laufen kann: transactionId und
+ * die URI, soweit wallet-core sie noch liefert. Selbst erstellt (compose-send):
+ * bei pay-push nur, solange die Zahlung angenommen werden kann. Eingehend
+ * (per Aktionslink angenommen): nie, der Hash steht dann im [ContactStore].
+ * Sonst null.
  */
-fun messengerTalerUri(tx: Transaction): String? = when (tx) {
-    is TransactionPeerPushDebit -> tx.talerUri
-    is TransactionPeerPullCredit -> tx.talerUri
+internal fun messengerPeerPayment(tx: Transaction): Pair<String, String?>? = when (tx) {
+    is TransactionPeerPushDebit -> tx.transactionId to tx.talerUri
+    is TransactionPeerPullCredit -> tx.transactionId to tx.talerUri
+    is TransactionPeerPushCredit -> tx.transactionId to null
+    is TransactionPeerPullDebit -> tx.transactionId to null
     else -> null
-}?.takeIf { it.isNotBlank() }
+}
+
+/**
+ * Hashes, ueber die der Messenger die Nachricht zu [payments] wiederfindet
+ * (link-protokoll.md Abschnitt 12): SHA-256 der URI wie im [OwnUriTracker].
+ * Nach dem Annehmen (oder Ablauf, Abbruch) liefert wallet-core keine URI
+ * mehr, dann kommt der Hash aus [hashesFor] (OwnUriTracker seit compose-send,
+ * ContactStore fuer angenommene eingehende Zahlungen). Reihenfolge wie
+ * [payments], ohne Duplikate, hoechstens [ReturnIntentSender.MAX_URI_HASHES].
+ */
+internal fun messengerUriHashes(
+    payments: List<Pair<String, String?>>,
+    hashesFor: (transactionId: String) -> List<String>,
+): List<String> = payments
+    .flatMap { (transactionId, talerUri) ->
+        listOfNotNull(talerUri?.takeIf { it.isNotBlank() }?.let { OwnUriTracker.keyFor(it) }) + hashesFor(transactionId)
+    }
+    .distinct()
+    .take(ReturnIntentSender.MAX_URI_HASHES)
+
+/** [messengerUriHashes] fuer die Peer-Zahlungen unter [transactions], z.B. den Anteilen eines Gruppen-Splits. */
+@Composable
+fun rememberMessengerUriHashes(transactions: List<Transaction>): List<String> {
+    val context = LocalContext.current
+    return remember(transactions) {
+        val tracker = OwnUriTracker(context)
+        val contacts = ContactStore(context)
+        messengerUriHashes(transactions.mapNotNull(::messengerPeerPayment)) { transactionId ->
+            tracker.hashesFor(transactionId) + listOfNotNull(contacts.uriHash(transactionId))
+        }
+    }
+}
 
 /** Name und Launcher-Icon eines installierten, geprueften Messengers. */
 private class MessengerBadge(val label: String, val icon: ImageBitmap)
@@ -90,21 +128,21 @@ private fun messengerBadge(context: Context, returnUri: String?, iconPx: Int): M
 
 /**
  * Zeile "Messenger-Logo, Avatar, Name" fuer Transaktionen, die ueber einen
- * Messenger-Link erstellt wurden (siehe [ContactStore]). Ohne gespeicherten
+ * Messenger-Link erstellt oder angenommen wurden (siehe [ContactStore]). Ohne gespeicherten
  * Kontext wird nichts angezeigt. Das Logo ist das Launcher-Icon des
  * Messengers aus dem gespeicherten Ruecksprungziel; ist der nicht pruefbar
  * (aeltere Transaktion, Messenger deinstalliert), das Signal-Logo fuer
- * Zahlungen aus Signal, sonst ein neutrales Chat-Symbol. Mit [talerUri] ist
- * die Zeile ein Link: ein Tipp oeffnet im Messenger den Chat an der
- * Zahlungsnachricht, der Messenger fragt dabei den aktuellen Status ab
- * ([ReturnIntentSender.openInMessenger]).
+ * Zahlungen aus Signal, sonst ein neutrales Chat-Symbol. Mit [uriHashes]
+ * ([rememberMessengerUriHashes]) ist die Zeile ein Link: ein Tipp oeffnet im
+ * Messenger den Chat an der Zahlungsnachricht, der Messenger fragt dabei den
+ * aktuellen Status ab ([ReturnIntentSender.openInMessenger]).
  */
 @Composable
 fun TransactionContactLine(
     transactionId: String,
     modifier: Modifier = Modifier,
     avatarSize: Dp = 20.dp,
-    talerUri: String? = null,
+    uriHashes: List<String> = emptyList(),
     enabled: Boolean = true,
 ) {
     val context = LocalContext.current
@@ -118,12 +156,12 @@ fun TransactionContactLine(
     val messengerAvailable = remember(info.returnUri) {
         ReturnIntentSender.canOpenInMessenger(context, info.returnUri)
     }
-    val canOpen = talerUri != null && enabled && messengerAvailable
+    val canOpen = uriHashes.isNotEmpty() && enabled && messengerAvailable
     val openLabel = stringResource(R.string.transaction_contact_open_chat, appName)
     Row(
-        if (canOpen && talerUri != null) {
+        if (canOpen) {
             modifier.clickable(onClickLabel = openLabel, role = Role.Button) {
-                ReturnIntentSender.openInMessenger(context, info.returnUri, talerUri)
+                ReturnIntentSender.openInMessenger(context, info.returnUri, uriHashes)
             }
         } else modifier,
         verticalAlignment = Alignment.CenterVertically,

@@ -40,7 +40,8 @@ enum class ReturnStatus(val wireValue: String) {
 object ReturnIntentSender {
 
     const val RETURN_HOST = "taler-return"
-    const val OPEN_PARAM = "open"
+    const val URI_HASH_PARAM = "uriHash"
+    const val MAX_URI_HASHES = 32
 
     fun fire(
         context: Context,
@@ -117,18 +118,22 @@ object ReturnIntentSender {
     }
 
     /**
-     * Oeffnet im Messenger den Chat mit der Nachricht zu [talerUri]
-     * (link-protokoll.md Abschnitt 12): `<scheme>://taler-return?open=<talerUri>`,
-     * ohne correlationId. Der Messenger fragt den Status der Zahlung dabei
-     * sofort neu ab. Gleiche Zielpruefung wie [fire]. Ist [returnUri] nicht
-     * bekannt (Transaktion aus einer aelteren Version), wird der erste
-     * installierte und korrekt signierte Messenger aus [AllowedCallers]
-     * genommen. Die URI ist ein Inhaberpapier, geht aber nur explizit an das
-     * gepruefte Package, das sie selbst verschickt hat.
+     * Oeffnet im Messenger den Chat mit der Nachricht zu einer Zahlung
+     * (link-protokoll.md Abschnitt 12):
+     * `<scheme>://taler-return?uriHash=<hex>&uriHash=<hex>...`, ohne
+     * correlationId. [uriHashes] sind die SHA-256-Schluessel aus dem
+     * [OwnUriTracker], bei einem Gruppen-Split einer pro Anteil. Den Hash
+     * gibt es auch noch, wenn wallet-core die URI nach dem Annehmen nicht
+     * mehr liefert, und anders als die URI ist er kein Inhaberpapier. Der
+     * Messenger fragt den Status der Zahlung dabei sofort neu ab. Gleiche
+     * Zielpruefung wie [fire]. Ist [returnUri] nicht bekannt (Transaktion aus
+     * einer aelteren Version), wird der erste installierte und korrekt
+     * signierte Messenger aus [AllowedCallers] genommen.
      */
-    fun openInMessenger(context: Context, returnUri: String?, talerUri: String): Boolean {
+    fun openInMessenger(context: Context, returnUri: String?, uriHashes: List<String>): Boolean {
+        if (uriHashes.isEmpty()) return false
         val target = openTarget(context, returnUri) ?: return false
-        val explicitIntent = Intent(Intent.ACTION_VIEW, openUri(target.scheme, talerUri)).apply {
+        val explicitIntent = Intent(Intent.ACTION_VIEW, openUri(target.scheme, uriHashes)).apply {
             setPackage(target.packageName)
         }
         return try {
@@ -157,10 +162,10 @@ object ReturnIntentSender {
         return candidates.firstNotNullOfOrNull { verifiedTarget(context, it) }
     }
 
-    internal fun openUri(scheme: String, talerUri: String): Uri = Uri.Builder()
+    internal fun openUri(scheme: String, uriHashes: List<String>): Uri = Uri.Builder()
         .scheme(scheme)
         .authority(RETURN_HOST)
-        .appendQueryParameter(OPEN_PARAM, talerUri)
+        .apply { uriHashes.take(MAX_URI_HASHES).forEach { appendQueryParameter(URI_HASH_PARAM, it) } }
         .build()
 
     /**

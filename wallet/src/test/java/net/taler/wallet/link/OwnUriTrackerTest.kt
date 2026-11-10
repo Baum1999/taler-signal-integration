@@ -126,6 +126,17 @@ class OwnUriTrackerTest {
     }
 
     @Test
+    fun `hashes of a transaction are found by its id`() {
+        val other = "taler://pay-push/exchange.demo.taler.net/XYZ789"
+        val tracker = OwnUriTracker(FakeOwnUriPrefs())
+        tracker.track(uri, "txn:peer-push-debit:1")
+        tracker.track(other, "txn:peer-push-debit:2")
+
+        assertEquals(listOf(OwnUriTracker.keyFor(uri)), tracker.hashesFor("txn:peer-push-debit:1"))
+        assertEquals(emptyList<String>(), tracker.hashesFor("txn:peer-push-debit:3"))
+    }
+
+    @Test
     fun `already hashed entries are left alone`() {
         val key = OwnUriTracker.keyFor(uri)
         val prefs = FakeOwnUriPrefs(mapOf(key to "txn:peer-push-debit:1"))

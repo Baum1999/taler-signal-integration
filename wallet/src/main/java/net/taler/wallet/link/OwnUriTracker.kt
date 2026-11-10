@@ -94,6 +94,16 @@ class OwnUriTracker(private val prefs: SharedPreferences) : OwnUriChecker {
     /** Liefert die eigene transactionId zu [uri], oder null, wenn nicht (mehr) bekannt. */
     fun transactionIdFor(uri: String): String? = prefs.getString(keyFor(uri), null)
 
+    /**
+     * Die Schluessel (SHA-256 der URI) aller zu [transactionId] gemerkten
+     * URIs. Fuer den Sprung in den Messenger-Chat
+     * ([ReturnIntentSender.openInMessenger]): wallet-core liefert die URI
+     * einer pay-push-Zahlung nach dem Annehmen nicht mehr, ihr Hash steht
+     * aber weiter hier.
+     */
+    fun hashesFor(transactionId: String): List<String> =
+        prefs.all.filter { (key, value) -> value == transactionId && isHashKey(key) }.keys.sorted()
+
     private fun migrateLegacyKeys() {
         val legacy = prefs.all.filterKeys { !isHashKey(it) }
         if (legacy.isEmpty()) return
